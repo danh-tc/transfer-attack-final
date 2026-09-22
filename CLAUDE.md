@@ -18,10 +18,20 @@ Protocol đã khóa xong (xem docs/protocol_lock.md). Chưa có code, chưa veri
 
 ## Chạy môi trường
 
+Máy GPU thuê mới hoàn toàn — chạy 1 lệnh duy nhất, làm hết mọi thứ (dựng venv, tải checkpoint,
+tải dataset, chốt danh sách ảnh n=300/n=1000):
+
 ```bash
-bash scripts/setup_env.sh
+bash scripts/bootstrap.sh
 source .venv/bin/activate
 ```
+
+Idempotent — chạy lại an toàn nếu bị gián đoạn giữa chừng (mỗi bước tự bỏ qua phần đã xong).
+`data/image_lists/{n300,n1000}.csv` chỉ tạo **một lần duy nhất** (đã commit vào git, seed=42,
+xem `docs/protocol_lock.md`) — `bootstrap.sh` không bao giờ ghi đè lại danh sách này.
+
+Chạy riêng từng bước (khi cần debug hoặc chỉ thiếu 1 phần): `scripts/setup_env.sh`,
+`scripts/download_checkpoints.sh`, `scripts/download_dataset.sh`, `scripts/generate_image_lists.py`.
 
 Chi tiết/troubleshooting: [docs/environment_setup.md](docs/environment_setup.md).
 

@@ -7,13 +7,18 @@ Bối cảnh: mỗi lần chạy thí nghiệm là một máy GPU thuê mới ho
 ```bash
 git clone <repo-url> transfer-attack-final
 cd transfer-attack-final
-bash scripts/setup_env.sh
+bash scripts/bootstrap.sh
 source .venv/bin/activate
 ```
 
-Script tự làm hết: kiểm tra GPU/driver, cài apt deps, tạo venv mới (xóa venv cũ nếu có), cài PyTorch/MMCV/MMDetection theo version đã pin, verify bằng import + `torch.cuda.is_available()`, và ghi báo cáo môi trường vào `environment_report.txt` (không commit — xem `.gitignore`).
+`bootstrap.sh` gọi tuần tự 4 script con, mỗi cái tự idempotent (bỏ qua phần đã xong nếu bị gián đoạn giữa chừng):
 
-Chạy 1 lệnh, xong là có venv sẵn sàng.
+1. `scripts/setup_env.sh` — dựng venv: kiểm tra GPU/driver, cài apt deps, tạo venv mới (xóa venv cũ nếu có), cài PyTorch/MMCV/MMDetection theo version đã pin, verify bằng import + `torch.cuda.is_available()`, ghi `environment_report.txt` (không commit).
+2. `scripts/download_checkpoints.sh` — tải 4 checkpoint Controlled Panel qua `mim download` vào `checkpoints/` (không commit `.pth`, xem `.gitignore`).
+3. `scripts/download_dataset.sh` — tải + giải nén COCO val2017 (ảnh + annotations) vào `data/coco/` (không commit).
+4. `scripts/generate_image_lists.py` — chốt danh sách ảnh n=300/n=1000 theo seed cố định. **Chỉ chạy thật sự 1 lần duy nhất** (đã chốt và commit rồi, xem `docs/protocol_lock.md`) — các lần sau chỉ in ra "đã khóa, bỏ qua".
+
+Chạy 1 lệnh, xong là có venv + checkpoint + dataset + danh sách ảnh sẵn sàng để bắt đầu Baseline-First Stage.
 
 ## Vì sao chọn các thứ này
 
@@ -36,11 +41,14 @@ Chạy 1 lệnh, xong là có venv sẵn sàng.
 - **RTX 4000 Ada**: kiến trúc Ada Lovelace, compute capability **sm_89**. Wheel `cu118` của PyTorch 2.1.2 **không build sẵn kernel native sm_89**, nhưng vẫn chạy được nhờ PTX forward-compatibility trong cùng họ CUDA 8.x (JIT compile PTX của sm_86/sm_80 sang sm_89 khi khởi động) — lần chạy đầu có thể chậm hơn vài giây do JIT, các lần sau như bình thường. Đây là cơ chế NVIDIA đảm bảo chính thức, không phải hack.
 - Script **không cần đổi gì theo GPU** — cùng 1 pin `cu118` chạy được cả hai. Nếu sau này thuê GPU đời mới hơn nữa (Hopper/Blackwell) mới cần xét lại CUDA tag.
 
-## Checkpoint & dataset — KHÔNG nằm trong setup_env.sh
+## Checkpoint & dataset — tách riêng khỏi setup_env.sh
 
-`setup_env.sh` chỉ dựng môi trường Python. Checkpoint (`.pth`) và ảnh COCO subset (n=300/n=1000) tải riêng ở bước sau (script `scripts/download_checkpoints.sh` — **chưa viết**, sẽ làm khi bắt đầu Baseline-First Stage), vì:
-- Checkpoint tải qua `mim download mmdet --config <name> --dest .` — danh sách config chính xác nằm ở `docs/protocol_lock.md`, đổi hyperparameter không kéo theo đổi checkpoint nên tách riêng cho gọn.
-- Ảnh COCO subset (n=300/n=1000) phải cố định theo seed (idea.md §4: "Không tune trên 1000 ảnh") — danh sách image_id sẽ được commit vào `data/image_lists/` (git-tracked, nhẹ) để tái lập chính xác giữa các lần thuê máy khác nhau, nhưng ảnh thật (`data/coco/`) thì tải lại mỗi phiên, không commit.
+`setup_env.sh` chỉ dựng môi trường Python, không đụng tới checkpoint/dataset (tách riêng cho gọn, đổi hyperparameter không kéo theo phải tải lại checkpoint):
+- Checkpoint: `scripts/download_checkpoints.sh`, tải qua `mim download mmdet --config <identifier> --dest checkpoints/` — danh sách identifier chính xác nằm ở `docs/protocol_lock.md`. Lưu ý: identifier phải khớp đúng tên file config (`mask-rcnn_...` có gạch nối), không phải tên `.pth` kiểu v2 cũ — xem ghi chú trong `protocol_lock.md`.
+- Dataset: `scripts/download_dataset.sh`, tải COCO val2017 (ảnh + annotations) vào `data/coco/`, không commit.
+- Ảnh COCO subset (n=300/n=1000) phải cố định theo seed (idea.md §4: "Không tune trên 1000 ảnh") — `scripts/generate_image_lists.py` sinh ra 1 lần duy nhất, kết quả (`data/image_lists/{n300,n1000}.csv`, `meta.json` — nhẹ) được commit vào git để tái lập chính xác giữa các lần thuê máy khác nhau. Ảnh thật (`data/coco/`) thì tải lại mỗi phiên, không commit.
+
+`scripts/bootstrap.sh` gọi cả 4 script trên theo đúng thứ tự (xem mục "Cách dùng").
 
 ## Persistent storage cho artifact nặng
 

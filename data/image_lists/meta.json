@@ -1,0 +1,9 @@
+{
+  "seed": 42,
+  "n_confirmation": 300,
+  "n_final": 1000,
+  "source_pool": "coco val2017, images with >=1 instance annotation",
+  "source_pool_size": 4952,
+  "nesting": "n300 is a subset of n1000 (first 300 of the seeded sample of n1000)",
+  "annotation_file": "data/coco/annotations/instances_val2017.json"
+}

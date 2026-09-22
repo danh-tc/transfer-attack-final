@@ -40,6 +40,21 @@ Checkpoint tải qua `mim download mmdet --config <identifier> --dest checkpoint
 - **AugTrans**: dùng EOT với `N_EOT=10` sample/iteration (mỗi sample forward-backward riêng rồi average gradient, theo Algorithm 2 trong paper gốc) → `iterations = B / N_EOT` để tổng backward khớp 3 baseline kia.
 - **Primary budget set: B ∈ {50, 200}.** B=10 bị loại khỏi so sánh chéo method vì ở B=10, AugTrans chỉ được 1 iteration (10/10) — không đủ để curriculum/EOT của nó hoạt động có ý nghĩa (paper gốc cần ~40+ iteration mới đạt phần lớn performance drop). B=10 vẫn có thể dùng làm stress-test riêng cho MI-FGSM/DI-FGSM/OSFD (không AugTrans).
 
+## Danh sách ảnh n=300 / n=1000 (idea.md §4)
+
+Đã chốt bằng `scripts/generate_image_lists.py`, seed cố định **SEED=42**, chạy 1 lần duy nhất
+(2026-09-22) — kết quả (`data/image_lists/n300.csv`, `n1000.csv`, `meta.json`) đã commit vào git.
+**Không chạy lại script này để tạo danh sách khác** — nếu thật sự cần đổi (chỉ khi có lý do
+phương pháp luận rõ ràng, không phải để "thử seed khác cho đẹp"), phải ghi quyết định + lý do
+vào `docs/progress_log.md` trước, rồi mới xóa `data/image_lists/` và chạy lại.
+
+Quy tắc chọn (khóa):
+- Nguồn: COCO val2017 (5000 ảnh), lọc còn 4952 ảnh có ít nhất 1 instance annotation (cần GT
+  thật cho GT-assisted threat model, idea.md §3).
+- `n1000_ids = random.Random(42).sample(sorted(pool_ids), 1000)`.
+- `n300_ids = n1000_ids[:300]` — **n=300 là tập con của n=1000**, đảm bảo Confirmation Stage
+  không dùng ảnh nằm ngoài Final Stage (tránh 2 nguồn nhiễu khác nhau giữa 2 phase).
+
 ## Attack epsilon (idea.md §7)
 
 Primary: `epsilon = 5/255`. Secondary: `epsilon = 8/255`. Không đổi giữa các method trong cùng 1 lần so sánh.
