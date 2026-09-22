@@ -16,22 +16,32 @@ Quy ước:
   cho attacker, đúng untargeted threat model idea.md §3) — kể cả khi ghép
   với loss của OSFD (xem attack/losses/osfd.py để hiểu vì sao ascent vẫn
   đúng hướng cho loss đó).
-- `views_fn` (thay cho "diversity_fn" đơn giản trước đây): trả về 1 LIST ảnh
-  từ 1 ảnh adv — length 1 cho DI-FGSM (1 view biến đổi), length 2 cho RRB
-  (batch-doubling, xem attack/methods/rrb.py). Loss của mỗi view được CỘNG
-  lại trước 1 lần .backward() duy nhất — khớp đúng định nghĩa B trong
-  protocol_lock.md ("concat 2 view rồi backward 1 lần tính là B=1"): cộng 2
-  loss riêng rồi backward 1 lần tương đương toán học với batch 2 ảnh rồi
-  backward 1 lần (autograd cộng gradient qua cả 2 đường như nhau), đơn giản
-  hơn nhiều so với phải ghép batch thật qua model.data_preprocessor.
+- `views_fn` (thay cho "diversity_fn" đơn giản trước đây): trả về 1 LIST cặp
+  (ảnh, data_sample) từ 1 ảnh adv — length 1 cho DI-FGSM, length 2 cho RRB
+  (batch-doubling, xem attack/methods/rrb.py), length N_EOT cho AugTrans
+  (xem attack/methods/augtrans.py). MỖI VIEW MANG data_sample RIÊNG vì biến
+  đổi hình học (rotate/resize) làm object DỊCH CHUYỂN trong ảnh — nếu loss
+  phụ thuộc GT (vd AugTrans/DI-FGSM dùng compute_gt_loss) mà vẫn dùng
+  data_sample gốc (box CHƯA biến đổi) trong khi ảnh ĐÃ biến đổi, loss tính
+  sai vị trí hoàn toàn, gradient gần như vô nghĩa — đây từng là bug thật
+  (xem docs/progress_log.md, attack/methods/box_transforms.py). Với
+  view không đổi box (RRB — loss OSFD không phụ thuộc GT), cứ trả lại
+  data_sample gốc nguyên vẹn. Loss của mỗi view được CỘNG lại trước 1 lần
+  .backward() duy nhất — khớp đúng định nghĩa B trong protocol_lock.md
+  ("concat 2 view rồi backward 1 lần tính là B=1"): cộng 2 loss riêng rồi
+  backward 1 lần tương đương toán học với batch 2 ảnh rồi backward 1 lần
+  (autograd cộng gradient qua cả 2 đường như nhau), đơn giản hơn nhiều so
+  với phải ghép batch thật qua model.data_preprocessor. Nhận thêm
+  (step_idx, total_steps) vì AugTrans cần biết tiến độ curriculum
+  (Algorithm 1, θ_max(k) phụ thuộc k/K_max) — DI/RRB không dùng, bỏ qua.
 """
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 import torch
 from mmdet.structures import DetDataSample
 
 LossFn = Callable[[torch.nn.Module, torch.Tensor, DetDataSample], torch.Tensor]
-ViewsFn = Callable[[torch.Tensor, DetDataSample], List[torch.Tensor]]
+ViewsFn = Callable[[torch.Tensor, DetDataSample, int, int], List[Tuple[torch.Tensor, DetDataSample]]]
 
 
 def run_iterative_attack(
@@ -60,14 +70,15 @@ def run_iterative_attack(
     noise = torch.zeros_like(clean_pixels)
     accumulated_grad = torch.zeros_like(clean_pixels)
 
-    for _ in range(steps):
+    for step_idx in range(steps):
         noise = noise.detach().requires_grad_(True)
         adv_pixels = torch.clamp(clean_pixels + noise, min=0.0, max=255.0)
-        views = views_fn(adv_pixels, data_sample) if views_fn is not None else [adv_pixels]
+        views = (views_fn(adv_pixels, data_sample, step_idx, steps)
+                if views_fn is not None else [(adv_pixels, data_sample)])
 
         loss = None
-        for view in views:
-            term = loss_fn(model, view, data_sample)
+        for view_img, view_data_sample in views:
+            term = loss_fn(model, view_img, view_data_sample)
             loss = term if loss is None else loss + term
         grad = torch.autograd.grad(loss, noise)[0]
 

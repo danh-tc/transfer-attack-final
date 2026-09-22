@@ -18,12 +18,14 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from attack.data import build_attack_dataset
+from attack.methods.augtrans import augtrans_attack
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.models import load_surrogate
 from attack.preprocess import predict
 
 STEPS = 20
 EPSILON = 5.0
+AUGTRANS_BUDGET_B = 50  # -> K_max=5 (N_EOT=10) — nhỏ, chỉ để smoke-test chạy nhanh
 
 
 def box_iou(a, b):
@@ -57,9 +59,9 @@ def gt_matched_confidence(result, gt_boxes, gt_labels, iou_thr=0.5):
     return confidences
 
 
-def run_one(name, attack_fn, model, clean_pixels, data_sample, gt_boxes, gt_labels):
+def run_one(name, attack_fn, model, clean_pixels, data_sample, gt_boxes, gt_labels, **attack_kwargs):
     print(f"\n[smoke-attack] === {name} ===")
-    noise = attack_fn(model, clean_pixels, data_sample, steps=STEPS, epsilon=EPSILON)
+    noise = attack_fn(model, clean_pixels, data_sample, epsilon=EPSILON, **attack_kwargs)
     assert not torch.isnan(noise).any(), f"{name}: noise có NaN"
     linf = noise.abs().max().item()
     print(f"  realized L_inf={linf:.4f} (epsilon={EPSILON})")
@@ -102,9 +104,11 @@ def main():
     gt_boxes = (raw_boxes.tensor if hasattr(raw_boxes, "tensor") else raw_boxes).cpu().numpy()
     gt_labels = data_sample.gt_instances.labels.cpu().numpy()
 
-    run_one("MI-FGSM", mi_fgsm_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels)
-    run_one("DI-FGSM", di_fgsm_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels)
-    run_one("OSFD", osfd_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels)
+    run_one("MI-FGSM", mi_fgsm_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels, steps=STEPS)
+    run_one("DI-FGSM", di_fgsm_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels, steps=STEPS)
+    run_one("OSFD", osfd_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels, steps=STEPS)
+    run_one("AugTrans", augtrans_attack, model, clean_pixels, data_sample, gt_boxes, gt_labels,
+           budget_B=AUGTRANS_BUDGET_B)
 
     print("\n[smoke-attack] Xong.")
 

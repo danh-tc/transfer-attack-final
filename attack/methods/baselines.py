@@ -27,7 +27,7 @@ from mmdet.structures import DetDataSample
 
 from attack.losses.osfd import make_osfd_loss_fn
 from attack.methods.core import run_iterative_attack
-from attack.methods.diversity import input_diversity
+from attack.methods.diversity import input_diversity_with_boxes
 from attack.methods.rrb import rrb_views
 from attack.preprocess import compute_gt_loss
 
@@ -47,7 +47,10 @@ def mi_fgsm_attack(model, clean_pixels, data_sample: DetDataSample, steps: int,
 def di_fgsm_attack(model, clean_pixels, data_sample: DetDataSample, steps: int,
                    epsilon: float = EPSILON_PRIMARY, alpha: float = ALPHA_DEFAULT,
                    prob: float = 0.7, scale: float = 1.1):
-    views_fn = lambda img, ds: [input_diversity(img, prob=prob, scale=scale)]
+    # input_diversity_with_boxes co-transform GT box khớp ảnh đã resize+pad —
+    # bắt buộc vì compute_gt_loss cần GT đúng vị trí (xem attack/methods/
+    # diversity.py, cùng loại bug đã fix cho AugTrans).
+    views_fn = lambda img, ds, k, k_max: [input_diversity_with_boxes(img, ds, prob=prob, scale=scale)]
     return run_iterative_attack(
         model, clean_pixels, data_sample, loss_fn=compute_gt_loss,
         steps=steps, epsilon=epsilon, alpha=alpha, views_fn=views_fn)
@@ -61,9 +64,12 @@ def osfd_attack(model, clean_pixels, data_sample: DetDataSample, steps: int,
     loss_fn = make_osfd_loss_fn(model, clean_pixels, data_sample, k=k)
     views_fn = None
     if use_rrb:
-        views_fn = lambda img, ds: rrb_views(
-            img, ds, theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho,
-            s_max=rrb_s_max, sigma=rrb_sigma)
+        # RRB không co-transform box: loss OSFD (feature-disruption) không phụ
+        # thuộc gt_instances nên không cần — trả lại data_sample gốc nguyên vẹn.
+        views_fn = lambda img, ds, k, k_max: [
+            (view, ds) for view in rrb_views(
+                img, ds, theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho,
+                s_max=rrb_s_max, sigma=rrb_sigma)]
     return run_iterative_attack(
         model, clean_pixels, data_sample, loss_fn=loss_fn,
         steps=steps, epsilon=epsilon, alpha=alpha,
