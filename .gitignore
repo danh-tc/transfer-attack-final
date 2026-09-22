@@ -1,0 +1,18 @@
+# Môi trường — dựng lại mỗi phiên qua scripts/setup_env.sh, không commit
+.venv/
+third_party/
+environment_report.txt
+
+# Checkpoint, dataset, artifact nặng — tải lại/generate lại mỗi phiên GPU, không commit
+*.pth
+*.pt
+data/coco/
+artifacts/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
