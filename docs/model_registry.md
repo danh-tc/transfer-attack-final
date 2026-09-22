@@ -2,14 +2,16 @@
 
 Chỉ ghi thông tin đã xác minh — cột "Ngày verify" trống nghĩa là số liệu lấy từ README chính thức của mmdetection, **chưa tự load checkpoint + eval lại trên GPU thật**. Việc đầu tiên khi có máy GPU là verify từng dòng, điền ngày, và sửa lại nếu số liệu lệch.
 
+Cột "Checkpoint (mim)" là identifier mim dùng để tải (`mim download mmdet --config <identifier>`) — **khớp đúng tên file config** (bỏ `.py`), không phải tên file `.pth` kiểu cũ (v2). Xem `docs/progress_log.md` entry 2026-09-22 (phiên verify GPU) để biết vì sao tên cũ trong bảng trước đây sai.
+
 ## Controlled Panel
 
-| Model | Vai trò | Detector | Backbone | Họ backbone | Config | Checkpoint (mim) | Box AP (README) | Ngày verify |
-|---|---|---|---|---|---|---|---|---|
-| Mask R-CNN R50 | Surrogate | Mask R-CNN | ResNet-50 | CNN — ResNet | `mask-rcnn_r50_fpn_ms-poly-3x_coco.py` | `mask_rcnn_r50_fpn_mstrain-poly_3x_coco` | 40.9 | _chưa_ |
-| Mask R-CNN R101 | Same-family target | Mask R-CNN | ResNet-101 | CNN — ResNet | `mask-rcnn_r101_fpn_ms-poly-3x_coco.py` | `mask_rcnn_r101_fpn_mstrain-poly_3x_coco` | 42.7 | _chưa_ |
-| Mask R-CNN ConvNeXt-T | Cross-CNN target | Mask R-CNN | ConvNeXt-T | CNN — khác (ConvNeXt) | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco` | 46.2 | _chưa_ |
-| Mask R-CNN Swin-T | CNN→Transformer target | Mask R-CNN | Swin-T | Transformer | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask_rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.0 | _chưa_ |
+| Model | Vai trò | Detector | Backbone | Họ backbone | Config | Checkpoint (mim) | Box AP (README) | Box AP (verify GPU thật, full val2017) | Ngày verify |
+|---|---|---|---|---|---|---|---|---|---|
+| Mask R-CNN R50 | Surrogate | Mask R-CNN | ResNet-50 | CNN — ResNet | `mask-rcnn_r50_fpn_ms-poly-3x_coco.py` | `mask-rcnn_r50_fpn_mstrain-poly_3x_coco` | 40.9 | **40.9** (khớp) | 2026-09-22 |
+| Mask R-CNN R101 | Same-family target | Mask R-CNN | ResNet-101 | CNN — ResNet | `mask-rcnn_r101_fpn_ms-poly-3x_coco.py` | `mask-rcnn_r101_fpn_ms-poly-3x_coco` | 42.7 | **42.7** (khớp) | 2026-09-22 |
+| Mask R-CNN ConvNeXt-T | Cross-CNN target | Mask R-CNN | ConvNeXt-T | CNN — khác (ConvNeXt) | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.2 | **46.2** (khớp) | 2026-09-22 |
+| Mask R-CNN Swin-T | CNN→Transformer target | Mask R-CNN | Swin-T | Transformer | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.0 | **46.0** (khớp) | 2026-09-22 |
 
 ## Generalization Panel (chạy sau khi Controlled Panel confirm gap)
 
@@ -30,5 +32,6 @@ Lưu ý (idea.md, research_plan gốc): kiến trúc detector head không đồn
 
 ## Ghi chú / câu hỏi còn mở
 
-- Chưa verify bằng cách chạy thật trên GPU — toàn bộ AP trong bảng lấy từ README GitHub của mmdetection (tra cứu 2026-09-22).
+- **Controlled Panel: đã verify đủ 4/4 model trên GPU thật (RTX 3090, 2026-09-22)** — eval clean AP full COCO val2017 (5000 ảnh), khớp chính xác README cho cả 4 model. Xem `results/eval_clean/{r50,r101,convnext-t,swin-t}/` (log + metrics, git-tracked vì nhẹ) và `docs/progress_log.md`.
+- Generalization Panel (FCOS/DETR/YOLOX/DINO-Swin-L): chưa verify, chưa tải checkpoint — chỉ làm sau khi Controlled Panel confirm transfer gap (idea.md §6).
 - DINO+Swin-T: xác nhận không tồn tại trong model zoo chính thức mmdet v3 (tra README `configs/dino/README.md`, chỉ có DINO-R50 và DINO-Swin-L).

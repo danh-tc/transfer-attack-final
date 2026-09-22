@@ -12,16 +12,16 @@ Lý do: v3 có sẵn config DINO/ConvNeXt/Swin/DETR trong model zoo; v2 (bản O
 
 Chọn toàn bộ lịch train **3x + multi-scale**, không lẫn 1x/3x hay caffe/pytorch style trong cùng bộ, để clean AP giữa 4 model tương đối gần nhau (40.9–46.2) — tránh nhiễu "gap cross-family" chỉ vì model target vốn đã yếu/mạnh hơn hẳn surrogate.
 
-| Vai trò | Config | Checkpoint (mim / openmmlab) | Box AP |
-|---|---|---|---|
-| **Surrogate** | `mask-rcnn_r50_fpn_ms-poly-3x_coco.py` | `mask_rcnn_r50_fpn_mstrain-poly_3x_coco` | 40.9 |
-| Same-family target | `mask-rcnn_r101_fpn_ms-poly-3x_coco.py` | `mask_rcnn_r101_fpn_mstrain-poly_3x_coco` | 42.7 |
-| Cross-CNN target | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco` | 46.2 |
-| CNN→Transformer target | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask_rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.0 |
+| Vai trò | Config | Checkpoint (mim / openmmlab) | Box AP | Verify GPU thật |
+|---|---|---|---|---|
+| **Surrogate** | `mask-rcnn_r50_fpn_ms-poly-3x_coco.py` | `mask-rcnn_r50_fpn_mstrain-poly_3x_coco` | 40.9 | **40.9** ✓ (2026-09-22) |
+| Same-family target | `mask-rcnn_r101_fpn_ms-poly-3x_coco.py` | `mask-rcnn_r101_fpn_ms-poly-3x_coco` | 42.7 | **42.7** ✓ (2026-09-22) |
+| Cross-CNN target | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.2 | **46.2** ✓ (2026-09-22) |
+| CNN→Transformer target | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.0 | **46.0** ✓ (2026-09-22) |
 
-Ghi chú: AP lấy từ README chính thức của mmdetection (chưa tự verify bằng cách load checkpoint và eval lại trên máy thật). **Việc đầu tiên khi có GPU** là tải 4 checkpoint này, chạy eval clean, đối chiếu số AP — nếu lệch đáng kể so với bảng trên, ghi vào `model_registry.md` cột "Ngày verify" + note, và cập nhật lại bảng này.
+Ghi chú: đã verify cả 4 dòng bằng cách load checkpoint thật + eval clean AP trên full COCO val2017 (5000 ảnh) trên GPU thật (RTX 3090) — khớp chính xác AP README, không lệch. Chi tiết quá trình (bao gồm 1 checkpoint Swin-T tải lần đầu bị đứt file, phải tải lại) xem `docs/progress_log.md` entry 2026-09-22.
 
-Checkpoint đúng tên file `.pth` sẽ lấy qua `mim download mmdet --config <config-name> --dest .` — không hardcode URL trực tiếp vì mim tự resolve đúng bản khớp source hiện tại.
+Checkpoint tải qua `mim download mmdet --config <identifier> --dest checkpoints/` — **identifier phải khớp đúng tên file config** (bỏ `.py`, giữ nguyên gạch nối kiểu `mask-rcnn_...`), không phải tên file `.pth` kiểu v2 cũ (`mask_rcnn_...`) — 2 kiểu tên khác nhau, dùng nhầm sẽ báo lỗi `mim` không tìm thấy config trong index. Không hardcode URL trực tiếp trừ khi `mim download` lỗi giữa chừng (file `.pth` bị đứt) — khi đó tải thẳng từ URL trong `configs/*/metafile.yml` (field `Weights`) như một fallback.
 
 ## Generalization Panel (idea.md §6) — chạy sau khi Controlled Panel confirm gap
 

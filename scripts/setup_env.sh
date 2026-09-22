@@ -33,7 +33,8 @@ if [ "$(id -u)" -ne 0 ]; then SUDO="sudo"; fi
 $SUDO apt-get update -qq
 # libgl1/libglib2.0-0: opencv-python cần để import trên server không có màn hình (headless).
 # ninja-build: build mmcv custom ops nhanh hơn nhiều so với không có ninja.
-$SUDO apt-get install -y -qq software-properties-common git build-essential ninja-build libgl1 libglib2.0-0
+# unzip: cần để giải nén COCO annotations/images (data/coco/*.zip) sau khi tải.
+$SUDO apt-get install -y -qq software-properties-common git build-essential ninja-build libgl1 libglib2.0-0 unzip
 
 PY_BIN="python${PY_VERSION_PIN}"
 if ! command -v "$PY_BIN" >/dev/null 2>&1; then
@@ -67,18 +68,53 @@ mim install -q "mmcv==${MMCV_VERSION}"
 # mmpretrain — thiếu package này thì các config đó không import được dù mmdet đã cài đủ.
 mim install -q "mmpretrain>=1.2.0"
 
-log "Cài numpy pin cứng (mmcv/mmdet ở version này chưa tương thích numpy>=2)..."
-pip install -q "numpy==1.26.4"
+log "Cài numpy + opencv pin cứng (mmcv/mmdet ở version này chưa tương thích numpy>=2;" \
+    "opencv-python/opencv-python-headless bản mới nhất đòi numpy>=2 nên phải pin cả 2 cùng lúc" \
+    "vì mmcv/mmengine kéo theo opencv-python bên cạnh opencv-python-headless mình cài riêng)..."
+OPENCV_VERSION="4.10.0.84"  # bản cuối cùng còn tương thích numpy<2
+pip install -q "numpy==1.26.4" "opencv-python==${OPENCV_VERSION}" "opencv-python-headless==${OPENCV_VERSION}"
+
+log "Nâng setuptools (bản mặc định trong venv quá cũ, không hỗ trợ editable install" \
+    "kiểu PEP 660 cho package chỉ có setup.py như mmdetection, với pip mới sẽ báo lỗi" \
+    "'missing build_editable hook')..."
+pip install -q -U "setuptools<81"
 
 log "Clone + cài MMDetection ($MMDET_TAG, editable) vào third_party/..."
 mkdir -p "$REPO_ROOT/third_party"
 if [ ! -d "$MMDET_DIR" ]; then
   git clone --branch "$MMDET_TAG" --depth 1 https://github.com/open-mmlab/mmdetection.git "$MMDET_DIR"
 fi
-pip install -q -v -e "$MMDET_DIR"
+# --no-build-isolation: setup.py của mmdet import torch trực tiếp ở top-level, build isolation
+# mặc định của pip tạo venv tạm không có torch đã cài sẵn nên sẽ báo ModuleNotFoundError.
+pip install -q -v -e "$MMDET_DIR" --no-build-isolation
+
+log "Fix mim metadata cho editable install kiểu PEP 660 (2 vấn đề, xem docs/progress_log.md 2026-09-22)..."
+# 1) setup.py của mmdet chỉ tạo symlink mmdet/.mim/{configs,tools,...} khi 'develop' in sys.argv
+#    (kiểu cài `python setup.py develop` cũ) — pip install -e hiện đại (PEP 660 editable_wheel)
+#    không đi qua nhánh đó nên .mim không được tạo. Tự tạo lại symlink tương đương.
+MMDET_PKG_DIR="$MMDET_DIR/mmdet"
+MIM_META_DIR="$MMDET_PKG_DIR/.mim"
+mkdir -p "$MIM_META_DIR"
+for name in tools configs demo model-index.yml dataset-index.yml; do
+  src="$MMDET_DIR/$name"
+  tgt="$MIM_META_DIR/$name"
+  if [ -e "$src" ] && [ ! -e "$tgt" ]; then
+    ln -s "../../$name" "$tgt"
+  fi
+done
+# 2) `mim download`/`mim search` dùng pkg_resources.get_distribution('mmdet').location, với
+#    editable PEP 660 trả về site-packages (không có thư mục mmdet/ vật lý ở đó) thay vì
+#    third_party/mmdetection — mim tìm model-index.yml sai chỗ và báo lỗi "not found". Tạo
+#    symlink site-packages/mmdet trỏ thẳng vào package thật để mim resolve đúng đường dẫn.
+SITE_PACKAGES_DIR="$("$VENV_DIR/bin/python" -c "import site; print(site.getsitepackages()[0])")"
+if [ ! -e "$SITE_PACKAGES_DIR/mmdet" ]; then
+  ln -s "$MMDET_PKG_DIR" "$SITE_PACKAGES_DIR/mmdet"
+fi
 
 log "Cài các thư viện phụ trợ (dataset eval, ảnh, tiện ích)..."
-pip install -q pycocotools opencv-python-headless tqdm matplotlib
+pip install -q pycocotools "opencv-python-headless==${OPENCV_VERSION}" tqdm matplotlib
+# Re-pin numpy/opencv: pycocotools hoặc thư viện phụ trợ có thể kéo lại numpy>=2 hay opencv mới nhất.
+pip install -q "numpy==1.26.4" "opencv-python==${OPENCV_VERSION}" "opencv-python-headless==${OPENCV_VERSION}"
 
 log "Kiểm tra cài đặt..."
 python3 - <<'PYEOF'

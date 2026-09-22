@@ -1,0 +1,885 @@
+2026/09/22 16:07:27 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]
+    CUDA available: True
+    MUSA available: False
+    numpy_random_seed: 1553523238
+    GPU 0: NVIDIA GeForce RTX 3090
+    CUDA_HOME: /usr/local/cuda
+    NVCC: Cuda compilation tools, release 12.4, V12.4.131
+    GCC: x86_64-linux-gnu-gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+    PyTorch: 2.1.2+cu118
+    PyTorch compiling details: PyTorch built with:
+  - GCC 9.3
+  - C++ Version: 201703
+  - Intel(R) oneAPI Math Kernel Library Version 2022.2-Product Build 20220804 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v3.1.1 (Git Hash 64f6bcbcbab628e96f33a62c3e975f8535a7bde4)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX512
+  - CUDA Runtime 11.8
+  - NVCC architecture flags: -gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_90,code=sm_90
+  - CuDNN 8.7
+  - Magma 2.6.1
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.8, CUDNN_VERSION=8.7.0, CXX_COMPILER=/opt/rh/devtoolset-9/root/usr/bin/c++, CXX_FLAGS= -D_GLIBCXX_USE_CXX11_ABI=0 -fabi-version=11 -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOROCTRACER -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=old-style-cast -Wno-invalid-partial-specialization -Wno-unused-private-field -Wno-aligned-allocation-unavailable -Wno-missing-braces -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Werror=cast-function-type -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_DISABLE_GPU_ASSERTS=ON, TORCH_VERSION=2.1.2, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=1, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+    TorchVision: 0.16.2+cu118
+    OpenCV: 4.10.0
+    MMEngine: 0.10.7
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 1553523238
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+2026/09/22 16:07:27 - mmengine - INFO - Config:
+auto_scale_lr = dict(base_batch_size=16, enable=False)
+backend_args = None
+data_root = 'data/coco/'
+dataset_type = 'CocoDataset'
+default_hooks = dict(
+    checkpoint=dict(interval=1, type='CheckpointHook'),
+    logger=dict(interval=50, type='LoggerHook'),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    timer=dict(type='IterTimerHook'),
+    visualization=dict(type='DetVisualizationHook'))
+default_scope = 'mmdet'
+env_cfg = dict(
+    cudnn_benchmark=False,
+    dist_cfg=dict(backend='nccl'),
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
+launcher = 'none'
+load_from = 'checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth'
+log_level = 'INFO'
+log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
+max_epochs = 36
+model = dict(
+    backbone=dict(
+        attn_drop_rate=0.0,
+        convert_weights=True,
+        depths=[
+            2,
+            2,
+            6,
+            2,
+        ],
+        drop_path_rate=0.2,
+        drop_rate=0.0,
+        embed_dims=96,
+        init_cfg=dict(
+            checkpoint=
+            'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth',
+            type='Pretrained'),
+        mlp_ratio=4,
+        num_heads=[
+            3,
+            6,
+            12,
+            24,
+        ],
+        out_indices=(
+            0,
+            1,
+            2,
+            3,
+        ),
+        patch_norm=True,
+        qk_scale=None,
+        qkv_bias=True,
+        type='SwinTransformer',
+        window_size=7,
+        with_cp=False),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_mask=True,
+        pad_size_divisor=32,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor'),
+    neck=dict(
+        in_channels=[
+            96,
+            192,
+            384,
+            768,
+        ],
+        num_outs=5,
+        out_channels=256,
+        type='FPN'),
+    roi_head=dict(
+        bbox_head=dict(
+            bbox_coder=dict(
+                target_means=[
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                ],
+                target_stds=[
+                    0.1,
+                    0.1,
+                    0.2,
+                    0.2,
+                ],
+                type='DeltaXYWHBBoxCoder'),
+            fc_out_channels=1024,
+            in_channels=256,
+            loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+            loss_cls=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=False),
+            num_classes=80,
+            reg_class_agnostic=False,
+            roi_feat_size=7,
+            type='Shared2FCBBoxHead'),
+        bbox_roi_extractor=dict(
+            featmap_strides=[
+                4,
+                8,
+                16,
+                32,
+            ],
+            out_channels=256,
+            roi_layer=dict(output_size=7, sampling_ratio=0, type='RoIAlign'),
+            type='SingleRoIExtractor'),
+        mask_head=dict(
+            conv_out_channels=256,
+            in_channels=256,
+            loss_mask=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_mask=True),
+            num_classes=80,
+            num_convs=4,
+            type='FCNMaskHead'),
+        mask_roi_extractor=dict(
+            featmap_strides=[
+                4,
+                8,
+                16,
+                32,
+            ],
+            out_channels=256,
+            roi_layer=dict(output_size=14, sampling_ratio=0, type='RoIAlign'),
+            type='SingleRoIExtractor'),
+        type='StandardRoIHead'),
+    rpn_head=dict(
+        anchor_generator=dict(
+            ratios=[
+                0.5,
+                1.0,
+                2.0,
+            ],
+            scales=[
+                8,
+            ],
+            strides=[
+                4,
+                8,
+                16,
+                32,
+                64,
+            ],
+            type='AnchorGenerator'),
+        bbox_coder=dict(
+            target_means=[
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            ],
+            target_stds=[
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+            ],
+            type='DeltaXYWHBBoxCoder'),
+        feat_channels=256,
+        in_channels=256,
+        loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+        loss_cls=dict(
+            loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=True),
+        type='RPNHead'),
+    test_cfg=dict(
+        rcnn=dict(
+            mask_thr_binary=0.5,
+            max_per_img=100,
+            nms=dict(iou_threshold=0.5, type='nms'),
+            score_thr=0.05),
+        rpn=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=1000)),
+    train_cfg=dict(
+        rcnn=dict(
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=True,
+                min_pos_iou=0.5,
+                neg_iou_thr=0.5,
+                pos_iou_thr=0.5,
+                type='MaxIoUAssigner'),
+            debug=False,
+            mask_size=28,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=True,
+                neg_pos_ub=-1,
+                num=512,
+                pos_fraction=0.25,
+                type='RandomSampler')),
+        rpn=dict(
+            allowed_border=-1,
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=True,
+                min_pos_iou=0.3,
+                neg_iou_thr=0.3,
+                pos_iou_thr=0.7,
+                type='MaxIoUAssigner'),
+            debug=False,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=False,
+                neg_pos_ub=-1,
+                num=256,
+                pos_fraction=0.5,
+                type='RandomSampler')),
+        rpn_proposal=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=2000)),
+    type='MaskRCNN')
+optim_wrapper = dict(
+    optimizer=dict(
+        betas=(
+            0.9,
+            0.999,
+        ), lr=0.0001, type='AdamW', weight_decay=0.05),
+    paramwise_cfg=dict(
+        custom_keys=dict(
+            absolute_pos_embed=dict(decay_mult=0.0),
+            norm=dict(decay_mult=0.0),
+            relative_position_bias_table=dict(decay_mult=0.0))),
+    type='AmpOptimWrapper')
+param_scheduler = [
+    dict(
+        begin=0, by_epoch=False, end=1000, start_factor=0.001,
+        type='LinearLR'),
+    dict(
+        begin=0,
+        by_epoch=True,
+        end=36,
+        gamma=0.1,
+        milestones=[
+            27,
+            33,
+        ],
+        type='MultiStepLR'),
+]
+pretrained = 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth'
+resume = False
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='annotations/instances_val2017.json',
+        backend_args=None,
+        data_prefix=dict(img='val2017/'),
+        data_root='data/coco/',
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                1333,
+                800,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(
+    ann_file='data/coco/annotations/instances_val2017.json',
+    backend_args=None,
+    format_only=False,
+    metric=[
+        'bbox',
+        'segm',
+    ],
+    type='CocoMetric')
+test_pipeline = [
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(keep_ratio=True, scale=(
+        1333,
+        800,
+    ), type='Resize'),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(
+        meta_keys=(
+            'img_id',
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'scale_factor',
+        ),
+        type='PackDetInputs'),
+]
+train_cfg = dict(max_epochs=36, type='EpochBasedTrainLoop', val_interval=1)
+train_dataloader = dict(
+    batch_sampler=dict(type='AspectRatioBatchSampler'),
+    batch_size=2,
+    dataset=dict(
+        ann_file='annotations/instances_train2017.json',
+        backend_args=None,
+        data_prefix=dict(img='train2017/'),
+        data_root='data/coco/',
+        filter_cfg=dict(filter_empty_gt=True, min_size=32),
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+            dict(prob=0.5, type='RandomFlip'),
+            dict(
+                transforms=[
+                    [
+                        dict(
+                            keep_ratio=True,
+                            scales=[
+                                (
+                                    480,
+                                    1333,
+                                ),
+                                (
+                                    512,
+                                    1333,
+                                ),
+                                (
+                                    544,
+                                    1333,
+                                ),
+                                (
+                                    576,
+                                    1333,
+                                ),
+                                (
+                                    608,
+                                    1333,
+                                ),
+                                (
+                                    640,
+                                    1333,
+                                ),
+                                (
+                                    672,
+                                    1333,
+                                ),
+                                (
+                                    704,
+                                    1333,
+                                ),
+                                (
+                                    736,
+                                    1333,
+                                ),
+                                (
+                                    768,
+                                    1333,
+                                ),
+                                (
+                                    800,
+                                    1333,
+                                ),
+                            ],
+                            type='RandomChoiceResize'),
+                    ],
+                    [
+                        dict(
+                            keep_ratio=True,
+                            scales=[
+                                (
+                                    400,
+                                    1333,
+                                ),
+                                (
+                                    500,
+                                    1333,
+                                ),
+                                (
+                                    600,
+                                    1333,
+                                ),
+                            ],
+                            type='RandomChoiceResize'),
+                        dict(
+                            allow_negative_crop=True,
+                            crop_size=(
+                                384,
+                                600,
+                            ),
+                            crop_type='absolute_range',
+                            type='RandomCrop'),
+                        dict(
+                            keep_ratio=True,
+                            scales=[
+                                (
+                                    480,
+                                    1333,
+                                ),
+                                (
+                                    512,
+                                    1333,
+                                ),
+                                (
+                                    544,
+                                    1333,
+                                ),
+                                (
+                                    576,
+                                    1333,
+                                ),
+                                (
+                                    608,
+                                    1333,
+                                ),
+                                (
+                                    640,
+                                    1333,
+                                ),
+                                (
+                                    672,
+                                    1333,
+                                ),
+                                (
+                                    704,
+                                    1333,
+                                ),
+                                (
+                                    736,
+                                    1333,
+                                ),
+                                (
+                                    768,
+                                    1333,
+                                ),
+                                (
+                                    800,
+                                    1333,
+                                ),
+                            ],
+                            type='RandomChoiceResize'),
+                    ],
+                ],
+                type='RandomChoice'),
+            dict(type='PackDetInputs'),
+        ],
+        type='CocoDataset'),
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(prob=0.5, type='RandomFlip'),
+    dict(
+        transforms=[
+            [
+                dict(
+                    keep_ratio=True,
+                    scales=[
+                        (
+                            480,
+                            1333,
+                        ),
+                        (
+                            512,
+                            1333,
+                        ),
+                        (
+                            544,
+                            1333,
+                        ),
+                        (
+                            576,
+                            1333,
+                        ),
+                        (
+                            608,
+                            1333,
+                        ),
+                        (
+                            640,
+                            1333,
+                        ),
+                        (
+                            672,
+                            1333,
+                        ),
+                        (
+                            704,
+                            1333,
+                        ),
+                        (
+                            736,
+                            1333,
+                        ),
+                        (
+                            768,
+                            1333,
+                        ),
+                        (
+                            800,
+                            1333,
+                        ),
+                    ],
+                    type='RandomChoiceResize'),
+            ],
+            [
+                dict(
+                    keep_ratio=True,
+                    scales=[
+                        (
+                            400,
+                            1333,
+                        ),
+                        (
+                            500,
+                            1333,
+                        ),
+                        (
+                            600,
+                            1333,
+                        ),
+                    ],
+                    type='RandomChoiceResize'),
+                dict(
+                    allow_negative_crop=True,
+                    crop_size=(
+                        384,
+                        600,
+                    ),
+                    crop_type='absolute_range',
+                    type='RandomCrop'),
+                dict(
+                    keep_ratio=True,
+                    scales=[
+                        (
+                            480,
+                            1333,
+                        ),
+                        (
+                            512,
+                            1333,
+                        ),
+                        (
+                            544,
+                            1333,
+                        ),
+                        (
+                            576,
+                            1333,
+                        ),
+                        (
+                            608,
+                            1333,
+                        ),
+                        (
+                            640,
+                            1333,
+                        ),
+                        (
+                            672,
+                            1333,
+                        ),
+                        (
+                            704,
+                            1333,
+                        ),
+                        (
+                            736,
+                            1333,
+                        ),
+                        (
+                            768,
+                            1333,
+                        ),
+                        (
+                            800,
+                            1333,
+                        ),
+                    ],
+                    type='RandomChoiceResize'),
+            ],
+        ],
+        type='RandomChoice'),
+    dict(type='PackDetInputs'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='annotations/instances_val2017.json',
+        backend_args=None,
+        data_prefix=dict(img='val2017/'),
+        data_root='data/coco/',
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                1333,
+                800,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = dict(
+    ann_file='data/coco/annotations/instances_val2017.json',
+    backend_args=None,
+    format_only=False,
+    metric=[
+        'bbox',
+        'segm',
+    ],
+    type='CocoMetric')
+vis_backends = [
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='DetLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+    ])
+work_dir = 'results/eval_clean/swin-t'
+
+2026/09/22 16:07:28 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+2026/09/22 16:07:28 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2026/09/22 16:07:31 - mmengine - INFO - Load checkpoint from checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+2026/09/22 16:07:40 - mmengine - INFO - Epoch(test) [  50/5000]    eta: 0:14:43  time: 0.1785  data_time: 0.0153  memory: 698  
+2026/09/22 16:07:43 - mmengine - INFO - Epoch(test) [ 100/5000]    eta: 0:09:30  time: 0.0542  data_time: 0.0029  memory: 673  
+2026/09/22 16:07:46 - mmengine - INFO - Epoch(test) [ 150/5000]    eta: 0:07:56  time: 0.0619  data_time: 0.0060  memory: 698  
+2026/09/22 16:07:48 - mmengine - INFO - Epoch(test) [ 200/5000]    eta: 0:06:56  time: 0.0527  data_time: 0.0029  memory: 560  
+2026/09/22 16:07:51 - mmengine - INFO - Epoch(test) [ 250/5000]    eta: 0:06:21  time: 0.0542  data_time: 0.0030  memory: 579  
+2026/09/22 16:07:54 - mmengine - INFO - Epoch(test) [ 300/5000]    eta: 0:05:55  time: 0.0523  data_time: 0.0040  memory: 666  
+2026/09/22 16:07:56 - mmengine - INFO - Epoch(test) [ 350/5000]    eta: 0:05:38  time: 0.0560  data_time: 0.0038  memory: 698  
+2026/09/22 16:07:59 - mmengine - INFO - Epoch(test) [ 400/5000]    eta: 0:05:24  time: 0.0542  data_time: 0.0032  memory: 698  
+2026/09/22 16:08:02 - mmengine - INFO - Epoch(test) [ 450/5000]    eta: 0:05:12  time: 0.0534  data_time: 0.0029  memory: 698  
+2026/09/22 16:08:05 - mmengine - INFO - Epoch(test) [ 500/5000]    eta: 0:05:03  time: 0.0561  data_time: 0.0033  memory: 668  
+2026/09/22 16:08:07 - mmengine - INFO - Epoch(test) [ 550/5000]    eta: 0:04:54  time: 0.0545  data_time: 0.0035  memory: 698  
+2026/09/22 16:08:13 - mmengine - INFO - Epoch(test) [ 600/5000]    eta: 0:05:08  time: 0.1139  data_time: 0.0128  memory: 761  
+2026/09/22 16:08:19 - mmengine - INFO - Epoch(test) [ 650/5000]    eta: 0:05:23  time: 0.1250  data_time: 0.0168  memory: 759  
+2026/09/22 16:08:25 - mmengine - INFO - Epoch(test) [ 700/5000]    eta: 0:05:31  time: 0.1115  data_time: 0.0140  memory: 679  
+2026/09/22 16:08:29 - mmengine - INFO - Epoch(test) [ 750/5000]    eta: 0:05:30  time: 0.0893  data_time: 0.0105  memory: 698  
+2026/09/22 16:08:32 - mmengine - INFO - Epoch(test) [ 800/5000]    eta: 0:05:20  time: 0.0520  data_time: 0.0029  memory: 698  
+2026/09/22 16:08:35 - mmengine - INFO - Epoch(test) [ 850/5000]    eta: 0:05:11  time: 0.0579  data_time: 0.0041  memory: 667  
+2026/09/22 16:08:38 - mmengine - INFO - Epoch(test) [ 900/5000]    eta: 0:05:03  time: 0.0556  data_time: 0.0041  memory: 674  
+2026/09/22 16:08:40 - mmengine - INFO - Epoch(test) [ 950/5000]    eta: 0:04:55  time: 0.0551  data_time: 0.0034  memory: 698  
+2026/09/22 16:08:46 - mmengine - INFO - Epoch(test) [1000/5000]    eta: 0:04:59  time: 0.1097  data_time: 0.0113  memory: 805  
+2026/09/22 16:08:49 - mmengine - INFO - Epoch(test) [1050/5000]    eta: 0:04:53  time: 0.0634  data_time: 0.0051  memory: 556  
+2026/09/22 16:08:52 - mmengine - INFO - Epoch(test) [1100/5000]    eta: 0:04:46  time: 0.0567  data_time: 0.0042  memory: 713  
+2026/09/22 16:08:55 - mmengine - INFO - Epoch(test) [1150/5000]    eta: 0:04:40  time: 0.0578  data_time: 0.0039  memory: 667  
+2026/09/22 16:08:58 - mmengine - INFO - Epoch(test) [1200/5000]    eta: 0:04:34  time: 0.0556  data_time: 0.0039  memory: 698  
+2026/09/22 16:09:00 - mmengine - INFO - Epoch(test) [1250/5000]    eta: 0:04:28  time: 0.0560  data_time: 0.0040  memory: 698  
+2026/09/22 16:09:03 - mmengine - INFO - Epoch(test) [1300/5000]    eta: 0:04:22  time: 0.0554  data_time: 0.0033  memory: 756  
+2026/09/22 16:09:06 - mmengine - INFO - Epoch(test) [1350/5000]    eta: 0:04:16  time: 0.0534  data_time: 0.0031  memory: 698  
+2026/09/22 16:09:09 - mmengine - INFO - Epoch(test) [1400/5000]    eta: 0:04:10  time: 0.0554  data_time: 0.0034  memory: 667  
+2026/09/22 16:09:11 - mmengine - INFO - Epoch(test) [1450/5000]    eta: 0:04:05  time: 0.0532  data_time: 0.0039  memory: 579  
+2026/09/22 16:09:14 - mmengine - INFO - Epoch(test) [1500/5000]    eta: 0:04:00  time: 0.0556  data_time: 0.0032  memory: 698  
+2026/09/22 16:09:17 - mmengine - INFO - Epoch(test) [1550/5000]    eta: 0:03:55  time: 0.0535  data_time: 0.0028  memory: 667  
+2026/09/22 16:09:19 - mmengine - INFO - Epoch(test) [1600/5000]    eta: 0:03:50  time: 0.0524  data_time: 0.0027  memory: 667  
+2026/09/22 16:09:22 - mmengine - INFO - Epoch(test) [1650/5000]    eta: 0:03:45  time: 0.0556  data_time: 0.0035  memory: 698  
+2026/09/22 16:09:25 - mmengine - INFO - Epoch(test) [1700/5000]    eta: 0:03:40  time: 0.0505  data_time: 0.0023  memory: 788  
+2026/09/22 16:09:28 - mmengine - INFO - Epoch(test) [1750/5000]    eta: 0:03:36  time: 0.0591  data_time: 0.0045  memory: 682  
+2026/09/22 16:09:30 - mmengine - INFO - Epoch(test) [1800/5000]    eta: 0:03:32  time: 0.0569  data_time: 0.0039  memory: 698  
+2026/09/22 16:09:33 - mmengine - INFO - Epoch(test) [1850/5000]    eta: 0:03:27  time: 0.0529  data_time: 0.0029  memory: 666  
+2026/09/22 16:09:36 - mmengine - INFO - Epoch(test) [1900/5000]    eta: 0:03:24  time: 0.0604  data_time: 0.0050  memory: 698  
+2026/09/22 16:09:39 - mmengine - INFO - Epoch(test) [1950/5000]    eta: 0:03:19  time: 0.0543  data_time: 0.0031  memory: 660  
+2026/09/22 16:09:42 - mmengine - INFO - Epoch(test) [2000/5000]    eta: 0:03:16  time: 0.0602  data_time: 0.0050  memory: 667  
+2026/09/22 16:09:45 - mmengine - INFO - Epoch(test) [2050/5000]    eta: 0:03:12  time: 0.0566  data_time: 0.0032  memory: 710  
+2026/09/22 16:09:47 - mmengine - INFO - Epoch(test) [2100/5000]    eta: 0:03:08  time: 0.0536  data_time: 0.0031  memory: 611  
+2026/09/22 16:09:50 - mmengine - INFO - Epoch(test) [2150/5000]    eta: 0:03:04  time: 0.0578  data_time: 0.0034  memory: 752  
+2026/09/22 16:09:53 - mmengine - INFO - Epoch(test) [2200/5000]    eta: 0:03:00  time: 0.0559  data_time: 0.0041  memory: 690  
+2026/09/22 16:09:56 - mmengine - INFO - Epoch(test) [2250/5000]    eta: 0:02:56  time: 0.0559  data_time: 0.0037  memory: 698  
+2026/09/22 16:09:59 - mmengine - INFO - Epoch(test) [2300/5000]    eta: 0:02:53  time: 0.0603  data_time: 0.0049  memory: 800  
+2026/09/22 16:10:01 - mmengine - INFO - Epoch(test) [2350/5000]    eta: 0:02:49  time: 0.0524  data_time: 0.0031  memory: 666  
+2026/09/22 16:10:04 - mmengine - INFO - Epoch(test) [2400/5000]    eta: 0:02:46  time: 0.0573  data_time: 0.0044  memory: 655  
+2026/09/22 16:10:07 - mmengine - INFO - Epoch(test) [2450/5000]    eta: 0:02:42  time: 0.0578  data_time: 0.0048  memory: 666  
+2026/09/22 16:10:10 - mmengine - INFO - Epoch(test) [2500/5000]    eta: 0:02:38  time: 0.0555  data_time: 0.0036  memory: 636  
+2026/09/22 16:10:16 - mmengine - INFO - Epoch(test) [2550/5000]    eta: 0:02:38  time: 0.1214  data_time: 0.0126  memory: 744  
+2026/09/22 16:10:21 - mmengine - INFO - Epoch(test) [2600/5000]    eta: 0:02:36  time: 0.1009  data_time: 0.0107  memory: 555  
+2026/09/22 16:10:27 - mmengine - INFO - Epoch(test) [2650/5000]    eta: 0:02:36  time: 0.1206  data_time: 0.0135  memory: 761  
+2026/09/22 16:10:32 - mmengine - INFO - Epoch(test) [2700/5000]    eta: 0:02:34  time: 0.1069  data_time: 0.0126  memory: 698  
+2026/09/22 16:10:36 - mmengine - INFO - Epoch(test) [2750/5000]    eta: 0:02:31  time: 0.0639  data_time: 0.0043  memory: 669  
+2026/09/22 16:10:39 - mmengine - INFO - Epoch(test) [2800/5000]    eta: 0:02:27  time: 0.0594  data_time: 0.0043  memory: 681  
+2026/09/22 16:10:41 - mmengine - INFO - Epoch(test) [2850/5000]    eta: 0:02:23  time: 0.0553  data_time: 0.0040  memory: 660  
+2026/09/22 16:10:44 - mmengine - INFO - Epoch(test) [2900/5000]    eta: 0:02:19  time: 0.0558  data_time: 0.0045  memory: 698  
+2026/09/22 16:10:47 - mmengine - INFO - Epoch(test) [2950/5000]    eta: 0:02:16  time: 0.0613  data_time: 0.0054  memory: 698  
+2026/09/22 16:10:50 - mmengine - INFO - Epoch(test) [3000/5000]    eta: 0:02:12  time: 0.0554  data_time: 0.0050  memory: 599  
+2026/09/22 16:10:53 - mmengine - INFO - Epoch(test) [3050/5000]    eta: 0:02:09  time: 0.0579  data_time: 0.0047  memory: 675  
+2026/09/22 16:10:56 - mmengine - INFO - Epoch(test) [3100/5000]    eta: 0:02:05  time: 0.0591  data_time: 0.0048  memory: 719  
+2026/09/22 16:10:59 - mmengine - INFO - Epoch(test) [3150/5000]    eta: 0:02:01  time: 0.0542  data_time: 0.0030  memory: 698  
+2026/09/22 16:11:01 - mmengine - INFO - Epoch(test) [3200/5000]    eta: 0:01:58  time: 0.0523  data_time: 0.0026  memory: 638  
+2026/09/22 16:11:04 - mmengine - INFO - Epoch(test) [3250/5000]    eta: 0:01:54  time: 0.0576  data_time: 0.0039  memory: 735  
+2026/09/22 16:11:07 - mmengine - INFO - Epoch(test) [3300/5000]    eta: 0:01:51  time: 0.0536  data_time: 0.0033  memory: 698  
+2026/09/22 16:11:10 - mmengine - INFO - Epoch(test) [3350/5000]    eta: 0:01:47  time: 0.0599  data_time: 0.0044  memory: 698  
+2026/09/22 16:11:13 - mmengine - INFO - Epoch(test) [3400/5000]    eta: 0:01:44  time: 0.0560  data_time: 0.0044  memory: 698  
+2026/09/22 16:11:17 - mmengine - INFO - Epoch(test) [3450/5000]    eta: 0:01:41  time: 0.0823  data_time: 0.0090  memory: 698  
+2026/09/22 16:11:19 - mmengine - INFO - Epoch(test) [3500/5000]    eta: 0:01:37  time: 0.0516  data_time: 0.0032  memory: 661  
+2026/09/22 16:11:22 - mmengine - INFO - Epoch(test) [3550/5000]    eta: 0:01:34  time: 0.0537  data_time: 0.0037  memory: 680  
+2026/09/22 16:11:25 - mmengine - INFO - Epoch(test) [3600/5000]    eta: 0:01:30  time: 0.0584  data_time: 0.0039  memory: 666  
+2026/09/22 16:11:28 - mmengine - INFO - Epoch(test) [3650/5000]    eta: 0:01:27  time: 0.0526  data_time: 0.0027  memory: 626  
+2026/09/22 16:11:31 - mmengine - INFO - Epoch(test) [3700/5000]    eta: 0:01:24  time: 0.0617  data_time: 0.0052  memory: 804  
+2026/09/22 16:11:33 - mmengine - INFO - Epoch(test) [3750/5000]    eta: 0:01:20  time: 0.0559  data_time: 0.0041  memory: 686  
+2026/09/22 16:11:36 - mmengine - INFO - Epoch(test) [3800/5000]    eta: 0:01:17  time: 0.0545  data_time: 0.0028  memory: 647  
+2026/09/22 16:11:39 - mmengine - INFO - Epoch(test) [3850/5000]    eta: 0:01:14  time: 0.0594  data_time: 0.0054  memory: 608  
+2026/09/22 16:11:42 - mmengine - INFO - Epoch(test) [3900/5000]    eta: 0:01:10  time: 0.0570  data_time: 0.0062  memory: 698  
+2026/09/22 16:11:45 - mmengine - INFO - Epoch(test) [3950/5000]    eta: 0:01:07  time: 0.0553  data_time: 0.0042  memory: 721  
+2026/09/22 16:11:47 - mmengine - INFO - Epoch(test) [4000/5000]    eta: 0:01:04  time: 0.0545  data_time: 0.0034  memory: 652  
+2026/09/22 16:11:50 - mmengine - INFO - Epoch(test) [4050/5000]    eta: 0:01:00  time: 0.0603  data_time: 0.0044  memory: 698  
+2026/09/22 16:11:53 - mmengine - INFO - Epoch(test) [4100/5000]    eta: 0:00:57  time: 0.0543  data_time: 0.0030  memory: 698  
+2026/09/22 16:11:56 - mmengine - INFO - Epoch(test) [4150/5000]    eta: 0:00:54  time: 0.0545  data_time: 0.0034  memory: 664  
+2026/09/22 16:11:59 - mmengine - INFO - Epoch(test) [4200/5000]    eta: 0:00:50  time: 0.0572  data_time: 0.0037  memory: 681  
+2026/09/22 16:12:01 - mmengine - INFO - Epoch(test) [4250/5000]    eta: 0:00:47  time: 0.0535  data_time: 0.0030  memory: 698  
+2026/09/22 16:12:04 - mmengine - INFO - Epoch(test) [4300/5000]    eta: 0:00:44  time: 0.0554  data_time: 0.0032  memory: 698  
+2026/09/22 16:12:07 - mmengine - INFO - Epoch(test) [4350/5000]    eta: 0:00:41  time: 0.0552  data_time: 0.0037  memory: 753  
+2026/09/22 16:12:10 - mmengine - INFO - Epoch(test) [4400/5000]    eta: 0:00:38  time: 0.0566  data_time: 0.0036  memory: 666  
+2026/09/22 16:12:13 - mmengine - INFO - Epoch(test) [4450/5000]    eta: 0:00:34  time: 0.0551  data_time: 0.0033  memory: 665  
+2026/09/22 16:12:15 - mmengine - INFO - Epoch(test) [4500/5000]    eta: 0:00:31  time: 0.0567  data_time: 0.0037  memory: 698  
+2026/09/22 16:12:18 - mmengine - INFO - Epoch(test) [4550/5000]    eta: 0:00:28  time: 0.0572  data_time: 0.0037  memory: 666  
+2026/09/22 16:12:21 - mmengine - INFO - Epoch(test) [4600/5000]    eta: 0:00:25  time: 0.0619  data_time: 0.0048  memory: 698  
+2026/09/22 16:12:24 - mmengine - INFO - Epoch(test) [4650/5000]    eta: 0:00:22  time: 0.0602  data_time: 0.0046  memory: 698  
+2026/09/22 16:12:27 - mmengine - INFO - Epoch(test) [4700/5000]    eta: 0:00:18  time: 0.0560  data_time: 0.0031  memory: 698  
+2026/09/22 16:12:30 - mmengine - INFO - Epoch(test) [4750/5000]    eta: 0:00:15  time: 0.0557  data_time: 0.0035  memory: 804  
+2026/09/22 16:12:33 - mmengine - INFO - Epoch(test) [4800/5000]    eta: 0:00:12  time: 0.0573  data_time: 0.0039  memory: 698  
+2026/09/22 16:12:35 - mmengine - INFO - Epoch(test) [4850/5000]    eta: 0:00:09  time: 0.0530  data_time: 0.0029  memory: 666  
+2026/09/22 16:12:38 - mmengine - INFO - Epoch(test) [4900/5000]    eta: 0:00:06  time: 0.0563  data_time: 0.0032  memory: 666  
+2026/09/22 16:12:41 - mmengine - INFO - Epoch(test) [4950/5000]    eta: 0:00:03  time: 0.0583  data_time: 0.0043  memory: 698  
+2026/09/22 16:12:44 - mmengine - INFO - Epoch(test) [5000/5000]    eta: 0:00:00  time: 0.0569  data_time: 0.0034  memory: 701  
+2026/09/22 16:12:48 - mmengine - INFO - Evaluating bbox...
+2026/09/22 16:13:04 - mmengine - INFO - bbox_mAP_copypaste: 0.460 0.681 0.507 0.314 0.493 0.593
+2026/09/22 16:13:04 - mmengine - INFO - Evaluating segm...
+2026/09/22 16:13:23 - mmengine - INFO - segm_mAP_copypaste: 0.417 0.652 0.445 0.235 0.449 0.597
+2026/09/22 16:13:24 - mmengine - INFO - Epoch(test) [5000/5000]    coco/bbox_mAP: 0.4600  coco/bbox_mAP_50: 0.6810  coco/bbox_mAP_75: 0.5070  coco/bbox_mAP_s: 0.3140  coco/bbox_mAP_m: 0.4930  coco/bbox_mAP_l: 0.5930  coco/segm_mAP: 0.4170  coco/segm_mAP_50: 0.6520  coco/segm_mAP_75: 0.4450  coco/segm_mAP_s: 0.2350  coco/segm_mAP_m: 0.4490  coco/segm_mAP_l: 0.5970  data_time: 0.0048  time: 0.0626
