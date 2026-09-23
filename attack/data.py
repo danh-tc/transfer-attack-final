@@ -29,6 +29,29 @@ def load_image_ids(csv_path: str) -> List[int]:
     return ids
 
 
+def _gt_before_resize(pipeline: list) -> list:
+    """Đưa LoadAnnotations lên TRƯỚC Resize, và rasterize mask (poly2mask=True).
+
+    Test pipeline gốc của mmdet đặt LoadAnnotations SAU Resize (vì lúc eval GT chỉ
+    dùng qua file annotation, ở tọa độ ảnh gốc). Hệ quả: gt_instances.bboxes/masks
+    nằm ở tọa độ ảnh GỐC (vd 640x428) trong khi `inputs` đã resize (vd 1196x800) —
+    mọi loss dựa trên GT (MI/DI-FGSM, AugTrans) tính sai vị trí. Đây là bug thật,
+    xem docs/progress_log.md. Đặt LoadAnnotations trước để Resize co-transform luôn
+    box + mask về đúng khung ảnh đã resize.
+
+    poly2mask=True: mask dạng BitmapMasks (numpy) để các biến đổi hình học trong
+    attack (DI/AugTrans) co-transform mask bằng đúng phép biến đổi tensor dùng cho
+    ảnh, không phải tự xử lý polygon (xem attack/methods/box_transforms.py).
+    """
+    pipeline = [dict(t) for t in pipeline]
+    types = [t["type"] for t in pipeline]
+    ann_idx, resize_idx = types.index("LoadAnnotations"), types.index("Resize")
+    ann = pipeline.pop(ann_idx)
+    ann["poly2mask"] = True
+    pipeline.insert(resize_idx if ann_idx > resize_idx else resize_idx - 1, ann)
+    return pipeline
+
+
 class AttackDataset:
     """Dataset trả về (img_id, inputs, data_sample) cho 1 danh sách image_id cố định.
 
@@ -48,6 +71,7 @@ class AttackDataset:
         # Tắt serialize_data: chỉ vài trăm/nghìn ảnh, không cần tối ưu memory kiểu
         # multi-worker DataLoader — giữ self.data_list là list thường cho dễ lọc/reorder.
         dataset_cfg["serialize_data"] = False
+        dataset_cfg["pipeline"] = _gt_before_resize(dataset_cfg["pipeline"])
         self._mmdet_dataset = DATASETS.build(dataset_cfg)
         self._mmdet_dataset.full_init()
 

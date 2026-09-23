@@ -4,11 +4,48 @@ Bắt buộc phải có khi loss tấn công phụ thuộc GT (model.loss() cầ
 đúng vị trí object trong ảnh ĐÃ biến đổi — nếu vẫn dùng box gốc trước biến
 đổi trong khi ảnh đã xoay/resize, loss tính hoàn toàn sai vị trí, gradient
 gần như vô nghĩa). Bug này từng làm AugTrans không suppress được GT dù
-noise đã full epsilon-ball — xem docs/progress_log.md.
+noise đã full epsilon-ball — xem docs/progress_log.md. Áp dụng cho CẢ box
+lẫn mask (get_gt/with_gt bên dưới).
 """
+import copy
 import math
+from typing import Optional, Tuple
 
 import torch
+from mmdet.structures import DetDataSample
+from mmdet.structures.mask import BitmapMasks
+
+
+def get_gt(data_sample: DetDataSample, device) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    """Trả về (boxes [N,4] xyxy float, masks [N,H,W] float 0/1 hoặc None).
+
+    Mask cũng PHẢI co-transform giống box: Mask R-CNN tính loss_mask (~62% tổng
+    loss trên ảnh mẫu) từ gt_masks — nếu ảnh xoay/resize mà mask giữ nguyên thì
+    target mask lệch khỏi object thật. Mask trả về dạng tensor để caller áp
+    CHÍNH phép biến đổi tensor đã dùng cho ảnh (rotate/interpolate/crop/pad),
+    đảm bảo khớp tuyệt đối thay vì viết lại công thức riêng như với box.
+    """
+    gt = data_sample.gt_instances
+    boxes = gt.bboxes.tensor if hasattr(gt.bboxes, "tensor") else gt.bboxes
+    boxes = boxes.to(device).float()
+    masks = None
+    if "masks" in gt:
+        masks = gt.masks.to_tensor(dtype=torch.float32, device=device)
+    return boxes, masks
+
+
+def with_gt(data_sample: DetDataSample, boxes: torch.Tensor,
+            masks: Optional[torch.Tensor]) -> DetDataSample:
+    """data_sample MỚI (deepcopy) mang box/mask đã biến đổi. Mask threshold 0.5
+    (sau interpolate bilinear) rồi đóng gói lại BitmapMasks — kiểu mask head
+    của mmdet cần cho crop_and_resize khi tính mask target."""
+    ds = copy.deepcopy(data_sample)
+    ds.gt_instances.bboxes = boxes
+    if masks is not None:
+        h, w = masks.shape[-2:]
+        ds.gt_instances.masks = BitmapMasks(
+            (masks > 0.5).to(torch.uint8).cpu().numpy(), h, w)
+    return ds
 
 
 def rotate_boxes(boxes: torch.Tensor, angle_deg: float, center, img_h: int, img_w: int) -> torch.Tensor:

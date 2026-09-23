@@ -24,16 +24,15 @@ phần hyperparameter không có thuật toán chi tiết nào khác để theo.
 gốc dùng [0,1], mọi hằng số pixel-scale (epsilon, step size η, sigma noise)
 đã nhân 255 khi đưa vào đây.
 """
-import copy
 import random
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
 from mmdet.structures import DetDataSample
 from torchvision.transforms.functional import rotate
 
-from attack.methods.box_transforms import rotate_boxes
+from attack.methods.box_transforms import get_gt, rotate_boxes, with_gt
 from attack.methods.core import run_iterative_attack
 from attack.preprocess import to_batch
 
@@ -51,12 +50,6 @@ NOISE_P_SP_DEFAULT = 0.01  # Eq (5)
 ALPHA_CLS, ALPHA_BOX, ALPHA_OBJ, ALPHA_RPN_BOX = 1.0, 1.0, 2.0, 1.0  # Eq (6)
 ALPHA_MASK = 1.0  # KHÔNG có trong Eq (6) gốc — xem docstring augtrans_loss()
 GAMMA_CLS, GAMMA_OBJ = 0.8, 0.8  # Eq (6), "gradient regularization"
-
-
-def _get_gt_boxes_xyxy(data_sample: DetDataSample, device) -> torch.Tensor:
-    boxes = data_sample.gt_instances.bboxes
-    boxes = boxes.tensor if hasattr(boxes, "tensor") else boxes
-    return boxes.to(device)
 
 
 # --- (1) Dynamic object-centric rotation — Section 3.3.2, Eq (2) ---
@@ -84,17 +77,20 @@ def _sample_rotation_center(h: int, w: int, gt_boxes: torch.Tensor) -> Tuple[flo
 
 
 def _object_centric_rotate(img: torch.Tensor, gt_boxes: torch.Tensor,
+                           gt_masks: Optional[torch.Tensor],
                            step_idx: int, total_steps: int,
                            theta_base: float, curriculum_c: float
-                           ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Trả về (ảnh đã xoay, gt_boxes đã xoay theo — xem attack/methods/box_transforms.py)."""
+                           ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
+    """Trả về (ảnh đã xoay, gt_boxes + gt_masks đã xoay theo — xem attack/methods/box_transforms.py)."""
     h, w = img.shape[-2:]
     theta_max = _curriculum_theta_max(step_idx, total_steps, theta_base, curriculum_c)
     angle = random.uniform(-theta_max, theta_max)
     cx, cy = _sample_rotation_center(h, w, gt_boxes)
     rotated_img = rotate(img.unsqueeze(0), angle, center=[cx, cy]).squeeze(0)
     rotated_boxes = rotate_boxes(gt_boxes, angle, (cx, cy), h, w)
-    return rotated_img, rotated_boxes
+    if gt_masks is not None and len(gt_masks) > 0:
+        gt_masks = rotate(gt_masks, angle, center=[cx, cy])
+    return rotated_img, rotated_boxes, gt_masks
 
 
 # --- (2)+(3) Multi-box aware resizing + contextual crop/reflective-pad — Section 3.3.3/3.3.4 ---
@@ -128,16 +124,25 @@ def _content_adaptive_scale(gt_boxes: torch.Tensor, img_h: int, img_w: int,
 
 
 def _resize_crop_pad(img: torch.Tensor, gt_boxes: torch.Tensor,
-                     s_h: float, s_w: float) -> Tuple[torch.Tensor, torch.Tensor]:
+                     gt_masks: Optional[torch.Tensor],
+                     s_h: float, s_w: float
+                     ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
     """Resize theo (s_h,s_w) rồi đưa về đúng kích thước gốc: crop ngẫu nhiên
     nếu phóng to, reflection-pad với offset ngẫu nhiên nếu thu nhỏ — xử lý
-    H/W độc lập (Section 3.3.4). Trả về (ảnh, gt_boxes) đã cùng biến đổi:
-    box *= scale rồi dịch theo đúng offset crop/pad đã dùng cho ảnh."""
+    H/W độc lập (Section 3.3.4). Trả về (ảnh, gt_boxes, gt_masks) đã cùng biến
+    đổi: box *= scale rồi dịch theo đúng offset crop/pad đã dùng cho ảnh; mask
+    đi qua đúng interpolate/crop của ảnh, nhưng pad bằng 0 (không reflect) —
+    vùng reflect của ảnh là bản phản chiếu object KHÔNG có GT box tương ứng,
+    mask cũng không được có."""
     c, h, w = img.shape
     new_h = max(1, round(h * s_h))
     new_w = max(1, round(w * s_w))
     x = F.interpolate(img.unsqueeze(0), size=(new_h, new_w),
                       mode="bilinear", align_corners=True).squeeze(0)
+    m = None
+    if gt_masks is not None and len(gt_masks) > 0:
+        m = F.interpolate(gt_masks.unsqueeze(0), size=(new_h, new_w),
+                          mode="bilinear", align_corners=True).squeeze(0)
 
     boxes = gt_boxes.clone().float()
     if len(boxes) > 0:
@@ -147,6 +152,8 @@ def _resize_crop_pad(img: torch.Tensor, gt_boxes: torch.Tensor,
     if new_h > h:
         top = random.randint(0, new_h - h)
         x = x[:, top:top + h, :]
+        if m is not None:
+            m = m[:, top:top + h, :]
         if len(boxes) > 0:
             boxes[:, 1] -= top; boxes[:, 3] -= top
     elif new_h < h:
@@ -154,12 +161,16 @@ def _resize_crop_pad(img: torch.Tensor, gt_boxes: torch.Tensor,
         pad_top = random.randint(0, pad_total)
         x = F.pad(x.unsqueeze(0), (0, 0, pad_top, pad_total - pad_top),
                  mode="reflect").squeeze(0)
+        if m is not None:
+            m = F.pad(m, (0, 0, pad_top, pad_total - pad_top), value=0.0)
         if len(boxes) > 0:
             boxes[:, 1] += pad_top; boxes[:, 3] += pad_top
 
     if new_w > w:
         left = random.randint(0, new_w - w)
         x = x[:, :, left:left + w]
+        if m is not None:
+            m = m[:, :, left:left + w]
         if len(boxes) > 0:
             boxes[:, 0] -= left; boxes[:, 2] -= left
     elif new_w < w:
@@ -167,6 +178,8 @@ def _resize_crop_pad(img: torch.Tensor, gt_boxes: torch.Tensor,
         pad_left = random.randint(0, pad_total)
         x = F.pad(x.unsqueeze(0), (pad_left, pad_total - pad_left, 0, 0),
                  mode="reflect").squeeze(0)
+        if m is not None:
+            m = F.pad(m, (pad_left, pad_total - pad_left, 0, 0), value=0.0)
         if len(boxes) > 0:
             boxes[:, 0] += pad_left; boxes[:, 2] += pad_left
 
@@ -174,7 +187,7 @@ def _resize_crop_pad(img: torch.Tensor, gt_boxes: torch.Tensor,
         boxes[:, 0] = boxes[:, 0].clamp(0, w); boxes[:, 2] = boxes[:, 2].clamp(0, w)
         boxes[:, 1] = boxes[:, 1].clamp(0, h); boxes[:, 3] = boxes[:, 3].clamp(0, h)
 
-    return x, boxes
+    return x, boxes, (m if m is not None else gt_masks)
 
 
 # --- (4) Composite noise injection — Eq (5) ---
@@ -206,19 +219,17 @@ def augtrans_transform(img: torch.Tensor, data_sample: DetDataSample,
                        noise_sigma: float = NOISE_SIGMA_DEFAULT,
                        noise_p_sp: float = NOISE_P_SP_DEFAULT
                        ) -> Tuple[torch.Tensor, DetDataSample]:
-    """Trả về (ảnh đã biến đổi, data_sample MỚI có gt_instances.bboxes đã
-    co-transform khớp đúng ảnh) — bắt buộc vì augtrans_loss() dùng GT
+    """Trả về (ảnh đã biến đổi, data_sample MỚI có gt_instances.bboxes + masks
+    đã co-transform khớp đúng ảnh) — bắt buộc vì augtrans_loss() dùng GT
     (xem cảnh báo trong box_transforms.py: box không co-transform => loss
     tính sai vị trí object, đây từng là bug thật khiến AugTrans vô hiệu)."""
-    gt_boxes = _get_gt_boxes_xyxy(data_sample, img.device)
-    x, gt_boxes = _object_centric_rotate(img, gt_boxes, step_idx, total_steps, theta_base, curriculum_c)
+    gt_boxes, gt_masks = get_gt(data_sample, img.device)
+    x, gt_boxes, gt_masks = _object_centric_rotate(
+        img, gt_boxes, gt_masks, step_idx, total_steps, theta_base, curriculum_c)
     s_h, s_w = _content_adaptive_scale(gt_boxes, img.shape[-2], img.shape[-1], k_obj, rho_range, zeta_ar)
-    x, gt_boxes = _resize_crop_pad(x, gt_boxes, s_h, s_w)
+    x, gt_boxes, gt_masks = _resize_crop_pad(x, gt_boxes, gt_masks, s_h, s_w)
     x = _composite_noise(x, noise_sigma, noise_p_sp)
-
-    new_data_sample = copy.deepcopy(data_sample)
-    new_data_sample.gt_instances.bboxes = gt_boxes
-    return x, new_data_sample
+    return x, with_gt(data_sample, gt_boxes, gt_masks)
 
 
 def augtrans_views_fn(img: torch.Tensor, data_sample: DetDataSample,
@@ -259,8 +270,11 @@ def augtrans_loss(model, pixel_tensor: torch.Tensor, data_sample: DetDataSample,
     detectors like Faster R-CNN") — detector không có mask head, nên Eq (6)
     4 số hạng đã là TOÀN BỘ task loss của họ. Surrogate của dự án này bị khoá
     là Mask R-CNN (protocol_lock.md, để đồng nhất kiến trúc cả Controlled
-    Panel) — có thêm loss_mask, và trên ảnh mẫu verify thật chiếm tới ~62%
-    tổng loss (1.68 so với loss_cls=0.52+loss_bbox=0.43+loss_rpn~0.03). Dùng
+    Panel) — có thêm loss_mask, là thành phần LỚN NHẤT của task loss: trung
+    bình 20 ảnh đầu n300 (ảnh sạch) loss_mask=0.29 ~36% tổng (loss_cls=0.20,
+    loss_bbox=0.24, loss_rpn_cls=0.03, loss_rpn_bbox=0.06). (Con số ~62% ghi
+    trước đây đo khi GT còn lệch khung ảnh — bug LoadAnnotations sau Resize,
+    xem docs/progress_log.md — không còn đúng.) Dùng
     nguyên Eq (6) 4 số hạng khiến attack bỏ qua phần lớn nhất tín hiệu tấn
     công khả dụng của surrogate thật — verify bằng thực nghiệm cô lập
     (attack vẫn yếu dù sửa hết bug pipeline/EOT, dù tăng K_max lên tới 200
