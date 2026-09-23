@@ -74,7 +74,7 @@ Nếu pilot không tạo ≥ 3 điểm ở hướng nào: cân nhắc định v�
 ## 6. Việc mở / việc cho phiên sau
 
 1. **Push** các commit của 2026-09-23 (máy không lưu credential GitHub).
-2. **Upload HF** ảnh adv của A3 (`artifacts/runs/a3_stage_n100_B50_eps5/`, chưa lưu ra ngoài): `HF_TOKEN=... python scripts/sync_artifacts.py upload a3_stage_n100_B50_eps5`.
+2. ~~Upload HF ảnh adv của A3~~ — đã xong (`runs/a3_stage_n100_B50_eps5.tar`).
 3. Chọn hướng: (a) chốt quy tắc pilot + chạy pilot M1/M2/M3, hoặc (b) chuyển trọng tâm sang analysis paper.
 4. Khi tiện: B=200 bảng cuối (~3 h, tmux) + A5 gộp chung.
 5. Verify clean AP full val2017 cho model Generalization Panel + chẩn đoán (model_registry.md còn trống).
