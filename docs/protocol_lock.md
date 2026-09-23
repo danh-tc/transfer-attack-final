@@ -37,8 +37,9 @@ Checkpoint tải qua `mim download mmdet --config <identifier> --dest checkpoint
 **Định nghĩa: B = tổng số lần gọi `.backward()` qua surrogate** (không phải FLOPs, không phải số ảnh xử lý). Batch-doubling kiểu RRB (concat 2 augmented view rồi backward 1 lần trên batch gộp) tính là B=1 cho bước đó theo định nghĩa này.
 
 - **MI-FGSM, DI-FGSM, OSFD**: 1 backward/iteration → `iterations = B` trực tiếp.
-- **AugTrans**: dùng EOT với `N_EOT=10` sample/iteration (mỗi sample forward-backward riêng rồi average gradient, theo Algorithm 2 trong paper gốc) → `iterations = B / N_EOT` để tổng backward khớp 3 baseline kia.
-- **Primary budget set: B ∈ {50, 200}.** B=10 bị loại khỏi so sánh chéo method vì ở B=10, AugTrans chỉ được 1 iteration (10/10) — không đủ để curriculum/EOT của nó hoạt động có ý nghĩa (paper gốc cần ~40+ iteration mới đạt phần lớn performance drop). B=10 vẫn có thể dùng làm stress-test riêng cho MI-FGSM/DI-FGSM/OSFD (không AugTrans).
+- ~~**AugTrans**: dùng EOT với `N_EOT=10` sample/iteration → `iterations = B / N_EOT`.~~ AugTrans tạm bỏ khỏi plan (2026-09-23, idea.md §8).
+- **Primary budget set: B ∈ {50, 200}.** ~~B=10 bị loại khỏi so sánh chéo method vì AugTrans chỉ được 1 iteration.~~ Lý do loại B=10 không còn (AugTrans đã bỏ) — B=10 có thể đưa lại vào so sánh chéo MI/DI/OSFD; chưa chốt.
+- ⚠️ **Còn mở**: OSFD full recipe (RRB) đưa 2 view qua surrogate mỗi step nhưng tính B=1 (theo định nghĩa "số lần `.backward()`"), trong khi MI/DI chỉ 1 view/step — cần chốt đơn vị B (số backward vs số view forward-backward) trước baseline table chính thức.
 
 ## Danh sách ảnh n=300 / n=1000 (idea.md §4)
 

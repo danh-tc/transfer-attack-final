@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Kiểm tra 4 attack (MI-FGSM, DI-FGSM, OSFD, AugTrans) chạy đúng trên GPU thật.
+"""Kiểm tra 3 attack baseline (MI-FGSM, DI-FGSM, OSFD — AugTrans tạm bỏ khỏi plan) chạy đúng trên GPU thật.
 
 Không phải baseline table thật (vài ảnh, steps nhỏ) — chỉ verify:
 0. GT (box + mask) nằm ĐÚNG khung ảnh đã resize (bug cũ: LoadAnnotations đứng
    sau Resize trong test pipeline -> GT ở tọa độ ảnh gốc, xem docs/progress_log.md),
    và detection sạch của surrogate khớp GT.
-1. Co-transform GT của DI/AugTrans: bbox của mask đã biến đổi khớp box đã biến đổi.
+1. Co-transform GT của DI: bbox của mask đã biến đổi khớp box đã biến đổi.
 2. Chạy hết `steps` không lỗi, không NaN; noise nằm trong [-epsilon, epsilon].
 3. Ảnh adversarial thực sự đánh lừa được surrogate (near white-box): confidence
    trên GT-matched box giảm rõ — nếu không, nghi ngờ core logic.
@@ -22,7 +22,6 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from attack.data import build_attack_dataset
-from attack.methods.augtrans import augtrans_attack, augtrans_transform
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.box_transforms import get_gt
 from attack.methods.diversity import input_diversity_with_boxes
@@ -32,7 +31,6 @@ from attack.preprocess import predict
 N_IMAGES = 3
 STEPS = 20
 EPSILON = 5.0
-AUGTRANS_BUDGET_B = 50  # -> K_max=5 (N_EOT=10) — nhỏ, chỉ để smoke-test chạy nhanh
 
 
 def box_iou(a, b):
@@ -96,8 +94,7 @@ def check_gt_frame(model, clean_pixels, data_sample, gt_boxes, gt_labels):
 
 
 def check_cotransform(name, view_fn, clean_pixels, data_sample, n_trials=5):
-    """(1) Sau biến đổi của DI/AugTrans, bbox của mask vẫn khớp box đã biến đổi.
-    AugTrans xoay -> box là AABB của box xoay (lỏng hơn bbox mask) nên ngưỡng thấp hơn."""
+    """(1) Sau biến đổi của DI, bbox của mask vẫn khớp box đã biến đổi."""
     ious = []
     for _ in range(n_trials):
         img, ds = view_fn(clean_pixels, data_sample)
@@ -164,15 +161,12 @@ def main():
         check_gt_frame(model, clean_pixels, data_sample, gt_boxes, gt_labels)
         di_iou = check_cotransform("DI", lambda x, ds: input_diversity_with_boxes(x, ds, prob=1.0),
                                    clean_pixels, data_sample)
-        at_iou = check_cotransform("AugTrans", lambda x, ds: augtrans_transform(x, ds, 0, 5),
-                                   clean_pixels, data_sample)
-        assert di_iou > 0.8 and at_iou > 0.5, "co-transform mask/box lệch"
+        assert di_iou > 0.8, "co-transform mask/box lệch"
 
         runs = [
             ("MI-FGSM", mi_fgsm_attack, None, dict(steps=STEPS)),
             ("DI-FGSM", di_fgsm_attack, None, dict(steps=STEPS)),
             ("OSFD", osfd_attack, None, dict(steps=STEPS)),
-            ("AugTrans", augtrans_attack, None, dict(budget_B=AUGTRANS_BUDGET_B)),
         ]
         if legacy:
             legacy_ds = to_legacy_frame(data_sample)

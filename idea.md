@@ -167,7 +167,8 @@ Run trên cùng `n=300`:
 * MI-FGSM
 * DI-FGSM
 * OSFD
-* AugTrans
+
+~~AugTrans~~ — **tạm bỏ khỏi plan (2026-09-23)**: không có code chính thức (repo công bố trong paper trả 404), paper có mô tả mâu thuẫn, bản tự cài lại phải lệch khỏi paper ở nhiều chỗ (step size, loss_mask, K_max) và cho kết quả yếu hơn cả DI-FGSM ở quick check n=30 — không đủ tin cậy để làm strong baseline. Code giữ lại ở `attack/methods/augtrans.py` nhưng không chạy. Xem `docs/progress_log.md`. OSFD là strong baseline chính (được benchmark 2602.16494 đánh giá là attack transfer mạnh nhất trong nhóm có code). Có thể bổ sung baseline mạnh khác sau, nếu có code chính thức và khớp threat model — phải ghi quyết định vào progress_log trước khi chạy.
 
 Mục tiêu là tạo baseline table chuẩn:
 
@@ -219,6 +220,8 @@ Hypothesis pass nếu:
 3. paired bootstrap 95% CI của gap > 0
 4. pattern xuất hiện trên ít nhất 2 strong baselines
 5. không chỉ xuất hiện với MI-FGSM
+
+> ⚠️ Mở (2026-09-23): sau khi bỏ AugTrans, chỉ còn OSFD là strong baseline — tiêu chí 4 cần chốt lại (vd "OSFD và DI-FGSM", hoặc giữ nguyên và bổ sung 1 strong baseline có code chính thức).
 
 Nếu không đạt:
 
@@ -272,9 +275,7 @@ $$
 OSFD+Ours
 $$
 
-$$
-AugTrans+Ours
-$$
+(~~AugTrans+Ours~~ — AugTrans tạm bỏ khỏi plan, xem §8.)
 
 ---
 

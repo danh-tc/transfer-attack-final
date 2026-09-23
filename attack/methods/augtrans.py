@@ -1,4 +1,7 @@
-"""AugTrans — port từ papers/AugTrans.pdf (Pandey et al., "AugTrans: Boosting
+"""⚠️ TẠM BỎ KHỎI PLAN (2026-09-23, idea.md §8) — không chạy trong baseline table.
+Giữ code lại để tham khảo / dùng lại nếu sau này có code chính thức để đối chiếu.
+
+AugTrans — port từ papers/AugTrans.pdf (Pandey et al., "AugTrans: Boosting
 Adversarial Transferability in Object Detection with a Dynamic, Object-Aware
 Augmentation Pipeline"). KHÔNG có ref code trong repo — port trực tiếp từ
 Algorithm 1, Algorithm 2, Eq (2)-(6) và bảng hyperparameter trong paper.
