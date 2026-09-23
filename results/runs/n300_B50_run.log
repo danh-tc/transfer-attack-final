@@ -1,0 +1,179 @@
+loading annotations into memory...
+Done (t=0.41s)
+creating index...
+index created!
+[run] n300_B50_eps5: 300 ảnh, methods=['MI-FGSM', 'M-DI2-FGSM', 'OSFD']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack MI-FGSM] 10/300  3.4s/ảnh  còn ~16 phút
+[attack MI-FGSM] 20/300  3.3s/ảnh  còn ~16 phút
+[attack MI-FGSM] 30/300  3.3s/ảnh  còn ~15 phút
+[attack MI-FGSM] 40/300  3.3s/ảnh  còn ~14 phút
+[attack MI-FGSM] 50/300  3.3s/ảnh  còn ~14 phút
+[attack MI-FGSM] 60/300  3.4s/ảnh  còn ~13 phút
+[attack MI-FGSM] 70/300  3.3s/ảnh  còn ~13 phút
+[attack MI-FGSM] 80/300  3.3s/ảnh  còn ~12 phút
+[attack MI-FGSM] 90/300  3.3s/ảnh  còn ~12 phút
+[attack MI-FGSM] 100/300  3.3s/ảnh  còn ~11 phút
+[attack MI-FGSM] 110/300  3.3s/ảnh  còn ~11 phút
+[attack MI-FGSM] 120/300  3.3s/ảnh  còn ~10 phút
+[attack MI-FGSM] 130/300  3.3s/ảnh  còn ~9 phút
+[attack MI-FGSM] 140/300  3.3s/ảnh  còn ~9 phút
+[attack MI-FGSM] 150/300  3.3s/ảnh  còn ~8 phút
+[attack MI-FGSM] 160/300  3.3s/ảnh  còn ~8 phút
+[attack MI-FGSM] 170/300  3.3s/ảnh  còn ~7 phút
+[attack MI-FGSM] 180/300  3.3s/ảnh  còn ~7 phút
+[attack MI-FGSM] 190/300  3.3s/ảnh  còn ~6 phút
+[attack MI-FGSM] 200/300  3.3s/ảnh  còn ~6 phút
+[attack MI-FGSM] 210/300  3.3s/ảnh  còn ~5 phút
+[attack MI-FGSM] 220/300  3.3s/ảnh  còn ~4 phút
+[attack MI-FGSM] 230/300  3.3s/ảnh  còn ~4 phút
+[attack MI-FGSM] 240/300  3.3s/ảnh  còn ~3 phút
+[attack MI-FGSM] 250/300  3.3s/ảnh  còn ~3 phút
+[attack MI-FGSM] 260/300  3.3s/ảnh  còn ~2 phút
+[attack MI-FGSM] 270/300  3.3s/ảnh  còn ~2 phút
+[attack MI-FGSM] 280/300  3.3s/ảnh  còn ~1 phút
+[attack MI-FGSM] 290/300  3.3s/ảnh  còn ~1 phút
+[attack MI-FGSM] 300/300  3.3s/ảnh  còn ~0 phút
+[attack M-DI2-FGSM] 10/300  3.7s/ảnh  còn ~18 phút
+[attack M-DI2-FGSM] 20/300  3.6s/ảnh  còn ~17 phút
+[attack M-DI2-FGSM] 30/300  3.6s/ảnh  còn ~16 phút
+[attack M-DI2-FGSM] 40/300  3.6s/ảnh  còn ~16 phút
+[attack M-DI2-FGSM] 50/300  3.7s/ảnh  còn ~15 phút
+[attack M-DI2-FGSM] 60/300  3.7s/ảnh  còn ~15 phút
+[attack M-DI2-FGSM] 70/300  3.7s/ảnh  còn ~14 phút
+[attack M-DI2-FGSM] 80/300  3.7s/ảnh  còn ~13 phút
+[attack M-DI2-FGSM] 90/300  3.7s/ảnh  còn ~13 phút
+[attack M-DI2-FGSM] 100/300  3.7s/ảnh  còn ~12 phút
+[attack M-DI2-FGSM] 110/300  3.7s/ảnh  còn ~12 phút
+[attack M-DI2-FGSM] 120/300  3.7s/ảnh  còn ~11 phút
+[attack M-DI2-FGSM] 130/300  3.7s/ảnh  còn ~10 phút
+[attack M-DI2-FGSM] 140/300  3.7s/ảnh  còn ~10 phút
+[attack M-DI2-FGSM] 150/300  3.7s/ảnh  còn ~9 phút
+[attack M-DI2-FGSM] 160/300  3.7s/ảnh  còn ~9 phút
+[attack M-DI2-FGSM] 170/300  3.7s/ảnh  còn ~8 phút
+[attack M-DI2-FGSM] 180/300  3.7s/ảnh  còn ~7 phút
+[attack M-DI2-FGSM] 190/300  3.7s/ảnh  còn ~7 phút
+[attack M-DI2-FGSM] 200/300  3.7s/ảnh  còn ~6 phút
+[attack M-DI2-FGSM] 210/300  3.7s/ảnh  còn ~5 phút
+[attack M-DI2-FGSM] 220/300  3.7s/ảnh  còn ~5 phút
+[attack M-DI2-FGSM] 230/300  3.7s/ảnh  còn ~4 phút
+[attack M-DI2-FGSM] 240/300  3.7s/ảnh  còn ~4 phút
+[attack M-DI2-FGSM] 250/300  3.7s/ảnh  còn ~3 phút
+[attack M-DI2-FGSM] 260/300  3.7s/ảnh  còn ~2 phút
+[attack M-DI2-FGSM] 270/300  3.7s/ảnh  còn ~2 phút
+[attack M-DI2-FGSM] 280/300  3.6s/ảnh  còn ~1 phút
+[attack M-DI2-FGSM] 290/300  3.6s/ảnh  còn ~1 phút
+[attack M-DI2-FGSM] 300/300  3.6s/ảnh  còn ~0 phút
+[attack OSFD] 10/300  3.0s/ảnh  còn ~15 phút
+[attack OSFD] 20/300  3.1s/ảnh  còn ~14 phút
+[attack OSFD] 30/300  3.1s/ảnh  còn ~14 phút
+[attack OSFD] 40/300  3.1s/ảnh  còn ~13 phút
+[attack OSFD] 50/300  3.1s/ảnh  còn ~13 phút
+[attack OSFD] 60/300  3.1s/ảnh  còn ~12 phút
+[attack OSFD] 70/300  3.1s/ảnh  còn ~12 phút
+[attack OSFD] 80/300  3.1s/ảnh  còn ~11 phút
+[attack OSFD] 90/300  3.1s/ảnh  còn ~11 phút
+[attack OSFD] 100/300  3.1s/ảnh  còn ~10 phút
+[attack OSFD] 110/300  3.1s/ảnh  còn ~10 phút
+[attack OSFD] 120/300  3.1s/ảnh  còn ~9 phút
+[attack OSFD] 130/300  3.1s/ảnh  còn ~9 phút
+[attack OSFD] 140/300  3.1s/ảnh  còn ~8 phút
+[attack OSFD] 150/300  3.1s/ảnh  còn ~8 phút
+[attack OSFD] 160/300  3.1s/ảnh  còn ~7 phút
+[attack OSFD] 170/300  3.1s/ảnh  còn ~7 phút
+[attack OSFD] 180/300  3.1s/ảnh  còn ~6 phút
+[attack OSFD] 190/300  3.1s/ảnh  còn ~6 phút
+[attack OSFD] 200/300  3.1s/ảnh  còn ~5 phút
+[attack OSFD] 210/300  3.1s/ảnh  còn ~5 phút
+[attack OSFD] 220/300  3.1s/ảnh  còn ~4 phút
+[attack OSFD] 230/300  3.1s/ảnh  còn ~4 phút
+[attack OSFD] 240/300  3.1s/ảnh  còn ~3 phút
+[attack OSFD] 250/300  3.1s/ảnh  còn ~3 phút
+[attack OSFD] 260/300  3.1s/ảnh  còn ~2 phút
+[attack OSFD] 270/300  3.1s/ảnh  còn ~2 phút
+[attack OSFD] 280/300  3.1s/ảnh  còn ~1 phút
+[attack OSFD] 290/300  3.1s/ảnh  còn ~1 phút
+[attack OSFD] 300/300  3.1s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (33s)
+[eval] predict 100/300 (65s)
+[eval] predict 150/300 (97s)
+[eval] predict 200/300 (130s)
+[eval] predict 250/300 (162s)
+[eval] predict 300/300 (193s)
+loading annotations into memory...
+Done (t=0.53s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (283s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          45.0 [ 43.3, 49.1]   46.2 [ 44.7, 50.5]   51.0 [ 49.5, 55.0]   49.8 [ 48.4, 53.9]
+MI-FGSM         0.0 [  0.0,  0.1]   10.5 [  9.5, 13.7]   23.4 [ 22.6, 28.0]   27.3 [ 26.2, 31.8]
+M-DI2-FGSM      0.1 [  0.1,  0.4]    3.3 [  2.5,  4.9]   11.2 [ 10.3, 14.5]   16.4 [ 15.3, 20.0]
+OSFD            0.5 [  0.2,  1.0]    3.5 [  2.2,  5.5]   10.0 [  8.6, 13.0]   10.6 [  9.6, 13.4]
+
+=== relative AP drop % [95% CI] ===
+MI-FGSM        99.9 [ 99.7,100.0]   77.3 [ 71.6, 79.7]   54.0 [ 47.2, 56.0]   45.1 [ 39.3, 47.9]
+M-DI2-FGSM     99.7 [ 99.0, 99.8]   93.0 [ 89.7, 94.7]   78.0 [ 72.7, 80.3]   67.1 [ 61.5, 69.7]
+OSFD           98.9 [ 97.8, 99.6]   92.4 [ 88.4, 95.4]   80.4 [ 75.7, 83.6]   78.7 [ 73.9, 81.2]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+MI-FGSM      CrossAvg  49.6 [ 43.7, 51.6]  gap→ConvNeXt  23.3 [ 20.6, 28.1]  gap→Swin  32.1 [ 28.3, 36.4]  gap→avg  27.7 [ 24.7, 32.0]
+M-DI2-FGSM   CrossAvg  72.5 [ 67.4, 74.8]  gap→ConvNeXt  15.0 [ 12.5, 18.8]  gap→Swin  25.8 [ 22.4, 30.8]  gap→avg  20.4 [ 17.7, 24.3]
+OSFD         CrossAvg  79.5 [ 74.9, 82.3]  gap→ConvNeXt  12.0 [  9.4, 15.9]  gap→Swin  13.8 [ 11.0, 18.1]  gap→avg  12.9 [ 10.2, 16.7]
+
+=== runtime === {'MI-FGSM': 3.3, 'M-DI2-FGSM': 3.6, 'OSFD': 3.1}
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/metrics.json
