@@ -1,0 +1,134 @@
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.38s)
+creating index...
+index created!
+[gen fcos_r50] 50/300 (7s)
+[gen fcos_r50] 100/300 (13s)
+[gen fcos_r50] 150/300 (19s)
+[gen fcos_r50] 200/300 (25s)
+[gen fcos_r50] 250/300 (32s)
+[gen fcos_r50] 300/300 (38s)
+
+unexpected key in source state_dict: data_preprocessor.mean, data_preprocessor.std
+
+[gen detr_r50] 50/300 (5s)
+[gen detr_r50] 100/300 (10s)
+[gen detr_r50] 150/300 (15s)
+[gen detr_r50] 200/300 (20s)
+[gen detr_r50] 250/300 (25s)
+[gen detr_r50] 300/300 (30s)
+[gen yolox_s] 50/300 (4s)
+[gen yolox_s] 100/300 (7s)
+[gen yolox_s] 150/300 (10s)
+[gen yolox_s] 200/300 (14s)
+[gen yolox_s] 250/300 (17s)
+[gen yolox_s] 300/300 (20s)
+[gen yolox_l] 50/300 (4s)
+[gen yolox_l] 100/300 (9s)
+[gen yolox_l] 150/300 (13s)
+[gen yolox_l] 200/300 (18s)
+[gen yolox_l] 250/300 (22s)
+[gen yolox_l] 300/300 (26s)
+[gen dino_swin_l] 50/300 (61s)
+[gen dino_swin_l] 100/300 (122s)
+[gen dino_swin_l] 150/300 (182s)
+[gen dino_swin_l] 200/300 (243s)
+[gen dino_swin_l] 250/300 (303s)
+[gen dino_swin_l] 300/300 (362s)
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.45s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: fcos_r50
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: detr_r50
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.03s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: yolox_l
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.65s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 46.2  fcos_r50: 41.9  detr_r50: 44.3  yolox_s: 43.9  yolox_l: 53.5  dino_swin_l: 62.4
+
+=== relative AP drop % [95% CI] ===
+                             r101             fcos_r50             detr_r50              yolox_s              yolox_l          dino_swin_l
+MI-FGSM        77.3 [ 71.6, 79.7]   78.8 [ 73.5, 81.0]   93.6 [ 90.2, 94.9]   34.9 [ 29.4, 37.8]   33.8 [ 29.6, 37.1]   16.9 [ 14.1, 18.9]
+M-DI2-FGSM     93.0 [ 89.7, 94.7]   93.1 [ 90.0, 94.3]   96.1 [ 93.4, 97.2]   58.0 [ 51.9, 60.3]   60.5 [ 54.0, 61.8]   26.1 [ 22.0, 28.1]
+OSFD           92.4 [ 88.4, 95.4]   92.5 [ 89.7, 95.3]   96.3 [ 93.9, 98.2]   77.4 [ 71.8, 80.1]   71.7 [ 66.0, 74.7]   24.6 [ 20.4, 27.4]
+
+=== headroom = drop(R101) − drop(model) ===
+MI-FGSM        -1.5 [ -4.2,  1.0]  -16.3 [-20.4,-13.5]   42.4 [ 38.0, 46.6]   43.4 [ 38.4, 47.0]   60.4 [ 55.1, 63.5]
+M-DI2-FGSM     -0.1 [ -1.3,  1.3]   -3.2 [ -5.1, -1.5]   34.9 [ 31.6, 40.3]   32.4 [ 30.4, 38.2]   66.9 [ 63.3, 70.7]
+OSFD           -0.1 [ -3.8,  3.3]   -3.9 [ -7.2, -1.5]   15.0 [ 12.1, 19.7]   20.7 [ 17.1, 25.9]   67.8 [ 63.6, 72.7]
+
+=== OSFD − M-DI2-FGSM ===
+               -0.6 [ -1.8,  2.6]    0.2 [ -0.6,  2.4]   19.4 [ 15.5, 25.1]   11.2 [  8.0, 17.4]   -1.5 [ -4.8,  2.1]
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/generalization_metrics.json
