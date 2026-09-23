@@ -77,7 +77,8 @@ def predict_model(key, img_ids, coco, adv_dir, out_path, device):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--run", default="n300_B50_eps5")
-    p.add_argument("--models", nargs="+", default=list(GEN_PANEL), choices=list(GEN_PANEL))
+    p.add_argument("--models", nargs="+", default=[k for k in GEN_PANEL if k != "dino_r50"],
+                   choices=list(GEN_PANEL))  # mặc định = panel định trước; dino_r50 chỉ chạy khi chỉ định
     p.add_argument("--n-boot", type=int, default=1000)
     p.add_argument("--device", default="cuda:0")
     p.add_argument("--out", default="generalization_metrics.json", help="tên file trong results/runs/<run>/")
