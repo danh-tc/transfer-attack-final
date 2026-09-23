@@ -67,11 +67,12 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                 epsilon: float = EPSILON_PRIMARY, alpha: float = ALPHA_DEFAULT,
                 k: float = 3.0, use_rrb: bool = True, momentum: float = 1.0,
                 rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8,
-                rrb_s_max: float = 1.1, rrb_sigma: float = 6.0, on_step=None):
+                rrb_s_max: float = 1.1, rrb_sigma: float = 6.0, on_step=None,
+                stages=None):
     # Feature sạch lấy từ CÙNG phép resize khả vi dùng cho adv (core.py) — tại δ=0
     # adv trùng tuyệt đối clean, loss chỉ đo phần lệch do δ gây ra.
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
-    loss_fn = make_osfd_loss_fn(model, clean_pixels, data_sample, k=k)
+    loss_fn = make_osfd_loss_fn(model, clean_pixels, data_sample, k=k, stages=stages)
     views_fn = None
     if use_rrb:
         # RRB không co-transform box: loss OSFD (feature-disruption) không phụ

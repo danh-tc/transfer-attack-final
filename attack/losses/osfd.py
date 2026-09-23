@@ -20,16 +20,21 @@ from attack.preprocess import extract_features
 
 
 def make_osfd_loss_fn(model: torch.nn.Module, clean_pixels: torch.Tensor,
-                      data_sample: DetDataSample, k: float = 3.0):
+                      data_sample: DetDataSample, k: float = 3.0, stages=None):
     """Cache feature sạch 1 lần (không cần tính lại mỗi step attack), trả về
-    loss_fn tương thích attack.methods.core.run_iterative_attack."""
+    loss_fn tương thích attack.methods.core.run_iterative_attack.
+
+    stages: None = mọi stage backbone (OSFD gốc); list chỉ số 0-based (vd [1]) = chỉ
+    tấn công các stage đó (Mechanism A3, docs/mechanism_plan.md)."""
     with torch.no_grad():
         feats_clean = tuple(f.detach() for f in extract_features(model, clean_pixels, data_sample))
 
     def loss_fn(model, adv_pixels, data_sample):
         feats_adv = extract_features(model, adv_pixels, data_sample)
         loss = None
-        for feat_cln, feat_adv in zip(feats_clean, feats_adv):
+        for s, (feat_cln, feat_adv) in enumerate(zip(feats_clean, feats_adv)):
+            if stages is not None and s not in stages:
+                continue
             term = F.mse_loss(k * feat_cln, feat_adv)
             loss = term if loss is None else loss + term
         return loss
