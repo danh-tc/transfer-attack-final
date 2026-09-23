@@ -52,7 +52,15 @@ Chạy 1 lệnh, xong là có venv + checkpoint + dataset + danh sách ảnh s�
 
 ## Persistent storage cho artifact nặng
 
-Checkpoint và ảnh adversarial sinh ra trong lúc chạy thí nghiệm **không sống sót qua lần trả máy** nếu không tự sync ra ngoài. Repo git chỉ giữ: code, config nhẹ, danh sách image_id, và **kết quả số** (`results/runs/*/metrics.json` — nhẹ, chính là baseline table idea.md §8-9). Còn checkpoint/ảnh adversarial dùng cho Mechanism Stage (idea.md §11) sau này cần giữ lại thật thì phải tự quyết định nơi lưu (cloud bucket / scp về máy khác) khi tới lúc đó — chưa cấu hình vì chưa cần ngay ở Baseline-First Stage (chỉ cần metrics số, không cần giữ ảnh adversarial lâu dài).
+Checkpoint và ảnh adversarial sinh ra trong lúc chạy thí nghiệm **không sống sót qua lần trả máy** nếu không tự sync ra ngoài. Repo git chỉ giữ: code, config nhẹ, danh sách image_id, và **kết quả số** (`results/runs/*/metrics.json` — nhẹ, chính là baseline table idea.md §8-9). Ảnh adversarial + detection thô của từng run (`artifacts/runs/<run>/`) lưu ở **HF dataset PRIVATE `congdanh99/transfer-attack`** (từ 2026-09-23), mỗi run 1 file `runs/<run>.tar`:
+
+```bash
+export HF_TOKEN=...   # token write của user — KHÔNG ghi vào repo
+python scripts/sync_artifacts.py download n300_B50_eps5   # máy mới: kéo về artifacts/runs/
+python scripts/sync_artifacts.py upload   <run>           # sau khi sinh run mới, trước khi trả máy
+```
+
+Script từ chối chạy nếu repo HF không còn private (ảnh biến đổi từ COCO/Flickr — license). Checkpoint không cần lưu (tải lại qua `download_checkpoints.sh`).
 
 ## Troubleshooting
 

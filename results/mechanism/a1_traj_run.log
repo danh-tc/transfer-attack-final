@@ -12,3 +12,54 @@ index created!
 [A1] 200/300 (1836s)
 [A1] 225/300 (2067s)
 [A1] 250/300 (2295s)
+[A1] 275/300 (2523s)
+[A1] 300/300 (2743s)
+
+=== cosine: align(R50, ·) ===
+  r101        0.2009 [0.1907,0.2115]
+  convnext_t  0.1420 [0.1334,0.1505]
+  swin_t      0.1088 [0.1014,0.1168]
+  r50_reseed  0.9730 [0.9685,0.9771]
+  R101 − convnext_t  0.0588 [0.0520,0.0662]
+  R101 − swin_t      0.0921 [0.0853,0.0991]
+  Spearman(align, suppression) / (align, retained):
+    MI-FGSM    r101        0.0261 [-0.0944,0.1457]   -0.0110 [-0.1362,0.1098]
+    MI-FGSM    convnext_t  0.0930 [-0.0277,0.2007]   -0.0801 [-0.1975,0.0425]
+    MI-FGSM    swin_t      0.1732 [0.0628,0.2839]   -0.1562 [-0.2657,-0.0450]
+    M-DI2-FGSM r101        -0.1552 [-0.2748,-0.0378]   0.1123 [-0.0008,0.2319]
+    M-DI2-FGSM convnext_t  -0.0055 [-0.1248,0.1195]   0.0424 [-0.0884,0.1615]
+    M-DI2-FGSM swin_t      0.1363 [0.0263,0.2482]   -0.1209 [-0.2395,-0.0084]
+    OSFD       r101        -0.1511 [-0.2615,-0.0412]   0.1535 [0.0389,0.2710]
+    OSFD       convnext_t  -0.2124 [-0.3196,-0.0913]   0.2191 [0.0983,0.3246]
+    OSFD       swin_t      -0.0833 [-0.2047,0.0377]   0.0896 [-0.0307,0.2059]
+  criterion: {'same_gt_cross_both': True, 'corr_pos_any_cross': {'M-DI2-FGSM': True, 'OSFD': False}, 'pass': False}
+
+=== sign: align(R50, ·) ===
+  r101        0.5205 [0.5197,0.5214]
+  convnext_t  0.5097 [0.5092,0.5103]
+  swin_t      0.5067 [0.5062,0.5071]
+  r50_reseed  0.8677 [0.8611,0.8739]
+  R101 − convnext_t  0.0108 [0.0102,0.0114]
+  R101 − swin_t      0.0138 [0.0132,0.0145]
+  Spearman(align, suppression) / (align, retained):
+    MI-FGSM    r101        0.0952 [-0.0271,0.2073]   -0.1518 [-0.2695,-0.0333]
+    MI-FGSM    convnext_t  0.2055 [0.0861,0.3213]   -0.2428 [-0.3522,-0.1283]
+    MI-FGSM    swin_t      0.2266 [0.1135,0.3388]   -0.2884 [-0.3982,-0.1715]
+    M-DI2-FGSM r101        0.1946 [0.0804,0.3134]   -0.2137 [-0.3283,-0.1008]
+    M-DI2-FGSM convnext_t  0.2038 [0.0767,0.3161]   -0.2342 [-0.3462,-0.1061]
+    M-DI2-FGSM swin_t      0.2538 [0.1450,0.3636]   -0.2645 [-0.3761,-0.1542]
+    OSFD       r101        0.1774 [0.0644,0.2852]   -0.1677 [-0.2765,-0.0558]
+    OSFD       convnext_t  0.1435 [0.0305,0.2591]   -0.1498 [-0.2660,-0.0361]
+    OSFD       swin_t      0.1361 [0.0125,0.2550]   -0.0945 [-0.2170,0.0296]
+  criterion: {'same_gt_cross_both': True, 'corr_pos_any_cross': {'M-DI2-FGSM': True, 'OSFD': True}, 'pass': True}
+
+A1_pass = False
+
+=== trajectory: sign agreement R50 vs target tại step k ===
+  M-DI2-FGSM  k=10 r101: 0.5152  convnext_t: 0.5076  swin_t: 0.5047
+  M-DI2-FGSM  k=25 r101: 0.5132  convnext_t: 0.5068  swin_t: 0.5043
+  M-DI2-FGSM  k=50 r101: 0.5117  convnext_t: 0.5059  swin_t: 0.5039
+  OSFD        k=10 r101: 0.5251  convnext_t: 0.5118  swin_t: 0.5079
+  OSFD        k=25 r101: 0.5228  convnext_t: 0.5109  swin_t: 0.5070
+  OSFD        k=50 r101: 0.5222  convnext_t: 0.5103  swin_t: 0.5063
+saved: /workspace/transfer-attack-final/results/mechanism/a1_gradients_traj.json

@@ -113,7 +113,7 @@ if [ ! -e "$SITE_PACKAGES_DIR/mmdet" ]; then
 fi
 
 log "Cài các thư viện phụ trợ (dataset eval, ảnh, tiện ích)..."
-pip install -q pycocotools "opencv-python-headless==${OPENCV_VERSION}" tqdm matplotlib
+pip install -q pycocotools "opencv-python-headless==${OPENCV_VERSION}" tqdm matplotlib "huggingface_hub<1.0"  # hub: scripts/sync_artifacts.py
 # Re-pin numpy/opencv: pycocotools hoặc thư viện phụ trợ có thể kéo lại numpy>=2 hay opencv mới nhất.
 pip install -q "numpy==1.26.4" "opencv-python==${OPENCV_VERSION}" "opencv-python-headless==${OPENCV_VERSION}"
 
