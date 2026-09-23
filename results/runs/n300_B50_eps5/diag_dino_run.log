@@ -1,0 +1,86 @@
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.39s)
+creating index...
+index created!
+[gen dino_r50] 50/300 (12s)
+[gen dino_r50] 100/300 (23s)
+[gen dino_r50] 150/300 (34s)
+[gen dino_r50] 200/300 (45s)
+[gen dino_r50] 250/300 (56s)
+[gen dino_r50] 300/300 (67s)
+DONE (t=0.02s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: detr_r50
+DONE (t=0.51s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+[gen] AP xong: dino_r50
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 46.2  detr_r50: 44.3  dino_swin_l: 62.4  dino_r50: 53.1
+
+=== relative AP drop % [95% CI] ===
+                             r101             detr_r50          dino_swin_l             dino_r50
+MI-FGSM        77.3 [ 71.6, 79.7]   93.6 [ 90.2, 94.9]   16.9 [ 14.1, 18.9]   92.8 [ 89.3, 94.7]
+M-DI2-FGSM     93.0 [ 89.7, 94.7]   96.1 [ 93.4, 97.2]   26.1 [ 22.0, 28.1]   95.4 [ 92.7, 96.5]
+OSFD           92.4 [ 88.4, 95.4]   96.3 [ 93.9, 98.2]   24.6 [ 20.4, 27.4]   97.3 [ 95.5, 98.5]
+
+=== headroom = drop(R101) − drop(model) ===
+MI-FGSM       -16.3 [-20.4,-13.5]   60.4 [ 55.1, 63.5]  -15.5 [-19.6,-12.9]
+M-DI2-FGSM     -3.2 [ -5.1, -1.5]   66.9 [ 63.3, 70.7]   -2.4 [ -4.4, -0.8]
+OSFD           -3.9 [ -7.2, -1.5]   67.8 [ 63.6, 72.7]   -4.9 [ -8.2, -2.0]
+
+=== OSFD − M-DI2-FGSM ===
+                0.2 [ -0.6,  2.4]   -1.5 [ -4.8,  2.1]    1.9 [  0.4,  4.4]
+
+=== model_diff (OSFD) ===
+  detr_r50 - dino_swin_l        71.7 [ 68.3, 76.0]
+  detr_r50 - dino_r50           -1.0 [ -2.9,  0.9]
+  dino_r50 - dino_swin_l        72.7 [ 69.6, 76.6]
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/generalization_diag_dino.json
