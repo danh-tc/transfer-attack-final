@@ -1,0 +1,85 @@
+loading annotations into memory...
+Done (t=0.36s)
+creating index...
+index created!
+[gen mrcnn_swin_s] 50/300 (13s)
+[gen mrcnn_swin_s] 100/300 (25s)
+[gen mrcnn_swin_s] 150/300 (38s)
+[gen mrcnn_swin_s] 200/300 (51s)
+[gen mrcnn_swin_s] 250/300 (63s)
+[gen mrcnn_swin_s] 300/300 (76s)
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: mrcnn_swin_s
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.45s)
+creating index...
+index created!
+DONE (t=0.04s)
+creating index...
+index created!
+DONE (t=0.50s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.00s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: swin_t
+
+=== clean AP (n=300) ===
+r101: 46.2  mrcnn_swin_s: 52.2  dino_swin_l: 62.4  swin_t: 49.8
+
+=== relative AP drop % [95% CI] ===
+                             r101         mrcnn_swin_s          dino_swin_l               swin_t
+MI-FGSM        77.3 [ 71.6, 79.7]   38.1 [ 32.0, 39.6]   16.9 [ 14.1, 18.9]   45.1 [ 39.3, 47.9]
+M-DI2-FGSM     93.0 [ 89.7, 94.7]   58.1 [ 51.7, 59.6]   26.1 [ 22.0, 28.1]   67.1 [ 61.5, 69.7]
+OSFD           92.4 [ 88.4, 95.4]   72.4 [ 67.3, 75.2]   24.6 [ 20.4, 27.4]   78.7 [ 73.9, 81.2]
+
+=== headroom = drop(R101) − drop(model) ===
+MI-FGSM        39.2 [ 36.0, 44.2]   60.4 [ 55.1, 63.5]   32.1 [ 28.3, 36.4]
+M-DI2-FGSM     34.8 [ 32.2, 40.6]   66.9 [ 63.3, 70.7]   25.8 [ 22.4, 30.8]
+OSFD           20.0 [ 17.0, 25.0]   67.8 [ 63.6, 72.7]   13.8 [ 11.0, 18.1]
+
+=== OSFD − M-DI2-FGSM ===
+               14.3 [ 11.5, 19.6]   -1.5 [ -4.8,  2.1]   11.5 [  8.0, 16.3]
+
+=== model_diff (OSFD) ===
+  mrcnn_swin_s - swin_t         -6.3 [ -9.1, -3.8]
+  dino_swin_l - mrcnn_swin_s   -47.8 [-51.6,-43.1]
+  dino_swin_l - swin_t         -54.1 [-58.1,-49.4]
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/generalization_diag_swin_s.json
