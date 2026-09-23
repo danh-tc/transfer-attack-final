@@ -66,7 +66,7 @@ AP không ổn định ở mức 1 ảnh → per (ảnh, method, target), tính 
 ## Quy tắc kết luận (khóa khi duyệt)
 
 - Một cơ chế được coi là **có bằng chứng** khi đạt đủ điều kiện "ủng hộ" của nó ở trên, trên **cả OSFD và M-DI²-FGSM** (giống tiêu chí §10.4).
-- **Giữ hướng "stage-aware backward regularization"** (idea.md §12) chỉ khi A2(b) hoặc A3 có bằng chứng divergence phụ thuộc stage. A3 (can thiệp) được ưu tiên: A2 yếu nhưng A3 rõ → vẫn giữ; A2 rõ nhưng A3 không → ghi nhận là quan sát, KHÔNG đủ giữ. Nếu chỉ A1/A4 có bằng chứng (lệch gradient/phổ không gắn với stage) → ghi nhận, đề xuất hướng method khác phù hợp với cơ chế đó thay vì ép vào stage-aware.
+- **Giữ hướng "stage-aware backward regularization"** (idea.md §12) chỉ khi A2(b) hoặc A3 có bằng chứng divergence phụ thuộc stage. A3 (can thiệp) là bằng chứng mạnh hơn: A2 yếu nhưng A3 cho stage-specific transfer rõ → vẫn giữ. Nếu chỉ A1/A4 có bằng chứng (lệch gradient/phổ không gắn với stage) → ghi nhận, đề xuất hướng method khác phù hợp với cơ chế đó thay vì ép vào stage-aware.
 - Không cơ chế nào đạt → vẫn báo cáo (kết quả âm có giá trị cho RQ2), không tự thêm phân tích mới để "tìm bằng được"; mọi phân tích bổ sung phải ghi lý do vào progress_log trước khi chạy.
 - Không tune gì của attack/method dựa trên kết quả Mechanism Stage ở n300 ngoài quyết định giữ/bỏ hướng method.
 
