@@ -216,7 +216,7 @@ Additional:
 Hypothesis pass nếu:
 
 1. same-family transfer consistently > cross-family transfer
-2. effect size đủ meaningful
+2. effect size đủ meaningful → **cận dưới 95% CI (paired bootstrap) của gap ≥ 5 điểm relative AP drop**, cho từng target khác họ (ConvNeXt-T, Swin-T), ở cả OSFD và M-DI²-FGSM (chốt 2026-09-23 — chốt SAU khi có bảng n=300, chọn ngưỡng chặt hơn mức "CI > 0" của tiêu chí 3; xem docs/progress_log.md)
 3. paired bootstrap 95% CI của gap > 0
 4. ~~pattern xuất hiện trên ít nhất 2 strong baselines~~ → **pattern xuất hiện ở cả OSFD và M-DI²-FGSM** (chốt 2026-09-23)
 5. không chỉ xuất hiện với MI-FGSM
