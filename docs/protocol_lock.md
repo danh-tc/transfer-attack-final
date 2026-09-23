@@ -38,8 +38,9 @@ Checkpoint tải qua `mim download mmdet --config <identifier> --dest checkpoint
 
 - **MI-FGSM, DI-FGSM, OSFD**: 1 backward/iteration → `iterations = B` trực tiếp.
 - ~~**AugTrans**: dùng EOT với `N_EOT=10` sample/iteration → `iterations = B / N_EOT`.~~ AugTrans tạm bỏ khỏi plan (2026-09-23, idea.md §8).
-- **Primary budget set: B ∈ {50, 200}.** ~~B=10 bị loại khỏi so sánh chéo method vì AugTrans chỉ được 1 iteration.~~ Lý do loại B=10 không còn (AugTrans đã bỏ) — B=10 có thể đưa lại vào so sánh chéo MI/DI/OSFD; chưa chốt.
-- ⚠️ **Còn mở**: OSFD full recipe (RRB) đưa 2 view qua surrogate mỗi step nhưng tính B=1 (theo định nghĩa "số lần `.backward()`"), trong khi MI/DI chỉ 1 view/step — cần chốt đơn vị B (số backward vs số view forward-backward) trước baseline table chính thức.
+- ~~**Primary budget set: B ∈ {50, 200}.**~~ ~~B=10 bị loại khỏi so sánh chéo method vì AugTrans chỉ được 1 iteration.~~
+- **Chốt (2026-09-23): B=50 là budget chính** cho toàn bộ Confirmation Stage @300 (baseline table, hypothesis pass, mechanism, ablation, Go/No-Go). **B=200 chỉ chạy 1 lần** cho bảng cuối (kiểm tra kết luận không đổi khi tăng budget). Lý do: sweep OSFD n=30 cho thấy gần bão hòa từ B≈50 (B50→B200 chỉ +~4 điểm cross-avg, gap R101 − cross-family ổn định 15–17 điểm ở mọi B ≥ 20), trong khi B=200 tốn gấp 4 lần (~1 h/method @300) — xem `docs/progress_log.md` entry "Đường bão hòa OSFD theo B". B=10 không dùng.
+- **Chốt đơn vị B (2026-09-23): B = số lần backward**, không phải số view. OSFD full recipe (RRB, 2 view/step, 1 backward) tính B=1/step — giữ đúng recipe paper OSFD. Để minh bạch compute, mọi bảng kết quả báo cáo thêm runtime và số view forward qua surrogate (OSFD = 2×B, MI/DI = B).
 
 ## Danh sách ảnh n=300 / n=1000 (idea.md §4)
 
@@ -59,6 +60,18 @@ Quy tắc chọn (khóa):
 ## Attack epsilon (idea.md §7)
 
 Primary: `epsilon = 5/255`. Secondary: `epsilon = 8/255`. Không đổi giữa các method trong cùng 1 lần so sánh.
+
+## Baseline hyperparameter (idea.md §8) — chốt 2026-09-23
+
+Chung: ε=5 (pixel [0,255]), α=1, δ tối ưu ở không gian ảnh gốc, đánh giá qua ảnh uint8 (xem progress_log 2026-09-23). Code: `attack/methods/baselines.py`.
+
+| Method | Loss | Update | Input diversity |
+|---|---|---|---|
+| MI-FGSM | GT task loss (5 loss Mask R-CNN) | MI, μ=1.0 | — |
+| DI-FGSM = **M-DI²-FGSM** | GT task loss | MI, μ=1.0 | DI resize+pad, p=1.0, scale=1.1 (ref `config/default.py`), co-transform box+mask |
+| OSFD (full recipe) | MSE(k·feat_clean, feat_adv), k=3, feature **backbone** (không qua FPN) | MI, μ=1.0 | RRB θ=7, l_s=10, ρ=0.8, s_max=1.1, σ=6 (ref `attack_*.yaml`) |
+
+Lệch ref đã biết, chấp nhận: noise init = 0 cho mọi method (ref OSFD: randint [−2,2]).
 
 ## Nguồn tham khảo trong repo
 

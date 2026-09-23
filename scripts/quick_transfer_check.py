@@ -7,9 +7,9 @@ Metric:
   về tọa độ gốc).
 - GT-matched confidence trung bình (khung ảnh đã resize, predict rescale=False).
 
-Mỗi method đánh giá 2 kiểu: "<method>" = tensor float ở khung ảnh đã resize
-(như harness hiện tại), "<method>@img" = đưa về ảnh thật (kích thước gốc,
-uint8) rồi target tự resize lại — xem to_image_space().
+Attack tối ưu δ ở không gian ảnh gốc (attack/methods/core.py). Đánh giá qua ẢNH
+THẬT: round(gốc + δ) uint8 cỡ gốc, rồi Resize đúng như test pipeline
+(attack.preprocess.pipeline_resize) — như target đọc 1 file ảnh adversarial.
 
 Chạy: python scripts/quick_transfer_check.py [n_images] [budget_B]
 """
@@ -19,8 +19,6 @@ import random
 import sys
 import time
 
-import cv2
-import mmcv
 import numpy as np
 import torch
 from pycocotools.coco import COCO
@@ -32,7 +30,7 @@ sys.path.insert(0, REPO_ROOT)
 from attack.data import build_attack_dataset
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.models import CONTROLLED_PANEL, SURROGATE_KEY, load_model
-from attack.preprocess import predict
+from attack.preprocess import pipeline_resize, predict, to_adv_image
 from smoke_test_attacks import gt_matched_confidence
 
 EPSILON = 5.0
@@ -44,23 +42,6 @@ METHODS = {
     "DI-FGSM": lambda m, x, ds, B: di_fgsm_attack(m, x, ds, steps=B, epsilon=EPSILON),
     "OSFD": lambda m, x, ds, B: osfd_attack(m, x, ds, steps=B, epsilon=EPSILON),
 }
-
-
-def to_image_space(adv, clean, data_sample):
-    """Đưa adv (float, khung ảnh đã resize) về ẢNH THẬT: lấy delta = adv - clean,
-    thu delta về ori_shape (INTER_AREA — trung bình nên |delta| vẫn <= eps), cộng
-    vào ảnh GỐC uint8 đọc từ file, làm tròn/clip uint8, rồi chạy lại đúng Resize
-    của test pipeline (mmcv.imresize bilinear) như target nhận 1 file ảnh bình
-    thường. delta=0 -> trả lại ĐÚNG clean (ảnh gốc không bị blur qua down/up).
-    Channel order BGR giữ nguyên (LoadImageFromFile mặc định BGR)."""
-    h, w = adv.shape[-2:]
-    oh, ow = data_sample.ori_shape
-    orig = mmcv.imread(data_sample.img_path).astype(np.float32)
-    delta = (adv - clean).permute(1, 2, 0).cpu().numpy()
-    delta = cv2.resize(delta, (ow, oh), interpolation=cv2.INTER_AREA)
-    img = np.clip(np.round(orig + delta), 0, 255).astype(np.uint8)
-    img = mmcv.imresize(img, (w, h), interpolation="bilinear", backend="cv2")
-    return torch.from_numpy(img).permute(2, 0, 1).float().to(adv.device)
 
 
 def to_coco_dets(result, img_id, cat_ids):
@@ -93,15 +74,18 @@ def main():
     cat_ids = dataset._mmdet_dataset.cat_ids
     coco_gt = COCO(ANN_FILE)
 
-    conds = ["clean"] + list(METHODS) + [f"{m}@img" for m in METHODS]
+    conds = ["clean"] + list(METHODS)
     dets = {c: {k: [] for k in models} for c in conds}
     conf = {c: {k: [] for k in models} for c in conds}
     runtime = {m: 0.0 for m in METHODS}
+    linf = {m: 0.0 for m in METHODS}
     img_ids = []
 
     for i in range(n_images):
         sample = dataset[i]
         img_id, x, ds = sample["img_id"], sample["inputs"].to(device), sample["data_sample"]
+        orig = sample["orig_inputs"].to(device)
+        assert torch.equal(pipeline_resize(orig, x.shape[-2:]), x)
         img_ids.append(img_id)
         gt_boxes = ds.gt_instances.bboxes.tensor.cpu().numpy()
         gt_labels = ds.gt_instances.labels.cpu().numpy()
@@ -110,11 +94,12 @@ def main():
         for name, fn in METHODS.items():
             random.seed(SEED + i); torch.manual_seed(SEED + i)
             t0 = time.time()
-            noise = fn(surrogate, x, ds, budget_B)
+            noise = fn(surrogate, orig, ds, budget_B)
             torch.cuda.synchronize(); runtime[name] += time.time() - t0
-            assert noise.abs().max() <= EPSILON + 1e-4
-            advs[name] = torch.clamp(x + noise, 0.0, 255.0)
-            advs[f"{name}@img"] = to_image_space(advs[name], x, ds)
+            adv_image = to_adv_image(orig, noise)
+            linf[name] = max(linf[name], (adv_image - orig).abs().max().item())
+            assert linf[name] <= EPSILON + 1e-4
+            advs[name] = pipeline_resize(adv_image, x.shape[-2:])
 
         for c, img in advs.items():
             for k, m in models.items():
@@ -125,6 +110,8 @@ def main():
 
     summary = {"n_images": n_images, "budget_B": budget_B, "epsilon": EPSILON,
                "img_ids": img_ids, "runtime_s_per_img": {m: t / n_images for m, t in runtime.items()},
+               "eval": "image-space uint8 (delta optimized at original resolution)",
+               "realized_linf": linf,
                "ap": {}, "ap50": {}, "gt_conf": {}}
     for c in conds:
         summary["ap"][c], summary["ap50"][c], summary["gt_conf"][c] = {}, {}, {}

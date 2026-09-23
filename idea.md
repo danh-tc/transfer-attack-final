@@ -165,7 +165,7 @@ $$
 Run trên cùng `n=300`:
 
 * MI-FGSM
-* DI-FGSM
+* DI-FGSM — dùng biến thể M-DI²-FGSM (MI + DI, chốt 2026-09-23, xem docs/protocol_lock.md)
 * OSFD
 
 ~~AugTrans~~ — **tạm bỏ khỏi plan (2026-09-23)**: không có code chính thức (repo công bố trong paper trả 404), paper có mô tả mâu thuẫn, bản tự cài lại phải lệch khỏi paper ở nhiều chỗ (step size, loss_mask, K_max) và cho kết quả yếu hơn cả DI-FGSM ở quick check n=30 — không đủ tin cậy để làm strong baseline. Code giữ lại ở `attack/methods/augtrans.py` nhưng không chạy. Xem `docs/progress_log.md`. OSFD là strong baseline chính (được benchmark 2602.16494 đánh giá là attack transfer mạnh nhất trong nhóm có code). Có thể bổ sung baseline mạnh khác sau, nếu có code chính thức và khớp threat model — phải ghi quyết định vào progress_log trước khi chạy.
@@ -218,10 +218,10 @@ Hypothesis pass nếu:
 1. same-family transfer consistently > cross-family transfer
 2. effect size đủ meaningful
 3. paired bootstrap 95% CI của gap > 0
-4. pattern xuất hiện trên ít nhất 2 strong baselines
+4. ~~pattern xuất hiện trên ít nhất 2 strong baselines~~ → **pattern xuất hiện ở cả OSFD và M-DI²-FGSM** (chốt 2026-09-23)
 5. không chỉ xuất hiện với MI-FGSM
 
-> ⚠️ Mở (2026-09-23): sau khi bỏ AugTrans, chỉ còn OSFD là strong baseline — tiêu chí 4 cần chốt lại (vd "OSFD và DI-FGSM", hoặc giữ nguyên và bổ sung 1 strong baseline có code chính thức).
+> Chốt (2026-09-23): sau khi bỏ AugTrans chỉ còn OSFD là strong baseline khớp threat model (benchmark 2602.16494) — tiêu chí 4 định nghĩa lại thành OSFD + M-DI²-FGSM; tiêu chí 5 giữ nguyên.
 
 Nếu không đạt:
 

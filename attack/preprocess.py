@@ -10,7 +10,10 @@ không cần tự denormalize/renormalize thủ công như v2.
 """
 from typing import List, Tuple
 
+import mmcv
+import numpy as np
 import torch
+import torch.nn.functional as F
 from mmdet.structures import DetDataSample
 
 
@@ -62,10 +65,43 @@ def sum_loss_dict(losses: dict) -> torch.Tensor:
 
 def extract_features(model, pixel_tensor: torch.Tensor, data_sample: DetDataSample
                      ) -> Tuple[torch.Tensor, ...]:
-    """Multi-stage backbone+neck feature (tuple of [1,C,H,W]) — dùng cho OSFD
-    (feature-disruption loss, không cần GT)."""
+    """Feature đa stage của BACKBONE (tuple of [1,C,H,W], vd ResNet C2-C5) — dùng
+    cho OSFD (feature-disruption loss, không cần GT).
+
+    Chỉ backbone, KHÔNG qua neck (FPN): khớp OSFD gốc — ref-repo/OSFD-main/attack/
+    utils/pipelines.py (`model.backbone(...)` cho adv) và attack/comparing/
+    TransferAttack.py (cho clean). Bản port trước dùng model.extract_feat
+    (backbone+FPN, 5 mức 256 kênh) — lệch paper, xem docs/progress_log.md."""
     batch_inputs, _ = to_batch(model, [pixel_tensor], [data_sample])
-    return model.extract_feat(batch_inputs)
+    return model.backbone(batch_inputs)
+
+
+def resize_to_model(img: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+    """Resize KHẢ VI [C,h,w] ảnh gốc -> [C,H,W] khung model, dùng BÊN TRONG vòng lặp
+    attack để δ nằm ở không gian ảnh gốc (xem attack/methods/core.py).
+
+    bilinear, align_corners=False: tái tạo Resize của test pipeline (mmcv.imresize,
+    cv2 INTER_LINEAR) — đã đo trên 5 ảnh n300: lệch tối đa 1 mức xám, trung bình
+    ~0.12 (sai số fixed-point của cv2 với uint8), không phải lệch hình học."""
+    return F.interpolate(img.unsqueeze(0), size=tuple(size), mode="bilinear",
+                         align_corners=False).squeeze(0)
+
+
+def to_adv_image(orig_pixels: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+    """Ảnh adversarial THẬT: kích thước gốc, giá trị nguyên [0,255] (như lưu ra file
+    PNG uint8). orig_pixels nguyên nên |round(orig+δ) - orig| = |round(δ)| <= epsilon."""
+    return torch.clamp(torch.round(orig_pixels + noise), 0.0, 255.0)
+
+
+def pipeline_resize(image: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+    """Resize ảnh uint8-valued [C,h,w] về khung model bằng ĐÚNG phép Resize của test
+    pipeline (mmcv.imresize bilinear, cv2) — tức đúng những gì target nhận khi đọc
+    1 file ảnh. Không khả vi; chỉ dùng để ĐÁNH GIÁ. Với ảnh sạch, kết quả trùng
+    tuyệt đối `inputs` của AttackDataset."""
+    h, w = size
+    arr = image.permute(1, 2, 0).cpu().numpy().astype(np.uint8)
+    out = mmcv.imresize(arr, (w, h), interpolation="bilinear", backend="cv2")
+    return torch.from_numpy(out).permute(2, 0, 1).float().to(image.device)
 
 
 @torch.no_grad()

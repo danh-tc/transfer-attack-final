@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-Protocol đã khóa xong (xem docs/protocol_lock.md). Chưa có code, chưa verify checkpoint nào bằng cách chạy thật trên GPU. Việc tiếp theo: dựng môi trường, tải checkpoint, verify từng model trong Controlled Panel load đúng + báo cáo đúng backbone/clean AP đã ghi trong model_registry.md, rồi mới bắt đầu Baseline-First Stage (idea.md §8) trên n=300.
+Baseline-First Stage (idea.md §8). Đã xong: môi trường, verify 4 checkpoint Controlled Panel, harness mmdet v3, 3 baseline (MI-FGSM, M-DI²-FGSM, OSFD) chốt hyperparameter + budget (docs/protocol_lock.md), quick check n=30. Việc tiếp theo: harness eval n=300 × 4 model (metrics.json + paired bootstrap CI), chạy baseline table B=50. Chi tiết: entry mới nhất của docs/progress_log.md.
 
 ## Chạy môi trường
 

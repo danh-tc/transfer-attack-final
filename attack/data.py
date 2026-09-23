@@ -10,6 +10,8 @@ import csv
 import os
 from typing import List
 
+import mmcv
+import torch
 from mmdet.registry import DATASETS
 from mmengine.config import Config
 from mmengine.registry import init_default_scope
@@ -58,8 +60,11 @@ class AttackDataset:
     - `inputs`: Tensor float32 [C,H,W], CHƯA normalize (đúng output của PackDetInputs
       trong mmdet v3 — normalize xảy ra sau, bên trong model.data_preprocessor,
       xem attack/preprocess.py). Đây là không gian pixel để cộng noise adversarial vào.
+    - `orig_inputs`: Tensor float32 [C,ori_h,ori_w] BGR — ảnh GỐC chưa resize. Attack
+      tối ưu δ ở không gian này (ảnh adversarial thật = ảnh cỡ gốc, uint8);
+      `inputs` = Resize(orig_inputs), chỉ dùng cho ảnh sạch/đánh giá.
     - `data_sample`: DetDataSample, đã có gt_instances.bboxes/labels (LoadAnnotations
-      nằm sẵn trong test pipeline của các config Controlled Panel).
+      nằm sẵn trong test pipeline của các config Controlled Panel), ở khung `inputs`.
     """
 
     def __init__(self, image_ids: List[int], config_path: str = None):
@@ -95,10 +100,15 @@ class AttackDataset:
         dataset_idx = self._indices[i]
         data_info = self._mmdet_dataset.get_data_info(dataset_idx)
         packed = self._mmdet_dataset.pipeline(data_info)
+        data_sample = packed["data_samples"]
+        # Ảnh GỐC (BGR, kích thước ori_shape) — không gian mà δ được tối ưu (xem
+        # attack/methods/core.py). mmcv.imread cv2 = cùng decode với LoadImageFromFile.
+        orig = mmcv.imread(data_sample.img_path)
         return {
             "img_id": img_id,
             "inputs": packed["inputs"].float(),
-            "data_sample": packed["data_samples"],
+            "orig_inputs": torch.from_numpy(orig).permute(2, 0, 1).float(),
+            "data_sample": data_sample,
         }
 
     def __iter__(self):

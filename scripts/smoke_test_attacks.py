@@ -26,7 +26,7 @@ from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.box_transforms import get_gt
 from attack.methods.diversity import input_diversity_with_boxes
 from attack.models import load_surrogate
-from attack.preprocess import predict
+from attack.preprocess import pipeline_resize, predict, to_adv_image
 
 N_IMAGES = 3
 STEPS = 20
@@ -122,15 +122,18 @@ def to_legacy_frame(data_sample):
     return ds
 
 
-def run_one(name, attack_fn, model, clean_pixels, data_sample, gt_boxes, gt_labels,
+def run_one(name, attack_fn, model, clean_pixels, orig_pixels, data_sample, gt_boxes, gt_labels,
             attack_data_sample=None, **attack_kwargs):
-    noise = attack_fn(model, clean_pixels, attack_data_sample or data_sample,
+    noise = attack_fn(model, orig_pixels, attack_data_sample or data_sample,
                       epsilon=EPSILON, **attack_kwargs)
     assert not torch.isnan(noise).any(), f"{name}: noise có NaN"
-    linf = noise.abs().max().item()
+    assert noise.shape == orig_pixels.shape, "noise phải ở không gian ảnh gốc"
+    adv_image = to_adv_image(orig_pixels, noise)
+    linf = (adv_image - orig_pixels).abs().max().item()
     assert linf <= EPSILON + 1e-4, f"{name}: vi phạm epsilon-ball ({linf} > {EPSILON})"
 
-    adv_pixels = torch.clamp(clean_pixels + noise, min=0.0, max=255.0)
+    # Đánh giá như target nhận 1 file ảnh: ảnh uint8 cỡ gốc -> Resize của pipeline.
+    adv_pixels = pipeline_resize(adv_image, clean_pixels.shape[-2:])
     clean_result = predict(model, clean_pixels, data_sample, rescale=False)
     adv_result = predict(model, adv_pixels, data_sample, rescale=False)
     conf_clean = gt_matched_confidence(clean_result, gt_boxes, gt_labels)
@@ -153,7 +156,10 @@ def main():
     for i in range(N_IMAGES):
         sample = dataset[i]
         clean_pixels = sample["inputs"].to(device)
+        orig_pixels = sample["orig_inputs"].to(device)
         data_sample = sample["data_sample"]
+        assert torch.equal(pipeline_resize(orig_pixels, clean_pixels.shape[-2:]), clean_pixels), \
+            "pipeline_resize(ảnh gốc) phải trùng tuyệt đối inputs của dataset"
         gt_boxes = data_sample.gt_instances.bboxes.tensor.cpu().numpy()
         gt_labels = data_sample.gt_instances.labels.cpu().numpy()
         print(f"\n[smoke-attack] img_id={sample['img_id']}, shape={tuple(clean_pixels.shape)}, n_gt={len(gt_boxes)}")
@@ -175,7 +181,7 @@ def main():
                 ("DI-FGSM [GT lệch cũ]", di_fgsm_attack, legacy_ds, dict(steps=STEPS)),
             ]
         for name, fn, attack_ds, kwargs in runs:
-            drop = run_one(name, fn, model, clean_pixels, data_sample, gt_boxes, gt_labels,
+            drop = run_one(name, fn, model, clean_pixels, orig_pixels, data_sample, gt_boxes, gt_labels,
                            attack_data_sample=attack_ds, **kwargs)
             drops.setdefault(name, []).append(drop)
 

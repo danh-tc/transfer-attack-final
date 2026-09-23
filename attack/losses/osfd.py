@@ -1,10 +1,11 @@
 """OSFD (feature-disruption transfer attack) — port từ ref-repo/OSFD-main/attack/ours/OSFD.py.
 
 Không cần GT (khớp idea.md §3 secondary threat model: surrogate-prediction-only
-vẫn dùng được, vì loss chỉ phụ thuộc backbone+neck feature, không phụ thuộc
+vẫn dùng được, vì loss chỉ phụ thuộc backbone feature, không phụ thuộc
 box/label nào cả).
 
-Loss = tổng MSE(k * feat_clean, feat_adv) trên từng stage backbone+neck (FPN).
+Loss = tổng MSE(k * feat_clean, feat_adv) trên từng stage BACKBONE (không qua
+neck/FPN — khớp `model.backbone(...)` của bản gốc, xem attack/preprocess.py).
 Vì sao ASCENT (tăng loss này) lại đúng hướng "làm feature lệch khỏi clean":
 tại bước đầu adv≈clean nên (feat_adv - k*feat_clean) ≈ (1-k)*feat_clean; với
 k=3 hướng gradient-ascent xấp xỉ đẩy feat_adv theo hướng -2*feat_clean, tức

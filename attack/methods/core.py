@@ -40,13 +40,15 @@ from typing import Callable, List, Optional, Tuple
 import torch
 from mmdet.structures import DetDataSample
 
+from attack.preprocess import resize_to_model
+
 LossFn = Callable[[torch.nn.Module, torch.Tensor, DetDataSample], torch.Tensor]
 ViewsFn = Callable[[torch.Tensor, DetDataSample, int, int], List[Tuple[torch.Tensor, DetDataSample]]]
 
 
 def run_iterative_attack(
     model: torch.nn.Module,
-    clean_pixels: torch.Tensor,
+    orig_pixels: torch.Tensor,
     data_sample: DetDataSample,
     loss_fn: LossFn,
     steps: int,
@@ -54,8 +56,16 @@ def run_iterative_attack(
     alpha: float = 1.0,
     momentum: float = 0.0,
     views_fn: Optional[ViewsFn] = None,
+    on_step: Optional[Callable[[int, torch.Tensor], None]] = None,
 ) -> torch.Tensor:
-    """Trả về noise tensor cuối cùng (cùng shape clean_pixels), đã clamp [-epsilon, epsilon].
+    """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
+
+    orig_pixels: ảnh GỐC [C,ori_h,ori_w] (AttackDataset `orig_inputs`). δ được tối ưu ở
+    CHÍNH không gian này, mỗi step ảnh adv được resize KHẢ VI về khung model
+    (data_sample.img_shape) trước khi vào surrogate — ảnh adversarial thật (cỡ gốc,
+    uint8, attack.preprocess.to_adv_image) giữ được toàn bộ δ. Bản trước tối ưu δ ở
+    khung đã resize (upsample ~1.87x) nên khi đưa về ảnh thật mất ~64% biên độ
+    (xem docs/progress_log.md 2026-09-23).
 
     momentum=0.0  -> IFGSM thuần (không tích lũy động lượng).
     momentum>0.0  -> MI-FGSM (khớp ref: chuẩn hoá gradient bằng mean(abs(.)) trước khi
@@ -67,12 +77,14 @@ def run_iterative_attack(
     đúng 1 lần .backward() qua surrogate (qua torch.autograd.grad), không hơn, bất kể
     views_fn sinh ra bao nhiêu view.
     """
-    noise = torch.zeros_like(clean_pixels)
-    accumulated_grad = torch.zeros_like(clean_pixels)
+    model_size = tuple(data_sample.img_shape)
+    noise = torch.zeros_like(orig_pixels)
+    accumulated_grad = torch.zeros_like(orig_pixels)
 
     for step_idx in range(steps):
         noise = noise.detach().requires_grad_(True)
-        adv_pixels = torch.clamp(clean_pixels + noise, min=0.0, max=255.0)
+        adv_orig = torch.clamp(orig_pixels + noise, min=0.0, max=255.0)
+        adv_pixels = resize_to_model(adv_orig, model_size)
         views = (views_fn(adv_pixels, data_sample, step_idx, steps)
                 if views_fn is not None else [(adv_pixels, data_sample)])
 
@@ -92,5 +104,10 @@ def run_iterative_attack(
         with torch.no_grad():
             noise = noise + alpha * torch.sign(update_direction)
             noise = torch.clamp(noise, min=-epsilon, max=epsilon)
+        if on_step is not None:
+            # (số backward đã dùng, noise hiện tại) — noise sau k step đúng bằng kết quả
+            # của lần chạy steps=k (không gì trong vòng lặp phụ thuộc `steps`, trừ
+            # views_fn của AugTrans), nên 1 lần chạy B lớn cho cả đường cong theo B.
+            on_step(step_idx + 1, noise.detach())
 
     return noise.detach()

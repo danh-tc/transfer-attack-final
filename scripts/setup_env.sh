@@ -34,7 +34,8 @@ $SUDO apt-get update -qq
 # libgl1/libglib2.0-0: opencv-python cần để import trên server không có màn hình (headless).
 # ninja-build: build mmcv custom ops nhanh hơn nhiều so với không có ninja.
 # unzip: cần để giải nén COCO annotations/images (data/coco/*.zip) sau khi tải.
-$SUDO apt-get install -y -qq software-properties-common git build-essential ninja-build libgl1 libglib2.0-0 unzip
+# tmux: chạy thí nghiệm dài (n=300/1000) không bị ngắt khi mất kết nối SSH/VSCode.
+$SUDO apt-get install -y -qq software-properties-common git build-essential ninja-build libgl1 libglib2.0-0 unzip tmux
 
 PY_BIN="python${PY_VERSION_PIN}"
 if ! command -v "$PY_BIN" >/dev/null 2>&1; then
