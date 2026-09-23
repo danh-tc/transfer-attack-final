@@ -1,0 +1,57 @@
+loading annotations into memory...
+Done (t=0.42s)
+creating index...
+index created!
+[A1] 25/300 (12s)
+[A1] 50/300 (24s)
+[A1] 75/300 (35s)
+[A1] 100/300 (46s)
+[A1] 125/300 (57s)
+[A1] 150/300 (68s)
+[A1] 175/300 (78s)
+[A1] 200/300 (89s)
+[A1] 225/300 (100s)
+[A1] 250/300 (111s)
+[A1] 275/300 (122s)
+[A1] 300/300 (132s)
+
+=== cosine: align(R50, ·) ===
+  r101        0.2009 [0.1907,0.2115]
+  convnext_t  0.1420 [0.1334,0.1505]
+  swin_t      0.1088 [0.1014,0.1168]
+  r50_reseed  0.9730 [0.9685,0.9771]
+  R101 − convnext_t  0.0589 [0.0520,0.0662]
+  R101 − swin_t      0.0921 [0.0853,0.0991]
+  Spearman(align, suppression) / (align, retained):
+    MI-FGSM    r101        0.0261 [-0.0944,0.1457]   -0.0110 [-0.1362,0.1098]
+    MI-FGSM    convnext_t  0.0930 [-0.0277,0.2007]   -0.0801 [-0.1975,0.0425]
+    MI-FGSM    swin_t      0.1733 [0.0628,0.2842]   -0.1562 [-0.2657,-0.0450]
+    M-DI2-FGSM r101        -0.1552 [-0.2748,-0.0378]   0.1123 [-0.0010,0.2319]
+    M-DI2-FGSM convnext_t  -0.0055 [-0.1248,0.1195]   0.0424 [-0.0884,0.1615]
+    M-DI2-FGSM swin_t      0.1363 [0.0263,0.2482]   -0.1209 [-0.2395,-0.0084]
+    OSFD       r101        -0.1511 [-0.2615,-0.0412]   0.1535 [0.0389,0.2710]
+    OSFD       convnext_t  -0.2124 [-0.3196,-0.0913]   0.2191 [0.0983,0.3246]
+    OSFD       swin_t      -0.0833 [-0.2048,0.0378]   0.0896 [-0.0306,0.2060]
+  criterion: {'same_gt_cross_both': True, 'corr_pos_any_cross': {'M-DI2-FGSM': True, 'OSFD': False}, 'pass': False}
+
+=== sign: align(R50, ·) ===
+  r101        0.5205 [0.5197,0.5214]
+  convnext_t  0.5097 [0.5092,0.5103]
+  swin_t      0.5066 [0.5062,0.5071]
+  r50_reseed  0.8677 [0.8611,0.8739]
+  R101 − convnext_t  0.0108 [0.0102,0.0114]
+  R101 − swin_t      0.0138 [0.0132,0.0145]
+  Spearman(align, suppression) / (align, retained):
+    MI-FGSM    r101        0.0958 [-0.0249,0.2081]   -0.1524 [-0.2698,-0.0343]
+    MI-FGSM    convnext_t  0.2048 [0.0854,0.3201]   -0.2421 [-0.3517,-0.1266]
+    MI-FGSM    swin_t      0.2278 [0.1145,0.3400]   -0.2892 [-0.3982,-0.1731]
+    M-DI2-FGSM r101        0.1945 [0.0803,0.3123]   -0.2134 [-0.3275,-0.1001]
+    M-DI2-FGSM convnext_t  0.2031 [0.0760,0.3143]   -0.2337 [-0.3459,-0.1056]
+    M-DI2-FGSM swin_t      0.2545 [0.1457,0.3644]   -0.2654 [-0.3769,-0.1560]
+    OSFD       r101        0.1763 [0.0629,0.2848]   -0.1670 [-0.2756,-0.0548]
+    OSFD       convnext_t  0.1429 [0.0304,0.2588]   -0.1494 [-0.2653,-0.0359]
+    OSFD       swin_t      0.1364 [0.0131,0.2559]   -0.0950 [-0.2186,0.0292]
+  criterion: {'same_gt_cross_both': True, 'corr_pos_any_cross': {'M-DI2-FGSM': True, 'OSFD': True}, 'pass': True}
+
+A1_pass = False
+saved: /workspace/transfer-attack-final/results/mechanism/a1_gradients.json
