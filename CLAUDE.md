@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-Baseline-First Stage xong, **Hypothesis Pass @300 (idea.md §10) = PASS** (2026-09-23, baseline table `results/runs/n300_B50_eps5/metrics.json`, chạy bằng `scripts/run_baselines.py`). Việc tiếp theo: Mechanism Stage (idea.md §11); B=200 chạy 1 lần cho bảng cuối khi tiện. Chi tiết: entry mới nhất của docs/progress_log.md.
+Baseline-First xong (**Hypothesis Pass @300 = PASS**), Generalization Panel xong (quy tắc khả thi: **ĐI TIẾP**), Mechanism A1–A4 xong (chưa cơ chế nào đạt tiêu chí; hướng stage-aware đã bỏ). **Đọc [docs/synthesis_2026-09-23.md](docs/synthesis_2026-09-23.md) trước** — tổng hợp toàn cục + hướng method khả dĩ + việc mở cho phiên sau. Việc tiếp theo: user chọn hướng (pilot method M1/M2/M3 với quy tắc chốt trước, hoặc chuyển trọng tâm analysis paper).
 
 ## Chạy môi trường
 
