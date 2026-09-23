@@ -1,0 +1,53 @@
+loading annotations into memory...
+Done (t=0.41s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.42s)
+creating index...
+index created!
+[A4] 50/300 (26s)
+[A4] 100/300 (51s)
+[A4] 150/300 (75s)
+[A4] 200/300 (98s)
+[A4] 250/300 (122s)
+[A4] 300/300 (146s)
+
+=== band energy fractions (low / mid / high) ===
+  r50         0.2360  0.4146  0.3494
+  r101        0.2700  0.3957  0.3343
+  convnext_t  0.2897  0.4367  0.2736
+  swin_t      0.2526  0.4000  0.3474
+  MI-FGSM     0.2277  0.3304  0.4420
+  M-DI2-FGSM  0.2789  0.3650  0.3561
+  OSFD        0.3896  0.3352  0.2751
+
+=== spatial: top-5% share / in-box ratio ===
+  r50         0.886  6.875
+  r101        0.891  6.865
+  convnext_t  0.878  8.463
+  swin_t      0.871  8.538
+  MI-FGSM     0.059  1.025
+  M-DI2-FGSM  0.059  1.028
+  OSFD        0.056  1.012
+
+=== L1 spectral distance g_R50 vs g_t ===
+  r101        0.0949 [0.0889,0.1013]
+  convnext_t  0.1720 [0.1641,0.1802]
+  swin_t      0.0938 [0.0869,0.1011]
+  convnext_t − r101: 0.0771 [0.0690,0.0862]
+  swin_t − r101: -0.0011 [-0.0085,0.0067]
+
+=== Spearman(match δ↔g_t, suppression) / (match, retained) ===
+  MI-FGSM    r101        -0.1049 [-0.2283,0.0151]   0.0998 [-0.0166,0.2169]
+  MI-FGSM    convnext_t  -0.1350 [-0.2457,-0.0171]   0.1607 [0.0395,0.2751]
+  MI-FGSM    swin_t      -0.0547 [-0.1848,0.0657]   0.0891 [-0.0322,0.2137]
+  M-DI2-FGSM r101        -0.1469 [-0.2641,-0.0361]   0.1532 [0.0396,0.2683]
+  M-DI2-FGSM convnext_t  -0.1859 [-0.2973,-0.0785]   0.2052 [0.1016,0.3134]
+  M-DI2-FGSM swin_t      -0.0855 [-0.2025,0.0170]   0.0770 [-0.0383,0.1901]
+  OSFD       r101        -0.0536 [-0.1689,0.0563]   0.0526 [-0.0565,0.1708]
+  OSFD       convnext_t  -0.1766 [-0.2945,-0.0706]   0.1972 [0.0877,0.3133]
+  OSFD       swin_t      -0.2163 [-0.3266,-0.0987]   0.2161 [0.1067,0.3260]
+
+criterion: {'spectral_shift_both_cross': False, 'match_corr_pos_any_cross': {'M-DI2-FGSM': False, 'OSFD': False}, 'A4_pass': False}
+saved: /workspace/transfer-attack-final/results/mechanism/a4_spectral.json
