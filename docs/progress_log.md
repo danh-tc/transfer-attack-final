@@ -176,3 +176,20 @@ Phiên GPU mới (RTX 3090). Phát hiện khi đọc lại code, verify thật t
 - **Còn mở:**
   1. Định nghĩa B chưa nhất quán: RRB 2 view/step tính B=1, AugTrans 10 view/step (cộng loss, 1 lần `autograd.grad`) lại tính B=10. `protocol_lock.md` ("B = số lần `.backward()`") và code AugTrans đang theo 2 cách hiểu khác nhau — cần chốt đơn vị (số backward vs số view forward-backward qua surrogate) trước khi chạy baseline table.
   2. Chưa có harness eval AP n=300 × 4 model.
+
+---
+
+## 2026-09-23 — Quick transfer check sơ bộ n=30 (không phải baseline table chính thức)
+
+`scripts/quick_transfer_check.py 30 50`: 30 ảnh đầu n300, surrogate R50, eps=5, B=50 (MI/DI/OSFD 50 step; AugTrans K_max=5×N_EOT=10 — định nghĩa B vẫn chưa chốt), bbox AP pycocotools giới hạn 30 ảnh. Kết quả: `results/quick_transfer/n30_B50_20260923_055238.json`.
+
+| Relative AP drop | R50 (white-box) | R101 | ConvNeXt-T | Swin-T |
+|---|---|---|---|---|
+| MI-FGSM | 100.0% | 81.2% | 56.4% | 38.6% |
+| DI-FGSM | 100.0% | 92.2% | 73.6% | 55.2% |
+| OSFD | 99.9% | 98.1% | 84.5% | 78.9% |
+| AugTrans (tự cài lại) | 89.0% | 65.8% | 47.5% | 44.2% |
+
+- Pattern same-family > cross-CNN > CNN→Transformer xuất hiện ở cả 4 method (AugTrans: ConvNeXt≈Swin). OSFD KHÔNG bão hòa ở cross-family (~15-20 điểm gap) — còn chỗ cho RQ1/RQ3.
+- AugTrans (bản tự cài lại) yếu nhất, dưới cả DI-FGSM ở mọi target — trái với claim của paper gốc; cùng với việc code gốc không tồn tại (repo công bố trong paper trả 404 ngày 2026-09-23) → rủi ro cài đặt sai cao.
+- Chỉ là tín hiệu sơ bộ: n=30, chưa có CI, không dùng để tune bất kỳ hyperparameter nào.
