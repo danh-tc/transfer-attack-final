@@ -50,7 +50,11 @@ GEN_PANEL = {
     # Chẩn đoán post hoc (progress_log 2026-09-23), KHÔNG thuộc panel định trước: tách hiệu ứng
     # kiểu detector DINO khỏi backbone Swin-L. Chỉ bản 12e có checkpoint chính thức.
     "dino_r50": ("dino/dino-4scale_r50_8xb2-12e_coco.py", "dino-4scale_r50_8xb2-12e*"),
+    # Chẩn đoán post hoc: config GIỐNG HỆT Swin-T của Controlled Panel, chỉ khác depths
+    # [2,2,18,2] (capacity) — cùng pretrain IN-1k 224, cùng lịch 3x.
+    "mrcnn_swin_s": ("swin/mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py", "mask_rcnn_swin-s-p4-w7*"),
 }
+DIAG_ONLY = {"dino_r50", "mrcnn_swin_s"}
 
 
 def predict_model(key, img_ids, coco, adv_dir, out_path, device):
@@ -77,10 +81,12 @@ def predict_model(key, img_ids, coco, adv_dir, out_path, device):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--run", default="n300_B50_eps5")
-    p.add_argument("--models", nargs="+", default=[k for k in GEN_PANEL if k != "dino_r50"],
+    p.add_argument("--models", nargs="+", default=[k for k in GEN_PANEL if k not in DIAG_ONLY],
                    choices=list(GEN_PANEL))  # mặc định = panel định trước; dino_r50 chỉ chạy khi chỉ định
     p.add_argument("--n-boot", type=int, default=1000)
     p.add_argument("--device", default="cuda:0")
+    p.add_argument("--ctrl-refs", nargs="*", default=[],
+                   help="thêm model Controlled Panel (vd swin_t) từ dets.json vào so sánh model_diff")
     p.add_argument("--out", default="generalization_metrics.json", help="tên file trong results/runs/<run>/")
     args = p.parse_args()
     split = args.run.split("_")[0]
@@ -103,7 +109,8 @@ def main():
             all_dets[key] = json.load(f)
     with open(os.path.join(art, "dets.json")) as f:
         ctrl = json.load(f)
-    all_dets[REF_SAME_FAMILY] = {c: ctrl[c][REF_SAME_FAMILY] for c in ["clean"] + METHODS}
+    for ref in [REF_SAME_FAMILY] + args.ctrl_refs:
+        all_dets[ref] = {c: ctrl[c][ref] for c in ["clean"] + METHODS}
 
     n = len(img_ids)
     W = np.vstack([np.ones((1, n)), bootstrap_indices(n, args.n_boot, BOOT_SEED)])
@@ -118,7 +125,7 @@ def main():
     S = lambda a: summarize(a[0], a[1:])
     drop = {k: {m: 100 * (ap[k]["clean"][:, 0] - ap[k][m][:, 0]) / ap[k]["clean"][:, 0] for m in METHODS}
             for k in ap}
-    gen_keys = list(args.models)
+    gen_keys = list(args.models) + list(args.ctrl_refs)
     out = {"run": args.run, "n_images": n, "n_boot": args.n_boot, "boot_seed": BOOT_SEED,
            "eval": "inference_detector trên file ảnh (ảnh gốc COCO / PNG adv), test pipeline riêng từng model",
            "ap": {k: {c: S(ap[k][c][:, 0]) for c in ap[k]} for k in ap},
