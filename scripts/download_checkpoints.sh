@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tải 4 checkpoint Controlled Panel (surrogate + 3 target) đúng theo docs/protocol_lock.md.
 # Chạy sau khi scripts/setup_env.sh đã xong (cần mim/mmdet đã cài trong .venv).
-# Chạy: bash scripts/download_checkpoints.sh
+# Chạy: bash scripts/download_checkpoints.sh          (Controlled Panel)
+#       bash scripts/download_checkpoints.sh --gen    (thêm Generalization Panel, idea.md §6)
 # Idempotent: mim download bỏ qua nếu checkpoint đã tồn tại đúng tên tại đích.
 
 set -euo pipefail
@@ -31,6 +32,18 @@ CONFIGS=(
   "mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco"    # Cross-CNN target
   "mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco"        # CNN->Transformer target
 )
+
+# Generalization Panel (docs/protocol_lock.md) — chỉ tải khi có --gen. YOLOX tải cả S và L
+# vì size chưa chốt.
+if [ "${1:-}" = "--gen" ]; then
+  CONFIGS+=(
+    "fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco"
+    "detr_r50_8xb2-150e_coco"
+    "yolox_s_8x8_300e_coco"            # mim id khác tên file config (yolox_s_8xb8-300e_coco.py)
+    "yolox_l_8x8_300e_coco"
+    "dino-5scale_swin-l_8xb2-36e_coco"
+  )
+fi
 
 for cfg in "${CONFIGS[@]}"; do
   log "Tải checkpoint cho config: $cfg"

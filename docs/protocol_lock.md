@@ -29,8 +29,15 @@ Checkpoint tải qua `mim download mmdet --config <identifier> --dest checkpoint
 |---|---|---|---|
 | FCOS-R50 | `fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py` | 38.7 | biến thể "improved" (center+normbbox+giou), không phải FCOS gốc trần |
 | DETR-R50 | `detr_r50_8xb2-150e_coco.py` | 42.0 | |
-| YOLOX-CSP | `yolox_s_8xb8-300e_coco.py` | 40.5 | size **chưa chốt** — có thể đổi sang `yolox_l` (49.4 AP) nếu cần model mạnh hơn để so sánh cùng tầm AP với panel còn lại |
+| YOLOX-CSP | `yolox_s_8xb8-300e_coco.py` | 40.5 | **chốt 2026-09-23: YOLOX-S là model chính** (gần tầm AP surrogate/panel); `yolox_l_8xb8-300e_coco.py` (49.4) báo cáo kèm, KHÔNG tính vào quy tắc quyết định. mim id: `yolox_{s,l}_8x8_300e_coco` (khác tên file config) |
 | DINO-Swin | `dino-5scale_swin-l_8xb2-36e_coco.py` | 58.4 | ⚠️ **không có checkpoint DINO+Swin-T chính thức trong mmdet v3** — dùng Swin-**L** thay thế, quyết định chấp nhận lệch capacity (model to hơn nhiều so với Swin-T dùng ở Controlled Panel) vì đây là generalization panel chứ không phải controlled panel. Phải ghi caveat này trong paper. |
+
+**Cách đánh giá:** dùng lại ảnh adv PNG của run Controlled Panel (surrogate R50, không attack lại), mỗi model đọc file ảnh qua test pipeline riêng (`scripts/eval_generalization.py`).
+
+**Quy tắc quyết định khả thi method mới (chốt 2026-09-23, TRƯỚC khi có kết quả):** headroom(model) = relative AP drop của OSFD trên R101 − trên model đó (paired bootstrap 95% CI, run `n300_B50_eps5`). Tính trên 4 model chính: FCOS-R50, DETR-R50, YOLOX-S, DINO-Swin-L.
+- **ĐI TIẾP** phát triển method nếu cận dưới CI headroom ≥ 10 điểm ở ≥ 2/4 model, trong đó có DINO-Swin-L.
+- **DỪNG / cân nhắc lại khả thi** nếu headroom (điểm ước lượng) < 5 ở ≥ 3/4 model (OSFD đã generalize gần mức cùng họ).
+- Ở giữa = vùng xám → thảo luận, ghi quyết định vào progress_log.
 
 ## Gradient-evaluation budget B (idea.md §7)
 
@@ -82,5 +89,4 @@ Lệch ref đã biết, chấp nhận: noise init = 0 cho mọi method (ref OSFD
 
 ## Còn mở, chưa chốt
 
-- Size YOLOX (S vs L) cho Generalization Panel.
 - Method direction ("stage-aware backward regularization", idea.md §12) — chỉ giữ nếu Mechanism Stage (idea.md §11) support, chưa làm gì ở giai đoạn hiện tại.

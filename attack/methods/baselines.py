@@ -43,22 +43,24 @@ ALPHA_DEFAULT = 1.0
 
 def mi_fgsm_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                    epsilon: float = EPSILON_PRIMARY, alpha: float = ALPHA_DEFAULT,
-                   momentum: float = 1.0):
+                   momentum: float = 1.0, on_step=None):
     return run_iterative_attack(
         model, orig_pixels, data_sample, loss_fn=compute_gt_loss,
-        steps=steps, epsilon=epsilon, alpha=alpha, momentum=momentum)
+        steps=steps, epsilon=epsilon, alpha=alpha, momentum=momentum, on_step=on_step)
 
 
 def di_fgsm_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                    epsilon: float = EPSILON_PRIMARY, alpha: float = ALPHA_DEFAULT,
-                   momentum: float = 1.0, prob: float = 1.0, scale: float = 1.1):
+                   momentum: float = 1.0, prob: float = 1.0, scale: float = 1.1,
+                   on_step=None):
     # input_diversity_with_boxes co-transform GT box khớp ảnh đã resize+pad —
     # bắt buộc vì compute_gt_loss cần GT đúng vị trí (xem attack/methods/
     # diversity.py, cùng loại bug đã fix cho AugTrans).
     views_fn = lambda img, ds, k, k_max: [input_diversity_with_boxes(img, ds, prob=prob, scale=scale)]
     return run_iterative_attack(
         model, orig_pixels, data_sample, loss_fn=compute_gt_loss,
-        steps=steps, epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn)
+        steps=steps, epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
+        on_step=on_step)
 
 
 def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
