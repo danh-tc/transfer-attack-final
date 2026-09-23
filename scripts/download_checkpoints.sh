@@ -42,6 +42,7 @@ if [ "${1:-}" = "--gen" ]; then
     "yolox_s_8x8_300e_coco"            # mim id khác tên file config (yolox_s_8xb8-300e_coco.py)
     "yolox_l_8x8_300e_coco"
     "dino-5scale_swin-l_8xb2-36e_coco"
+    "dino-4scale_r50_8xb2-12e_coco"     # chẩn đoán post hoc, xem progress_log 2026-09-23
   )
 fi
 

@@ -47,6 +47,9 @@ GEN_PANEL = {
     "yolox_s": ("yolox/yolox_s_8xb8-300e_coco.py", "yolox_s_8x8*"),
     "yolox_l": ("yolox/yolox_l_8xb8-300e_coco.py", "yolox_l_8x8*"),
     "dino_swin_l": ("dino/dino-5scale_swin-l_8xb2-36e_coco.py", "dino-5scale_swin-l*"),
+    # Chẩn đoán post hoc (progress_log 2026-09-23), KHÔNG thuộc panel định trước: tách hiệu ứng
+    # kiểu detector DINO khỏi backbone Swin-L. Chỉ bản 12e có checkpoint chính thức.
+    "dino_r50": ("dino/dino-4scale_r50_8xb2-12e_coco.py", "dino-4scale_r50_8xb2-12e*"),
 }
 
 
@@ -77,6 +80,7 @@ def main():
     p.add_argument("--models", nargs="+", default=list(GEN_PANEL), choices=list(GEN_PANEL))
     p.add_argument("--n-boot", type=int, default=1000)
     p.add_argument("--device", default="cuda:0")
+    p.add_argument("--out", default="generalization_metrics.json", help="tên file trong results/runs/<run>/")
     args = p.parse_args()
     split = args.run.split("_")[0]
     img_ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{split}.csv"))
@@ -123,8 +127,10 @@ def main():
                            for a in METHODS for b in METHODS if a != b and METHODS.index(a) > METHODS.index(b)},
            "headroom_vs_same_family": {m: {k: S(drop[REF_SAME_FAMILY][m] - drop[k][m]) for k in gen_keys}
                                        for m in METHODS},
+           "model_diff": {m: {f"{a} - {b}": S(drop[a][m] - drop[b][m]) for a in gen_keys for b in gen_keys if a < b}
+                          for m in METHODS},
            "created": time.strftime("%Y-%m-%d %H:%M:%S")}
-    with open(os.path.join(run_dir, "generalization_metrics.json"), "w") as f:
+    with open(os.path.join(run_dir, args.out), "w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
 
     fmt = lambda s: f"{s['point']:5.1f} [{s['ci95'][0]:5.1f},{s['ci95'][1]:5.1f}]"
@@ -139,7 +145,10 @@ def main():
         print(f"{m:<12}" + "".join(f"{fmt(out['headroom_vs_same_family'][m][k]):>21}" for k in gen_keys))
     print("\n=== OSFD − M-DI2-FGSM ===")
     print(f"{'':<12}" + "".join(f"{fmt(out['method_diff']['OSFD - M-DI2-FGSM'][k]):>21}" for k in gen_keys))
-    print("saved:", os.path.join(run_dir, "generalization_metrics.json"))
+    print("\n=== model_diff (OSFD) ===")
+    for k, v in out["model_diff"]["OSFD"].items():
+        print(f"  {k:<28} {fmt(v)}")
+    print("saved:", os.path.join(run_dir, args.out))
 
 
 if __name__ == "__main__":
