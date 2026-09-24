@@ -624,3 +624,18 @@ dev300 = dev100 (giữ nguyên) ∪ `random.Random(20260925).sample(sorted(pool 
 3. **GO @ n300** (1 lần, đóng băng; so OSFD của `n300_B50_eps5`): ΔCrossAvg ≥ 3 VÀ cận dưới CI 95% > 0; Δ_ConvNeXt-T > 0 VÀ Δ_Swin-T > 0; Δ_YOLOX-S ≥ 5 VÀ cận dưới CI > 0. DINO-Swin-L chỉ báo cáo.
 4. **Điều kiện cho diễn giải cơ chế (không phải điều kiện GO):** nếu GO, phải kèm C10₄(P2) < C10₄(OSFD) trên ảnh adv n300 (paired CI < 0) và báo cáo Spearman per-ảnh(ΔC10₄, Δ suppression) ở target khác họ. Không đạt → method có thể hữu ích nhưng KHÔNG viết theo câu chuyện nhân quả "giảm tập trung channel".
 5. **Nếu P2 NO-GO:** không làm tiếp P3/P4 kiểu feature engineering; RQ3 pivot sang nguyên lý khác hẳn hoặc chấp nhận kết luận "các can thiệp đã thử không thu hẹp được phần gap còn lại một cách hệ thống".
+
+---
+
+## 2026-09-24 — Pilot P2: mechanism gate → KHÔNG cấu hình nào qua → DỪNG P2 (không chạy dev300)
+
+Code `f78d785` (commit trước khi chạy). `scripts/pilot_p2_gate.py`, kết quả `results/runs/dev300_B50_eps5/p2_gate.json`. 20 ảnh đầu dev100.
+
+- Sanity: φ(d) = d trùng `F.mse_loss` (sai số tương đối tối đa 2.2e-7) ✓.
+- **G1 (đổi hướng gradient):** sign agreement với OSFD tại δ = 0 — P2a 0.837, P2b 0.859 (< 0.95 ✓; khoảng 0.72–0.93 theo ảnh). P2 đổi gradient thật, mạnh hơn nhiều so với W1 (0.935–0.985) và P1 (0.94–0.97).
+- **G2 (giảm tập trung distortion stage 4 sau 10 step):** C10₄ OSFD 0.483; P2a 0.476 (Δ −0.008), P2b 0.477 (Δ −0.006) — cần ≤ −0.05 ✗. Theo ảnh, Δ nằm trong khoảng −0.03 đến +0.03; 3/20 ảnh P2 còn tập trung HƠN OSFD.
+- **Áp quy tắc khóa:** cả 2 cấu hình trượt G2 → **DỪNG P2**, không chạy dev300, không thử φ/s khác.
+
+Mô tả (không đổi kết luận): dù objective đổi hướng gradient đáng kể (~15% pixel đổi dấu), mức tập trung theo channel của distortion thật ở stage 4 gần như bất biến (0.48 ± 0.01). Gợi ý: sự tập trung này là thuộc tính của representation stage 4 của R50 (channel nào phản ứng với nhiễu cỡ ε = 5) chứ không phải do hàm gộp tuyến tính của OSFD — can thiệp ở mức loss khó phân bổ lại. Đây là quan sát, không phải kết luận nhân quả.
+
+**Theo nguyên tắc đã chốt (entry quy tắc P2, mục 5):** không làm tiếp P3/P4 kiểu feature engineering. Chuỗi can thiệp mức loss trên OSFD đã thử: A′1 (không gian, NO-GO @ n300), P1 (bỏ trước khi chạy — ≈ OSFD), P2 (dừng ở gate). RQ3 phải pivot sang nguyên lý khác hẳn, hoặc chấp nhận kết luận "các can thiệp đã thử không thu hẹp được phần gap còn lại một cách hệ thống". Chờ user quyết.

@@ -1,0 +1,13 @@
+{
+  "rule": "progress_log 2026-09-24",
+  "n_images": 20,
+  "steps": 10,
+  "sanity_phi_identity_max_rel_diff": 2.183369882945174e-07,
+  "C10_4_OSFD": 0.48333858996629714,
+  "configs": {
+    "OSFD-P2a": {
+      "sign_agreement": 0.8367713093757629,
+      "C10_4": 0.4755240187048912,
+      "C10_4_minus_OSFD": -0.007814571261405945,
+      "G1": true,
+      "G2": 
