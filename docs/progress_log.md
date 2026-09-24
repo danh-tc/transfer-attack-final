@@ -504,3 +504,51 @@ Relative AP drop % (100 ảnh đầu n300), R101 / ConvNeXt-T / Swin-T | mô t�
 ## 2026-09-23 — Tổng hợp cuối ngày
 
 Viết `docs/synthesis_2026-09-23.md`: kết quả chắc chắn (gap PASS, backbone > detector, headroom Generalization → ĐI TIẾP, DINO-Swin-L chỉ là ca khó, stage-aware bị loại), trạng thái A1–A4, manh mối chưa đạt tiêu chí, chỗ trống theo target, 3 hướng method giả thuyết (M1 phân bổ budget theo vật thể, M2 ưu tiên tần thấp, M3 giảm lệ thuộc khuếch đại stage sâu) cần pilot với quy tắc chốt trước. CLAUDE.md trỏ tới file này. Dừng phiên, mai tiếp. Chưa push. Ảnh adv A3 đã upload HF (`runs/a3_stage_n100_B50_eps5.tar`, 282 MB, sha256 cba15cb5…b366c964, verify tải lại khớp, 400 PNG).
+
+---
+
+## 2026-09-24 — Đóng Mechanism Stage; chốt quy tắc pilot method A′1 (TRƯỚC khi code/chạy)
+
+Máy mới (RTX 3090), `bootstrap.sh` xong; sanity: torch 2.1.2+cu118 `cuda_available=True`, mmcv 2.1.0 (ops OK), mmdet 3.3.0, 4 checkpoint Controlled Panel, COCO val2017 5000 ảnh.
+
+**Đóng Mechanism Stage (user duyệt):** A1 ✗, A2 một phần, A3 ✗, A4 ✗, A5 để sau (prior yếu). Claim an toàn: transferability gắn với biểu diễn backbone, không chỉ kiến trúc detector; KHÔNG claim cơ chế cụ thể (gradient alignment / tần số / stage).
+
+**Vì sao không dùng "W⊙g trước sign()" (đề xuất ban đầu của hướng M1):** với W > 0 mọi pixel, sign(W⊙g) = sign(g); kể cả với MI (chuẩn hóa g/mean|g| chỉ là vô hướng) nếu W cố định qua step thì sign(W⊙m) = sign(m) → δ giống hệt OSFD. Ngoài ra δ đã gần bão hòa L∞: RMS|δ| run `n300_B50_eps5` = 4.65 / 4.66 / 4.77 trên ε = 5 (MI / M-DI² / OSFD) → không thể "dồn thêm biên độ" vào vật thể; thứ còn thay đổi được là HƯỚNG (dấu) của δ. Vì vậy chọn A′1: trọng số không gian đặt BÊN TRONG loss OSFD (đổi chính gradient, không chỉ thang).
+
+Động cơ (giả thuyết, KHÔNG phải cơ chế đã chứng minh): A4 thấy gradient task tập trung mạnh quanh vật thể trong khi δ sign-step gần đều. Wording cho phép: "motivated by the observed mismatch between spatial gradient concentration and nearly uniform sign-based perturbations".
+
+### Method A′1 — OSFD với loss feature có trọng số không gian (khóa)
+
+L = Σ_l [ Σ_{h,w} W_l(h,w) · ‖k·F_l^clean(h,w) − F_l^adv(h,w)‖²₂ ] / [ C_l · Σ_{h,w} W_l(h,w) ]
+
+- F_l: feature BACKBONE stage l (như OSFD, không qua FPN), k = 3. Chia C_l để W ≡ 1 trùng TUYỆT ĐỐI `F.mse_loss` của OSFD gốc — kiểm bằng số trước khi chạy (sanity, không phải cấu hình).
+- W_l: dựng map M ở khung input của model (canvas đã pad của data_preprocessor, GT box của `data_sample.gt_instances` — đã ở khung resize, không gồm crowd), rồi downsample kiểu area về lưới của stage l. Không co-transform W theo view RRB (feature sạch của OSFD gốc cũng không co-transform; xoay ≤ 7°, scale ≤ 1.1).
+- Ảnh không có GT box: W ≡ 1 (= OSFD gốc).
+- Mọi thứ khác GIỮ NGUYÊN OSFD full recipe (protocol_lock.md): MI μ = 1, RRB θ=7, l_s=10, ρ=0.8, s_max=1.1, σ=6, ε = 5, α = 1, B = 50 (1 backward / 2 view mỗi step), noise init 0, seed ảnh = SEED + i như `run_baselines.py`.
+- Threat model: GT-assisted (primary). Biến thể box dự đoán của surrogate chỉ để validation sau, không thuộc Go/No-Go.
+
+**Đúng 2 cấu hình W (khai báo trước, không thêm cấu hình cứu vãn):**
+- **W1 "box":** M = 1 trong hợp các GT box, M = 0.1 ở mọi chỗ khác (kể cả vùng pad).
+- **W2 "box+ring":** mỗi box nở mỗi phía 0.25 × (rộng box) theo chiều ngang, 0.25 × (cao box) theo chiều dọc, tối thiểu 16 px (khung model), clip vào ảnh; M = 1 trong hợp các box đã nở, 0.1 chỗ khác.
+
+### Tập dev100 (tune/sàng lọc CHỈ ở đây)
+
+- Pool = ảnh val2017 có ≥ 1 instance annotation (cùng tiêu chí n1000, 4952 ảnh) − n1000 = 3952 ảnh; `dev100 = random.Random(20260924).sample(sorted(pool), 100)`; assert Dev100 ∩ N1000 = ∅. Sinh 1 lần, commit `data/image_lists/dev100.csv` + `dev_meta.json`, không sinh lại.
+- n300/n1000 KHÔNG được dùng để chọn W hay bất cứ tham số nào.
+
+### Sàng lọc @ dev100 (điểm ước lượng)
+
+Chạy OSFD, OSFD+W1, OSFD+W2 trên dev100 (cùng seed ảnh). Đánh giá: ConvNeXt-T, Swin-T, YOLOX-S (quyết định); R50, R101, DINO-Swin-L (chỉ báo cáo). Δ = relative AP drop(candidate) − drop(OSFD).
+
+Một cấu hình QUA sàng lọc nếu đồng thời: ΔCrossAvg(ConvNeXt-T, Swin-T) ≥ 2; Δ_ConvNeXt-T ≥ 0; Δ_Swin-T ≥ 0; Δ_YOLOX-S ≥ 0.
+- Cả 2 qua → chọn ΔCrossAvg lớn hơn (chênh < 0.5 → chọn W1, đơn giản hơn). Chỉ 1 cấu hình được sang n300.
+- Không cấu hình nào qua → DỪNG A′1, ghi log, không thêm biến thể.
+
+### GO @ n300 (chạy 1 lần, cấu hình đóng băng, không tune thêm)
+
+So với OSFD của run `n300_B50_eps5` (PNG trên HF, cùng seed ảnh → paired bootstrap 1000 mẫu, BOOT_SEED 2026). GO nếu đồng thời:
+- ΔCrossAvg(ConvNeXt-T, Swin-T) ≥ 3 VÀ cận dưới CI 95% > 0;
+- Δ_ConvNeXt-T > 0 VÀ Δ_Swin-T > 0 (điểm ước lượng);
+- Δ_YOLOX-S ≥ 5 VÀ cận dưới CI 95% > 0 (bootstrap per-model của `eval_generalization.py` hỗ trợ được).
+- DINO-Swin-L: chỉ báo cáo, không thuộc Go/No-Go. Báo cáo kèm R101 (Δ cùng họ), runtime, số view forward (không đổi: 2×B).
+- Không đạt → NO-GO A′1, ghi log.
