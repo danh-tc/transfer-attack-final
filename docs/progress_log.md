@@ -590,3 +590,37 @@ Ghi chú:
 - Runtime ghi 3.1 (OSFD, lấy từ stats phiên 2026-09-23) vs 4.9 s/ảnh (W1, máy hôm nay) — khác máy, không phải chi phí method (ở dev100 cùng máy: 5.0 vs 5.1).
 - Hệ quả cho hướng M1: dưới L∞ với sign-step, phân bổ không gian qua trọng số loss không tạo chỗ trống đáng kể. Hướng M1 dạng này coi như đóng.
 - Artifact mới (PNG OSFD-W1 n300, `dets_pilot_a1.json`, `gen_dets/`; run `dev100_B50_eps5`) CHƯA upload HF.
+
+---
+
+## 2026-09-24 — Chốt quy tắc pilot P2 (gộp lõm theo channel) + dev300 (TRƯỚC khi code/chạy)
+
+**Bỏ P1 (drop channel ngẫu nhiên trong loss, p = 0.1/0.2) trước khi chạy** — kiểm cơ chế 5 ảnh dev100: mask chỉ chọn số hạng của loss (không đổi forward) nên g_M = Σ_c M_c g_c tuyến tính theo mask; cos(g_M, g_OSFD) 0.993–0.996 / 0.984–0.991, sign agreement 0.96–0.97 / 0.94–0.95; trung bình 16 mask cos 0.999+ với g_OSFD (momentum lấy đúng trung bình đó) → P1 ≈ OSFD. P1′ (dropout trong forward, kiểu Ghost Networks, Li et al. AAAI 2020) để dự phòng xa (rủi ro trùng lặp cao).
+
+**Manh mối cho P2 (đính chính số đã nêu trong chat):** "top-10% channel chiếm 57–66% loss stage 4" đo trên d ≈ 4·F_clean² ở δ≈0 — chủ yếu là tập trung năng lượng feature SẠCH. Đo đúng trên distortion thật e_c = mean_hw (F_adv − F_clean)² của R50, 100 PNG OSFD dev100: top-10% share s1–s4 = 0.29 / 0.28 / 0.29 / **0.48 ± 0.03** (đều = 0.10); năng lượng sạch 0.32 / 0.27 / 0.37 / 0.59; loss OSFD 0.30 / 0.26 / 0.33 / 0.55. OSFD-W1 giống hệt. → distortion OSFD tập trung rõ ở stage 4, một phần kế thừa từ feature sạch.
+
+Giả thuyết (chưa là cơ chế): để vài channel sâu thống trị distortion có thể là chuyên biệt hóa theo representation của R50; giảm lợi ích biên của channel đã bị phá mạnh có thể giúp transfer khác họ. Ngược hướng FIA/NAA (tăng trọng feature quan trọng). Chưa claim novelty trước khi rà literature đầy đủ.
+
+### Method P2 (khóa)
+
+d_{l,c} = mean_{h,w} (F^adv_{l,c,h,w} − k·F^clean_{l,c,h,w})², k = 3 (OSFD gốc = Σ_l mean_c d_{l,c}, đúng `F.mse_loss`).
+**L_P2 = Σ_l mean_c φ_l(d_{l,c}),  φ_l(d) = τ_l · log(1 + d/τ_l)**  (φ′ = 1/(1 + d/τ_l)).
+- τ_l = s · median_c d⁰_{l,c}, d⁰ = d tại δ = 0 KHÔNG qua RRB (= (1−k)²·mean_hw F_clean²), tính 1 lần mỗi ảnh, detach, cố định suốt 50 step; chặn dưới 1e-12.
+- Loss cộng trên 2 view RRB như OSFD. Mọi thứ khác giữ OSFD full recipe (MI μ=1, RRB, ε=5, α=1, B=50, noise init 0, seed ảnh SEED+i).
+- Sanity trước khi chạy: φ(d) = d trùng tuyệt đối `F.mse_loss` OSFD.
+- **Đúng 2 cấu hình, chỉ đổi s (giữ log1p):** P2a s = 1 (median, lõm mạnh); P2b s = 2 (nhẹ hơn). Không thử φ khác (sqrt/Huber/clip...).
+
+### dev300 (tập development DUY NHẤT cho RQ3 từ đây)
+
+dev300 = dev100 (giữ nguyên) ∪ `random.Random(20260925).sample(sorted(pool − dev100), 200)`, pool = ảnh val2017 có ≥ 1 instance − n1000; assert dev300 ∩ n1000 = ∅. Sinh 1 lần, commit `data/image_lists/dev300.csv`. **Không mở thêm dev500/dev700** dù P2 fail.
+
+### Quy trình (một đường duy nhất)
+
+1. **Mechanism gate** — 20 ảnh đầu của `dev100.csv`, mỗi cấu hình, cả hai điều kiện:
+   - (G1) sign agreement(∇ₓL_P2, ∇ₓL_OSFD) tại δ = 0, không RRB, trung bình 20 ảnh **< 0.95**;
+   - (G2) sau 10 step full recipe (MI + RRB, cùng seed ảnh), top-10% share của distortion thật e_{4,c} ở stage 4 (R50) trung bình 20 ảnh: **C10₄(P2) ≤ C10₄(OSFD) − 0.05**.
+   Chỉ cấu hình qua gate mới vào dev300; không cấu hình nào qua → DỪNG P2.
+2. **Sàng lọc @ dev300** (điểm ước lượng): ΔCrossAvg(ConvNeXt-T, Swin-T) ≥ 3; Δ_ConvNeXt-T > 0; Δ_Swin-T > 0; Δ_YOLOX-S ≥ 2. R50, R101, DINO-Swin-L chỉ báo cáo. Cả 2 qua → chọn ΔCrossAvg lớn hơn; chênh < 0.5 → chọn P2b (gần OSFD hơn).
+3. **GO @ n300** (1 lần, đóng băng; so OSFD của `n300_B50_eps5`): ΔCrossAvg ≥ 3 VÀ cận dưới CI 95% > 0; Δ_ConvNeXt-T > 0 VÀ Δ_Swin-T > 0; Δ_YOLOX-S ≥ 5 VÀ cận dưới CI > 0. DINO-Swin-L chỉ báo cáo.
+4. **Điều kiện cho diễn giải cơ chế (không phải điều kiện GO):** nếu GO, phải kèm C10₄(P2) < C10₄(OSFD) trên ảnh adv n300 (paired CI < 0) và báo cáo Spearman per-ảnh(ΔC10₄, Δ suppression) ở target khác họ. Không đạt → method có thể hữu ích nhưng KHÔNG viết theo câu chuyện nhân quả "giảm tập trung channel".
+5. **Nếu P2 NO-GO:** không làm tiếp P3/P4 kiểu feature engineering; RQ3 pivot sang nguyên lý khác hẳn hoặc chấp nhận kết luận "các can thiệp đã thử không thu hẹp được phần gap còn lại một cách hệ thống".
