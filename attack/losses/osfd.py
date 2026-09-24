@@ -17,6 +17,11 @@ W_l BÊN TRONG loss (trước reduction) — đổi hướng gradient, khác v�
 trước sign() (vô tác dụng khi W > 0):
   L = Σ_l Σ_hw W_l ‖k·F_cln − F_adv‖²₂ / (C_l · Σ_hw W_l)
 Chia C_l để W ≡ 1 trùng tuyệt đối F.mse_loss của OSFD gốc.
+
+Pilot P2 (progress_log 2026-09-24): `channel_concave` gộp LÕM theo channel —
+  d_{l,c} = mean_hw (k·F_cln − F_adv)²,  L = Σ_l mean_c τ_l·log(1 + d_{l,c}/τ_l)
+τ_l = s·median_c d⁰_{l,c} (d⁰ tại δ=0, không RRB = (1−k)²·mean_hw F_cln²), cố định mỗi ảnh.
+φ(d) = d trùng tuyệt đối F.mse_loss (Σ_l mean_c d_{l,c}).
 """
 from typing import Optional
 
@@ -32,6 +37,8 @@ SPATIAL_WEIGHTS = {
     "box_ring": dict(ring=0.25, min_ring_px=16.0),  # W2: box nở mỗi phía 0.25×cạnh, >= 16 px
 }
 BG_WEIGHT = 0.1
+# Cấu hình P2 khóa trong progress_log 2026-09-24: chỉ đổi s (τ = s·median), giữ log1p.
+CHANNEL_CONCAVE = {"median": 1.0, "2median": 2.0}  # P2a, P2b
 
 
 def spatial_weight_map(data_sample: DetDataSample, canvas_hw, ring: float, min_ring_px: float,
@@ -61,9 +68,20 @@ def weighted_feature_mse(feat_cln: torch.Tensor, feat_adv: torch.Tensor,
     return (w * sq).sum() / (feat_cln.shape[1] * w.sum())
 
 
+def channel_distortion(feat_cln: torch.Tensor, feat_adv: torch.Tensor) -> torch.Tensor:
+    """feat [1,C,H,W] -> d [C] = mean_hw (feat_cln − feat_adv)²."""
+    return (feat_cln - feat_adv).pow(2).mean(dim=(0, 2, 3))
+
+
+def concave_channel_loss(d: torch.Tensor, tau: torch.Tensor) -> torch.Tensor:
+    """mean_c τ·log(1 + d_c/τ)."""
+    return (tau * torch.log1p(d / tau)).mean()
+
+
 def make_osfd_loss_fn(model: torch.nn.Module, clean_pixels: torch.Tensor,
                       data_sample: DetDataSample, k: float = 3.0, stages=None,
-                      spatial_weight: Optional[str] = None):
+                      spatial_weight: Optional[str] = None,
+                      channel_concave: Optional[str] = None):
     """Cache feature sạch 1 lần (không cần tính lại mỗi step attack), trả về
     loss_fn tương thích attack.methods.core.run_iterative_attack.
 
@@ -71,7 +89,9 @@ def make_osfd_loss_fn(model: torch.nn.Module, clean_pixels: torch.Tensor,
     tấn công các stage đó (Mechanism A3, docs/mechanism_plan.md).
     spatial_weight: None = OSFD gốc; key của SPATIAL_WEIGHTS = pilot A′1. W_l = M
     downsample kiểu area (adaptive avg pool) về lưới stage l; KHÔNG co-transform theo
-    view RRB (feature sạch của OSFD gốc cũng không)."""
+    view RRB (feature sạch của OSFD gốc cũng không).
+    channel_concave: None = OSFD gốc; key của CHANNEL_CONCAVE = pilot P2."""
+    assert spatial_weight is None or channel_concave is None
     with torch.no_grad():
         feats_clean = tuple(f.detach() for f in extract_features(model, clean_pixels, data_sample))
         weights = None
@@ -80,6 +100,10 @@ def make_osfd_loss_fn(model: torch.nn.Module, clean_pixels: torch.Tensor,
             m = spatial_weight_map(data_sample, canvas_hw, device=clean_pixels.device,
                                    **SPATIAL_WEIGHTS[spatial_weight])
             weights = [F.adaptive_avg_pool2d(m[None, None], f.shape[-2:])[0, 0] for f in feats_clean]
+        taus = None
+        if channel_concave is not None:
+            s = CHANNEL_CONCAVE[channel_concave]
+            taus = [(s * channel_distortion(k * f, f).median()).clamp_min(1e-12) for f in feats_clean]
 
     def loss_fn(model, adv_pixels, data_sample):
         feats_adv = extract_features(model, adv_pixels, data_sample)
@@ -87,10 +111,12 @@ def make_osfd_loss_fn(model: torch.nn.Module, clean_pixels: torch.Tensor,
         for s, (feat_cln, feat_adv) in enumerate(zip(feats_clean, feats_adv)):
             if stages is not None and s not in stages:
                 continue
-            if weights is None:
-                term = F.mse_loss(k * feat_cln, feat_adv)
-            else:
+            if weights is not None:
                 term = weighted_feature_mse(k * feat_cln, feat_adv, weights[s])
+            elif taus is not None:
+                term = concave_channel_loss(channel_distortion(k * feat_cln, feat_adv), taus[s])
+            else:
+                term = F.mse_loss(k * feat_cln, feat_adv)
             loss = term if loss is None else loss + term
         return loss
 

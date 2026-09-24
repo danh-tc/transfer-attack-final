@@ -51,6 +51,9 @@ METHODS = {
     # Pilot A′1 (progress_log 2026-09-24) — không thuộc baseline table, chỉ chạy khi chỉ định.
     "OSFD-W1": (functools.partial(osfd_attack, spatial_weight="box"), 2),
     "OSFD-W2": (functools.partial(osfd_attack, spatial_weight="box_ring"), 2),
+    # Pilot P2 (progress_log 2026-09-24).
+    "OSFD-P2a": (functools.partial(osfd_attack, channel_concave="median"), 2),
+    "OSFD-P2b": (functools.partial(osfd_attack, channel_concave="2median"), 2),
 }
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 

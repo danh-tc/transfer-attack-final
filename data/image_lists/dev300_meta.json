@@ -1,0 +1,10 @@
+{
+  "seed_dev100": 20260924,
+  "seed_extension": 20260925,
+  "n_dev": 300,
+  "definition": "dev100 ∪ Random(seed_extension).sample(sorted(pool − dev100), 200)",
+  "source_pool": "coco val2017, images with >=1 instance annotation, minus n1000",
+  "source_pool_size": 3952,
+  "disjoint_from": "n1000 (hence n300)",
+  "purpose": "the ONLY development set for RQ3 — see docs/progress_log.md 2026-09-24"
+}
