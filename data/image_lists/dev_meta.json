@@ -1,0 +1,8 @@
+{
+  "seed": 20260924,
+  "n_dev": 100,
+  "source_pool": "coco val2017, images with >=1 instance annotation, minus n1000",
+  "source_pool_size": 3952,
+  "disjoint_from": "n1000 (hence n300)",
+  "purpose": "pilot method screening only — see docs/progress_log.md 2026-09-24"
+}
