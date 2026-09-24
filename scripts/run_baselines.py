@@ -17,6 +17,7 @@ Chạy (trong tmux):
   python scripts/run_baselines.py --split n300 --budget 50 --stage eval   # chỉ eval lại
 """
 import argparse
+import functools
 import json
 import os
 import random
@@ -47,7 +48,11 @@ METHODS = {
     "MI-FGSM": (mi_fgsm_attack, 1),
     "M-DI2-FGSM": (di_fgsm_attack, 1),
     "OSFD": (osfd_attack, 2),  # RRB: 2 view / 1 backward (protocol_lock.md, đơn vị B)
+    # Pilot A′1 (progress_log 2026-09-24) — không thuộc baseline table, chỉ chạy khi chỉ định.
+    "OSFD-W1": (functools.partial(osfd_attack, spatial_weight="box"), 2),
+    "OSFD-W2": (functools.partial(osfd_attack, spatial_weight="box_ring"), 2),
 }
+BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 
 def load_stats(path):
@@ -102,6 +107,11 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
     return stats
 
 
+def dets_name(out):
+    """metrics.json -> dets.json (mặc định, như cũ); metrics_X.json -> dets_X.json."""
+    return "dets.json" if out == "metrics.json" else out.replace("metrics", "dets", 1)
+
+
 def stage_eval(args, dataset, models, adv_dir, stats, run_dir, art_dir, device):
     cat_ids = dataset._mmdet_dataset.cat_ids
     conds = ["clean"] + list(args.methods)
@@ -119,7 +129,7 @@ def stage_eval(args, dataset, models, adv_dir, stats, run_dir, art_dir, device):
                 dets[c][k] += to_coco_dets(predict(m, img, ds, rescale=True), img_id, cat_ids)
         if (i + 1) % 50 == 0:
             print(f"[eval] predict {i + 1}/{len(dataset)} ({time.time() - t0:.0f}s)", flush=True)
-    with open(os.path.join(art_dir, "dets.json"), "w") as f:
+    with open(os.path.join(art_dir, dets_name(args.out)), "w") as f:
         json.dump(dets, f)
 
     coco_gt = COCO(ANN_FILE)
@@ -180,10 +190,10 @@ def stage_eval(args, dataset, models, adv_dir, stats, run_dir, art_dir, device):
         "created": time.strftime("%Y-%m-%d %H:%M:%S"),
         **metrics,
     }
-    with open(os.path.join(run_dir, "metrics.json"), "w") as f:
+    with open(os.path.join(run_dir, args.out), "w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
     print_table(out, list(models), args.methods)
-    print("saved:", os.path.join(run_dir, "metrics.json"))
+    print("saved:", os.path.join(run_dir, args.out))
 
 
 def print_table(m, keys, methods):
@@ -208,7 +218,8 @@ def main():
     p.add_argument("--split", default="n300")
     p.add_argument("--budget", type=int, default=50)
     p.add_argument("--epsilon", type=float, default=5.0)
-    p.add_argument("--methods", nargs="+", default=list(METHODS), choices=list(METHODS))
+    p.add_argument("--methods", nargs="+", default=BASELINES, choices=list(METHODS))
+    p.add_argument("--out", default="metrics.json", help="tên file trong results/runs/<run>/")
     p.add_argument("--stage", choices=["all", "attack", "eval"], default="all")
     p.add_argument("--n-boot", type=int, default=1000)
     p.add_argument("--limit", type=int, default=None, help="chỉ để test nhanh, KHÔNG dùng cho bảng chính thức")
