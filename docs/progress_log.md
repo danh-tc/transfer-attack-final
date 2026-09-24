@@ -639,3 +639,17 @@ Code `f78d785` (commit trước khi chạy). `scripts/pilot_p2_gate.py`, kết q
 Mô tả (không đổi kết luận): dù objective đổi hướng gradient đáng kể (~15% pixel đổi dấu), mức tập trung theo channel của distortion thật ở stage 4 gần như bất biến (0.48 ± 0.01). Gợi ý: sự tập trung này là thuộc tính của representation stage 4 của R50 (channel nào phản ứng với nhiễu cỡ ε = 5) chứ không phải do hàm gộp tuyến tính của OSFD — can thiệp ở mức loss khó phân bổ lại. Đây là quan sát, không phải kết luận nhân quả.
 
 **Theo nguyên tắc đã chốt (entry quy tắc P2, mục 5):** không làm tiếp P3/P4 kiểu feature engineering. Chuỗi can thiệp mức loss trên OSFD đã thử: A′1 (không gian, NO-GO @ n300), P1 (bỏ trước khi chạy — ≈ OSFD), P2 (dừng ở gate). RQ3 phải pivot sang nguyên lý khác hẳn, hoặc chấp nhận kết luận "các can thiệp đã thử không thu hẹp được phần gap còn lại một cách hệ thống". Chờ user quyết.
+
+---
+
+## 2026-09-24 — Tổng kết cuối ngày (dừng phiên, mai tiếp)
+
+Phiên hôm nay (máy mới RTX 3090, `bootstrap.sh` + `download_checkpoints.sh --gen`): đóng Mechanism Stage; tạo dev100 rồi dev300 (tập development DUY NHẤT cho RQ3); pilot A′1 → NO-GO @ n300; P1 bỏ trước khi chạy; P2 dừng ở mechanism gate. Chi tiết + số liệu: các entry 2026-09-24 ở trên.
+
+**Trạng thái:** RQ3 chờ user quyết — (1) pivot sang nguyên lý khác hẳn (không phải đổi hàm loss trên feature R50; ví dụ can thiệp đường tính forward kiểu P1′/Ghost Networks), quy tắc chốt trước, chỉ dùng dev300; hoặc (2) chấp nhận kết luận âm, chuyển trọng tâm sang analysis paper (còn thiếu cho bảng cuối: B=200 + A5, ε=8, clean AP full val2017 cho Generalization Panel).
+
+**Việc mở cho phiên sau:**
+1. Push các commit hôm nay (máy không có credential GitHub).
+2. Artifact CHƯA upload HF (mất nếu trả máy): `artifacts/runs/dev100_B50_eps5/` (211 MB: PNG OSFD/W1/W2, dets, gen_dets) và phần mới trong `artifacts/runs/n300_B50_eps5/` (PNG OSFD-W1, `dets_pilot_a1.json`, `gen_dets/`). Upload `n300_B50_eps5` sẽ GHI ĐÈ tar cũ trên HF (chỉ thêm nội dung) — cân nhắc upload phần mới dưới tên riêng.
+3. Token HF đã dùng hôm nay bị lộ trong chat — revoke, tạo token mới.
+4. Nếu máy mới: `bash scripts/bootstrap.sh` + `bash scripts/download_checkpoints.sh --gen`; ảnh adv baseline: `python scripts/sync_artifacts.py download n300_B50_eps5`.
