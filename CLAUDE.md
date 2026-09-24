@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-Baseline-First xong (**Hypothesis Pass @300 = PASS**), Generalization Panel xong (quy tắc khả thi: **ĐI TIẾP**), Mechanism A1–A4 xong (chưa cơ chế nào đạt tiêu chí; hướng stage-aware đã bỏ). **Đọc [docs/synthesis_2026-09-23.md](docs/synthesis_2026-09-23.md) trước** — tổng hợp toàn cục + hướng method khả dĩ + việc mở cho phiên sau. Việc tiếp theo: user chọn hướng (pilot method M1/M2/M3 với quy tắc chốt trước, hoặc chuyển trọng tâm analysis paper).
+Baseline-First xong (**Hypothesis Pass @300 = PASS**), Generalization Panel xong (quy tắc khả thi: **ĐI TIẾP**), Mechanism A1–A4 xong (chưa cơ chế nào đạt tiêu chí; hướng stage-aware đã bỏ). **Đọc [docs/synthesis_2026-09-23.md](docs/synthesis_2026-09-23.md) trước** — tổng hợp toàn cục + hướng method khả dĩ + việc mở cho phiên sau. Mechanism Stage đã đóng (2026-09-24). Pilot method A′1 (OSFD loss trọng số không gian theo GT box, hướng M1) = **NO-GO** @ n300 (ΔCrossAvg +0.5) — xem entry cuối `docs/progress_log.md`. Pilot method dùng tập `data/image_lists/dev100.csv` (ngoài n1000), không bao giờ tune trên n300/n1000. Việc tiếp theo: user chọn hướng (M2/M3/hướng khác với quy tắc chốt trước, hoặc chuyển trọng tâm analysis paper).
 
 ## Chạy môi trường
 

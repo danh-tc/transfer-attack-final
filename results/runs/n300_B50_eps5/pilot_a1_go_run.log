@@ -1,0 +1,196 @@
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+[run] n300_B50_eps5: 300 ảnh, methods=['OSFD', 'OSFD-W1']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD-W1] 10/300  5.1s/ảnh  còn ~25 phút
+[attack OSFD-W1] 20/300  5.1s/ảnh  còn ~24 phút
+[attack OSFD-W1] 30/300  5.1s/ảnh  còn ~23 phút
+[attack OSFD-W1] 40/300  5.1s/ảnh  còn ~22 phút
+[attack OSFD-W1] 50/300  5.1s/ảnh  còn ~21 phút
+[attack OSFD-W1] 60/300  5.1s/ảnh  còn ~20 phút
+[attack OSFD-W1] 70/300  5.1s/ảnh  còn ~19 phút
+[attack OSFD-W1] 80/300  5.1s/ảnh  còn ~19 phút
+[attack OSFD-W1] 90/300  5.1s/ảnh  còn ~18 phút
+[attack OSFD-W1] 100/300  5.1s/ảnh  còn ~17 phút
+[attack OSFD-W1] 110/300  5.0s/ảnh  còn ~16 phút
+[attack OSFD-W1] 120/300  5.0s/ảnh  còn ~15 phút
+[attack OSFD-W1] 130/300  5.0s/ảnh  còn ~14 phút
+[attack OSFD-W1] 140/300  5.0s/ảnh  còn ~13 phút
+[attack OSFD-W1] 150/300  5.0s/ảnh  còn ~13 phút
+[attack OSFD-W1] 160/300  5.0s/ảnh  còn ~12 phút
+[attack OSFD-W1] 170/300  5.0s/ảnh  còn ~11 phút
+[attack OSFD-W1] 180/300  5.0s/ảnh  còn ~10 phút
+[attack OSFD-W1] 190/300  5.0s/ảnh  còn ~9 phút
+[attack OSFD-W1] 200/300  5.0s/ảnh  còn ~8 phút
+[attack OSFD-W1] 210/300  5.0s/ảnh  còn ~7 phút
+[attack OSFD-W1] 220/300  5.0s/ảnh  còn ~7 phút
+[attack OSFD-W1] 230/300  5.0s/ảnh  còn ~6 phút
+[attack OSFD-W1] 240/300  5.0s/ảnh  còn ~5 phút
+[attack OSFD-W1] 250/300  5.0s/ảnh  còn ~4 phút
+[attack OSFD-W1] 260/300  5.0s/ảnh  còn ~3 phút
+[attack OSFD-W1] 270/300  5.0s/ảnh  còn ~2 phút
+[attack OSFD-W1] 280/300  5.0s/ảnh  còn ~2 phút
+[attack OSFD-W1] 290/300  5.0s/ảnh  còn ~1 phút
+[attack OSFD-W1] 300/300  5.0s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (37s)
+[eval] predict 100/300 (69s)
+[eval] predict 150/300 (101s)
+[eval] predict 200/300 (132s)
+[eval] predict 250/300 (164s)
+[eval] predict 300/300 (194s)
+loading annotations into memory...
+Done (t=0.77s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (348s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          45.0 [ 43.3, 49.1]   46.2 [ 44.7, 50.5]   51.0 [ 49.5, 55.0]   49.8 [ 48.4, 53.9]
+OSFD            0.5 [  0.2,  1.0]    3.5 [  2.2,  5.5]   10.0 [  8.6, 13.0]   10.6 [  9.6, 13.4]
+OSFD-W1         0.4 [  0.1,  0.9]    3.7 [  2.3,  5.6]    9.2 [  7.8, 12.0]   10.9 [  9.5, 13.6]
+
+=== relative AP drop % [95% CI] ===
+OSFD           98.9 [ 97.8, 99.6]   92.4 [ 88.4, 95.4]   80.4 [ 75.7, 83.6]   78.7 [ 73.9, 81.2]
+OSFD-W1        99.0 [ 98.0, 99.8]   92.1 [ 88.3, 95.2]   82.0 [ 77.1, 84.8]   78.2 [ 73.5, 81.4]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  79.5 [ 74.9, 82.3]  gap→ConvNeXt  12.0 [  9.4, 15.9]  gap→Swin  13.8 [ 11.0, 18.1]  gap→avg  12.9 [ 10.2, 16.7]
+OSFD-W1      CrossAvg  80.1 [ 75.7, 82.7]  gap→ConvNeXt  10.1 [  8.0, 13.9]  gap→Swin  13.9 [ 10.6, 18.1]  gap→avg  12.0 [  9.6, 15.5]
+
+=== runtime === {'OSFD': 3.1, 'OSFD-W1': 4.9}
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/metrics_pilot_a1.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.53s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/300 (7s)
+[gen yolox_s] 100/300 (14s)
+[gen yolox_s] 150/300 (21s)
+[gen yolox_s] 200/300 (28s)
+[gen yolox_s] 250/300 (35s)
+[gen yolox_s] 300/300 (42s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (41s)
+[gen dino_swin_l] 100/300 (82s)
+[gen dino_swin_l] 150/300 (123s)
+[gen dino_swin_l] 200/300 (164s)
+[gen dino_swin_l] 250/300 (205s)
+[gen dino_swin_l] 300/300 (245s)
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.06s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.07s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.12s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.10s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.09s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 46.2  yolox_s: 43.9  dino_swin_l: 62.4
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+OSFD           92.4 [ 88.4, 95.4]   77.4 [ 71.8, 80.1]   24.6 [ 20.4, 27.4]
+OSFD-W1        92.1 [ 88.3, 95.2]   78.2 [ 72.9, 80.9]   26.2 [ 21.6, 28.8]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           15.0 [ 12.1, 19.7]   67.8 [ 63.6, 72.7]
+OSFD-W1        13.9 [ 11.4, 18.4]   65.9 [ 61.8, 71.6]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+OSFD-W1 - OSFD            0.8 [ -0.3,  2.3]    1.6 [  0.1,  2.5]
+
+=== model_diff (OSFD) ===
+  dino_swin_l - yolox_s        -52.8 [-57.2,-47.3]
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/generalization_pilot_a1.json
+EXIT=0

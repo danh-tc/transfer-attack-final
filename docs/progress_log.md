@@ -570,3 +570,23 @@ Kết quả `results/runs/dev100_B50_eps5/` (`metrics.json`, `generalization_met
 - → **Sang n300 với OSFD-W1** (cấu hình đóng băng).
 
 Mô tả (không thuộc quy tắc): ΔCrossAvg paired bootstrap trên dev100 — W1 +2.1 [0.5, 4.1], W2 +2.0 [0.9, 3.4]; W1 ≈ W2 (−0.2 [−1.6, 1.3]). R101 cũng tăng (+1.7 / +1.2) → chưa phải gain riêng cho khác họ. YOLOX-S +0.4 [−2.6, 3.1], DINO-Swin-L +0.4 [−1.6, 2.6] — xa ngưỡng GO YOLOX-S ≥ 5 → kỳ vọng tiên nghiệm cho GO @ n300 thấp; vẫn chạy 1 lần theo quy tắc. Runtime không đổi (~5.0 s/ảnh, cả 3).
+
+---
+
+## 2026-09-24 — Pilot A′1 GO @ n300 (OSFD-W1, chạy 1 lần, đóng băng) → **NO-GO**
+
+`results/runs/n300_B50_eps5/{metrics_pilot_a1.json, generalization_pilot_a1.json, pilot_a1_go.json, pilot_a1_go_run.log}` (file riêng, không đè `metrics.json` / `generalization_metrics.json` của baseline). OSFD dùng lại PNG của run baseline (không attack lại); **số OSFD tái lập đúng bảng baseline đã commit** (98.9 / 92.4 / 80.4 / 78.7; YOLOX-S 77.4; DINO-Swin-L 24.6) → pipeline nhất quán.
+
+Relative AP drop % [95% CI], R50 / R101 / ConvNeXt-T / Swin-T | YOLOX-S / DINO-Swin-L:
+- OSFD: 98.9 / 92.4 / 80.4 / 78.7 | 77.4 / 24.6
+- OSFD-W1: 99.0 / 92.1 [88.3, 95.2] / 82.0 [77.1, 84.8] / 78.2 [73.5, 81.4] | 78.2 [72.9, 80.9] / 26.2 [21.6, 28.8]
+
+W1 − OSFD (`scripts/pilot_a1_go.py`): ConvNeXt +1.6, Swin −0.5, R101 −0.3; **ΔCrossAvg +0.5 [−0.5, 2.1]**; **YOLOX-S +0.8 [−0.3, 2.3]**; DINO-Swin-L (báo cáo) +1.6 [0.1, 2.5].
+
+Áp quy tắc khóa: ΔCrossAvg ≥ 3 ✗, CI > 0 ✗, ConvNeXt > 0 ✓, Swin > 0 ✗, YOLOX-S ≥ 5 ✗, CI > 0 ✗ → **NO-GO A′1**. Không thêm biến thể (theo quy tắc).
+
+Ghi chú:
+- Mức cải thiện ở dev100 (+2.1) co về +0.5 ở n300 — khớp kiểm cơ chế trước khi chạy (W chỉ đổi dấu gradient ở ~2–6% pixel) và cho thấy sàng lọc bằng điểm ước lượng trên 100 ảnh nhiễu cỡ ±2.
+- Runtime ghi 3.1 (OSFD, lấy từ stats phiên 2026-09-23) vs 4.9 s/ảnh (W1, máy hôm nay) — khác máy, không phải chi phí method (ở dev100 cùng máy: 5.0 vs 5.1).
+- Hệ quả cho hướng M1: dưới L∞ với sign-step, phân bổ không gian qua trọng số loss không tạo chỗ trống đáng kể. Hướng M1 dạng này coi như đóng.
+- Artifact mới (PNG OSFD-W1 n300, `dets_pilot_a1.json`, `gen_dets/`; run `dev100_B50_eps5`) CHƯA upload HF.
