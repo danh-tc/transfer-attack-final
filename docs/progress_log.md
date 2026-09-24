@@ -552,3 +552,21 @@ So với OSFD của run `n300_B50_eps5` (PNG trên HF, cùng seed ảnh → pair
 - Δ_YOLOX-S ≥ 5 VÀ cận dưới CI 95% > 0 (bootstrap per-model của `eval_generalization.py` hỗ trợ được).
 - DINO-Swin-L: chỉ báo cáo, không thuộc Go/No-Go. Báo cáo kèm R101 (Δ cùng họ), runtime, số view forward (không đổi: 2×B).
 - Không đạt → NO-GO A′1, ghi log.
+
+---
+
+## 2026-09-24 — Pilot A′1 sàng lọc @ dev100 → W1 QUA (sát ngưỡng), W2 KHÔNG QUA
+
+Code `6feb7ff` (commit trước khi chạy). Sanity trước khi chạy: W ≡ 1 trùng `F.mse_loss` tuyệt đối; W_l khớp lưới 4 stage. **Kiểm cơ chế (không phải kết quả transfer), 3 ảnh dev đầu, step 0:** gradient W1/W2 so với OSFD có cosine 0.62–0.91 nhưng sign agreement 0.935–0.985 — hạ trọng số nền trong loss chủ yếu làm gradient nền NHỎ đi chứ ít đổi dấu → tác động lên δ sign-step nhỏ theo thiết kế.
+
+Kết quả `results/runs/dev100_B50_eps5/` (`metrics.json`, `generalization_metrics.json`, `pilot_a1_screen.json`, log). Clean AP dev100: R101 46.6, YOLOX-S 46.5, DINO-Swin-L 64.0. Relative AP drop % (điểm), R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L:
+- OSFD: 97.0 / 91.1 / 76.0 / 74.6 / 71.5 / 23.3
+- OSFD-W1: 96.8 / 92.8 / 78.7 / 76.3 / 71.9 / 23.7
+- OSFD-W2: 96.8 / 92.3 / 78.7 / 75.8 / 71.5 / 22.3
+
+Áp quy tắc khóa (`scripts/pilot_a1_screen.py`):
+- **W1 − OSFD:** ΔCrossAvg +2.13 ✓ (≥ 2), ConvNeXt +2.6 ✓, Swin +1.6 ✓, YOLOX-S +0.4 ✓ → **QUA**.
+- **W2 − OSFD:** ΔCrossAvg +1.96 ✗, ConvNeXt +2.7, Swin +1.2, YOLOX-S 0.0 → **KHÔNG QUA** (sát ngưỡng; không làm tròn, không nới).
+- → **Sang n300 với OSFD-W1** (cấu hình đóng băng).
+
+Mô tả (không thuộc quy tắc): ΔCrossAvg paired bootstrap trên dev100 — W1 +2.1 [0.5, 4.1], W2 +2.0 [0.9, 3.4]; W1 ≈ W2 (−0.2 [−1.6, 1.3]). R101 cũng tăng (+1.7 / +1.2) → chưa phải gain riêng cho khác họ. YOLOX-S +0.4 [−2.6, 3.1], DINO-Swin-L +0.4 [−1.6, 2.6] — xa ngưỡng GO YOLOX-S ≥ 5 → kỳ vọng tiên nghiệm cho GO @ n300 thấp; vẫn chạy 1 lần theo quy tắc. Runtime không đổi (~5.0 s/ảnh, cả 3).

@@ -1,0 +1,43 @@
+{
+  "run": "dev100_B50_eps5",
+  "rule": "progress_log 2026-09-24",
+  "candidates": {
+    "OSFD-W1": {
+      "delta": {
+        "r50": -0.2785538112251942,
+        "r101": 1.7130801705821312,
+        "convnext_t": 2.6299671480663704,
+        "swin_t": 1.6359414398050944,
+        "yolox_s": 0.3844702418417967,
+        "dino_swin_l": 0.37511402514877545
+      },
+      "delta_cross_avg": 2.1329542939357324,
+      "checks": {
+        "cross_avg>=2": true,
+        "convnext_t>=0": true,
+        "swin_t>=0": true,
+        "yolox_s>=0": true
+      },
+      "pass": true
+    },
+    "OSFD-W2": {
+      "delta": {
+        "r50": -0.26400672136030323,
+        "r101": 1.169241690164725,
+        "convnext_t": 2.7275143098337225,
+        "swin_t": 1.1903940862515299,
+        "yolox_s": 0.027974640208967116,
+        "dino_swin_l": -1.0911635511835343
+      },
+      "delta_cross_avg": 1.9589541980426262,
+      "checks": {
+        "cross_avg>=2": false,
+        "convnext_t>=0": true,
+        "swin_t>=0": true,
+        "yolox_s>=0": true
+      },
+      "pass": false
+    }
+  },
+  "selected_for_n300": "OSFD-W1"
+}
