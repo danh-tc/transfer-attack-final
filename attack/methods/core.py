@@ -35,7 +35,7 @@ Quy ước:
   (step_idx, total_steps) vì AugTrans cần biết tiến độ curriculum
   (Algorithm 1, θ_max(k) phụ thuộc k/K_max) — DI/RRB không dùng, bỏ qua.
 """
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional
 
 import torch
 from mmdet.structures import DetDataSample
@@ -43,7 +43,8 @@ from mmdet.structures import DetDataSample
 from attack.preprocess import resize_to_model
 
 LossFn = Callable[[torch.nn.Module, torch.Tensor, DetDataSample], torch.Tensor]
-ViewsFn = Callable[[torch.Tensor, DetDataSample, int, int], List[Tuple[torch.Tensor, DetDataSample]]]
+# Mỗi view: (ảnh, data_sample) hoặc (ảnh, data_sample, loss_fn riêng của view).
+ViewsFn = Callable[[torch.Tensor, DetDataSample, int, int], List[tuple]]
 
 
 def run_iterative_attack(
@@ -89,8 +90,12 @@ def run_iterative_attack(
                 if views_fn is not None else [(adv_pixels, data_sample)])
 
         loss = None
-        for view_img, view_data_sample in views:
-            term = loss_fn(model, view_img, view_data_sample)
+        for view in views:
+            # Phần tử thứ 3 (tùy chọn) = loss riêng của view — pilot KG: view cặp so với
+            # feature sạch của CHÍNH vùng crop (attack/methods/kg_pair.py).
+            view_img, view_data_sample = view[0], view[1]
+            view_loss_fn = view[2] if len(view) > 2 else loss_fn
+            term = view_loss_fn(model, view_img, view_data_sample)
             loss = term if loss is None else loss + term
         grad = torch.autograd.grad(loss, noise)[0]
 

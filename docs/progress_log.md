@@ -768,3 +768,27 @@ Máy RTX 3090; bootstrap xong (venv có sẵn dùng được, 4 checkpoint Contr
 - Kỳ vọng S2 (≥ 0.5) và S3 (≤ log 1.5 = 0.405) đạt rộng rãi; sanity gate thật vẫn đo trên 20 ảnh dev100 theo quy tắc.
 - TV ≈ 0.41: KG làm phân bố chọn cặp khác rõ so với random khớp hình học (không phải phép thử rỗng). Khoảng 27% ảnh dev300 không có thông tin KG → hiệu ứng E2−E1 trên toàn bộ ảnh bị pha loãng tương ứng.
 - Việc tiếp theo: code view cặp + chọn cặp (E1/E2) trong engine OSFD, chạy sanity gate (bước 0).
+
+---
+
+## 2026-10-03 — Pilot KG: code view cặp + sanity gate (bước 0) → ĐẠT S1–S4
+
+**Code:**
+- `attack/methods/core.py`: view có thể mang loss riêng (phần tử thứ 3 của tuple; tương thích ngược).
+- `attack/methods/kg_pair.py`: `PairSampler` (mỗi step rút q ~ p ∝ S rồi e1 đều trong M(q); LUÔN rút cả hai từ numpy RNG seed theo ảnh → chuỗi (q, e1) giống hệt giữa E1/E2), `crop_resize` (= luật `mmcv.rescale_size` keep_ratio 1333×800), `kg_osfd_attack(mode='kg'|'random_matched')`. View1 tiêu thụ random/torch toàn cục đúng thứ tự như `rrb_views` (step 0 view1 trùng E0); nhiễu σ của view cặp dùng `torch.Generator` riêng (crop E1/E2 khác kích thước sẽ làm lệch RNG toàn cục nếu dùng chung). Feature sạch theo cặp cache, đếm forward no_grad.
+- Unit check: ảnh 0 cặp → E2 trùng tuyệt đối E0 (E0 tất định khi lặp lại); RNG toàn cục sau 3 step giống nhau giữa E1/E2; L∞ = 5.
+- **Seed:** seed ảnh = SEED + chỉ số trong **dev300** (dev300 sắp theo image_id, dev100 không nằm ở đầu) — gate chọn ảnh theo thứ tự `dev100.csv` nhưng dùng seed dev300 → chuỗi cặp kiểm ở gate = chuỗi thật của lần sàng lọc.
+
+**Sanity gate** (`scripts/pilot_kg_gate.py` → `results/kg_pilot/dev300/sanity_gate.json`; 20 ảnh có thông tin đầu theo dev100, 50 step thật E1 và E2):
+- S1 ✓: crop chứa trọn 2 box (mọi cặp), lưới feature đúng stride, loss tại δ = 0 khớp (k−1)²·mean F² (sai số tương đối 1.1e-7).
+- S2 ✓: tỉ lệ step cặp E1 ≠ E2 = **0.857** (≥ 0.5).
+- S3 ✓: trung vị |log(A_E1/A_E2)| = **0.248** (≤ 0.405).
+- S4 ✓: sign agreement(∇E2, ∇E0) step 0 = **0.759** (< 0.95).
+- → **ĐẠT, sang sàng lọc dev300.**
+
+Chẩn đoán (không thuộc quy tắc):
+- Chuỗi (q, e1) của lần chạy E1 và E2 trùng nhau ở cả 20 ảnh.
+- Tỉ lệ cặp cùng class: **E2 0.302 vs E1 0.405** — trên các ảnh này KG chọn cặp KHÁC class nhiều hơn random khớp hình học (ngược với lo ngại PPMI ưu tiên cặp cùng class).
+- **S4 gần như không có sức phân biệt:** sàn sign agreement E0 vs E0 khác seed = **0.516** (nhiễu σ = 6 của RRB chi phối dấu gradient step 0); E2 vs E0 cùng seed = 0.759 (view1 trùng), E2 vs E1 = 0.886. Ngưỡng 0.95 (mượn từ G1 của P2, nơi không có RRB) quá lỏng cho thiết lập có RRB — ghi nhận, không đổi quy tắc; S4 chỉ xác nhận view cặp có đổi gradient.
+- 1/20 ảnh (105455, 3 cặp) có P(E1≠E2) = 0: tập khớp hình học suy biến/KG một cặp chiếm ưu thế — trường hợp tự nhiên, nằm trong tỉ lệ pha loãng.
+- Runtime ~2.5 s/ảnh/điều kiện cho 50 step (đo trong gate, gồm cả eval nhẹ).
