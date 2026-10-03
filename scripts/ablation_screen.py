@@ -7,7 +7,7 @@ mean(ConvNeXt-T, Swin-T, YOLOX-S), paired bootstrap 1000 mẫu (BOOT_SEED 2026) 
 Bậc 1: --subset dev100. Bậc 2 (ô mơ hồ, đủ dev300): bỏ --subset, chỉ quyết ô được truyền qua --cells.
 Báo cáo kèm: từng target, R101, R50, DINO-Swin-L, η = cross₂/R101, η_AP (theo 1 − advAP/cleanAP).
 
-Đầu vào: artifacts/runs/dev300_B50_eps5/{dets_<tag>.json, gen_dets/{yolox_s,dino_swin_l}.json}.
+Đầu vào: artifacts/runs/<run>/{dets_<tag>.json, gen_dets/{yolox_s,dino_swin_l}.json}.
 Chạy: python scripts/ablation_screen.py --subset dev100 --dets dets_abl_dev100.json --tag dev100
 """
 import argparse
@@ -25,8 +25,6 @@ sys.path.insert(0, REPO_ROOT)
 from attack.data import load_image_ids
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize
 
-RUN = "dev300_B50_eps5"
-ART = os.path.join(REPO_ROOT, "artifacts/runs", RUN)
 ANN_FILE = os.path.join(REPO_ROOT, "data/coco/annotations/instances_val2017.json")
 BOOT_SEED, N_BOOT, THRESH = 2026, 1000, 2.0
 REF = "OSFD"
@@ -43,9 +41,11 @@ def main():
     p.add_argument("--dets", required=True)
     p.add_argument("--tag", required=True)
     p.add_argument("--cells", nargs="+", default=CELLS)
+    p.add_argument("--run", default="dev300_B50_eps5", help="run artifacts (split = phần trước dấu _)")
     args = p.parse_args()
+    ART = os.path.join(REPO_ROOT, "artifacts/runs", args.run)
 
-    img_ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev300.csv"))
+    img_ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{args.run.split('_')[0]}.csv"))
     if args.subset:
         keep = set(load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{args.subset}.csv")))
         img_ids = [i for i in img_ids if i in keep]
