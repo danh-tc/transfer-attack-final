@@ -1127,3 +1127,11 @@ Ghi chú: CI bootstrap percentile lệch (điểm +4.7 gần cận trên 6.0) �
 ## 2026-10-03 — Bước 4: GO @ n300 cho C2 (bắt đầu chạy)
 
 Tải `n300_B50_eps5` từ HF (token đọc từ `.env`, không in ra; `.env` thêm vào `.gitignore`), sha256 9eadf774…f8d590 khớp entry 2026-09-23; đủ 300 PNG OSFD. Chạy `PROBE-osfd+cls` (C2, đóng băng) trên n300 (seed SEED + i như baseline), OSFD dùng lại PNG baseline (không attack lại). Tiêu chí GO khóa (plan_sota.md bước 4): ΔCrossAvg₃ ≥ 3 VÀ cận dưới CI > 0; Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S VÀ ≥ 2/3 target ≥ 3; drop R101 ≥ R101(OSFD) − 3. Chạy 1 lần.
+
+---
+
+## 2026-10-03 — Tạm hoãn GO @ n300 (user); C2 ghi nhận tích cực; chuyển sang nhánh Swin-L
+
+- **User quyết:** hủy GO đang chạy; **ghi nhận C2 là kết quả tích cực** (qua sàng lọc dev300: CrossAvg₃ +4.7 [1.7, 6.0]) — chạy lại GO khi cần. GO đã attack 110/300 ảnh n300 (PNG ở `artifacts/runs/n300_B50_eps5/adv/PROBE-osfd+cls/`, stats trong `results/runs/n300_B50_eps5/attack_stats.jsonl`); **CHƯA eval, chưa nhìn số nào** → GO vẫn là "chạy 1 lần" hợp lệ; chạy lại đúng lệnh trong CLAUDE.md sẽ nối tiếp.
+- Việc mở cho C2 (để sau): đối chứng cân thời gian — C2 có cùng B và số view forward nhưng wall-clock ~2.3× OSFD (7.4 vs 3.3 s/ảnh, do `model.loss` chạy RPN/ROI/head); budget sweep n30 cho OSFD B50 → B100 +2.6 cross-avg → so OSFD cùng wall-clock (B ≈ 115) trên dev300, khóa trước khi chạy.
+- **Nhánh mới — tấn công cả DINO-Swin-L:** chạy chẩn đoán miễn phí (chỉ forward): điểm phân loại các query top-k ở encoder DINO (cơ chế chọn query) thay đổi ra sao giữa sạch / OSFD / C1 / C2 / chỉ-cls / bỏ RRB — kiểm kênh "xếp hạng confidence" có phải đường lọt qua encoder không.

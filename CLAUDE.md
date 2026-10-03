@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-**Trạng thái (cập nhật 2026-10-03): đang ở BƯỚC 4 của [docs/plan_sota.md](docs/plan_sota.md) (LOCKED) — GO @ n300 cho method C2.** Đọc plan + các entry 2026-10-03 cuối `docs/progress_log.md` trước khi làm gì về method.
+**Trạng thái (cập nhật 2026-10-03): C2 (bước 3 của [docs/plan_sota.md](docs/plan_sota.md)) đã QUA sàng lọc dev300 — ghi nhận tích cực; GO @ n300 TẠM HOÃN (user, 110/300 ảnh đã attack, chưa eval). Đang làm nhánh "tấn công cả DINO-Swin-L" (chẩn đoán xếp hạng query encoder).** Đọc plan + các entry 2026-10-03 cuối `docs/progress_log.md` trước khi làm gì về method.
 
 Tóm tắt đường đi tới đây (chi tiết + số liệu trong progress_log):
 - RQ1 PASS @ n300; Generalization Panel ĐI TIẾP; Mechanism A1–A4 không đạt tiêu chí; 5 pilot đoán-cơ-chế (A′1, P1, P2, KG, R1/SGM) đều NO-GO → mở lại RQ3 theo plan mới: **phân tích SOTA (OSFD) trước, method sau.**
@@ -22,7 +22,7 @@ Tóm tắt đường đi tới đây (chi tiết + số liệu trong progress_lo
 - **Cơ chế:** RRB/xoay làm δ tần thấp hơn, bớt đặc thù surrogate (D₄ R50 giảm, D₄ target tăng); D₄ trên target dự đoán suppression theo ảnh. **DINO-Swin-L bền** vì attack chỉ lệch vừa feature Swin-L và encoder DINO "sửa" (cosd 0.42 → 0.07); object giả bị chặn; chỉ hạ confidence phân loại còn lọt. Phá định vị: có thật nhưng đóng góp nhỏ. Feature loss mạnh ở YOLOX/CNN, loss phân loại mạnh ở DINO-Swin-L → bổ trợ.
 - **Method C2** (đóng băng) = MI + RRB (co-transform GT) + L_OSFD + 4·(loss_rpn_cls + loss_cls), 1 forward/view, B = 50, ε = 5 (`PROBE-osfd+cls` trong `scripts/run_baselines.py`). **Sàng lọc dev300 QUA:** CrossAvg₃ +4.7 [1.7, 6.0] so OSFD, cả 3 target khác họ > 0, DINO-Swin-L +7.0.
 
-**Đang chạy / tiếp tục nếu phiên bị ngắt:** tmux `go` — `run_baselines.py --split n300 --methods OSFD PROBE-osfd+cls --out metrics_go_c2.json` rồi `eval_generalization.py --run n300_B50_eps5 --models yolox_s dino_swin_l ... --dets dets_go_c2.json --out generalization_go_c2.json` (log `results/go_c2/run.log`; resume được — chạy lại đúng lệnh). Cần PNG baseline `artifacts/runs/n300_B50_eps5/` (HF, `scripts/sync_artifacts.py download n300_B50_eps5`, token ở `.env` — gitignored, KHÔNG in ra). Khi xong:
+**GO @ n300 (tạm hoãn — chạy lại khi user yêu cầu, nối tiếp được):** `run_baselines.py --split n300 --methods OSFD PROBE-osfd+cls --out metrics_go_c2.json` rồi `eval_generalization.py --run n300_B50_eps5 --models yolox_s dino_swin_l ... --dets dets_go_c2.json --out generalization_go_c2.json` (log `results/go_c2/run.log`; resume được — chạy lại đúng lệnh). Cần PNG baseline `artifacts/runs/n300_B50_eps5/` (HF, `scripts/sync_artifacts.py download n300_B50_eps5`, token ở `.env` — gitignored, KHÔNG in ra). Khi xong:
 ```bash
 python scripts/ablation_screen.py --run n300_B50_eps5 --dets dets_go_c2.json --tag go_c2_n300 --cells PROBE-osfd+cls
 python scripts/go_check.py --tag go_c2_n300 --cand PROBE-osfd+cls   # tiêu chí GO khóa, chạy 1 lần
