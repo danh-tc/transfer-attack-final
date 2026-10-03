@@ -979,3 +979,24 @@ Quan sát (mô tả):
 - Bức tranh: ưu thế OSFD ≈ đa dạng biến đổi hình học (xoay) + momentum; loại loss không quan trọng (task loss thậm chí tốt hơn).
 
 Tiếp theo theo plan: bước 2 (cơ chế, chỉ forward). Cần user quyết trước bước 3: ô task loss không phải "khuếch đại nguyên liệu" nên theo quy tắc khóa KHÔNG tự động là ứng viên.
+
+---
+
+## 2026-10-03 — Bước 2 plan SOTA: cơ chế từ ablation OSFD (chỉ forward, dev100)
+
+`scripts/mech_ablation.py` → `results/ablation/mech/mech.json` (+ `mech_run.log`). 100 ảnh dev100; 8 điều kiện chính (OSFD + 7 ô) + 5 mô tả thêm (KG-E1/E2, SGM ×3). D_k trên backbone R50 / R101 / ConvNeXt-T / Swin-T / DINO-Swin-L (cùng Resize 1333×800 + normalize); phổ δ 3 dải; năng lượng δ trong GT box.
+
+**1. Nguyên liệu đổi gì ở δ** (OSFD − ô, CI 95% bootstrap ảnh):
+- **RRB:** năng lượng δ dải thấp **+0.124** (0.26 → 0.39), dải cao −0.143; D_4 trên CHÍNH R50 **−0.37** (1.86 → 1.49) nhưng D_4 trên target khác họ **tăng**: ConvNeXt +0.17, Swin-T +0.17, DINO-Swin-L +0.19; D_4/D_1 target +0.43 / +0.56.
+- **Xoay:** cùng chiều, nhỏ hơn — dải thấp +0.016, D_4 R50 −0.03, D_4 target +0.035 / +0.035 / +0.059.
+- **MI:** KHÁC cơ chế — dải thấp −0.026, D_4 target gần như không đổi (ConvNeXt −0.015, Swin −0.003, Swin-L +0.017). Mô tả hiện có chưa giải thích được đóng góp +3.7 của MI.
+
+**2. Tỉ số chuyển distortion sâu D_4(target) / D_4(R50):** OSFD ConvNeXt 0.55 / Swin 0.47 / Swin-L 0.61; bỏ RRB 0.35 / 0.28 / 0.39; bỏ xoay 0.52 / 0.44 / 0.56. → RRB/xoay làm δ BỚT ĐẶC THÙ surrogate: ít phá feature sâu của R50 hơn nhưng phá feature sâu của target khác họ nhiều hơn.
+
+**3. Theo ảnh (trong OSFD):** Spearman(D_4 trên target, retained confidence) −0.54 đến −0.69 ở ConvNeXt-T, Swin-T, YOLOX-S (D_4 R50 chỉ −0.03 đến −0.19; phổ thấp −0.15 đến −0.32) → distortion sâu TRÊN TARGET quyết định suppression; distortion trên surrogate thì không.
+
+**4. Giữa điều kiện** (13 điều kiện, Spearman với CrossAvg₃): D_1 (mọi model) −0.80 [−0.87, −0.69]; D_4 DINO-Swin-L +0.79; phổ thấp +0.68 [0.53, 0.80]. Với 8 điều kiện chính tương quan yếu hơn (ρ D_4 Swin-L +0.86 nhưng CI rộng [0.31, 0.98]).
+
+**Ngoại lệ — task loss:** D_k thấp hơn OSFD ở MỌI model (D_4 ConvNeXt 0.57 vs 0.82, Swin-L 0.73 vs 0.91) nhưng CrossAvg₃ ngang và DINO-Swin-L cao hơn → task loss phá feature ÍT hơn mà vẫn lừa được bằng/hơn; độ lớn distortion feature không giải thích được khác biệt GIỮA loại loss.
+
+**Câu cơ chế (cho bước 3):** *Đa dạng biến đổi (RRB, phần lớn qua xoay) đẩy δ về tần thấp và làm nó bớt đặc thù surrogate — giảm distortion sâu trên R50, tăng distortion sâu trên target khác họ; distortion sâu trên target là thứ quyết định suppression theo từng ảnh. MI và loại loss đóng góp theo cơ chế khác, chưa đo được bằng D_k/phổ.*

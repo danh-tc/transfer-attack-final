@@ -1,0 +1,42 @@
+[mech] 10/100 (34s)
+[mech] 20/100 (69s)
+[mech] 30/100 (105s)
+[mech] 40/100 (141s)
+[mech] 50/100 (180s)
+[mech] 60/100 (219s)
+[mech] 70/100 (258s)
+[mech] 80/100 (296s)
+[mech] 90/100 (332s)
+[mech] 100/100 (369s)
+
+=== Spearman(mô tả, CrossAvg₃) giữa điều kiện: 8 chính | 13 tất cả ===
+D1_r101                -0.43 [-0.67,-0.24] | -0.81 [-0.87,-0.69]
+D1_dino_swin_l         -0.43 [-0.67,-0.24] | -0.80 [-0.87,-0.69]
+D1_swin_t              -0.43 [-0.67,-0.24] | -0.79 [-0.86,-0.67]
+D4_dino_swin_l         +0.86 [+0.31,+0.98] | +0.79 [+0.54,+0.90]
+D4/D1_dino_swin_l      +0.55 [+0.17,+0.83] | +0.76 [+0.54,+0.90]
+D3_dino_swin_l         +0.74 [+0.17,+0.93] | +0.73 [+0.51,+0.88]
+D3_convnext_t          +0.33 [-0.07,+0.67] | +0.70 [+0.48,+0.85]
+D4/D1_swin_t           +0.24 [-0.12,+0.71] | +0.68 [+0.51,+0.86]
+D1_r50                 -0.43 [-0.67,-0.24] | -0.68 [-0.77,-0.53]
+D4/D1_convnext_t       +0.24 [-0.12,+0.62] | +0.68 [+0.49,+0.85]
+spec_low               +0.38 [+0.05,+0.67] | +0.68 [+0.53,+0.80]
+D4/D1_r101             +0.24 [-0.24,+0.60] | +0.67 [+0.48,+0.81]
+D4_convnext_t          +0.24 [-0.12,+0.60] | +0.62 [+0.45,+0.81]
+D4_swin_t              +0.33 [-0.07,+0.71] | +0.60 [+0.41,+0.80]
+D3_swin_t              +0.48 [+0.07,+0.76] | +0.60 [+0.42,+0.78]
+
+=== mô tả theo điều kiện (D4/D1, D4, phổ thấp) ===
+OSFD                 Cross3  74.5  D4 r50 1.49  D4 r101 1.30  D4 convnext_t 0.82  D4 swin_t 0.70  D4 dino_swin_l 0.91  low 0.39
+ABL-task-loss        Cross3  73.8  D4 r50 1.16  D4 r101 0.96  D4 convnext_t 0.57  D4 swin_t 0.48  D4 dino_swin_l 0.73  low 0.32
+ABL-no-RRB           Cross3  42.4  D4 r50 1.86  D4 r101 1.16  D4 convnext_t 0.65  D4 swin_t 0.53  D4 dino_swin_l 0.72  low 0.26
+ABL-RRB-no-noise     Cross3  72.4  D4 r50 1.70  D4 r101 1.38  D4 convnext_t 0.86  D4 swin_t 0.72  D4 dino_swin_l 0.90  low 0.32
+ABL-RRB-no-rotate    Cross3  68.9  D4 r50 1.51  D4 r101 1.27  D4 convnext_t 0.78  D4 swin_t 0.66  D4 dino_swin_l 0.85  low 0.37
+ABL-RRB-no-resize    Cross3  74.2  D4 r50 1.49  D4 r101 1.30  D4 convnext_t 0.82  D4 swin_t 0.70  D4 dino_swin_l 0.91  low 0.36
+ABL-no-MI            Cross3  72.3  D4 r50 1.59  D4 r101 1.36  D4 convnext_t 0.83  D4 swin_t 0.70  D4 dino_swin_l 0.89  low 0.41
+ABL-k5               Cross3  74.0  D4 r50 1.37  D4 r101 1.22  D4 convnext_t 0.79  D4 swin_t 0.68  D4 dino_swin_l 0.90  low 0.38
+OSFD-KG-E1           Cross3  70.5  D4 r50 1.40  D4 r101 1.23  D4 convnext_t 0.79  D4 swin_t 0.68  D4 dino_swin_l 0.88  low 0.35
+OSFD-KG-E2           Cross3  69.5  D4 r50 1.41  D4 r101 1.23  D4 convnext_t 0.79  D4 swin_t 0.68  D4 dino_swin_l 0.88  low 0.35
+OSFD-SGM-0.2         Cross3  39.1  D4 r50 1.04  D4 r101 0.90  D4 convnext_t 0.53  D4 swin_t 0.50  D4 dino_swin_l 0.76  low 0.25
+OSFD-SGM-0.5         Cross3  67.3  D4 r50 1.27  D4 r101 1.14  D4 convnext_t 0.71  D4 swin_t 0.64  D4 dino_swin_l 0.88  low 0.33
+OSFD-SGM-mix         Cross3  55.3  D4 r50 1.19  D4 r101 1.06  D4 convnext_t 0.64  D4 swin_t 0.59  D4 dino_swin_l 0.83  low 0.29
