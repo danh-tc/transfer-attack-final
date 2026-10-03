@@ -1078,3 +1078,16 @@ Loại lỗi (dev100): chỉ-box làm AP/AP50 thấp nhất (ConvNeXt 0.44, Swin
 ## 2026-10-03 — Probe bổ trợ "feature + cls" (trước khi chạy)
 
 User đồng ý probe rẻ: `PROBE-osfd+cls` = MI + RRB (co-transform GT) + L_OSFD + λ·(loss_rpn_cls + loss_cls), 1 forward/view (feature backbone bắt bằng hook trong `model.loss`; kiểm: feature-only qua hook trùng OSFD gốc, sai số 1.5e-7). **λ = 4 khóa trước khi chạy**: median tỉ lệ mean|∇feat| / mean|∇cls| tại δ = 0 trên 5 ảnh đầu dev100 = 3.95 (3.7 / 4.57 / 3.95 / 7.7 / 2.15) → hai thành phần đóng góp gradient ngang nhau; không tune λ theo transfer. dev100, so OSFD / task loss / chỉ-cls. Câu hỏi mô tả: có giữ được YOLOX-S (feature) và tăng DINO-Swin-L (cls) cùng lúc không.
+
+---
+
+## 2026-10-03 — Probe "feature + cls" (dev100) → có dấu hiệu bổ trợ, chưa có ý nghĩa thống kê ở 100 ảnh
+
+`results/ablation/probe_dev100/screen.json` (run `metrics_probe_dev100.json`, `generalization_probe_dev100.json`). Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- OSFD: 96.4 / 91.8 / 78.8 / 74.3 / **70.2** / 25.3 | 74.5
+- task loss: 98.6 / 92.5 / 80.1 / 73.7 / 67.6 / **33.8** | 73.8
+- chỉ cls: 98.7 / 90.8 / 78.7 / 75.7 / 59.1 / 32.5 | 71.2
+- **OSFD + 4·cls: 99.3 / 94.5 / 81.1 / 80.2 / 69.9 / 30.5 | 77.0**
+
+So OSFD: CrossAvg₃ **+2.6 [−1.7, +5.3]**, Swin-T +5.9, ConvNeXt +2.3, YOLOX-S −0.3 (giữ được), DINO-Swin-L +5.2 [−0.8, 8.4], R101 +2.7. → Bổ trợ đúng chiều dự đoán (giữ YOLOX của loss feature, tăng DINO-Swin-L/Swin-T nhờ cls) nhưng ở n = 100 CI còn chứa 0; DINO-Swin-L thấp hơn task loss / chỉ cls (30.5 vs 33.8 / 32.5).
+Lưu ý: trên dev300, task loss + MI + RRB đã hơn OSFD +4.1 (dev100 chỉ −0.7) → dev100 nhiễu; ứng viên kết hợp phải vượt CẢ OSFD lẫn task loss + RRB.
