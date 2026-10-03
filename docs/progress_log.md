@@ -1053,3 +1053,22 @@ OSFD, cosd theo tầng (cùng detector DINO, chỉ khác backbone):
 ## 2026-10-03 — Ablation thành phần task loss (trước khi chạy)
 
 User đồng ý (mở rộng phân tích bước 2, chưa phải ứng viên method): nền = task loss + MI + RRB (co-transform GT); 3 ô chỉ giữ 1 nhóm số hạng: `ABL-task-cls` (loss_rpn_cls + loss_cls), `ABL-task-box` (loss_rpn_bbox + loss_bbox), `ABL-task-mask` (loss_mask). dev100 (seed theo chỉ số dev300), đánh giá 6 model + AP/AP50. `attack/preprocess.make_gt_loss(terms)`; unit test: 5 key trùng tuyệt đối `compute_gt_loss`.
+
+---
+
+## 2026-10-03 — Ablation thành phần task loss (dev100) → lợi ở DINO-Swin-L đến từ số hạng PHÂN LOẠI, không từ định vị
+
+Run `dev300_B50_eps5` subset dev100 (`metrics_task_dev100.json`, `generalization_task_dev100.json`), `scripts/ablation_screen.py --tag task_dev100` → `results/ablation/task_dev100/{screen.json, error_types.json}`.
+
+Relative AP drop % (dev100), R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- OSFD: 96.4 / 91.8 / 78.8 / 74.3 / 70.2 / 25.3 | 74.5
+- task loss đủ 5 số hạng: 98.6 / 92.5 / 80.1 / 73.7 / 67.6 / **33.8** | 73.8
+- chỉ cls (rpn_cls + cls): 98.7 / 90.8 / 78.7 / 75.7 / 59.1 / **32.5** | 71.2
+- chỉ box (rpn_bbox + bbox): 95.4 / 83.6 / 65.8 / 61.5 / 55.8 / 25.1 | 61.0
+- chỉ mask: 89.7 / 77.2 / 63.9 / 57.0 / 49.5 / 26.0 | 56.8
+
+Loại lỗi (dev100): chỉ-box làm AP/AP50 thấp nhất (ConvNeXt 0.44, Swin-T 0.48, YOLOX 0.54) và tăng FP định vị, nhưng giữ recall cao (0.45–0.49) và gần như không tạo FP nền → **phá định vị có thật nhưng đóng góp ít vào AP drop tổng**. Chỉ-cls giữ phần lớn hiệu quả của task loss (CrossAvg₃ 71.2 vs 73.8), tạo FP nền trên target kiểu Mask R-CNN, và trên DINO-Swin-L cho AP 43.2 (≈ đủ 42.4; OSFD 47.8) với AP50 thấp nhất (57.1) mà recall như OSFD (0.56 vs 0.57) → hạ chất lượng xếp hạng score / thêm FP chứ không xóa GT.
+
+**Đính chính giả thuyết entry trước:** "phá định vị là kênh chuyển giao" KHÔNG đứng — lợi của task loss ở ca khó đến từ **số hạng phân loại** (rpn_cls + cls). Phá định vị (box) chỉ đóng góp nhỏ.
+
+**Bổ trợ theo target (mô tả):** loss feature (OSFD) tốt nhất ở YOLOX-S (70.2 vs cls 59.1); loss phân loại tốt nhất ở DINO-Swin-L (32.5–33.8 vs 25.3); ConvNeXt/Swin-T ngang nhau → hai loại objective có thể BỔ TRỢ nhau.

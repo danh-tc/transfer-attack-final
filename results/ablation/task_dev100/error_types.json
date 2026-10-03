@@ -1,0 +1,322 @@
+{
+ "convnext_t": {
+  "clean": {
+   "AP": 50.00943822093025,
+   "AP50": 71.08172581717568,
+   "recall@0.3": 0.7576374745417516,
+   "fp_per_img": {
+    "other": 0.79,
+    "localization": 2.83,
+    "background": 3.65,
+    "class_confusion": 0.4
+   },
+   "fp_per_img_total": 7.67,
+   "AP_noFP": 57.71880465946734
+  },
+  "OSFD": {
+   "AP": 10.578106676926014,
+   "AP50": 16.49774533332543,
+   "recall@0.3": 0.2769857433808554,
+   "fp_per_img": {
+    "class_confusion": 0.47,
+    "background": 22.16,
+    "other": 4.31,
+    "localization": 2.5
+   },
+   "fp_per_img_total": 29.44,
+   "AP_noFP": 17.305914591314547
+  },
+  "ABL-task-loss": {
+   "AP": 9.955701996652065,
+   "AP50": 21.633672416070972,
+   "recall@0.3": 0.34826883910386963,
+   "fp_per_img": {
+    "background": 17.24,
+    "other": 3.21,
+    "localization": 4.14,
+    "class_confusion": 0.52
+   },
+   "fp_per_img_total": 25.11,
+   "AP_noFP": 18.901288799168984
+  },
+  "ABL-task-cls": {
+   "AP": 10.65919582156028,
+   "AP50": 17.626990307937454,
+   "recall@0.3": 0.3615071283095723,
+   "fp_per_img": {
+    "background": 19.22,
+    "other": 3.26,
+    "localization": 3.49,
+    "class_confusion": 0.61
+   },
+   "fp_per_img_total": 26.58,
+   "AP_noFP": 21.267322137157382
+  },
+  "ABL-task-box": {
+   "AP": 17.114749739355553,
+   "AP50": 38.50228426480289,
+   "recall@0.3": 0.4531568228105906,
+   "fp_per_img": {
+    "other": 2.08,
+    "localization": 5.73,
+    "background": 3.67,
+    "class_confusion": 0.27
+   },
+   "fp_per_img_total": 11.75,
+   "AP_noFP": 23.621165983478978
+  },
+  "ABL-task-mask": {
+   "AP": 18.07760048045053,
+   "AP50": 35.53879129180261,
+   "recall@0.3": 0.47963340122199594,
+   "fp_per_img": {
+    "other": 1.9,
+    "background": 3.48,
+    "localization": 4.18,
+    "class_confusion": 0.4
+   },
+   "fp_per_img_total": 9.96,
+   "AP_noFP": 24.688422152176834
+  }
+ },
+ "swin_t": {
+  "clean": {
+   "AP": 50.0326404164418,
+   "AP50": 71.06303985773481,
+   "recall@0.3": 0.7576374745417516,
+   "fp_per_img": {
+    "background": 3.26,
+    "localization": 2.69,
+    "other": 0.69,
+    "class_confusion": 0.38
+   },
+   "fp_per_img_total": 7.02,
+   "AP_noFP": 57.73305328611572
+  },
+  "OSFD": {
+   "AP": 12.839811991720525,
+   "AP50": 22.695914343485644,
+   "recall@0.3": 0.3095723014256619,
+   "fp_per_img": {
+    "background": 17.58,
+    "localization": 2.3,
+    "other": 3.54,
+    "class_confusion": 0.41
+   },
+   "fp_per_img_total": 23.83,
+   "AP_noFP": 20.4992298912155
+  },
+  "ABL-task-loss": {
+   "AP": 13.182918763802979,
+   "AP50": 25.644023867729494,
+   "recall@0.3": 0.3818737270875764,
+   "fp_per_img": {
+    "background": 15.02,
+    "other": 2.49,
+    "localization": 3.8,
+    "class_confusion": 0.47
+   },
+   "fp_per_img_total": 21.78,
+   "AP_noFP": 23.71881417435974
+  },
+  "ABL-task-cls": {
+   "AP": 12.140854247673131,
+   "AP50": 20.559442345614602,
+   "recall@0.3": 0.3890020366598778,
+   "fp_per_img": {
+    "background": 16.66,
+    "other": 2.71,
+    "localization": 3.27,
+    "class_confusion": 0.58
+   },
+   "fp_per_img_total": 23.22,
+   "AP_noFP": 25.368096044479504
+  },
+  "ABL-task-box": {
+   "AP": 19.271924000079565,
+   "AP50": 40.23291265107456,
+   "recall@0.3": 0.48676171079429736,
+   "fp_per_img": {
+    "localization": 5.28,
+    "background": 3.33,
+    "other": 1.43,
+    "class_confusion": 0.34
+   },
+   "fp_per_img_total": 10.38,
+   "AP_noFP": 25.756535460240187
+  },
+  "ABL-task-mask": {
+   "AP": 21.536089973705757,
+   "AP50": 41.30012616300742,
+   "recall@0.3": 0.505091649694501,
+   "fp_per_img": {
+    "background": 3.12,
+    "localization": 4.18,
+    "other": 1.62,
+    "class_confusion": 0.43
+   },
+   "fp_per_img_total": 9.35,
+   "AP_noFP": 28.8622074283374
+  }
+ },
+ "yolox_s": {
+  "clean": {
+   "AP": 46.50967475815967,
+   "AP50": 63.61304545625629,
+   "recall@0.3": 0.5987780040733197,
+   "fp_per_img": {
+    "other": 0.27,
+    "background": 0.81,
+    "class_confusion": 0.18,
+    "localization": 1.18
+   },
+   "fp_per_img_total": 2.44,
+   "AP_noFP": 54.24754401813529
+  },
+  "OSFD": {
+   "AP": 13.875736016342376,
+   "AP50": 21.300389863995186,
+   "recall@0.3": 0.23828920570264767,
+   "fp_per_img": {
+    "background": 8.52,
+    "other": 1.4,
+    "localization": 0.94,
+    "class_confusion": 0.15
+   },
+   "fp_per_img_total": 11.01,
+   "AP_noFP": 22.409199803062307
+  },
+  "ABL-task-loss": {
+   "AP": 15.057852926422106,
+   "AP50": 26.46962005704003,
+   "recall@0.3": 0.34317718940936864,
+   "fp_per_img": {
+    "other": 1.12,
+    "background": 5.14,
+    "class_confusion": 0.21,
+    "localization": 2.08
+   },
+   "fp_per_img_total": 8.55,
+   "AP_noFP": 25.873360268038308
+  },
+  "ABL-task-cls": {
+   "AP": 19.018712715513736,
+   "AP50": 28.7672361655238,
+   "recall@0.3": 0.34928716904276985,
+   "fp_per_img": {
+    "other": 1.17,
+    "background": 5.64,
+    "localization": 1.78,
+    "class_confusion": 0.37
+   },
+   "fp_per_img_total": 8.96,
+   "AP_noFP": 30.157590778400422
+  },
+  "ABL-task-box": {
+   "AP": 20.557212462572785,
+   "AP50": 38.22075363724959,
+   "recall@0.3": 0.39307535641547864,
+   "fp_per_img": {
+    "localization": 2.34,
+    "other": 0.5,
+    "class_confusion": 0.19,
+    "background": 0.69
+   },
+   "fp_per_img_total": 3.72,
+   "AP_noFP": 27.624096015630982
+  },
+  "ABL-task-mask": {
+   "AP": 23.47594702768846,
+   "AP50": 41.94732134408339,
+   "recall@0.3": 0.41140529531568226,
+   "fp_per_img": {
+    "other": 0.63,
+    "localization": 1.89,
+    "background": 0.82,
+    "class_confusion": 0.27
+   },
+   "fp_per_img_total": 3.61,
+   "AP_noFP": 31.107655646685178
+  }
+ },
+ "dino_swin_l": {
+  "clean": {
+   "AP": 63.98916272154358,
+   "AP50": 80.66726368462173,
+   "recall@0.3": 0.7494908350305499,
+   "fp_per_img": {
+    "localization": 1.28,
+    "class_confusion": 0.13,
+    "background": 1.33,
+    "other": 0.22
+   },
+   "fp_per_img_total": 2.96,
+   "AP_noFP": 72.93652574194508
+  },
+  "OSFD": {
+   "AP": 47.81508304215955,
+   "AP50": 64.36439772594858,
+   "recall@0.3": 0.5672097759674134,
+   "fp_per_img": {
+    "localization": 1.26,
+    "other": 0.32,
+    "background": 1.89,
+    "class_confusion": 0.17
+   },
+   "fp_per_img_total": 3.64,
+   "AP_noFP": 58.19814888919
+  },
+  "ABL-task-loss": {
+   "AP": 42.38868193936908,
+   "AP50": 58.77177785578714,
+   "recall@0.3": 0.570264765784114,
+   "fp_per_img": {
+    "localization": 1.74,
+    "other": 0.44,
+    "background": 2.74,
+    "class_confusion": 0.16
+   },
+   "fp_per_img_total": 5.08,
+   "AP_noFP": 56.318645979070546
+  },
+  "ABL-task-cls": {
+   "AP": 43.19488330270436,
+   "AP50": 57.143374666738055,
+   "recall@0.3": 0.5610997963340122,
+   "fp_per_img": {
+    "localization": 1.83,
+    "other": 0.5,
+    "background": 2.93,
+    "class_confusion": 0.21
+   },
+   "fp_per_img_total": 5.47,
+   "AP_noFP": 56.741167301727934
+  },
+  "ABL-task-box": {
+   "AP": 47.93406126820652,
+   "AP50": 67.27862648686448,
+   "recall@0.3": 0.609979633401222,
+   "fp_per_img": {
+    "localization": 2.06,
+    "other": 0.28,
+    "background": 1.1,
+    "class_confusion": 0.13
+   },
+   "fp_per_img_total": 3.57,
+   "AP_noFP": 59.80432267130501
+  },
+  "ABL-task-mask": {
+   "AP": 47.337587927846634,
+   "AP50": 66.7935384939766,
+   "recall@0.3": 0.6140529531568228,
+   "fp_per_img": {
+    "localization": 1.91,
+    "other": 0.28,
+    "background": 0.99,
+    "class_confusion": 0.19
+   },
+   "fp_per_img_total": 3.37,
+   "AP_noFP": 57.02253518127884
+  }
+ }
+}
