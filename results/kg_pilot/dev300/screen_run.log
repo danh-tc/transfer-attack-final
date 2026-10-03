@@ -1,0 +1,25 @@
+[screen] AP xong: r50
+[screen] AP xong: r101
+[screen] AP xong: convnext_t
+[screen] AP xong: swin_t
+[screen] AP xong: yolox_s
+[screen] AP xong: dino_swin_l
+
+=== relative AP drop (dev300, n=300) ===
+              r50         r101   convnext_t       swin_t      yolox_s  dino_swin_l   cross_avg3
+E0           98.1         93.0         77.4         74.6         68.7         24.9         73.6
+E1           95.3         87.0         76.3         73.8         62.7         23.2         70.9
+E2           95.3         86.6         74.1         71.2         61.3         21.9         68.9
+
+=== Δ TOÀN BỘ ẢNH (chính) ===
+E2-E0 r101   -6.4 [ -8.4, -3.9]  convnext_t   -3.3 [ -5.5, -1.2]  swin_t   -3.5 [ -5.7, -1.5]  yolox_s   -7.3 [ -9.4, -5.0]  dino_swin_l   -3.0 [ -4.9, -0.8]  cross_avg3   -4.7 [ -6.2, -3.1]
+E2-E1 r101   -0.4 [ -2.1, +0.8]  convnext_t   -2.2 [ -3.5, -0.6]  swin_t   -2.6 [ -4.0, -0.9]  yolox_s   -1.3 [ -3.2, +0.4]  dino_swin_l   -1.3 [ -2.4, +0.3]  cross_avg3   -2.1 [ -3.0, -0.8]
+E1-E0 r101   -6.0 [ -7.8, -3.5]  convnext_t   -1.1 [ -3.7, +1.2]  swin_t   -0.8 [ -3.2, +1.0]  yolox_s   -6.0 [ -8.2, -3.7]  dino_swin_l   -1.7 [ -3.7, +0.2]  cross_avg3   -2.6 [ -4.3, -1.2]
+
+=== Δ ẢNH CÓ THÔNG TIN n=219 (báo cáo) ===
+E2-E0 r101   -8.1 [-10.7, -5.3]  convnext_t   -3.5 [ -6.2, -0.9]  swin_t   -3.4 [ -5.9, -1.3]  yolox_s   -8.6 [-11.4, -5.3]  dino_swin_l   -3.0 [ -5.1, -0.6]  cross_avg3   -5.2 [ -7.0, -3.4]
+E2-E1 r101   -1.2 [ -3.7, +0.9]  convnext_t   -2.7 [ -4.2, -0.6]  swin_t   -3.1 [ -4.6, -1.0]  yolox_s   -2.0 [ -4.5, +0.7]  dino_swin_l   -1.6 [ -2.6, +0.7]  cross_avg3   -2.6 [ -3.6, -1.0]
+E1-E0 r101   -6.9 [ -9.2, -4.0]  convnext_t   -0.9 [ -4.1, +1.6]  swin_t   -0.3 [ -3.0, +1.5]  yolox_s   -6.6 [ -9.1, -4.2]  dino_swin_l   -1.4 [ -4.1, +0.5]  cross_avg3   -2.6 [ -4.6, -1.1]
+
+cross_avg3_E2-E0>=3: ✗  cross_avg3_E2-E1>0: ✗  cross_avg3_E2-E1_ci_lo>0: ✗  convnext_t_E2-E0>0: ✗  swin_t_E2-E0>0: ✗  yolox_s_E2-E0>0: ✗  r101_E2>=E0-3: ✗
+=> sàng lọc dev300: KHÔNG QUA (NO-GO hướng KG)

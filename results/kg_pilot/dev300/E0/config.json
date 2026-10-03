@@ -1,0 +1,13 @@
+{
+  "split": "dev300",
+  "surrogate": "Mask R-CNN R50",
+  "epsilon_255": 5.0,
+  "alpha": 1.0,
+  "budget_B": 50,
+  "seed_image": "SEED + i (SEED = 0, i = chỉ số dev300)",
+  "margin": 0.15,
+  "area_ratio": 2.0,
+  "kg": "data/kg/coco80_vg_relation_matrix.npy",
+  "rule": "docs/progress_log.md 2026-10-03 (LOCKED)",
+  "method": "OSFD full recipe (MI μ=1 + RRB θ=7, l_s=10, ρ=0.8, s_max=1.1, σ=6), k=3"
+}

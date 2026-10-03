@@ -1,0 +1,7 @@
+{
+  "runtime_s_per_img_mean": 3.2704838577906292,
+  "runtime_s_total": 981.1451573371887,
+  "backward_per_img": 50,
+  "forward_views_per_img": 100,
+  "forward_no_grad_per_img_mean": 12.863333333333333
+}

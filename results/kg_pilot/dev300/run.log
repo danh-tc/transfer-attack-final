@@ -1,0 +1,274 @@
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 300 ảnh, methods=['OSFD', 'OSFD-KG-E1', 'OSFD-KG-E2']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD] 10/300  3.1s/ảnh  còn ~15 phút
+[attack OSFD] 20/300  3.1s/ảnh  còn ~14 phút
+[attack OSFD] 30/300  3.1s/ảnh  còn ~14 phút
+[attack OSFD] 40/300  3.2s/ảnh  còn ~14 phút
+[attack OSFD] 50/300  3.2s/ảnh  còn ~13 phút
+[attack OSFD] 60/300  3.2s/ảnh  còn ~13 phút
+[attack OSFD] 70/300  3.3s/ảnh  còn ~12 phút
+[attack OSFD] 80/300  3.3s/ảnh  còn ~12 phút
+[attack OSFD] 90/300  3.3s/ảnh  còn ~11 phút
+[attack OSFD] 100/300  3.3s/ảnh  còn ~11 phút
+[attack OSFD] 110/300  3.3s/ảnh  còn ~10 phút
+[attack OSFD] 120/300  3.3s/ảnh  còn ~10 phút
+[attack OSFD] 130/300  3.3s/ảnh  còn ~9 phút
+[attack OSFD] 140/300  3.3s/ảnh  còn ~9 phút
+[attack OSFD] 150/300  3.3s/ảnh  còn ~8 phút
+[attack OSFD] 160/300  3.3s/ảnh  còn ~8 phút
+[attack OSFD] 170/300  3.3s/ảnh  còn ~7 phút
+[attack OSFD] 180/300  3.3s/ảnh  còn ~7 phút
+[attack OSFD] 190/300  3.3s/ảnh  còn ~6 phút
+[attack OSFD] 200/300  3.3s/ảnh  còn ~5 phút
+[attack OSFD] 210/300  3.3s/ảnh  còn ~5 phút
+[attack OSFD] 220/300  3.3s/ảnh  còn ~4 phút
+[attack OSFD] 230/300  3.3s/ảnh  còn ~4 phút
+[attack OSFD] 240/300  3.3s/ảnh  còn ~3 phút
+[attack OSFD] 250/300  3.3s/ảnh  còn ~3 phút
+[attack OSFD] 260/300  3.3s/ảnh  còn ~2 phút
+[attack OSFD] 270/300  3.3s/ảnh  còn ~2 phút
+[attack OSFD] 280/300  3.3s/ảnh  còn ~1 phút
+[attack OSFD] 290/300  3.3s/ảnh  còn ~1 phút
+[attack OSFD] 300/300  3.3s/ảnh  còn ~0 phút
+[attack OSFD-KG-E1] 10/300  3.4s/ảnh  còn ~17 phút
+[attack OSFD-KG-E1] 20/300  3.4s/ảnh  còn ~16 phút
+[attack OSFD-KG-E1] 30/300  3.4s/ảnh  còn ~15 phút
+[attack OSFD-KG-E1] 40/300  3.4s/ảnh  còn ~15 phút
+[attack OSFD-KG-E1] 50/300  3.4s/ảnh  còn ~14 phút
+[attack OSFD-KG-E1] 60/300  3.4s/ảnh  còn ~14 phút
+[attack OSFD-KG-E1] 70/300  3.4s/ảnh  còn ~13 phút
+[attack OSFD-KG-E1] 80/300  3.4s/ảnh  còn ~13 phút
+[attack OSFD-KG-E1] 90/300  3.4s/ảnh  còn ~12 phút
+[attack OSFD-KG-E1] 100/300  3.5s/ảnh  còn ~12 phút
+[attack OSFD-KG-E1] 110/300  3.4s/ảnh  còn ~11 phút
+[attack OSFD-KG-E1] 120/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-KG-E1] 130/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-KG-E1] 140/300  3.4s/ảnh  còn ~9 phút
+[attack OSFD-KG-E1] 150/300  3.4s/ảnh  còn ~9 phút
+[attack OSFD-KG-E1] 160/300  3.4s/ảnh  còn ~8 phút
+[attack OSFD-KG-E1] 170/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-KG-E1] 180/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-KG-E1] 190/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-KG-E1] 200/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-KG-E1] 210/300  3.4s/ảnh  còn ~5 phút
+[attack OSFD-KG-E1] 220/300  3.4s/ảnh  còn ~5 phút
+[attack OSFD-KG-E1] 230/300  3.4s/ảnh  còn ~4 phút
+[attack OSFD-KG-E1] 240/300  3.4s/ảnh  còn ~3 phút
+[attack OSFD-KG-E1] 250/300  3.4s/ảnh  còn ~3 phút
+[attack OSFD-KG-E1] 260/300  3.4s/ảnh  còn ~2 phút
+[attack OSFD-KG-E1] 270/300  3.4s/ảnh  còn ~2 phút
+[attack OSFD-KG-E1] 280/300  3.4s/ảnh  còn ~1 phút
+[attack OSFD-KG-E1] 290/300  3.4s/ảnh  còn ~1 phút
+[attack OSFD-KG-E1] 300/300  3.4s/ảnh  còn ~0 phút
+[attack OSFD-KG-E2] 10/300  3.2s/ảnh  còn ~15 phút
+[attack OSFD-KG-E2] 20/300  3.3s/ảnh  còn ~15 phút
+[attack OSFD-KG-E2] 30/300  3.3s/ảnh  còn ~15 phút
+[attack OSFD-KG-E2] 40/300  3.3s/ảnh  còn ~14 phút
+[attack OSFD-KG-E2] 50/300  3.3s/ảnh  còn ~14 phút
+[attack OSFD-KG-E2] 60/300  3.3s/ảnh  còn ~13 phút
+[attack OSFD-KG-E2] 70/300  3.3s/ảnh  còn ~13 phút
+[attack OSFD-KG-E2] 80/300  3.3s/ảnh  còn ~12 phút
+[attack OSFD-KG-E2] 90/300  3.3s/ảnh  còn ~12 phút
+[attack OSFD-KG-E2] 100/300  3.3s/ảnh  còn ~11 phút
+[attack OSFD-KG-E2] 110/300  3.4s/ảnh  còn ~11 phút
+[attack OSFD-KG-E2] 120/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-KG-E2] 130/300  3.3s/ảnh  còn ~9 phút
+[attack OSFD-KG-E2] 140/300  3.4s/ảnh  còn ~9 phút
+[attack OSFD-KG-E2] 150/300  3.4s/ảnh  còn ~8 phút
+[attack OSFD-KG-E2] 160/300  3.3s/ảnh  còn ~8 phút
+[attack OSFD-KG-E2] 170/300  3.3s/ảnh  còn ~7 phút
+[attack OSFD-KG-E2] 180/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-KG-E2] 190/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-KG-E2] 200/300  3.3s/ảnh  còn ~6 phút
+[attack OSFD-KG-E2] 210/300  3.3s/ảnh  còn ~5 phút
+[attack OSFD-KG-E2] 220/300  3.3s/ảnh  còn ~4 phút
+[attack OSFD-KG-E2] 230/300  3.3s/ảnh  còn ~4 phút
+[attack OSFD-KG-E2] 240/300  3.3s/ảnh  còn ~3 phút
+[attack OSFD-KG-E2] 250/300  3.3s/ảnh  còn ~3 phút
+[attack OSFD-KG-E2] 260/300  3.3s/ảnh  còn ~2 phút
+[attack OSFD-KG-E2] 270/300  3.3s/ảnh  còn ~2 phút
+[attack OSFD-KG-E2] 280/300  3.3s/ảnh  còn ~1 phút
+[attack OSFD-KG-E2] 290/300  3.3s/ảnh  còn ~1 phút
+[attack OSFD-KG-E2] 300/300  3.3s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (39s)
+[eval] predict 100/300 (78s)
+[eval] predict 150/300 (116s)
+[eval] predict 200/300 (153s)
+[eval] predict 250/300 (191s)
+[eval] predict 300/300 (228s)
+loading annotations into memory...
+Done (t=0.41s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (348s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          43.4 [ 42.3, 48.1]   45.2 [ 44.1, 49.9]   48.5 [ 47.7, 53.3]   48.5 [ 47.7, 53.5]
+OSFD            0.8 [  0.2,  2.0]    3.2 [  2.5,  4.5]   10.9 [  9.5, 13.4]   12.3 [ 11.1, 15.1]
+OSFD-KG-E1      2.0 [  1.4,  3.1]    5.9 [  4.8,  7.5]   11.5 [ 10.2, 14.1]   12.7 [ 11.7, 15.6]
+OSFD-KG-E2      2.1 [  1.3,  3.2]    6.0 [  5.1,  7.8]   12.5 [ 11.2, 15.2]   14.0 [ 12.9, 17.0]
+
+=== relative AP drop % [95% CI] ===
+OSFD           98.1 [ 95.5, 99.5]   93.0 [ 90.3, 94.7]   77.4 [ 73.4, 81.1]   74.6 [ 70.5, 77.7]
+OSFD-KG-E1     95.3 [ 93.1, 96.9]   87.0 [ 84.2, 89.8]   76.3 [ 71.8, 79.7]   73.8 [ 69.3, 76.6]
+OSFD-KG-E2     95.3 [ 92.8, 97.0]   86.6 [ 83.3, 89.1]   74.1 [ 69.9, 77.7]   71.2 [ 66.6, 74.3]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  76.0 [ 72.2, 79.0]  gap→ConvNeXt  15.6 [ 12.1, 18.6]  gap→Swin  18.4 [ 15.5, 21.5]  gap→avg  17.0 [ 14.0, 19.6]
+OSFD-KG-E1   CrossAvg  75.1 [ 70.8, 78.0]  gap→ConvNeXt  10.7 [  7.9, 14.4]  gap→Swin  13.2 [ 11.0, 17.1]  gap→avg  12.0 [  9.9, 15.5]
+OSFD-KG-E2   CrossAvg  72.6 [ 68.4, 75.9]  gap→ConvNeXt  12.5 [  9.0, 15.6]  gap→Swin  15.5 [ 12.8, 18.7]  gap→avg  14.0 [ 11.2, 16.9]
+
+=== runtime === {'OSFD': 3.3, 'OSFD-KG-E1': 3.3, 'OSFD-KG-E2': 3.3}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/metrics_kg.json
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/300 (3s)
+[gen yolox_s] 100/300 (6s)
+[gen yolox_s] 150/300 (9s)
+[gen yolox_s] 200/300 (12s)
+[gen yolox_s] 250/300 (15s)
+[gen yolox_s] 300/300 (18s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (54s)
+[gen dino_swin_l] 100/300 (113s)
+[gen dino_swin_l] 150/300 (176s)
+[gen dino_swin_l] 200/300 (240s)
+[gen dino_swin_l] 250/300 (304s)
+[gen dino_swin_l] 300/300 (367s)
+Loading and preparing results...
+DONE (t=0.24s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.31s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: r101
+Traceback (most recent call last):
+  File "/workspace/transfer-attack-final/scripts/eval_generalization.py", line 175, in <module>
+    main()
+  File "/workspace/transfer-attack-final/scripts/eval_generalization.py", line 153, in main
+    json.dump(out, f, indent=2, ensure_ascii=False)
+  File "/usr/lib/python3.10/json/__init__.py", line 180, in dump
+    fp.write(chunk)
+UnicodeEncodeError: 'ascii' codec can't encode character '\xea' in position 22: ordinal not in range(128)
+EXIT=1

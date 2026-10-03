@@ -1,0 +1,14 @@
+{
+  "split": "dev300",
+  "surrogate": "Mask R-CNN R50",
+  "epsilon_255": 5.0,
+  "alpha": 1.0,
+  "budget_B": 50,
+  "seed_image": "SEED + i (SEED = 0, i = chỉ số dev300)",
+  "margin": 0.15,
+  "area_ratio": 2.0,
+  "kg": "data/kg/coco80_vg_relation_matrix.npy",
+  "rule": "docs/progress_log.md 2026-10-03 (LOCKED)",
+  "method": "OSFD + view cặp (thay view 2 RRB), cặp = geometry-matched random control",
+  "pair_selection": "q ~ p ∝ S (KG); dùng e1 ~ đều trên {r : |log(A_r/A_q)| <= log 2}"
+}

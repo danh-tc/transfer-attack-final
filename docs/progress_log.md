@@ -792,3 +792,32 @@ Chẩn đoán (không thuộc quy tắc):
 - **S4 gần như không có sức phân biệt:** sàn sign agreement E0 vs E0 khác seed = **0.516** (nhiễu σ = 6 của RRB chi phối dấu gradient step 0); E2 vs E0 cùng seed = 0.759 (view1 trùng), E2 vs E1 = 0.886. Ngưỡng 0.95 (mượn từ G1 của P2, nơi không có RRB) quá lỏng cho thiết lập có RRB — ghi nhận, không đổi quy tắc; S4 chỉ xác nhận view cặp có đổi gradient.
 - 1/20 ảnh (105455, 3 cặp) có P(E1≠E2) = 0: tập khớp hình học suy biến/KG một cặp chiếm ưu thế — trường hợp tự nhiên, nằm trong tỉ lệ pha loãng.
 - Runtime gate: 142 s cho 20 ảnh (mỗi ảnh 2 lần chạy 50 step + 4 lần 1 step) → ước ~3.5 s/ảnh/điều kiện ở B = 50.
+
+---
+
+## 2026-10-03 — Pilot KG sàng lọc @ dev300 → **KHÔNG QUA (NO-GO hướng KG)**
+
+Run `dev300_B50_eps5` (E0 = OSFD, E1 = `OSFD-KG-E1`, E2 = `OSFD-KG-E2`; `run_baselines.py --out metrics_kg.json`, `eval_generalization.py --out generalization_kg.json`), phân tích `scripts/pilot_kg_screen.py` → `results/kg_pilot/dev300/{screen.json, E0,E1,E2/{metrics.json, per_image_metrics.csv, config.json, runtime.json}}`. Paired bootstrap 1000 mẫu, BOOT_SEED 2026. Sự cố nhỏ: `eval_generalization.py` lỗi ghi JSON ở bước cuối (locale tmux ASCII, `ensure_ascii=False`) — dets đã lưu đủ; chạy lại với `PYTHONUTF8=1`.
+
+Relative AP drop % (điểm), R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- E0 OSFD: 98.1 / 93.0 / 77.4 / 74.6 / 68.7 / 24.9 | **73.6**
+- E1 random khớp hình học: 95.3 / 87.0 / 76.3 / 73.8 / 62.7 / 23.2 | **70.9**
+- E2 KG: 95.3 / 86.6 / 74.1 / 71.2 / 61.3 / 21.9 | **68.9**
+
+Δ [95% CI] (toàn bộ 300 ảnh):
+- **E2 − E0:** CrossAvg₃ **−4.7 [−6.2, −3.1]**; ConvNeXt −3.3, Swin −3.5, YOLOX-S −7.3, R101 −6.4 [−8.4, −3.9], DINO-Swin-L −3.0.
+- **E2 − E1:** CrossAvg₃ **−2.1 [−3.0, −0.8]**; ConvNeXt −2.2 [−3.5, −0.6], Swin −2.6 [−4.0, −0.9], YOLOX-S −1.3 [−3.2, 0.4], R101 −0.4.
+- **E1 − E0:** CrossAvg₃ −2.6 [−4.3, −1.2]; ConvNeXt −1.1, Swin −0.8 (CI qua 0), YOLOX-S −6.0, R101 −6.0.
+- Ảnh có thông tin (n = 219, chỉ báo cáo): cùng chiều, lớn hơn chút (E2−E0 −5.2, E2−E1 −2.6 [−3.6, −1.0]).
+
+**Áp quy tắc khóa:** cả 7 điều kiện trượt (ΔE2−E0 ≥ 3 ✗, E2−E1 > 0 ✗, CI ✗, 3 target > 0 ✗, R101 ≥ E0 − 3 ✗) → **NO-GO hướng KG**. Theo quy tắc: không thêm biến thể (không đổi chuẩn hóa S, margin, cách khớp, không chạy n300).
+
+Diễn giải (mô tả, không đổi kết luận):
+- **Thay view resize của RRB bằng crop cặp làm GIẢM transfer** (E1 < E0), mạnh nhất ở R101 (−6) và YOLOX-S (−6), white-box R50 cũng giảm (98.1 → 95.3). Crop phóng to một vùng nhỏ làm loss của view 2 chỉ phủ một phần ảnh → δ ngoài vùng crop nhận ít tín hiệu hơn; view resize toàn ảnh của RRB có vẻ quan trọng hơn ta nghĩ.
+- **KG còn tệ hơn random khớp hình học** (CI loại 0, hai target Mask R-CNN khác họ). Có thể do KG tập trung vào ít cặp hơn (forward no_grad / ảnh: E2 12.9 vs E1 17.4 cặp khác nhau được dùng) → ít đa dạng vùng crop hơn. Không kiểm thêm (ngoài quy tắc).
+- Chẩn đoán cặp trên dev300: tỉ lệ step cặp E1 ≠ E2 = 0.705 (gồm cả ảnh 1 cặp), tỉ lệ cặp cùng class E2 0.346 vs E1 0.349; 10 ảnh có mọi cặp S = 0 (gồm cả ảnh 1 cặp). Runtime ~3.3 s/ảnh cả 3 điều kiện; số view forward 2×B như nhau.
+- Mức OSFD E0 trên dev300 nhất quán với n300 (R101 93.0 vs 92.4; ConvNeXt 77.4 vs 80.4; Swin 74.6 vs 78.7; YOLOX-S 68.7 vs 77.4 — dev300 khó hơn ở YOLOX-S).
+
+**Trạng thái RQ3:** chuỗi đã thử — A′1 (loss không gian, NO-GO @ n300), P1 (bỏ), P2 (dừng ở gate), KG (view cặp, NO-GO @ dev300, còn làm giảm transfer). Chờ user quyết hướng tiếp.
+
+Artifact CHƯA upload HF: `artifacts/runs/dev300_B50_eps5/` (PNG OSFD/E1/E2 dev300, `dets_kg.json`, `gen_dets/`).
