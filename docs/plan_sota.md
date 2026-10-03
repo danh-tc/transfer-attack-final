@@ -1,6 +1,8 @@
 # Plan: OSFD thắng nhờ cái gì → method SOTA
 
 > **Trạng thái: LOCKED (user duyệt 2026-10-03).** Đổi plan = ghi lý do vào `docs/progress_log.md` TRƯỚC khi đổi.
+>
+> **Tiến độ (2026-10-03):** Bước 1 ✅ (nguyên liệu: RRB, xoay, MI) · Bước 2 ✅ (cơ chế + Swin-L + loại lỗi) · Bước 3 ✅ (C2 = OSFD + 4·cls QUA sàng lọc dev300; ứng viên mở rộng sang loại loss — lý do ở progress_log) · **Bước 4: GO @ n300 đang chạy.**
 
 ## Mục tiêu
 

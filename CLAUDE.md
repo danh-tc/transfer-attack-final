@@ -14,7 +14,22 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-Baseline-First xong (**Hypothesis Pass @300 = PASS**), Generalization Panel xong (quy tắc khả thi: **ĐI TIẾP**), Mechanism A1–A4 xong (chưa cơ chế nào đạt tiêu chí; hướng stage-aware đã bỏ). **Đọc [docs/synthesis_2026-09-23.md](docs/synthesis_2026-09-23.md) trước** — tổng hợp toàn cục + hướng method khả dĩ + việc mở cho phiên sau. Mechanism Stage đã đóng (2026-09-24). Pilot method (can thiệp mức loss trên OSFD): A′1 trọng số không gian = **NO-GO** @ n300 (ΔCrossAvg +0.5); P1 channel dropout bỏ trước khi chạy (≈ OSFD); P2 gộp lõm theo channel **dừng ở mechanism gate** (không giảm tập trung distortion stage 4) — xem các entry 2026-09-24 trong `docs/progress_log.md`. Theo nguyên tắc đã chốt: KHÔNG làm tiếp feature engineering kiểu P3/P4. Tập development DUY NHẤT cho RQ3: `data/image_lists/dev300.csv` (ngoài n1000; không mở rộng thêm); không bao giờ tune trên n300/n1000. RQ3 (2026-10-03): pilot KG và R1 (SGM) đều NO-GO @ dev300. **Mở lại RQ3 theo plan mới [docs/plan_sota.md](docs/plan_sota.md) (LOCKED): ablation OSFD 7 ô → suy cơ chế → method → GO @ n300.** Đọc plan này trước khi làm gì về method; tiến độ ở các entry cuối `docs/progress_log.md`.
+**Trạng thái (cập nhật 2026-10-03): đang ở BƯỚC 4 của [docs/plan_sota.md](docs/plan_sota.md) (LOCKED) — GO @ n300 cho method C2.** Đọc plan + các entry 2026-10-03 cuối `docs/progress_log.md` trước khi làm gì về method.
+
+Tóm tắt đường đi tới đây (chi tiết + số liệu trong progress_log):
+- RQ1 PASS @ n300; Generalization Panel ĐI TIẾP; Mechanism A1–A4 không đạt tiêu chí; 5 pilot đoán-cơ-chế (A′1, P1, P2, KG, R1/SGM) đều NO-GO → mở lại RQ3 theo plan mới: **phân tích SOTA (OSFD) trước, method sau.**
+- **Ablation OSFD** (dev100 → dev300): nguyên liệu = **RRB (+32), xoay trong RRB (+5.5), MI (+3.7)**; KHÔNG phải: resize, k, nhiễu σ, **loss feature** (task loss + RRB ≥ OSFD).
+- **Cơ chế:** RRB/xoay làm δ tần thấp hơn, bớt đặc thù surrogate (D₄ R50 giảm, D₄ target tăng); D₄ trên target dự đoán suppression theo ảnh. **DINO-Swin-L bền** vì attack chỉ lệch vừa feature Swin-L và encoder DINO "sửa" (cosd 0.42 → 0.07); object giả bị chặn; chỉ hạ confidence phân loại còn lọt. Phá định vị: có thật nhưng đóng góp nhỏ. Feature loss mạnh ở YOLOX/CNN, loss phân loại mạnh ở DINO-Swin-L → bổ trợ.
+- **Method C2** (đóng băng) = MI + RRB (co-transform GT) + L_OSFD + 4·(loss_rpn_cls + loss_cls), 1 forward/view, B = 50, ε = 5 (`PROBE-osfd+cls` trong `scripts/run_baselines.py`). **Sàng lọc dev300 QUA:** CrossAvg₃ +4.7 [1.7, 6.0] so OSFD, cả 3 target khác họ > 0, DINO-Swin-L +7.0.
+
+**Đang chạy / tiếp tục nếu phiên bị ngắt:** tmux `go` — `run_baselines.py --split n300 --methods OSFD PROBE-osfd+cls --out metrics_go_c2.json` rồi `eval_generalization.py --run n300_B50_eps5 --models yolox_s dino_swin_l ... --dets dets_go_c2.json --out generalization_go_c2.json` (log `results/go_c2/run.log`; resume được — chạy lại đúng lệnh). Cần PNG baseline `artifacts/runs/n300_B50_eps5/` (HF, `scripts/sync_artifacts.py download n300_B50_eps5`, token ở `.env` — gitignored, KHÔNG in ra). Khi xong:
+```bash
+python scripts/ablation_screen.py --run n300_B50_eps5 --dets dets_go_c2.json --tag go_c2_n300 --cells PROBE-osfd+cls
+python scripts/go_check.py --tag go_c2_n300 --cand PROBE-osfd+cls   # tiêu chí GO khóa, chạy 1 lần
+```
+GO → bước 4.2 (n1000, B ∈ {50, 200}, ε ∈ {5, 8}, rà literature baseline mới). NO-GO → ghi log, user quyết.
+
+Quy tắc cứng: dev300 là tập development DUY NHẤT; không tune trên n300/n1000; mọi quy tắc quyết định khóa + commit TRƯỚC khi chạy. Artifact chưa upload HF: `artifacts/runs/dev300_B50_eps5/` (mọi ô ablation/pilot).
 
 ## Chạy môi trường
 
