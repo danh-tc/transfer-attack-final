@@ -1,0 +1,26 @@
+[probe] 20/100
+[probe] 40/100
+[probe] 60/100
+[probe] 80/100
+[probe] 100/100
+
+=== tỉ lệ chung r = S/E theo stage (mean 100 ảnh) | CrossAvg₃ ===
+OSFD                 0.703  0.702  0.768  0.815   | 74.5
+ABL-task-loss        0.693  0.674  0.736  0.803   | 73.8
+ABL-no-RRB           0.705  0.691  0.734  0.769   | 42.4
+ABL-RRB-no-noise     0.707  0.701  0.769  0.818   | 72.4
+ABL-RRB-no-rotate    0.705  0.706  0.764  0.810   | 68.9
+ABL-RRB-no-resize    0.703  0.702  0.767  0.816   | 74.2
+ABL-no-MI            0.698  0.704  0.773  0.821   | 72.3
+ABL-k5               0.702  0.699  0.763  0.816   | 74.0
+OSFD-KG-E1           0.701  0.697  0.762  0.811   | 70.5
+OSFD-KG-E2           0.701  0.697  0.762  0.811   | 69.5
+OSFD-SGM-0.2         0.726  0.691  0.735  0.782   | 39.1
+OSFD-SGM-0.5         0.717  0.705  0.756  0.807   | 67.3
+OSFD-SGM-mix         0.721  0.700  0.749  0.801   | 55.3
+Spearman giữa điều kiện (r vs CrossAvg₃): {'stage1': -0.59, 'stage2': 0.2, 'stage3': 0.66, 'stage4': 0.74}
+
+=== theo ảnh (OSFD): Spearman với retained (âm = dự đoán phá tốt) — tổng E | chung S | tỉ lệ r ===
+convnext_t stage1: -0.25 | -0.26 | -0.19  stage2: -0.35 | -0.35 | -0.26  stage3: -0.33 | -0.34 | -0.19  stage4: -0.25 | -0.25 | -0.08
+swin_t stage1: -0.30 | -0.31 | -0.23  stage2: -0.39 | -0.40 | -0.29  stage3: -0.35 | -0.37 | -0.23  stage4: -0.23 | -0.24 | -0.12
+yolox_s stage1: -0.37 | -0.38 | -0.30  stage2: -0.36 | -0.40 | -0.39  stage3: -0.30 | -0.35 | -0.35  stage4: -0.23 | -0.25 | -0.16

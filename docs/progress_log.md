@@ -1022,3 +1022,15 @@ OSFD, cosd theo tầng (cùng detector DINO, chỉ khác backbone):
 - **Task loss trên DINO-Swin-L:** retained như OSFD (0.76) nhưng drop AP cao hơn (33.8 vs 25.3 @ dev100) → phần lợi của task loss ở ca khó KHÔNG đến từ làm mất GT mà từ false positive / sai định vị.
 
 **Diễn giải (giả thuyết, mô tả):** Swin-L bền do 2 yếu tố CỘNG LẠI: (1) attack từ R50 chỉ làm lệch vừa phải feature sâu của Swin-L và gần như không chạm stage nông; (2) encoder deformable của DINO (đa scale, dùng cả stage nông còn sạch) "sửa" được distortion vừa phải. Với DINO-R50, distortion gần như toàn phần nên vượt qua được encoder. → Kết luận cũ "detector không giải thích failure" (dựa trên DINO-R50 97%) cần thu hẹp: detector không gây failure KHI distortion bão hòa (cùng họ), nhưng có thể góp phần khi distortion chỉ vừa phải (khác họ). Không kiểm được trực tiếp nếu không có DINO-Swin-T (không thêm model mới — chỉ ghi nhận).
+
+---
+
+## 2026-10-03 — Literature + probe hướng "distortion bất biến" → KHÔNG ủng hộ
+
+**Rà literature (web, 2026-10-03):** input-transformation cho transfer đã đông ở classification (SIA ICCV'23, BSR, SID ICCV'25, Block Stretch&Shrink 11/2025, Local Invariance 2025, Perspective-Invariant Attack 8/2026) → "tăng xoay / thêm biến đổi" không có novelty; ở detection gần như chỉ có RRB (OSFD) và AugTrans. Tấn công encoder DETR ("Corrupting Attention", arXiv 2608.06674, có vẻ white-box trên DETR) khớp phát hiện encoder là chỗ "khóa" của DINO nhưng không áp dụng được với surrogate Mask R-CNN R50. Chưa thấy method detection 1-surrogate công khai vượt OSFD (rà chưa đầy đủ). Hướng được chọn để probe (user đồng ý): "distortion bất biến" tường minh.
+
+**Probe** (`scripts/probe_invariance.py` → `results/ablation/mech/invariance_probe.json`; 100 ảnh dev100, 13 điều kiện; 8 góc xoay ±7° áp cho cả sạch/adv, feature R50 xoay ngược về cùng khung, vùng hợp lệ chung): E = mean_t ‖Δ_t‖², S = ‖mean_t Δ_t‖², r = S/E.
+- r CAO ở MỌI điều kiện (stage 4: 0.77–0.82), kể cả bỏ RRB (0.769 vs OSFD 0.815) — chênh 0.046 trong khi CrossAvg₃ chênh 32 điểm.
+- Giữa điều kiện: Spearman(r stage 4, CrossAvg₃) = 0.74 (13 điểm), nhưng biên độ nhỏ; r stage 1 tương quan âm (−0.59).
+- Theo ảnh (OSFD): phần chung S dự đoán retained KHÔNG tốt hơn tổng E (vd stage 2 ConvNeXt −0.35 vs −0.35; YOLOX −0.40 vs −0.36); tỉ lệ r còn yếu hơn.
+→ Distortion trên surrogate vốn đã ~80% "chung giữa các góc xoay nhỏ" dù không có RRB; phần chung không phải thứ phân biệt δ transfer tốt với δ transfer kém. **Không có cơ sở cơ chế cho hướng "distortion bất biến" tường minh** (trong phạm vi probe: xoay ±7°, đo trên surrogate). Không khóa ứng viên theo hướng này.
