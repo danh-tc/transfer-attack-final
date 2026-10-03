@@ -905,3 +905,11 @@ Diễn giải (mô tả, không đổi kết luận):
 **Tổng kết RQ3** (theo cam kết, đóng): A′1 (trọng số không gian trong loss) NO-GO @ n300; P1 bỏ (≈ OSFD); P2 (gộp lõm theo channel) dừng ở gate; KG (view cặp object) NO-GO @ dev300, làm giảm transfer; R1 (SGM backward) NO-GO @ dev300, giảm mạnh theo liều. Không can thiệp nào thu hẹp phần gap còn lại của OSFD.
 
 Artifact CHƯA upload HF: `artifacts/runs/dev300_B50_eps5/` (PNG OSFD, KG-E1/E2, SGM-0.2/0.5/mix; `dets_kg.json`, `dets_sgm.json`, `gen_dets/`).
+
+---
+
+## 2026-10-03 — Mở lại RQ3 theo plan mới: ablation OSFD → cơ chế → method (`docs/plan_sota.md`, LOCKED)
+
+**Quyết định (user):** mở lại RQ3 dù entry R1 đã cam kết đóng. Lý do: 5 pilot trước (A′1, P1, P2, KG, R1) đều đoán cơ chế rồi can thiệp, đều thất bại. Hướng mới chỉ phân tích SOTA (OSFD): bỏ/thay đúng 1 thành phần mỗi ô (7 ô: task loss, bỏ RRB, RRB bỏ nhiễu / xoay / resize, bỏ MI, k = 5), đo tụt bao nhiêu → "nguyên liệu" → suy cơ chế (forward trên PNG) → method khuếch đại nguyên liệu → GO @ n300 → n1000. Ablation có giá trị cho analysis paper kể cả khi không ra method.
+
+Chạy 2 bậc: dev100 trước (seed theo chỉ số dev300), ô mơ hồ mới nối đủ dev300. Câu hỏi phụ DINO-Swin-L: chỉ mô tả (eval mọi ô + D_k trên backbone Swin-L), không thêm model. Chi tiết cổng và tiêu chí: `docs/plan_sota.md`.
