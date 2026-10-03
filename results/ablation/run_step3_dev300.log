@@ -1,0 +1,220 @@
+loading annotations into memory...
+Done (t=0.34s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 300 ảnh, methods=['OSFD', 'ABL-task-loss', 'PROBE-osfd+cls']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack PROBE-osfd+cls] 16/300  7.6s/ảnh  còn ~36 phút
+[attack PROBE-osfd+cls] 31/300  7.3s/ảnh  còn ~33 phút
+[attack PROBE-osfd+cls] 44/300  7.3s/ảnh  còn ~31 phút
+[attack PROBE-osfd+cls] 57/300  7.4s/ảnh  còn ~30 phút
+[attack PROBE-osfd+cls] 70/300  7.5s/ảnh  còn ~29 phút
+[attack PROBE-osfd+cls] 88/300  7.6s/ảnh  còn ~27 phút
+[attack PROBE-osfd+cls] 102/300  7.6s/ảnh  còn ~25 phút
+[attack PROBE-osfd+cls] 116/300  7.5s/ảnh  còn ~23 phút
+[attack PROBE-osfd+cls] 131/300  7.6s/ảnh  còn ~21 phút
+[attack PROBE-osfd+cls] 151/300  7.6s/ảnh  còn ~19 phút
+[attack PROBE-osfd+cls] 165/300  7.6s/ảnh  còn ~17 phút
+[attack PROBE-osfd+cls] 183/300  7.6s/ảnh  còn ~15 phút
+[attack PROBE-osfd+cls] 197/300  7.6s/ảnh  còn ~13 phút
+[attack PROBE-osfd+cls] 211/300  7.5s/ảnh  còn ~11 phút
+[attack PROBE-osfd+cls] 225/300  7.5s/ảnh  còn ~9 phút
+[attack PROBE-osfd+cls] 239/300  7.5s/ảnh  còn ~8 phút
+[attack PROBE-osfd+cls] 257/300  7.5s/ảnh  còn ~5 phút
+[attack PROBE-osfd+cls] 272/300  7.5s/ảnh  còn ~4 phút
+[attack PROBE-osfd+cls] 285/300  7.5s/ảnh  còn ~2 phút
+[attack PROBE-osfd+cls] 299/300  7.5s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (37s)
+[eval] predict 100/300 (74s)
+[eval] predict 150/300 (111s)
+[eval] predict 200/300 (147s)
+[eval] predict 250/300 (183s)
+[eval] predict 300/300 (219s)
+loading annotations into memory...
+Done (t=0.20s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.24s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.26s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.26s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (336s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          43.4 [ 42.3, 48.1]   45.2 [ 44.1, 49.9]   48.5 [ 47.7, 53.3]   48.5 [ 47.7, 53.5]
+OSFD            0.8 [  0.2,  2.0]    3.2 [  2.5,  4.5]   10.9 [  9.5, 13.4]   12.3 [ 11.1, 15.1]
+ABL-task-loss    0.3 [  0.2,  0.8]    2.0 [  1.7,  3.1]    7.3 [  7.0, 10.3]   10.3 [  9.9, 13.4]
+PROBE-osfd+cls    0.2 [  0.1,  0.6]    1.5 [  1.3,  2.6]    7.4 [  6.8, 10.1]    9.9 [  9.2, 12.7]
+
+=== relative AP drop % [95% CI] ===
+OSFD           98.1 [ 95.5, 99.5]   93.0 [ 90.3, 94.7]   77.4 [ 73.4, 81.1]   74.6 [ 70.5, 77.7]
+ABL-task-loss   99.3 [ 98.3, 99.6]   95.6 [ 93.4, 96.4]   85.0 [ 80.0, 85.8]   78.8 [ 73.9, 80.3]
+PROBE-osfd+cls   99.5 [ 98.6, 99.8]   96.6 [ 94.5, 97.2]   84.7 [ 80.2, 86.3]   79.5 [ 75.1, 81.5]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  76.0 [ 72.2, 79.0]  gap→ConvNeXt  15.6 [ 12.1, 18.6]  gap→Swin  18.4 [ 15.5, 21.5]  gap→avg  17.0 [ 14.0, 19.6]
+ABL-task-loss CrossAvg  81.9 [ 77.3, 82.9]  gap→ConvNeXt  10.7 [  9.5, 15.0]  gap→Swin  16.9 [ 15.2, 20.9]  gap→avg  13.8 [ 12.6, 17.5]
+PROBE-osfd+cls CrossAvg  82.1 [ 77.8, 83.8]  gap→ConvNeXt  12.0 [ 10.2, 15.4]  gap→Swin  17.1 [ 15.0, 20.8]  gap→avg  14.5 [ 12.8, 17.8]
+
+=== runtime === {'OSFD': 3.3, 'ABL-task-loss': 7.8, 'PROBE-osfd+cls': 7.6}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/metrics_step3_dev300.json
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.31s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/300 (1s)
+[gen yolox_s] 100/300 (1s)
+[gen yolox_s] 150/300 (2s)
+[gen yolox_s] 200/300 (2s)
+[gen yolox_s] 250/300 (3s)
+[gen yolox_s] 300/300 (3s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (9s)
+[gen dino_swin_l] 100/300 (18s)
+[gen dino_swin_l] 150/300 (26s)
+[gen dino_swin_l] 200/300 (35s)
+[gen dino_swin_l] 250/300 (43s)
+[gen dino_swin_l] 300/300 (53s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.48s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.57s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 45.2  yolox_s: 42.6  dino_swin_l: 62.5
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+OSFD           93.0 [ 90.3, 94.7]   68.7 [ 63.2, 73.3]   24.9 [ 21.0, 27.4]
+ABL-task-loss   95.6 [ 93.4, 96.4]   69.4 [ 63.3, 71.5]   34.9 [ 29.8, 36.7]
+PROBE-osfd+cls   96.6 [ 94.5, 97.2]   70.6 [ 65.2, 73.6]   31.8 [ 26.5, 33.5]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           24.3 [ 20.5, 28.5]   68.1 [ 64.8, 71.8]
+ABL-task-loss   26.2 [ 23.7, 31.8]   60.7 [ 58.2, 65.5]
+PROBE-osfd+cls   26.0 [ 22.4, 30.7]   64.8 [ 62.4, 69.9]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+ABL-task-loss - OSFD      0.8 [ -4.8,  3.0]   10.1 [  5.8, 12.1]
+PROBE-osfd+cls - OSFD     1.9 [ -2.2,  4.8]    7.0 [  2.8,  8.9]
+PROBE-osfd+cls - ABL-task-loss    1.2 [ -1.0,  5.6]   -3.1 [ -5.8, -0.7]
+
+=== model_diff (OSFD) ===
+  dino_swin_l - yolox_s        -43.8 [-48.9,-39.4]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/generalization_step3_dev300.json
+EXIT=0

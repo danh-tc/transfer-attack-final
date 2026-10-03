@@ -1102,3 +1102,22 @@ User đồng ý. Đúng 2 ứng viên, cấu hình đóng băng, không thêm �
 Ghi chú sửa plan (user duyệt): plan yêu cầu method "khuếch đại nguyên liệu"; C1/C2 thay/bổ sung LOẠI LOSS, dựa trên phát hiện bước 2 mở rộng (feature loss mạnh ở target kiểu CNN/YOLOX, loss phân loại mạnh ở target có encoder tự sửa — DINO-Swin-L), giữ nguyên nguyên liệu RRB + MI.
 
 **Sàng lọc @ dev300 (tiêu chí khóa plan bước 3)**, mỗi ứng viên so OSFD, paired bootstrap 1000 mẫu: QUA nếu ΔCrossAvg₃ ≥ 3 VÀ cận dưới CI > 0; Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S; drop R101 ≥ R101(OSFD) − 3. Cả 2 qua → chọn ΔCrossAvg₃ lớn hơn (chênh < 0.5 → C1, đơn giản hơn). Báo cáo kèm C2 − C1 (CI) và DINO-Swin-L. Không qua cả 2 → dừng method.
+
+---
+
+## 2026-10-03 — Bước 3 sàng lọc @ dev300 → **C2 (OSFD + 4·cls) QUA**, C1 không qua (CI)
+
+Run `dev300_B50_eps5` (`metrics_step3_dev300.json`, `generalization_step3_dev300.json`); `scripts/ablation_screen.py --tag step3_dev300` + `scripts/step3_screen.py` → `results/ablation/step3_dev300/{screen.json, step3.json}`. n = 300, paired bootstrap 1000 mẫu.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 98.1 / 93.0 / 77.4 / 74.6 / 68.7 / 24.9 | 73.6 | 0.82
+- C1 task loss + RRB: 99.3 / 95.6 / 85.0 / 78.8 / 69.4 / 34.9 | 77.7 | 0.86
+- **C2 OSFD + 4·cls: 99.5 / 96.6 / 84.7 / 79.5 / 70.6 / 31.8 | 78.3 | 0.85**
+
+Ứng viên − OSFD [95% CI]:
+- C1: CrossAvg₃ +4.1 [−0.3, 5.4] ✗ (cận dưới ≤ 0); ConvNeXt +7.6, Swin +4.1, YOLOX +0.8, R101 +2.6, DINO-Swin-L +10.1 [5.8, 12.1] → **KHÔNG QUA**.
+- **C2: CrossAvg₃ +4.7 [1.7, 6.0] ✓; ConvNeXt +7.2 [3.6, 9.1], Swin-T +4.9 [1.5, 6.5], YOLOX-S +1.9 [−2.2, 4.8] (điểm > 0 ✓), R101 +3.6 ✓, DINO-Swin-L +7.0 [2.8, 8.9] (báo cáo) → QUA.**
+- C2 − C1 (điểm): CrossAvg₃ +0.6, YOLOX +1.2, DINO-Swin-L −3.1.
+
+**Theo quy tắc khóa: chọn C2, ĐÓNG BĂNG** (MI μ = 1 + RRB θ = 7, l_s = 10, ρ = 0.8, s_max = 1.1, σ = 6 với co-transform GT + L_OSFD k = 3 + 4·(loss_rpn_cls + loss_cls), 1 forward/view, B = 50, ε = 5). Bước tiếp: GO @ n300 (1 lần) so với PNG OSFD của run `n300_B50_eps5` (HF).
+Ghi chú: CI bootstrap percentile lệch (điểm +4.7 gần cận trên 6.0) — cùng hiện tượng đã ghi ở baseline (bootstrap mean lệch do category hiếm); không đổi kết luận.
