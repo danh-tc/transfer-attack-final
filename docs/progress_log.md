@@ -913,3 +913,12 @@ Artifact CHƯA upload HF: `artifacts/runs/dev300_B50_eps5/` (PNG OSFD, KG-E1/E2,
 **Quyết định (user):** mở lại RQ3 dù entry R1 đã cam kết đóng. Lý do: 5 pilot trước (A′1, P1, P2, KG, R1) đều đoán cơ chế rồi can thiệp, đều thất bại. Hướng mới chỉ phân tích SOTA (OSFD): bỏ/thay đúng 1 thành phần mỗi ô (7 ô: task loss, bỏ RRB, RRB bỏ nhiễu / xoay / resize, bỏ MI, k = 5), đo tụt bao nhiêu → "nguyên liệu" → suy cơ chế (forward trên PNG) → method khuếch đại nguyên liệu → GO @ n300 → n1000. Ablation có giá trị cho analysis paper kể cả khi không ra method.
 
 Chạy 2 bậc: dev100 trước (seed theo chỉ số dev300), ô mơ hồ mới nối đủ dev300. Câu hỏi phụ DINO-Swin-L: chỉ mô tả (eval mọi ô + D_k trên backbone Swin-L), không thêm model. Chi tiết cổng và tiêu chí: `docs/plan_sota.md`.
+
+---
+
+## 2026-10-03 — Ablation OSFD bước 1: code + unit test (trước khi chạy)
+
+- `attack/methods/rrb.py`: tách rút tham số (`_sample_rotation`, `_sample_resize`) khỏi áp biến đổi; `rrb_views` thêm `use_rotate/use_resize/use_noise` (tắt resize: view2 = lần xoay MỚI của adv) và `with_gt` (co-transform GT box + mask cho ô task loss).
+- `attack/methods/baselines.py`: `osfd_attack(loss="task", rrb_rotate/resize/noise)`.
+- `scripts/run_baselines.py`: 7 ô `ABL-*`; `--subset dev100` chạy trong run dev300 với seed theo chỉ số dev300. `scripts/eval_generalization.py`: `--subset`, resume theo (điều kiện, ảnh) qua khóa `_done` (điều kiện cũ coi như đủ cả split) — bậc 2 chỉ predict ảnh còn thiếu.
+- Unit test: (1) `rrb_views` cờ mặc định trùng TUYỆT ĐỐI bản cũ (lấy từ git, 3 ảnh × 3 seed); ảnh ở chế độ `with_gt` trùng ảnh mặc định. (2) Co-transform: IoU(bbox của mask, box) — không biến đổi 0.958, chỉ resize 0.955 (khớp), chỉ xoay 0.834 (AABB của box xoay lỏng hơn mask, như AugTrans trước đây); kiểm chiều xoay: tỉ lệ pixel mask sau xoay nằm trong box đã xoay trung vị 1.000, p5 1.000, min 0.917 (n = 628). (3) Cả 7 ô chạy được, L∞ đúng.

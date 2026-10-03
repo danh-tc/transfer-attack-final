@@ -32,7 +32,7 @@ from pycocotools.coco import COCO
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
-from attack.data import build_attack_dataset
+from attack.data import build_attack_dataset, load_image_ids
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize, to_coco_dets
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.kg_pair import kg_osfd_attack
@@ -70,6 +70,16 @@ METHODS.update({
     "OSFD-SGM-mix": (functools.partial(sgm_osfd_attack, gamma_choices=GAMMAS), 2),
 })
 SGM_MIX = {"OSFD-SGM-mix"}
+# Ablation OSFD (docs/plan_sota.md, bước 1): bỏ/thay đúng 1 thành phần của OSFD full recipe.
+METHODS.update({
+    "ABL-task-loss": (functools.partial(osfd_attack, loss="task"), 2),
+    "ABL-no-RRB": (functools.partial(osfd_attack, use_rrb=False), 1),
+    "ABL-RRB-no-noise": (functools.partial(osfd_attack, rrb_noise=False), 2),
+    "ABL-RRB-no-rotate": (functools.partial(osfd_attack, rrb_rotate=False), 2),
+    "ABL-RRB-no-resize": (functools.partial(osfd_attack, rrb_resize=False), 2),
+    "ABL-no-MI": (functools.partial(osfd_attack, momentum=0.0), 2),
+    "ABL-k5": (functools.partial(osfd_attack, k=5.0), 2),
+})
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 
@@ -100,12 +110,13 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                 continue
             sample = dataset[i]
             orig, ds = sample["orig_inputs"].to(device), sample["data_sample"]
-            random.seed(SEED + i); torch.manual_seed(SEED + i)
+            seed = SEED + dataset.seed_index[i]  # chỉ số trong split đầy đủ (giữ seed khi chạy --subset)
+            random.seed(seed); torch.manual_seed(seed)
             t0 = time.time()
             info = {}
-            kw = {"pair_seed": SEED + i, "info": info} if name in KG_METHODS else {}
+            kw = {"pair_seed": seed, "info": info} if name in KG_METHODS else {}
             if name in SGM_MIX:
-                kw = {"gamma_seed": SEED + i, "info": info}
+                kw = {"gamma_seed": seed, "info": info}
             noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon, **kw)
             torch.cuda.synchronize()
             runtime = time.time() - t0
@@ -257,6 +268,9 @@ def main():
     p.add_argument("--stage", choices=["all", "attack", "eval"], default="all")
     p.add_argument("--n-boot", type=int, default=1000)
     p.add_argument("--limit", type=int, default=None, help="chỉ để test nhanh, KHÔNG dùng cho bảng chính thức")
+    p.add_argument("--subset", default=None,
+                   help="chỉ chạy các ảnh của data/image_lists/<subset>.csv bên trong split (vd dev100 trong "
+                        "dev300); seed vẫn theo chỉ số trong split -> nối thêm ảnh sau không phải chạy lại")
     args = p.parse_args()
 
     run = f"{args.split}_B{args.budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
@@ -268,10 +282,20 @@ def main():
     device = "cuda:0"
 
     dataset = build_attack_dataset(args.split)
+    dataset.seed_index = list(range(len(dataset)))
+    if args.subset:
+        keep = set(load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{args.subset}.csv")))
+        pos = [j for j, img_id in enumerate(dataset.image_ids) if img_id in keep]
+        assert len(pos) == len(keep), f"{args.subset} không nằm trọn trong {args.split}"
+        dataset.image_ids = [dataset.image_ids[j] for j in pos]
+        dataset._indices = [dataset._indices[j] for j in pos]
+        dataset.seed_index = pos
     if args.limit:
         dataset.image_ids = dataset.image_ids[:args.limit]
         dataset._indices = dataset._indices[:args.limit]
-    print(f"[run] {run}: {len(dataset)} ảnh, methods={args.methods}", flush=True)
+        dataset.seed_index = dataset.seed_index[:args.limit]
+    print(f"[run] {run}: {len(dataset)} ảnh{' (subset ' + args.subset + ')' if args.subset else ''}, "
+          f"methods={args.methods}", flush=True)
 
     surrogate = load_model(SURROGATE_KEY, device)
     stats = load_stats(stats_path)

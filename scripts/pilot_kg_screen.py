@@ -67,7 +67,7 @@ def main():
         dets[k] = {c: ctrl[c][k] for c in ["clean"] + list(COND.values())}
     for k in GEN:
         with open(os.path.join(ART, "gen_dets", f"{k}.json")) as f:
-            dets[k] = json.load(f)
+            dets[k] = {c: v for c, v in json.load(f).items() if c in ["clean"] + list(COND.values())}
     stats = {}
     with open(os.path.join(RUN_DIR, "attack_stats.jsonl")) as f:
         for line in f:

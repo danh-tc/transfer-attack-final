@@ -68,22 +68,31 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                 k: float = 3.0, use_rrb: bool = True, momentum: float = 1.0,
                 rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8,
                 rrb_s_max: float = 1.1, rrb_sigma: float = 6.0, on_step=None,
-                stages=None, spatial_weight=None, channel_concave=None):
+                stages=None, spatial_weight=None, channel_concave=None,
+                loss: str = "feature", rrb_rotate: bool = True, rrb_resize: bool = True,
+                rrb_noise: bool = True):
     # Feature sạch lấy từ CÙNG phép resize khả vi dùng cho adv (core.py) — tại δ=0
     # adv trùng tuyệt đối clean, loss chỉ đo phần lệch do δ gây ra.
     # spatial_weight: pilot A′1 ("box" / "box_ring"); channel_concave: pilot P2
     # ("median" / "2median") — attack/losses/osfd.py.
-    clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
-    loss_fn = make_osfd_loss_fn(model, clean_pixels, data_sample, k=k, stages=stages,
-                                spatial_weight=spatial_weight, channel_concave=channel_concave)
+    # Ablation OSFD (docs/plan_sota.md): loss="task" thay loss feature bằng task loss GT
+    # (RRB khi đó co-transform GT box + mask); rrb_rotate/resize/noise tắt từng phần RRB.
+    assert loss in ("feature", "task")
+    if loss == "task":
+        loss_fn = compute_gt_loss
+    else:
+        clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
+        loss_fn = make_osfd_loss_fn(model, clean_pixels, data_sample, k=k, stages=stages,
+                                    spatial_weight=spatial_weight, channel_concave=channel_concave)
     views_fn = None
     if use_rrb:
-        # RRB không co-transform box: loss OSFD (feature-disruption) không phụ
-        # thuộc gt_instances nên không cần — trả lại data_sample gốc nguyên vẹn.
-        views_fn = lambda img, ds, k, k_max: [
-            (view, ds) for view in rrb_views(
-                img, ds, theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho,
-                s_max=rrb_s_max, sigma=rrb_sigma)]
+        rrb_kw = dict(theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho, s_max=rrb_s_max, sigma=rrb_sigma,
+                      use_rotate=rrb_rotate, use_resize=rrb_resize, use_noise=rrb_noise)
+        if loss == "task":
+            views_fn = lambda img, ds, k, k_max: rrb_views(img, ds, with_gt=True, **rrb_kw)
+        else:
+            # Loss feature không phụ thuộc gt_instances -> trả lại data_sample gốc nguyên vẹn.
+            views_fn = lambda img, ds, k, k_max: [(view, ds) for view in rrb_views(img, ds, **rrb_kw)]
     return run_iterative_attack(
         model, orig_pixels, data_sample, loss_fn=loss_fn,
         steps=steps, epsilon=epsilon, alpha=alpha,

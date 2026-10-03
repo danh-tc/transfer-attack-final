@@ -57,13 +57,19 @@ GEN_PANEL = {
 DIAG_ONLY = {"dino_r50", "mrcnn_swin_s"}
 
 
-def predict_model(key, img_ids, coco, adv_dir, out_path, device, methods):
-    """Resume theo điều kiện: file đã có thì chỉ predict điều kiện (clean/method) còn thiếu."""
+def predict_model(key, img_ids, coco, adv_dir, out_path, device, methods, split_ids):
+    """Resume theo (điều kiện, ảnh): `_done[c]` = ảnh đã predict của điều kiện c. Điều kiện cũ
+    (ghi trước khi có `_done`) coi như đã predict đủ mọi ảnh của split -> chỉ ảnh còn thiếu
+    mới predict (vd ablation chạy dev100 trước rồi nối đủ dev300)."""
     dets = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
             dets = json.load(f)
-    todo = [c for c in ["clean"] + methods if c not in dets]
+    done = dets.pop("_done", {})
+    for c in dets:
+        done.setdefault(c, list(split_ids))
+    todo = {c: [i for i in img_ids if i not in set(done.get(c, []))] for c in ["clean"] + methods}
+    todo = {c: v for c, v in todo.items() if v}
     if not todo:
         return
     from mmdet.apis import inference_detector, init_detector
@@ -72,16 +78,19 @@ def predict_model(key, img_ids, coco, adv_dir, out_path, device, methods):
     assert len(ckpts) == 1, f"{key}: checkpoint {ckpts}"
     model = init_detector(os.path.join(CFG, cfg), ckpts[0], device=device)
     cat_ids = sorted(coco.getCatIds())  # thứ tự 80 lớp COCO = thứ tự label mmdet
-    dets.update({c: [] for c in todo})
     t0 = time.time()
     for i, img_id in enumerate(img_ids):
         paths = {"clean": os.path.join(IMG_DIR, coco.loadImgs(img_id)[0]["file_name"])}
         paths.update({m: os.path.join(adv_dir, m, f"{img_id}.png") for m in methods})
-        for c in todo:
-            p = paths[c]
-            dets[c] += to_coco_dets(inference_detector(model, p), img_id, cat_ids)
+        for c, ids in todo.items():
+            if img_id not in ids:
+                continue
+            dets.setdefault(c, [])
+            dets[c] += to_coco_dets(inference_detector(model, paths[c]), img_id, cat_ids)
+            done.setdefault(c, []).append(img_id)
         if (i + 1) % 50 == 0:
             print(f"[gen {key}] {i + 1}/{len(img_ids)} ({time.time() - t0:.0f}s)", flush=True)
+    dets["_done"] = done
     with open(out_path, "w") as f:
         json.dump(dets, f)
     del model
@@ -99,10 +108,15 @@ def main():
     p.add_argument("--out", default="generalization_metrics.json", help="tên file trong results/runs/<run>/")
     p.add_argument("--methods", nargs="+", default=METHODS)
     p.add_argument("--dets", default="dets.json", help="dets Controlled Panel của run (run_baselines --out)")
+    p.add_argument("--subset", default=None, help="chỉ đánh giá ảnh của data/image_lists/<subset>.csv")
     args = p.parse_args()
     methods = args.methods
     split = args.run.split("_")[0]
     img_ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{split}.csv"))
+    split_ids = list(img_ids)
+    if args.subset:  # giữ thứ tự split, chỉ các ảnh của subset (vd dev100 trong dev300)
+        keep = set(load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{args.subset}.csv")))
+        img_ids = [i for i in img_ids if i in keep]
     art = os.path.join(REPO_ROOT, "artifacts/runs", args.run)
     run_dir = os.path.join(REPO_ROOT, "results/runs", args.run)
     gen_dir = os.path.join(art, "gen_dets")
@@ -111,13 +125,13 @@ def main():
 
     for key in args.models:
         out = os.path.join(gen_dir, f"{key}.json")
-        predict_model(key, img_ids, coco, os.path.join(art, "adv"), out, args.device, methods)
+        predict_model(key, img_ids, coco, os.path.join(art, "adv"), out, args.device, methods, split_ids)
 
     # Gom dets: Generalization Panel + Controlled Panel (để so paired với R101).
     all_dets = {}
     for key in args.models:
         with open(os.path.join(gen_dir, f"{key}.json")) as f:
-            all_dets[key] = json.load(f)
+            all_dets[key] = {c: v for c, v in json.load(f).items() if c != "_done"}
     with open(os.path.join(art, args.dets)) as f:
         ctrl = json.load(f)
     for ref in [REF_SAME_FAMILY] + args.ctrl_refs:
