@@ -1154,3 +1154,13 @@ Tải `n300_B50_eps5` từ HF (token đọc từ `.env`, không in ra; `.env` th
 - DINO-Swin-L: thứ tự query bị xáo mạnh nhưng ~95% GT vẫn vào decoder (điểm proposal GT chỉ giảm ~20%) → decoder khôi phục.
 - C1 / C2 / chỉ-cls KHÔNG khác OSFD ở tầng encoder → lợi +7 đến +10 của loss phân loại trên Swin-L nằm ở decoder / điểm cuối, không ở chọn query. Ý tưởng I1 (phá xếp hạng confidence encoder) bỏ.
 - Điểm nghẽn Swin-L: phải hạ điểm proposal vùng GT đủ mạnh để GT rơi khỏi top-900.
+
+---
+
+## 2026-10-03 — Nhánh Swin-L, probe S1: C2 + lọc thông thấp gradient (trước khi chạy)
+
+User chọn S1 sau rà literature (ViT dựa vào thông tin tần thấp / pha tần thấp — WACV 2024 "Exploring Adversarial Robustness of ViTs in the Spectral Perspective"; COGO ICLR 2024 nhắm tần trung-thấp; TESSER làm trơn phổ) + dữ liệu của ta (RRB đẩy δ về tần thấp; phổ thấp tương quan +0.68 với CrossAvg₃ giữa điều kiện). Phần "nhắm pha" để sau nếu S1 có tín hiệu.
+- `core.run_iterative_attack(grad_transform=)`; `baselines.gaussian_lowpass(g, f0)`: H(f) = exp(−f²/(2 f0²)), áp lên gradient mỗi step TRƯỚC chuẩn hóa MI.
+- 2 mức liều khóa trước: `S1-lp6` (f0 = 1/6 cycles/pixel) và `S1-lp12` (f0 = 1/12), nền = C2 nguyên vẹn. Kiểm: nhiễu trắng sau lọc có 63% / 98% năng lượng ở dải thấp (trước 9%).
+- Unit test: C2 tự nó KHÔNG tất định (2 lần cùng seed lệch 4.95% pixel sau 3 step — ROIAlign backward GPU; OSFD tất định); `grad_lowpass_f0=None` lệch C2 5.07% — cùng mức → tương đương.
+- dev100, so OSFD / C2; báo cáo 6 model, ưu tiên DINO-Swin-L và việc giữ ConvNeXt/Swin-T/YOLOX.

@@ -58,6 +58,7 @@ def run_iterative_attack(
     momentum: float = 0.0,
     views_fn: Optional[ViewsFn] = None,
     on_step: Optional[Callable[[int, torch.Tensor], None]] = None,
+    grad_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -98,6 +99,8 @@ def run_iterative_attack(
             term = view_loss_fn(model, view_img, view_data_sample)
             loss = term if loss is None else loss + term
         grad = torch.autograd.grad(loss, noise)[0]
+        if grad_transform is not None:  # vd lọc thông thấp gradient (nhánh S1, progress_log 2026-10-03)
+            grad = grad_transform(grad)
 
         if momentum > 0.0:
             grad = grad / (grad.abs().mean() + 1e-12)

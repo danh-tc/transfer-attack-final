@@ -85,6 +85,9 @@ METHODS.update({
     "ABL-task-mask": (functools.partial(osfd_attack, loss="task", task_terms=("loss_mask",)), 2),
     # Probe bổ trợ (progress_log 2026-10-03): OSFD + 4·(rpn_cls + cls), λ = 4 khóa trước theo tỉ lệ gradient.
     "PROBE-osfd+cls": (functools.partial(osfd_attack, loss="feature+cls", cls_weight=4.0), 2),
+    # Nhánh S1 (progress_log 2026-10-03): C2 + lọc thông thấp gradient Gaussian, f0 khóa trước.
+    "S1-lp6": (functools.partial(osfd_attack, loss="feature+cls", cls_weight=4.0, grad_lowpass_f0=1 / 6), 2),
+    "S1-lp12": (functools.partial(osfd_attack, loss="feature+cls", cls_weight=4.0, grad_lowpass_f0=1 / 12), 2),
 })
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 

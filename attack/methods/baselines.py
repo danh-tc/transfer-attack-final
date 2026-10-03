@@ -72,7 +72,8 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                 rrb_s_max: float = 1.1, rrb_sigma: float = 6.0, on_step=None,
                 stages=None, spatial_weight=None, channel_concave=None,
                 loss: str = "feature", rrb_rotate: bool = True, rrb_resize: bool = True,
-                rrb_noise: bool = True, task_terms=None, cls_weight: float = 0.0):
+                rrb_noise: bool = True, task_terms=None, cls_weight: float = 0.0,
+                grad_lowpass_f0=None):
     # Feature sạch lấy từ CÙNG phép resize khả vi dùng cho adv (core.py) — tại δ=0
     # adv trùng tuyệt đối clean, loss chỉ đo phần lệch do δ gây ra.
     # spatial_weight: pilot A′1 ("box" / "box_ring"); channel_concave: pilot P2
@@ -102,7 +103,20 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
         else:
             # Loss feature không phụ thuộc gt_instances -> trả lại data_sample gốc nguyên vẹn.
             views_fn = lambda img, ds, k, k_max: [(view, ds) for view in rrb_views(img, ds, **rrb_kw)]
+    grad_transform = None
+    if grad_lowpass_f0 is not None:
+        grad_transform = lambda g: gaussian_lowpass(g, grad_lowpass_f0)
     return run_iterative_attack(
         model, orig_pixels, data_sample, loss_fn=loss_fn,
         steps=steps, epsilon=epsilon, alpha=alpha,
-        momentum=momentum, views_fn=views_fn, on_step=on_step)
+        momentum=momentum, views_fn=views_fn, on_step=on_step, grad_transform=grad_transform)
+
+
+def gaussian_lowpass(g: torch.Tensor, f0: float) -> torch.Tensor:
+    """Lọc thông thấp Gaussian trong miền tần số: H(f) = exp(−f²/(2·f0²)), f = bán kính (cycles/pixel)
+    trên 2 trục cuối; g [C,H,W] ở không gian ảnh gốc. Nhánh S1 (progress_log 2026-10-03)."""
+    h, w = g.shape[-2:]
+    fy = torch.fft.fftfreq(h, device=g.device)[:, None]
+    fx = torch.fft.fftfreq(w, device=g.device)[None, :]
+    H = torch.exp(-(fx ** 2 + fy ** 2) / (2 * f0 ** 2))
+    return torch.fft.ifft2(torch.fft.fft2(g) * H).real
