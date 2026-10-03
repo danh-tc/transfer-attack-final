@@ -1047,3 +1047,9 @@ OSFD, cosd theo tầng (cùng detector DINO, chỉ khác backbone):
 - DINO-Swin-L: AP drop task loss 34.9 vs OSFD 24.9; AP50 drop 29.5 vs 20.7 — vừa định vị vừa thêm FP (nền + định vị).
 
 **Diễn giải (giả thuyết):** "đồng tiền" chuyển giao sang target khác họ / ca khó không phải hallucination mà là **phá định vị (bbox regression)** — có thể vì tín hiệu định vị dựa trên cấu trúc biên/hình học object chung giữa các kiến trúc. Cần kiểm: thành phần nào của task loss (rpn_cls, rpn_bbox, cls, bbox, mask) gây ra lợi ích.
+
+---
+
+## 2026-10-03 — Ablation thành phần task loss (trước khi chạy)
+
+User đồng ý (mở rộng phân tích bước 2, chưa phải ứng viên method): nền = task loss + MI + RRB (co-transform GT); 3 ô chỉ giữ 1 nhóm số hạng: `ABL-task-cls` (loss_rpn_cls + loss_cls), `ABL-task-box` (loss_rpn_bbox + loss_bbox), `ABL-task-mask` (loss_mask). dev100 (seed theo chỉ số dev300), đánh giá 6 model + AP/AP50. `attack/preprocess.make_gt_loss(terms)`; unit test: 5 key trùng tuyệt đối `compute_gt_loss`.

@@ -79,6 +79,10 @@ METHODS.update({
     "ABL-RRB-no-resize": (functools.partial(osfd_attack, rrb_resize=False), 2),
     "ABL-no-MI": (functools.partial(osfd_attack, momentum=0.0), 2),
     "ABL-k5": (functools.partial(osfd_attack, k=5.0), 2),
+    # Ablation thành phần task loss (progress_log 2026-10-03, sau probe loại lỗi).
+    "ABL-task-cls": (functools.partial(osfd_attack, loss="task", task_terms=("loss_rpn_cls", "loss_cls")), 2),
+    "ABL-task-box": (functools.partial(osfd_attack, loss="task", task_terms=("loss_rpn_bbox", "loss_bbox")), 2),
+    "ABL-task-mask": (functools.partial(osfd_attack, loss="task", task_terms=("loss_mask",)), 2),
 })
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 

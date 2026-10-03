@@ -31,6 +31,18 @@ def to_batch(model, pixel_tensors: List[torch.Tensor],
     return processed["inputs"], processed["data_samples"]
 
 
+def make_gt_loss(terms):
+    """compute_gt_loss chỉ cộng các key trong `terms` (vd ("loss_rpn_bbox", "loss_bbox")) —
+    ablation thành phần task loss (docs/progress_log.md 2026-10-03)."""
+    def loss_fn(model, pixel_tensor, data_sample):
+        batch_inputs, batch_data_samples = to_batch(model, [pixel_tensor], [data_sample])
+        losses = model.loss(batch_inputs, batch_data_samples)
+        missing = set(terms) - set(losses)
+        assert not missing, f"thiếu key loss {missing}; có {list(losses)}"
+        return sum_loss_dict({k: losses[k] for k in terms})
+    return loss_fn
+
+
 def compute_gt_loss(model, pixel_tensor: torch.Tensor, data_sample: DetDataSample
                     ) -> torch.Tensor:
     """Loss GT-assisted (task loss thật của detector) cho 1 ảnh — dùng cho các

@@ -34,7 +34,7 @@ from attack.losses.osfd import make_osfd_loss_fn
 from attack.methods.core import run_iterative_attack
 from attack.methods.diversity import input_diversity_with_boxes
 from attack.methods.rrb import rrb_views
-from attack.preprocess import compute_gt_loss, resize_to_model
+from attack.preprocess import compute_gt_loss, make_gt_loss, resize_to_model
 
 EPSILON_PRIMARY = 5.0  # 5/255 quy về pixel-space [0,255]
 EPSILON_SECONDARY = 8.0
@@ -70,7 +70,7 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                 rrb_s_max: float = 1.1, rrb_sigma: float = 6.0, on_step=None,
                 stages=None, spatial_weight=None, channel_concave=None,
                 loss: str = "feature", rrb_rotate: bool = True, rrb_resize: bool = True,
-                rrb_noise: bool = True):
+                rrb_noise: bool = True, task_terms=None):
     # Feature sạch lấy từ CÙNG phép resize khả vi dùng cho adv (core.py) — tại δ=0
     # adv trùng tuyệt đối clean, loss chỉ đo phần lệch do δ gây ra.
     # spatial_weight: pilot A′1 ("box" / "box_ring"); channel_concave: pilot P2
@@ -79,7 +79,8 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
     # (RRB khi đó co-transform GT box + mask); rrb_rotate/resize/noise tắt từng phần RRB.
     assert loss in ("feature", "task")
     if loss == "task":
-        loss_fn = compute_gt_loss
+        # task_terms: None = đủ 5 loss Mask R-CNN; tuple key = chỉ các thành phần đó.
+        loss_fn = compute_gt_loss if task_terms is None else make_gt_loss(task_terms)
     else:
         clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
         loss_fn = make_osfd_loss_fn(model, clean_pixels, data_sample, k=k, stages=stages,
