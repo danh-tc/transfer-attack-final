@@ -653,3 +653,88 @@ Phiên hôm nay (máy mới RTX 3090, `bootstrap.sh` + `download_checkpoints.sh 
 2. Artifact CHƯA upload HF (mất nếu trả máy): `artifacts/runs/dev100_B50_eps5/` (211 MB: PNG OSFD/W1/W2, dets, gen_dets) và phần mới trong `artifacts/runs/n300_B50_eps5/` (PNG OSFD-W1, `dets_pilot_a1.json`, `gen_dets/`). Upload `n300_B50_eps5` sẽ GHI ĐÈ tar cũ trên HF (chỉ thêm nội dung) — cân nhắc upload phần mới dưới tên riêng.
 3. Token HF đã dùng hôm nay bị lộ trong chat — revoke, tạo token mới.
 4. Nếu máy mới: `bash scripts/bootstrap.sh` + `bash scripts/download_checkpoints.sh --gen`; ảnh adv baseline: `python scripts/sync_artifacts.py download n300_B50_eps5`.
+
+---
+
+## 2026-10-03 — Chốt quy tắc pilot KG (chọn cặp object theo Knowledge Graph + OSFD) — TRƯỚC khi code/chạy
+
+> **Trạng thái: LOCKED (user duyệt 2026-10-03).** Mọi giá trị dưới đây (kể cả các giá trị Claude đề xuất ban đầu: PPMI, margin 15%, khớp diện tích ≤ 2×, S2 ≥ 0.5, S3 ≤ 1.5×, bảng đồng nghĩa) đã được user chấp nhận; user thêm min support = 20 và ghi rõ tập loại trừ rò rỉ. Không đổi sau khi thấy kết quả.
+
+**Pivot RQ3 (user quyết):** sau P2, chuyển sang nguyên lý khác hẳn — can thiệp ở **view đầu vào** (thay 1 view của RRB bằng crop vùng hợp của 1 cặp object), không đổi hàm loss feature.
+
+Giả thuyết (chưa là cơ chế): view tập trung vào vùng hợp của 2 object có quan hệ ngữ nghĩa (theo Visual Genome) cho δ transfer tốt hơn sang target khác họ, **và phần lợi ích đó đến từ tri thức ngữ nghĩa**, không chỉ do có thêm augmentation. Prior của Claude: E1 > E0 có thể xảy ra (augmentation scale kiểu DI), còn E2 > E1 là phần rủi ro — với surrogate, KG chỉ quyết định **vùng không gian nào** được crop; chưa có cầu nối cơ chế tới gap họ backbone (RQ1/RQ2). Novelty: cần rà Cai et al. (AAAI 2022 "Context-aware transfer attacks for object detection"; CVPR 2022 "Zero-query transfer attacks on context-aware object detectors") — dùng đồ thị đồng xuất hiện nhưng cho mục đích khác (targeted, né context-consistency check).
+
+### Knowledge Graph (khóa, sinh 1 lần, commit trước mọi lần chạy attack)
+
+- Nguồn: Visual Genome v1.4 `relationships.json` + `image_data.json` (để lấy `coco_id`).
+- **Chống rò rỉ:** bỏ mọi ảnh VG có `coco_id` ∈ dev300 ∪ n300 ∪ n1000 (n300 ⊂ n1000, ghi tường minh để dễ kiểm tra).
+- Map tên object VG → COCO-80: khớp tên chính xác (sau lowercase, bỏ khoảng trắng thừa, dùng `synsets` nếu có) + **bảng từ đồng nghĩa viết tay** (vd man/woman/boy/girl/child/people/lady/guy → person; motorbike → motorcycle; plane → airplane; tv/television → tv; phone/cellphone → cell phone; sofa → couch; table → dining table). Bảng này commit cùng ma trận, viết xong TRƯỚC khi nhìn bất kỳ kết quả attack nào; không sửa sau. Tên không map được thì bỏ.
+- Đếm C_ij = số relationship instance có subject ∈ class i, object ∈ class j; đối xứng hóa C̃ = C + Cᵀ (tính cả i = j, vd person–person).
+- **Chuẩn hóa (chọn 1, không thử cái khác): PPMI với min support** — S_ij = max(0, log[ C̃_ij · Σ C̃ / (C̃_i· · C̃_·j) ]), tổng biên tính trên toàn bộ C̃; sau đó **C̃_ij < 20 → S_ij = 0** (min support = 20 relationship instance, không tune). Mục đích: PPMI cho điểm rất cao với cặp cực hiếm; ngưỡng buộc KG chỉ dùng quan hệ có đủ bằng chứng. Lý do: đếm thô bị person/car chi phối → "chọn cặp KG" gần như thành "chọn cặp có person" (nhiễu do tần suất class lẫn với kích thước box), còn PPMI đo ái lực quan hệ vượt trên tần suất.
+- Output: `data/kg/coco80_vg_relation_matrix.npy` (S, 80×80), `data/kg/coco80_vg_relation_metadata.json` (phiên bản VG, bảng đồng nghĩa, min support, số ảnh VG bị loại, số relation map được, số ô bị min support loại, tỉ lệ ô S > 0).
+
+### Cặp hợp lệ, ảnh có thông tin
+
+- Object hợp lệ = GT instance không phải crowd (`data_sample.gt_instances`, khung model). Cặp hợp lệ = 2 instance khác nhau (cho phép cùng class).
+- Phân loại ảnh (tính sẵn trên dev300/n300 từ annotation, báo cáo trước khi chạy):
+  - **0 cặp** (1 object): view 2 = view RRB gốc → ảnh này giống hệt E0.
+  - **1 cặp:** E1 = E2 = cặp đó (có pair-augmentation nhưng không có thông tin KG).
+  - **≥ 2 cặp = "ảnh có thông tin"** (KG có thể chọn khác random).
+  - Nếu mọi cặp của ảnh có S = 0: E2 sample đều (= E1 về prior), ảnh tính vào nhóm "KG suy biến", báo cáo riêng.
+
+### Chọn cặp mỗi step (E1 và E2 dùng chung luồng RNG)
+
+Mỗi step t, RNG riêng cho việc chọn cặp, seed theo ảnh (SEED + i), giống nhau giữa E1 và E2:
+1. Rút cặp tham chiếu q ~ p(i,j) ∝ S_{c_i c_j} trên các cặp hợp lệ của ảnh.
+2. **E2** dùng q.
+3. **E1 (geometry-matched random control)** rút đều trong tập ứng viên {p hợp lệ : |log(A_p / A_q)| ≤ log 2}, A = diện tích union box đã nở margin. Tập luôn chứa q nên không bao giờ rỗng.
+
+→ E1 và E2 có cùng mức ngẫu nhiên mỗi step và cùng phân bố kích thước crop (xấp xỉ), chỉ khác ở prior ngữ nghĩa. Báo cáo: tỉ lệ step mà cặp E1 ≠ cặp E2, phân bố |log(A_E1/A_E2)|.
+
+### View cặp (giống hệt nhau giữa E1 và E2)
+
+- T_pair: union box của 2 GT box, nở mỗi phía **15%** cạnh tương ứng của union, clip vào ảnh; crop từ adv ở khung model (KHÔNG xoay); resize bilinear khả vi theo đúng luật Resize của test pipeline (keep_ratio, cạnh dài ≤ 1333, cạnh ngắn ≤ 800), không chặn hệ số phóng; sau đó cộng nhiễu Gaussian σ = 6 như các view RRB (`rrb.gaussian_blur`).
+- **Thay view 2 của RRB:** mỗi step = [view1 = rotate(adv) + nhiễu (giữ nguyên RRB), view2 = T_pair(adv) + nhiễu]. 2 view forward, 1 backward → B = 50, số view forward = 2×B, bằng E0.
+- **Feature sạch đúng theo view:** loss OSFD của view cặp so với k·F_clean(T_pair(x_clean)) (cùng crop, không nhiễu, k = 3); view1 vẫn so với F_clean(x_clean) như OSFD gốc. F_clean theo cặp tính no_grad, cache theo cặp (forward thêm không tính vào B; báo cáo số forward no_grad + runtime).
+- Loss = L_OSFD(view1) + L_OSFD(view2), cộng như OSFD hiện tại (hệ số ½ trong spec không đổi δ vì MI chuẩn hóa gradient).
+- Mọi thứ khác giữ OSFD full recipe (protocol_lock.md): MI μ = 1, ε = 5, α = 1, B = 50, noise init 0, RRB θ = 7, l_s = 10, σ = 6, seed ảnh SEED + i. Threat model GT-assisted.
+
+### Điều kiện
+
+- **E0** — OSFD gốc (chạy mới trên dev300; trên n300 dùng lại PNG `n300_B50_eps5`).
+- **E1** — geometry-matched random control (cặp ngẫu nhiên, điều kiện theo hình học của cặp tham chiếu do KG rút) + OSFD. Trong log/paper gọi đúng tên này, KHÔNG gọi là "Random-pair" (vì E1 không ngẫu nhiên hoàn toàn).
+- **E2** — KG + OSFD.
+
+### Chỉ số
+
+- **CrossAvg₃ = mean(drop ConvNeXt-T, Swin-T, YOLOX-S)** — ĐỊNH NGHĨA MỚI, khác CrossAvg 2 target của A′1/P2 (baseline n300: CrossAvg₃(OSFD) = 78.8, CrossAvg₂ = 79.5). R101 = cùng họ; R50 white-box, DINO-Swin-L chỉ báo cáo.
+- Paired bootstrap 1000 mẫu trên ảnh, 95% CI, BOOT_SEED 2026. Báo cáo E2−E0, E2−E1, E1−E0 cho CrossAvg₃, từng target, R101 — trên toàn bộ ảnh (chính) và trên tập ảnh có thông tin (phụ, không thuộc quy tắc).
+- Output `results/kg_pilot/<set>/<condition>/{metrics.json, per_image_metrics.csv, config.json, runtime.json}`: clean/adv AP, relative AP drop, AP50, suppression, retained confidence, CrossAvg₃, TransferGap, L∞, L2, runtime, số backward, số view forward (+ forward no_grad).
+
+### Quy trình (1 đường duy nhất)
+
+**Bước 0 — Sanity gate kỹ thuật** (20 ảnh có thông tin đầu tiên theo thứ tự `dev100.csv`; không đo transfer). Phải đạt hết, nếu không thì sửa bug hoặc dừng:
+- (S1) Crop chứa trọn 2 GT box; F_clean(T_pair) đúng shape; với 1 cặp cố định và tắt nhiễu, loss tại δ = 0 của view cặp = (1−k)²·mean F_clean² (đúng như OSFD).
+- (S2) Tỉ lệ step có cặp E1 ≠ cặp E2 **≥ 0.5** — thấp hơn thì KG gần như trùng random sau khi khớp hình học → phép thử vô nghĩa → **DỪNG** hướng KG.
+- (S3) Trung vị |log(A_E1 / A_E2)| ≤ log 1.5 (khớp hình học thực sự hoạt động).
+- (S4) Sign agreement(∇ E2, ∇ E0) tại step 0, trung bình 20 ảnh < 0.95 (view cặp thật sự đổi hướng gradient — cùng ngưỡng G1 của P2).
+
+**Bước 1 — Sàng lọc @ dev300** (E0, E1, E2; 1 lần). QUA nếu đồng thời:
+- ΔCrossAvg₃(E2 − E0) ≥ 3 (điểm ước lượng);
+- ΔCrossAvg₃(E2 − E1) > 0 VÀ cận dưới CI 95% > 0;
+- E2 − E0 > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S (điểm ước lượng);
+- drop R101(E2) ≥ drop R101(E0) − 3.
+
+Không qua → NO-GO hướng KG, ghi log, không thêm biến thể (không đổi chuẩn hóa S, margin, cách khớp). **Trường hợp E1 > E0 nhưng E2 ≈ E1** (CI E2−E1 chứa 0): kết luận "augmentation cặp có thể hữu ích, KG không đóng góp rõ" → NO-GO cho claim KG; pair-augmentation KHÔNG tự động thành method — muốn đi tiếp phải chốt quy tắc mới riêng.
+
+**Bước 2 — Đóng băng cấu hình → GO @ n300** (chạy 1 lần E1 + E2; E0 = PNG baseline). GO nếu đồng thời:
+- (G1) ΔCrossAvg₃(E2 − E0) ≥ 3 VÀ cận dưới CI > 0;
+- (G2) ΔCrossAvg₃(E2 − E1) ≥ 1.5 VÀ cận dưới CI > 0;
+- (G3) E2 − E0 > 0 ở cả 3 target khác họ VÀ ≥ 2/3 target có E2 − E0 ≥ 3;
+- (G4) drop R101(E2) ≥ drop R101(E0) − 3.
+
+Không đạt → NO-GO, ghi log. Chỉ khi GO mới cân nhắc n1000 (idea.md §14).
+
+Sanity gate (bước 0) chỉ kiểm tính đúng kỹ thuật và tính khả thi của phép thử, KHÔNG dùng để quyết định về hiệu năng.
+
+Ghi chú độ nhạy: CI hiệu của 2 method gần nhau rộng khoảng ±1.5–1.8 ở 100 ảnh (W1−W2 @dev100: [−1.6, 1.3]), ước tính khoảng ±0.9 ở 300 ảnh → vì vậy sàng lọc dùng đủ dev300, không dùng dev100.
