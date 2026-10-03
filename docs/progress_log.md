@@ -738,3 +738,33 @@ Không đạt → NO-GO, ghi log. Chỉ khi GO mới cân nhắc n1000 (idea.md 
 Sanity gate (bước 0) chỉ kiểm tính đúng kỹ thuật và tính khả thi của phép thử, KHÔNG dùng để quyết định về hiệu năng.
 
 Ghi chú độ nhạy: CI hiệu của 2 method gần nhau rộng khoảng ±1.5–1.8 ở 100 ảnh (W1−W2 @dev100: [−1.6, 1.3]), ước tính khoảng ±0.9 ở 300 ảnh → vì vậy sàng lọc dùng đủ dev300, không dùng dev100.
+
+---
+
+## 2026-10-03 — Pilot KG: dựng ma trận KG + thống kê cặp trên dev300/n300 (chưa chạy attack)
+
+Máy RTX 3090; bootstrap xong (venv có sẵn dùng được, 4 checkpoint Controlled + Generalization Panel `--gen`, COCO val2017 5000 ảnh).
+
+**KG** (`scripts/build_kg.py` → `data/kg/coco80_vg_relation_matrix.npy` + `_metadata.json`; VG gốc ở `data/vg/`, gitignored, sha256 zip ghi trong metadata):
+- **Lựa chọn thực thi (không đổi quy tắc khóa):** map tên VG → COCO-80 bằng KHỚP TÊN CHÍNH XÁC sau chuẩn hóa + bảng viết tay (`NAME_TABLE` trong script, có số nhiều; loại có chủ đích tên mơ hồ: bag, glass, glove, plant, monitor, desk, van, calf, pitcher, female/male, crowd), **không dùng synset VG** — kiểm trước khi viết bảng: synset nhiễu nặng (`dog.n.01` gồm "hot dog" 3.5k lần, `child.n.01` gồm "fries"/"french fries" ~1.5k, `accountant.n.01` = "controller"), ~17% object không có synset. Bảng viết dựa trên tần suất tên, trước khi tính S.
+- Loại 577/108077 ảnh VG có coco_id ∈ dev300 ∪ n300 ∪ n1000 (1300 coco_id). Relation map được 166,201/2,303,408 (phần lớn relation VG là bộ phận cơ thể/quần áo/cảnh vật); bỏ 2,459 quan hệ object–chính nó.
+- 3240 ô tam giác trên: 1294 có đếm > 0, min support (C̃ < 20) loại 871, **308 ô S > 0 (9.5%)**. Lớp không có S > 0: potted plant, toaster.
+- Quan sát: PPMI cao nhất thường ở cặp CÙNG class (parking meter, traffic light, zebra, sheep, cow… 4.5–6.2) và cặp đồ vật cùng ngữ cảnh (microwave–oven 4.8, mouse–keyboard 4.0, toilet–sink 3.7); person–X chỉ ~0.5–1.0. Đo bên dưới: thiên lệch cùng class trên ảnh thật nhỏ.
+
+**Thống kê cặp** (`scripts/kg_pair_stats.py` → `results/kg_pilot/pair_stats.json`; giải tích từ annotation, không đo transfer):
+
+| | dev300 | n300 |
+|---|---|---|
+| 0 cặp (→ = E0) | 43 (14.3%) | 45 (15.0%) |
+| 1 cặp (E1 = E2) | 38 (12.7%) | 50 (16.7%) |
+| ≥ 2 cặp (có thông tin) | 219 (73.0%) | 205 (68.3%) |
+| … KG suy biến (mọi S = 0) | 1 | 7 |
+| … S bằng nhau mọi cặp (E2 = đều) | 13 | 9 |
+| Kỳ vọng P(cặp E1 ≠ E2), TB [ảnh có thông tin] | 0.826 | 0.819 |
+| Kỳ vọng \|log(A_E1/A_E2)\|, TB | 0.248 | 0.236 |
+| TV(phân bố cặp E2, E1), TB / trung vị | 0.413 / 0.414 | 0.410 / 0.446 |
+| P(cặp cùng class): E2 vs chọn đều | 0.366 vs 0.333 | 0.324 vs 0.332 |
+
+- Kỳ vọng S2 (≥ 0.5) và S3 (≤ log 1.5 = 0.405) đạt rộng rãi; sanity gate thật vẫn đo trên 20 ảnh dev100 theo quy tắc.
+- TV ≈ 0.41: KG làm phân bố chọn cặp khác rõ so với random khớp hình học (không phải phép thử rỗng). Khoảng 27% ảnh dev300 không có thông tin KG → hiệu ứng E2−E1 trên toàn bộ ảnh bị pha loãng tương ứng.
+- Việc tiếp theo: code view cặp + chọn cặp (E1/E2) trong engine OSFD, chạy sanity gate (bước 0).
