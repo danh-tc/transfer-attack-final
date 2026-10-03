@@ -36,6 +36,7 @@ from attack.data import build_attack_dataset
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize, to_coco_dets
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.kg_pair import kg_osfd_attack
+from attack.methods.sgm import GAMMAS, sgm_osfd_attack
 from attack.models import CONTROLLED_PANEL, SURROGATE_KEY, load_model
 from attack.preprocess import pipeline_resize, predict, to_adv_image
 
@@ -61,6 +62,14 @@ METHODS = {
     "OSFD-KG-E2": (functools.partial(kg_osfd_attack, mode="kg"), 2),
 }
 KG_METHODS = {"OSFD-KG-E1", "OSFD-KG-E2"}
+# Pilot R1 (progress_log 2026-10-03): OSFD-adapted SGM (decay chỉ trong nhánh residual). E2 (mix) nhận
+# gamma_seed = SEED + i, chọn đều γ ∈ {0.2, 0.5} mỗi step.
+METHODS.update({
+    "OSFD-SGM-0.2": (functools.partial(sgm_osfd_attack, gamma=0.2), 2),
+    "OSFD-SGM-0.5": (functools.partial(sgm_osfd_attack, gamma=0.5), 2),
+    "OSFD-SGM-mix": (functools.partial(sgm_osfd_attack, gamma_choices=GAMMAS), 2),
+})
+SGM_MIX = {"OSFD-SGM-mix"}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 
@@ -95,6 +104,8 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
             t0 = time.time()
             info = {}
             kw = {"pair_seed": SEED + i, "info": info} if name in KG_METHODS else {}
+            if name in SGM_MIX:
+                kw = {"gamma_seed": SEED + i, "info": info}
             noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon, **kw)
             torch.cuda.synchronize()
             runtime = time.time() - t0
@@ -117,6 +128,8 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                     "same_class_rate_E2": float(np.mean([r["same_class_q"] for r in log])) if log else None,
                     "same_class_rate_E1": float(np.mean([r["same_class_e1"] for r in log])) if log else None,
                 })
+            if name in SGM_MIX:
+                rec["frac_steps_gamma_0.2"] = float(np.mean([g == 0.2 for g in info["gammas"]]))
             with open(stats_path, "a") as f:
                 f.write(json.dumps(rec) + "\n")
             stats[(name, img_id)] = rec
