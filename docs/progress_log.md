@@ -875,3 +875,33 @@ Không qua → **NO-GO R1 → dừng RQ3.**
 - (G3) E_best − E0 > 0 ở cả 3 target khác họ VÀ ≥ 2/3 target ≥ 3;
 - (G4) drop R101(E_best) ≥ drop R101(E0) − 3.
 Không đạt → NO-GO → dừng RQ3. GO → cân nhắc n1000 (idea.md §14); diễn giải cơ chế chỉ khi chẩn đoán D_k nhất quán (không thì method có thể hữu ích nhưng không viết câu chuyện nhân quả).
+
+---
+
+## 2026-10-03 — Pilot R1 (OSFD-adapted SGM): sanity + sàng lọc dev300 → **NO-GO** → theo cam kết: **dừng RQ3**
+
+**Code** (`29c763e`, `68ca341`): `attack/methods/sgm.py` — `StageBalancedSGM` (forward hook trên norm1/norm2 của Bottleneck không phải block đầu mỗi stage, chèn identity có backward × √γ trước ReLU inplace; γ đổi được mỗi step), `LiteralSGM` (port nguyên văn, chỉ cho unit test), `sgm_osfd_attack`. Thêm `OSFD-SGM-0.2/0.5/mix` vào `run_baselines.py`.
+
+**Sanity kỹ thuật** (`scripts/pilot_r1_gate.py` → `results/r1_pilot/dev300/sanity_gate.json`, 5 ảnh đầu dev100, δ = 0, không RRB): đạt hết — forward (feature + loss) giữ nguyên tuyệt đối; γ = 1 tái tạo gradient chuẩn (sai số tương đối 1.5e-7); hướng SGM với loss chỉ ở stage 4: cos(adapted, nguyên văn) = 0.9999999 (γ 0.2 và 0.5); sign agreement với gradient chuẩn 0.612 (γ 0.2) / 0.729 (γ 0.5). Tỉ trọng ‖∇‖ theo số hạng stage 1→4: chuẩn .003/.159/.361/.478; γ 0.2 .009/.302/.400/.290; γ 0.5 .007/.280/.401/.313 — không stage nào bị triệt, nhưng SGM dời trọng tâm từ stage 4 sang stage 2–3.
+
+**Chẩn đoán D_k** (`scripts/mech_r1_diag.py` → `mech_diag.json`; 20 ảnh dev100, 10 step; chạy TRƯỚC khi có số transfer): SGM làm distortion stage sâu GIẢM ở mọi model, kể cả target khác họ — D_4: R101 1.01 → 0.71 (γ 0.2) / 0.90 (γ 0.5); ConvNeXt 0.58 → 0.39 / 0.52; Swin 0.50 → 0.36 / 0.47; stage 1 gần như không đổi. D_4/D_1: ConvNeXt 1.30 → 0.86 / 1.12; Swin 1.53 → 1.03 / 1.38.
+
+**Sàng lọc dev300** (`scripts/pilot_r1_screen.py` → `results/r1_pilot/dev300/{screen.json, E0,E1a,E1b,E2/...}`; E0 = PNG OSFD của run KG cùng seed; run `metrics_sgm.json` / `generalization_sgm.json`). Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- E0 OSFD: 98.1 / 93.0 / 77.4 / 74.6 / 68.7 / 24.9 | **73.6**
+- E1a SGM γ 0.2: 79.4 / 58.2 / 37.8 / 42.4 / 39.2 / 11.0 | **39.8**
+- E1b SGM γ 0.5: 97.1 / 87.9 / 68.3 / 67.8 / 63.1 / 20.9 | **66.4**
+- E2 mix {0.2, 0.5}: 93.5 / 79.0 / 56.6 / 59.1 / 54.0 / 16.5 | **56.6**
+
+Δ CrossAvg₃ [95% CI]: E1a − E0 **−33.8 [−36.8, −30.8]**; E1b − E0 **−7.2 [−8.6, −5.5]**; E2 − E0 −17.0 [−19.1, −14.8]; E2 − E1b −9.8; E1a − E1b −26.6. Mọi target, mọi điều kiện SGM đều GIẢM, CI loại 0.
+
+**Áp quy tắc khóa:** E_best = E1b (γ 0.5); ΔCrossAvg₃ −7.2 (cần ≥ 3) ✗, ConvNeXt −9.1 ✗, Swin −6.8 ✗, YOLOX-S −5.6 ✗, R101 −5.1 (cần ≥ −3) ✗ → **NO-GO R1**. Theo cam kết đã khóa: **dừng RQ3, chuyển trọng tâm sang analysis paper.** Không thử γ/biến thể khác (LinBP, PAS…).
+
+Diễn giải (mô tả, không đổi kết luận):
+- **Hiệu ứng liều–đáp ứng đơn điệu:** γ càng nhỏ (càng giảm gradient nhánh residual) transfer càng giảm, ở mọi target kể cả cùng họ và cả white-box R50 (98.1 → 97.1 → 79.4). Ngược với SGM ở classification (Wu et al. báo tăng transfer). Với OSFD trên detector, gradient qua nhánh residual của R50 là cần thiết — không phải "overfit đặc thù ResNet" cần triệt.
+- Nhất quán với chẩn đoán D_k (chạy trước): SGM làm δ phá feature sâu kém đi ở MỌI model, không riêng R101; và với dịch chuyển tỉ trọng gradient về stage 2–3 (A3: tấn công stage nông yếu hơn). Không tách được phần nào do "giảm residual" và phần nào do "dời trọng tâm stage" — ghi nhận.
+- Đây là thêm 1 kết quả can thiệp âm cho RQ2: giảm đường gradient residual KHÔNG thu hẹp gap họ backbone (gap R101 − CrossAvg₃: E0 19.4, E1b 21.5, E1a 18.4 — gap gần như không đổi trong khi mọi drop đều giảm).
+- Compute như nhau (B = 50, 2 view/step; runtime 3.3–3.5 s/ảnh); L∞ = 5; E2 dùng γ 0.2 ở 49.9% step.
+
+**Tổng kết RQ3** (theo cam kết, đóng): A′1 (trọng số không gian trong loss) NO-GO @ n300; P1 bỏ (≈ OSFD); P2 (gộp lõm theo channel) dừng ở gate; KG (view cặp object) NO-GO @ dev300, làm giảm transfer; R1 (SGM backward) NO-GO @ dev300, giảm mạnh theo liều. Không can thiệp nào thu hẹp phần gap còn lại của OSFD.
+
+Artifact CHƯA upload HF: `artifacts/runs/dev300_B50_eps5/` (PNG OSFD, KG-E1/E2, SGM-0.2/0.5/mix; `dets_kg.json`, `dets_sgm.json`, `gen_dets/`).

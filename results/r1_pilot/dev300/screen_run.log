@@ -1,0 +1,24 @@
+[screen] AP xong: r50
+[screen] AP xong: r101
+[screen] AP xong: convnext_t
+[screen] AP xong: swin_t
+[screen] AP xong: yolox_s
+[screen] AP xong: dino_swin_l
+
+=== relative AP drop (dev300, n=300) ===
+               r50         r101   convnext_t       swin_t      yolox_s  dino_swin_l   cross_avg3
+E0            98.1         93.0         77.4         74.6         68.7         24.9         73.6
+E1a           79.4         58.2         37.8         42.4         39.2         11.0         39.8
+E1b           97.1         87.9         68.3         67.8         63.1         20.9         66.4
+E2            93.5         79.0         56.6         59.1         54.0         16.5         56.6
+
+=== Δ (toàn bộ ảnh) ===
+E1a-E0  r101  -34.8 [-39.0,-31.3]  convnext_t  -39.7 [-44.1,-35.9]  swin_t  -32.2 [-36.0,-28.2]  yolox_s  -29.5 [-33.1,-25.3]  dino_swin_l  -13.8 [-16.1,-10.8]  cross_avg3  -33.8 [-36.8,-30.8]
+E1b-E0  r101   -5.1 [ -7.8, -3.5]  convnext_t   -9.1 [-11.6, -7.1]  swin_t   -6.8 [ -9.1, -4.5]  yolox_s   -5.6 [ -7.6, -2.6]  dino_swin_l   -4.0 [ -5.6, -1.3]  cross_avg3   -7.2 [ -8.6, -5.5]
+E2-E0   r101  -14.0 [-17.4,-12.0]  convnext_t  -20.8 [-24.3,-17.8]  swin_t  -15.5 [-18.8,-12.7]  yolox_s  -14.7 [-17.4,-10.7]  dino_swin_l   -8.4 [-10.8, -6.3]  cross_avg3  -17.0 [-19.1,-14.8]
+E2-E1a  r101  +20.8 [+17.6,+23.8]  convnext_t  +18.8 [+16.1,+22.2]  swin_t  +16.7 [+13.4,+19.7]  yolox_s  +14.8 [+12.0,+18.4]  dino_swin_l   +5.4 [ +3.3, +6.6]  cross_avg3  +16.8 [+14.7,+19.2]
+E2-E1b  r101   -8.9 [-11.2, -7.1]  convnext_t  -11.7 [-14.5, -9.6]  swin_t   -8.7 [-11.1, -7.0]  yolox_s   -9.1 [-11.3, -6.7]  dino_swin_l   -4.5 [ -7.0, -3.2]  cross_avg3   -9.8 [-11.4, -8.4]
+E1a-E1b r101  -29.7 [-33.3,-26.0]  convnext_t  -30.6 [-34.7,-27.2]  swin_t  -25.4 [-28.6,-21.9]  yolox_s  -23.9 [-28.2,-20.0]  dino_swin_l   -9.9 [-12.3, -7.9]  cross_avg3  -26.6 [-29.6,-23.9]
+
+E_best = E1b  cross_avg3_best-E0>=3: ✗  convnext_t_best-E0>0: ✗  swin_t_best-E0>0: ✗  yolox_s_best-E0>0: ✗  r101_best>=E0-3: ✗
+=> sàng lọc dev300: KHÔNG QUA (NO-GO R1 -> dừng RQ3)

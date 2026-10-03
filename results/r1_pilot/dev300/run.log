@@ -1,0 +1,326 @@
+loading annotations into memory...
+Done (t=0.34s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 300 ảnh, methods=['OSFD', 'OSFD-SGM-0.2', 'OSFD-SGM-0.5', 'OSFD-SGM-mix']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD-SGM-0.2] 10/300  3.1s/ảnh  còn ~15 phút
+[attack OSFD-SGM-0.2] 20/300  3.8s/ảnh  còn ~18 phút
+[attack OSFD-SGM-0.2] 30/300  4.8s/ảnh  còn ~22 phút
+[attack OSFD-SGM-0.2] 40/300  4.6s/ảnh  còn ~20 phút
+[attack OSFD-SGM-0.2] 50/300  4.3s/ảnh  còn ~18 phút
+[attack OSFD-SGM-0.2] 60/300  4.2s/ảnh  còn ~17 phút
+[attack OSFD-SGM-0.2] 70/300  4.1s/ảnh  còn ~16 phút
+[attack OSFD-SGM-0.2] 80/300  4.0s/ảnh  còn ~15 phút
+[attack OSFD-SGM-0.2] 90/300  3.9s/ảnh  còn ~14 phút
+[attack OSFD-SGM-0.2] 100/300  3.9s/ảnh  còn ~13 phút
+[attack OSFD-SGM-0.2] 110/300  3.8s/ảnh  còn ~12 phút
+[attack OSFD-SGM-0.2] 120/300  3.8s/ảnh  còn ~11 phút
+[attack OSFD-SGM-0.2] 130/300  3.8s/ảnh  còn ~11 phút
+[attack OSFD-SGM-0.2] 140/300  3.7s/ảnh  còn ~10 phút
+[attack OSFD-SGM-0.2] 150/300  3.7s/ảnh  còn ~9 phút
+[attack OSFD-SGM-0.2] 160/300  3.7s/ảnh  còn ~9 phút
+[attack OSFD-SGM-0.2] 170/300  3.7s/ảnh  còn ~8 phút
+[attack OSFD-SGM-0.2] 180/300  3.7s/ảnh  còn ~7 phút
+[attack OSFD-SGM-0.2] 190/300  3.6s/ảnh  còn ~7 phút
+[attack OSFD-SGM-0.2] 200/300  3.6s/ảnh  còn ~6 phút
+[attack OSFD-SGM-0.2] 210/300  3.6s/ảnh  còn ~5 phút
+[attack OSFD-SGM-0.2] 220/300  3.6s/ảnh  còn ~5 phút
+[attack OSFD-SGM-0.2] 230/300  3.6s/ảnh  còn ~4 phút
+[attack OSFD-SGM-0.2] 240/300  3.6s/ảnh  còn ~4 phút
+[attack OSFD-SGM-0.2] 250/300  3.6s/ảnh  còn ~3 phút
+[attack OSFD-SGM-0.2] 260/300  3.6s/ảnh  còn ~2 phút
+[attack OSFD-SGM-0.2] 270/300  3.5s/ảnh  còn ~2 phút
+[attack OSFD-SGM-0.2] 280/300  3.5s/ảnh  còn ~1 phút
+[attack OSFD-SGM-0.2] 290/300  3.5s/ảnh  còn ~1 phút
+[attack OSFD-SGM-0.2] 300/300  3.5s/ảnh  còn ~0 phút
+[attack OSFD-SGM-0.5] 10/300  3.4s/ảnh  còn ~16 phút
+[attack OSFD-SGM-0.5] 20/300  3.4s/ảnh  còn ~16 phút
+[attack OSFD-SGM-0.5] 30/300  3.4s/ảnh  còn ~15 phút
+[attack OSFD-SGM-0.5] 40/300  3.3s/ảnh  còn ~15 phút
+[attack OSFD-SGM-0.5] 50/300  3.4s/ảnh  còn ~14 phút
+[attack OSFD-SGM-0.5] 60/300  3.4s/ảnh  còn ~14 phút
+[attack OSFD-SGM-0.5] 70/300  3.4s/ảnh  còn ~13 phút
+[attack OSFD-SGM-0.5] 80/300  3.4s/ảnh  còn ~12 phút
+[attack OSFD-SGM-0.5] 90/300  3.4s/ảnh  còn ~12 phút
+[attack OSFD-SGM-0.5] 100/300  3.4s/ảnh  còn ~11 phút
+[attack OSFD-SGM-0.5] 110/300  3.4s/ảnh  còn ~11 phút
+[attack OSFD-SGM-0.5] 120/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-SGM-0.5] 130/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-SGM-0.5] 140/300  3.4s/ảnh  còn ~9 phút
+[attack OSFD-SGM-0.5] 150/300  3.4s/ảnh  còn ~8 phút
+[attack OSFD-SGM-0.5] 160/300  3.4s/ảnh  còn ~8 phút
+[attack OSFD-SGM-0.5] 170/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-SGM-0.5] 180/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-SGM-0.5] 190/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-SGM-0.5] 200/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-SGM-0.5] 210/300  3.4s/ảnh  còn ~5 phút
+[attack OSFD-SGM-0.5] 220/300  3.4s/ảnh  còn ~4 phút
+[attack OSFD-SGM-0.5] 230/300  3.4s/ảnh  còn ~4 phút
+[attack OSFD-SGM-0.5] 240/300  3.4s/ảnh  còn ~3 phút
+[attack OSFD-SGM-0.5] 250/300  3.4s/ảnh  còn ~3 phút
+[attack OSFD-SGM-0.5] 260/300  3.4s/ảnh  còn ~2 phút
+[attack OSFD-SGM-0.5] 270/300  3.4s/ảnh  còn ~2 phút
+[attack OSFD-SGM-0.5] 280/300  3.4s/ảnh  còn ~1 phút
+[attack OSFD-SGM-0.5] 290/300  3.3s/ảnh  còn ~1 phút
+[attack OSFD-SGM-0.5] 300/300  3.3s/ảnh  còn ~0 phút
+[attack OSFD-SGM-mix] 10/300  3.4s/ảnh  còn ~16 phút
+[attack OSFD-SGM-mix] 20/300  3.4s/ảnh  còn ~16 phút
+[attack OSFD-SGM-mix] 30/300  3.4s/ảnh  còn ~15 phút
+[attack OSFD-SGM-mix] 40/300  3.3s/ảnh  còn ~14 phút
+[attack OSFD-SGM-mix] 50/300  3.4s/ảnh  còn ~14 phút
+[attack OSFD-SGM-mix] 60/300  3.4s/ảnh  còn ~13 phút
+[attack OSFD-SGM-mix] 70/300  3.4s/ảnh  còn ~13 phút
+[attack OSFD-SGM-mix] 80/300  3.4s/ảnh  còn ~12 phút
+[attack OSFD-SGM-mix] 90/300  3.4s/ảnh  còn ~12 phút
+[attack OSFD-SGM-mix] 100/300  3.4s/ảnh  còn ~11 phút
+[attack OSFD-SGM-mix] 110/300  3.4s/ảnh  còn ~11 phút
+[attack OSFD-SGM-mix] 120/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-SGM-mix] 130/300  3.4s/ảnh  còn ~10 phút
+[attack OSFD-SGM-mix] 140/300  3.4s/ảnh  còn ~9 phút
+[attack OSFD-SGM-mix] 150/300  3.4s/ảnh  còn ~8 phút
+[attack OSFD-SGM-mix] 160/300  3.4s/ảnh  còn ~8 phút
+[attack OSFD-SGM-mix] 170/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-SGM-mix] 180/300  3.4s/ảnh  còn ~7 phút
+[attack OSFD-SGM-mix] 190/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-SGM-mix] 200/300  3.4s/ảnh  còn ~6 phút
+[attack OSFD-SGM-mix] 210/300  3.4s/ảnh  còn ~5 phút
+[attack OSFD-SGM-mix] 220/300  3.4s/ảnh  còn ~4 phút
+[attack OSFD-SGM-mix] 230/300  3.4s/ảnh  còn ~4 phút
+[attack OSFD-SGM-mix] 240/300  3.4s/ảnh  còn ~3 phút
+[attack OSFD-SGM-mix] 250/300  3.4s/ảnh  còn ~3 phút
+[attack OSFD-SGM-mix] 260/300  3.4s/ảnh  còn ~2 phút
+[attack OSFD-SGM-mix] 270/300  3.4s/ảnh  còn ~2 phút
+[attack OSFD-SGM-mix] 280/300  3.4s/ảnh  còn ~1 phút
+[attack OSFD-SGM-mix] 290/300  3.3s/ảnh  còn ~1 phút
+[attack OSFD-SGM-mix] 300/300  3.3s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (47s)
+[eval] predict 100/300 (93s)
+[eval] predict 150/300 (139s)
+[eval] predict 200/300 (184s)
+[eval] predict 250/300 (229s)
+[eval] predict 300/300 (273s)
+loading annotations into memory...
+Done (t=0.20s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.26s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (408s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          43.4 [ 42.3, 48.1]   45.2 [ 44.1, 49.9]   48.5 [ 47.7, 53.3]   48.5 [ 47.7, 53.5]
+OSFD            0.8 [  0.2,  2.0]    3.2 [  2.5,  4.5]   10.9 [  9.5, 13.4]   12.3 [ 11.1, 15.1]
+OSFD-SGM-0.2    8.9 [  7.9, 11.2]   18.9 [ 17.5, 22.4]   30.2 [ 29.0, 34.4]   27.9 [ 26.6, 32.1]
+OSFD-SGM-0.5    1.3 [  0.7,  2.5]    5.5 [  4.8,  7.5]   15.4 [ 14.0, 18.3]   15.6 [ 14.3, 18.8]
+OSFD-SGM-mix    2.8 [  2.2,  4.3]    9.5 [  8.7, 12.0]   21.0 [ 19.6, 24.7]   19.8 [ 18.5, 23.5]
+
+=== relative AP drop % [95% CI] ===
+OSFD           98.1 [ 95.5, 99.5]   93.0 [ 90.3, 94.7]   77.4 [ 73.4, 81.1]   74.6 [ 70.5, 77.7]
+OSFD-SGM-0.2   79.4 [ 75.3, 82.0]   58.2 [ 52.9, 61.9]   37.8 [ 32.7, 41.3]   42.4 [ 37.5, 46.6]
+OSFD-SGM-0.5   97.1 [ 94.4, 98.4]   87.9 [ 84.2, 89.6]   68.3 [ 63.9, 72.0]   67.8 [ 63.3, 71.3]
+OSFD-SGM-mix   93.5 [ 90.4, 95.2]   79.0 [ 74.5, 81.4]   56.6 [ 51.7, 60.5]   59.1 [ 54.1, 62.6]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  76.0 [ 72.2, 79.0]  gap→ConvNeXt  15.6 [ 12.1, 18.6]  gap→Swin  18.4 [ 15.5, 21.5]  gap→avg  17.0 [ 14.0, 19.6]
+OSFD-SGM-0.2 CrossAvg  40.1 [ 35.5, 43.5]  gap→ConvNeXt  20.5 [ 16.0, 24.8]  gap→Swin  15.8 [ 11.0, 19.6]  gap→avg  18.2 [ 13.9, 21.9]
+OSFD-SGM-0.5 CrossAvg  68.1 [ 63.7, 71.5]  gap→ConvNeXt  19.6 [ 15.2, 22.7]  gap→Swin  20.1 [ 16.2, 23.2]  gap→avg  19.8 [ 16.0, 22.7]
+OSFD-SGM-mix CrossAvg  57.9 [ 53.3, 61.3]  gap→ConvNeXt  22.4 [ 17.4, 25.9]  gap→Swin  19.9 [ 15.9, 23.4]  gap→avg  21.2 [ 17.0, 24.3]
+
+=== runtime === {'OSFD': 3.3, 'OSFD-SGM-0.2': 3.5, 'OSFD-SGM-0.5': 3.3, 'OSFD-SGM-mix': 3.3}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/metrics_sgm.json
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.34s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/300 (2s)
+[gen yolox_s] 100/300 (5s)
+[gen yolox_s] 150/300 (7s)
+[gen yolox_s] 200/300 (9s)
+[gen yolox_s] 250/300 (11s)
+[gen yolox_s] 300/300 (13s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (40s)
+[gen dino_swin_l] 100/300 (82s)
+[gen dino_swin_l] 150/300 (127s)
+[gen dino_swin_l] 200/300 (173s)
+[gen dino_swin_l] 250/300 (220s)
+[gen dino_swin_l] 300/300 (266s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.40s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.43s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 45.2  yolox_s: 42.6  dino_swin_l: 62.5
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+OSFD           93.0 [ 90.3, 94.7]   68.7 [ 63.2, 73.3]   24.9 [ 21.0, 27.4]
+OSFD-SGM-0.2   58.2 [ 52.9, 61.9]   39.2 [ 34.3, 43.6]   11.0 [  8.4, 13.3]
+OSFD-SGM-0.5   87.9 [ 84.2, 89.6]   63.1 [ 58.2, 68.0]   20.9 [ 17.5, 23.9]
+OSFD-SGM-mix   79.0 [ 74.5, 81.4]   54.0 [ 48.9, 59.0]   16.5 [ 12.8, 18.6]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           24.3 [ 20.5, 28.5]   68.1 [ 64.8, 71.8]
+OSFD-SGM-0.2   19.1 [ 14.0, 22.6]   47.2 [ 42.0, 51.4]
+OSFD-SGM-0.5   24.8 [ 19.9, 28.4]   67.0 [ 62.4, 70.2]
+OSFD-SGM-mix   25.1 [ 19.9, 28.4]   62.6 [ 58.1, 66.6]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+OSFD-SGM-0.2 - OSFD     -29.5 [-33.1,-25.3]  -13.8 [-16.1,-10.8]
+OSFD-SGM-0.5 - OSFD      -5.6 [ -7.6, -2.6]   -4.0 [ -5.6, -1.3]
+OSFD-SGM-0.5 - OSFD-SGM-0.2   23.9 [ 20.0, 28.2]    9.9 [  7.9, 12.3]
+OSFD-SGM-mix - OSFD     -14.7 [-17.4,-10.7]   -8.4 [-10.8, -6.3]
+OSFD-SGM-mix - OSFD-SGM-0.2   14.8 [ 12.0, 18.4]    5.4 [  3.3,  6.6]
+OSFD-SGM-mix - OSFD-SGM-0.5   -9.1 [-11.3, -6.7]   -4.5 [ -7.0, -3.2]
+
+=== model_diff (OSFD) ===
+  dino_swin_l - yolox_s        -43.8 [-48.9,-39.4]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/generalization_sgm.json
+EXIT=0

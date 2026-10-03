@@ -1,0 +1,5 @@
+{
+  "runtime_s_per_img_mean": 3.3242972326278686,
+  "backward_per_img": 50,
+  "forward_views_per_img": 100
+}

@@ -1,0 +1,10 @@
+{
+  "split": "dev300",
+  "surrogate": "Mask R-CNN R50",
+  "epsilon_255": 5.0,
+  "alpha": 1.0,
+  "budget_B": 50,
+  "recipe": "OSFD full (MI μ=1, RRB θ=7 l_s=10 ρ=0.8 s_max=1.1 σ=6, k=3)",
+  "backward": "OSFD-adapted SGM, γ chọn đều mỗi step trong {0.2, 0.5} (numpy RNG seed SEED + i)",
+  "rule": "docs/progress_log.md 2026-10-03 (pilot R1, LOCKED)"
+}
