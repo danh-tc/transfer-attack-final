@@ -35,6 +35,7 @@ sys.path.insert(0, REPO_ROOT)
 from attack.data import build_attack_dataset
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize, to_coco_dets
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
+from attack.methods.kg_pair import kg_osfd_attack
 from attack.models import CONTROLLED_PANEL, SURROGATE_KEY, load_model
 from attack.preprocess import pipeline_resize, predict, to_adv_image
 
@@ -54,7 +55,12 @@ METHODS = {
     # Pilot P2 (progress_log 2026-09-24).
     "OSFD-P2a": (functools.partial(osfd_attack, channel_concave="median"), 2),
     "OSFD-P2b": (functools.partial(osfd_attack, channel_concave="2median"), 2),
+    # Pilot KG (progress_log 2026-10-03): view 2 của RRB -> crop cặp object. E1 = geometry-matched
+    # random control, E2 = KG. Nhận thêm pair_seed = SEED + i (cùng seed ảnh).
+    "OSFD-KG-E1": (functools.partial(kg_osfd_attack, mode="random_matched"), 2),
+    "OSFD-KG-E2": (functools.partial(kg_osfd_attack, mode="kg"), 2),
 }
+KG_METHODS = {"OSFD-KG-E1", "OSFD-KG-E2"}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 
@@ -87,7 +93,9 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
             orig, ds = sample["orig_inputs"].to(device), sample["data_sample"]
             random.seed(SEED + i); torch.manual_seed(SEED + i)
             t0 = time.time()
-            noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon)
+            info = {}
+            kw = {"pair_seed": SEED + i, "info": info} if name in KG_METHODS else {}
+            noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon, **kw)
             torch.cuda.synchronize()
             runtime = time.time() - t0
             adv = to_adv_image(orig, noise)
@@ -99,6 +107,16 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                    "l2": float(delta.norm()), "l2_per_pixel_rms": float(delta.pow(2).mean().sqrt()),
                    "runtime_s": runtime, "backward": args.budget,
                    "forward_views": args.budget * views}
+            if name in KG_METHODS:
+                sp, log = info["sampler"], info["sampler"].log
+                rec.update({
+                    "forward_no_grad": info["forward_no_grad"], "n_pairs": sp.n_pairs,
+                    "kg_degenerate": bool(sp.n_pairs > 0 and sp.kg_degenerate),
+                    "frac_steps_E1_ne_E2": float(np.mean([r["q"] != r["e1"] for r in log])) if log else None,
+                    "median_abs_log_area_ratio": float(np.median([r["abs_log_area_ratio"] for r in log])) if log else None,
+                    "same_class_rate_E2": float(np.mean([r["same_class_q"] for r in log])) if log else None,
+                    "same_class_rate_E1": float(np.mean([r["same_class_e1"] for r in log])) if log else None,
+                })
             with open(stats_path, "a") as f:
                 f.write(json.dumps(rec) + "\n")
             stats[(name, img_id)] = rec
