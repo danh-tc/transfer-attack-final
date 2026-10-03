@@ -1,0 +1,66 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+[gen dino_r50] 50/100 (13s)
+[gen dino_r50] 100/100 (25s)
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.17s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: dino_r50
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=100) ===
+r101: 46.6  dino_r50: 56.2
+
+=== relative AP drop % [95% CI] ===
+                             r101             dino_r50
+OSFD           91.8 [ 86.8, 95.2]   96.0 [ 93.8, 98.7]
+ABL-task-loss   92.5 [ 89.4, 95.5]   94.3 [ 91.6, 96.8]
+ABL-no-RRB     84.8 [ 78.4, 88.3]   96.2 [ 94.4, 99.0]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           -4.2 [ -8.3, -2.5]
+ABL-task-loss   -1.8 [ -3.4, -0.5]
+ABL-no-RRB    -11.4 [-17.7, -9.0]
+
+=== method_diff ===
+                                   dino_r50
+ABL-task-loss - OSFD     -1.7 [ -3.9, -0.0]
+ABL-no-RRB - OSFD         0.2 [ -0.1,  1.4]
+ABL-no-RRB - ABL-task-loss    1.9 [  0.7,  4.3]
+
+=== model_diff (OSFD) ===
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/generalization_dino_r50_dev100.json

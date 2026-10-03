@@ -1,0 +1,21 @@
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+[swinl] 20/100
+[swinl] 40/100
+[swinl] 60/100
+[swinl] 80/100
+[swinl] 100/100
+
+=== dino_swin_l ===
+OSFD            retained 0.76 | backbone0: rel 0.36 cosd 0.067 ρ -0.30  backbone1: rel 0.46 cosd 0.108 ρ -0.27  backbone2: rel 0.74 cosd 0.276 ρ -0.36  backbone3: rel 0.91 cosd 0.424 ρ -0.36  neck0: rel 0.44 cosd 0.097 ρ -0.32  neck1: rel 0.64 cosd 0.213 ρ -0.28  neck2: rel 0.79 cosd 0.319 ρ -0.39  neck3: rel 0.83 cosd 0.356 ρ -0.43  neck4: rel 0.67 cosd 0.243 ρ -0.40  encoder0: rel 0.35 cosd 0.066 ρ -0.44
+ABL-task-loss   retained 0.76 | backbone0: rel 0.36 cosd 0.067 ρ -0.25  backbone1: rel 0.42 cosd 0.090 ρ -0.26  backbone2: rel 0.60 cosd 0.181 ρ -0.29  backbone3: rel 0.73 cosd 0.275 ρ -0.33  neck0: rel 0.43 cosd 0.094 ρ -0.25  neck1: rel 0.55 cosd 0.156 ρ -0.25  neck2: rel 0.63 cosd 0.200 ρ -0.33  neck3: rel 0.65 cosd 0.220 ρ -0.34  neck4: rel 0.49 cosd 0.126 ρ -0.32  encoder0: rel 0.25 cosd 0.033 ρ -0.46
+ABL-no-RRB      retained 0.90 | backbone0: rel 0.38 cosd 0.072 ρ -0.20  backbone1: rel 0.46 cosd 0.109 ρ -0.17  backbone2: rel 0.62 cosd 0.194 ρ -0.17  backbone3: rel 0.72 cosd 0.267 ρ -0.20  neck0: rel 0.45 cosd 0.102 ρ -0.18  neck1: rel 0.63 cosd 0.205 ρ -0.18  neck2: rel 0.64 cosd 0.211 ρ -0.24  neck3: rel 0.64 cosd 0.209 ρ -0.24  neck4: rel 0.47 cosd 0.114 ρ -0.21  encoder0: rel 0.22 cosd 0.025 ρ -0.39
+
+=== dino_r50 ===
+OSFD            retained 0.06 | backbone0: rel 0.70 cosd 0.227 ρ -0.31  backbone1: rel 1.18 cosd 0.576 ρ -0.41  backbone2: rel 1.44 cosd 0.873 ρ -0.55  neck0: rel 0.68 cosd 0.240 ρ -0.33  neck1: rel 1.06 cosd 0.569 ρ -0.44  neck2: rel 1.30 cosd 0.840 ρ -0.53  neck3: rel 1.21 cosd 0.739 ρ -0.60  encoder0: rel 0.80 cosd 0.324 ρ -0.56
+ABL-task-loss   retained 0.23 | backbone0: rel 0.61 cosd 0.183 ρ -0.29  backbone1: rel 0.91 cosd 0.391 ρ -0.38  backbone2: rel 1.15 cosd 0.617 ρ -0.55  neck0: rel 0.59 cosd 0.181 ρ -0.31  neck1: rel 0.82 cosd 0.341 ρ -0.43  neck2: rel 1.04 cosd 0.544 ρ -0.65  neck3: rel 0.94 cosd 0.449 ρ -0.64  encoder0: rel 0.58 cosd 0.169 ρ -0.49
+ABL-no-RRB      retained 0.04 | backbone0: rel 0.81 cosd 0.304 ρ -0.27  backbone1: rel 1.27 cosd 0.661 ρ -0.32  backbone2: rel 1.52 cosd 0.905 ρ -0.38  neck0: rel 0.81 cosd 0.335 ρ -0.30  neck1: rel 1.16 cosd 0.672 ρ -0.38  neck2: rel 1.32 cosd 0.874 ρ -0.48  neck3: rel 1.24 cosd 0.767 ρ -0.53  encoder0: rel 0.86 cosd 0.371 ρ -0.45
+
+=== swin_t ===
+OSFD            retained 0.32 | backbone0: rel 0.34 cosd 0.059 ρ -0.38  backbone1: rel 0.57 cosd 0.170 ρ -0.44  backbone2: rel 0.92 cosd 0.408 ρ -0.51  backbone3: rel 0.70 cosd 0.244 ρ -0.66  neck0: rel 0.82 cosd 0.336 ρ -0.54  neck1: rel 0.98 cosd 0.454 ρ -0.53  neck2: rel 1.05 cosd 0.515 ρ -0.51  neck3: rel 1.03 cosd 0.492 ρ -0.49  neck4: rel 1.02 cosd 0.485 ρ -0.49
+ABL-task-loss   retained 0.50 | backbone0: rel 0.34 cosd 0.058 ρ -0.29  backbone1: rel 0.51 cosd 0.131 ρ -0.35  backbone2: rel 0.64 cosd 0.208 ρ -0.40  backbone3: rel 0.48 cosd 0.116 ρ -0.40  neck0: rel 0.57 cosd 0.166 ρ -0.43  neck1: rel 0.64 cosd 0.211 ρ -0.41  neck2: rel 0.69 cosd 0.241 ρ -0.41  neck3: rel 0.68 cosd 0.229 ρ -0.41  neck4: rel 0.67 cosd 0.224 ρ -0.41
+ABL-no-RRB      retained 0.65 | backbone0: rel 0.35 cosd 0.062 ρ -0.37  backbone1: rel 0.57 cosd 0.166 ρ -0.38  backbone2: rel 0.77 cosd 0.298 ρ -0.42  backbone3: rel 0.53 cosd 0.145 ρ -0.48  neck0: rel 0.66 cosd 0.226 ρ -0.43  neck1: rel 0.73 cosd 0.277 ρ -0.44  neck2: rel 0.76 cosd 0.301 ρ -0.45  neck3: rel 0.72 cosd 0.271 ρ -0.47  neck4: rel 0.71 cosd 0.266 ρ -0.47

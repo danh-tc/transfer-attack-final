@@ -1000,3 +1000,25 @@ Tiếp theo theo plan: bước 2 (cơ chế, chỉ forward). Cần user quyết 
 **Ngoại lệ — task loss:** D_k thấp hơn OSFD ở MỌI model (D_4 ConvNeXt 0.57 vs 0.82, Swin-L 0.73 vs 0.91) nhưng CrossAvg₃ ngang và DINO-Swin-L cao hơn → task loss phá feature ÍT hơn mà vẫn lừa được bằng/hơn; độ lớn distortion feature không giải thích được khác biệt GIỮA loại loss.
 
 **Câu cơ chế (cho bước 3):** *Đa dạng biến đổi (RRB, phần lớn qua xoay) đẩy δ về tần thấp và làm nó bớt đặc thù surrogate — giảm distortion sâu trên R50, tăng distortion sâu trên target khác họ; distortion sâu trên target là thứ quyết định suppression theo từng ảnh. MI và loại loss đóng góp theo cơ chế khác, chưa đo được bằng D_k/phổ.*
+
+---
+
+## 2026-10-03 — Vì sao DINO-Swin-L bền: distortion qua backbone → neck → encoder (DINO-Swin-L vs DINO-R50)
+
+`scripts/mech_swinl.py` → `results/ablation/mech/swinl.json` (+ `swinl_run.log`); DINO-R50 eval dev100 → `results/runs/dev300_B50_eps5/generalization_dino_r50_dev100.json`. 100 ảnh dev100; OSFD / task loss / bỏ RRB. Chỉ số: rel = ‖a − c‖/‖c‖ và **cosd = 1 − cos(a, c)** (không phụ thuộc thang đo kiến trúc — rel so giữa kiến trúc dễ gây hiểu nhầm).
+
+OSFD, cosd theo tầng (cùng detector DINO, chỉ khác backbone):
+
+| | backbone tầng cuối | neck (lớn nhất) | **encoder (memory)** | retained conf. | drop AP |
+|---|---|---|---|---|---|
+| DINO-R50 | **0.873** | 0.840 | **0.324** | 0.06 | 96.0 |
+| DINO-Swin-L | **0.424** | 0.356 | **0.066** | 0.76 | 25.3 |
+| Mask R-CNN Swin-T (tham chiếu) | 0.244 | **0.515** (FPN khuếch đại) | — | 0.32 | 74.3 |
+
+- **Đính chính bước 2:** "D_4 Swin-L 0.91 > Swin-T 0.70" là theo rel; theo cosd, feature sâu của Swin-L vẫn còn khá thẳng hàng với bản sạch (cos ≈ 0.58), trong khi R50 gần như trực giao (cos ≈ 0.13).
+- **Encoder DINO dập distortion:** tỉ lệ cosd encoder / backbone cuối: Swin-L 0.16, R50 0.37. Stage nông của Swin-L gần như không bị chạm (cosd 0.07 / 0.11).
+- **Neck đối lập:** FPN của Mask R-CNN Swin-T KHUẾCH ĐẠI distortion (0.24 → 0.49–0.52); ChannelMapper + encoder của DINO-Swin-L thì giảm.
+- Theo ảnh (DINO-Swin-L): distortion ở encoder dự đoán retained mạnh nhất (ρ −0.44; backbone −0.30 đến −0.36).
+- **Task loss trên DINO-Swin-L:** retained như OSFD (0.76) nhưng drop AP cao hơn (33.8 vs 25.3 @ dev100) → phần lợi của task loss ở ca khó KHÔNG đến từ làm mất GT mà từ false positive / sai định vị.
+
+**Diễn giải (giả thuyết, mô tả):** Swin-L bền do 2 yếu tố CỘNG LẠI: (1) attack từ R50 chỉ làm lệch vừa phải feature sâu của Swin-L và gần như không chạm stage nông; (2) encoder deformable của DINO (đa scale, dùng cả stage nông còn sạch) "sửa" được distortion vừa phải. Với DINO-R50, distortion gần như toàn phần nên vượt qua được encoder. → Kết luận cũ "detector không giải thích failure" (dựa trên DINO-R50 97%) cần thu hẹp: detector không gây failure KHI distortion bão hòa (cùng họ), nhưng có thể góp phần khi distortion chỉ vừa phải (khác họ). Không kiểm được trực tiếp nếu không có DINO-Swin-T (không thêm model mới — chỉ ghi nhận).
