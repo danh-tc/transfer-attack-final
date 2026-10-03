@@ -1135,3 +1135,22 @@ Tải `n300_B50_eps5` từ HF (token đọc từ `.env`, không in ra; `.env` th
 - **User quyết:** hủy GO đang chạy; **ghi nhận C2 là kết quả tích cực** (qua sàng lọc dev300: CrossAvg₃ +4.7 [1.7, 6.0]) — chạy lại GO khi cần. GO đã attack 110/300 ảnh n300 (PNG ở `artifacts/runs/n300_B50_eps5/adv/PROBE-osfd+cls/`, stats trong `results/runs/n300_B50_eps5/attack_stats.jsonl`); **CHƯA eval, chưa nhìn số nào** → GO vẫn là "chạy 1 lần" hợp lệ; chạy lại đúng lệnh trong CLAUDE.md sẽ nối tiếp.
 - Việc mở cho C2 (để sau): đối chứng cân thời gian — C2 có cùng B và số view forward nhưng wall-clock ~2.3× OSFD (7.4 vs 3.3 s/ảnh, do `model.loss` chạy RPN/ROI/head); budget sweep n30 cho OSFD B50 → B100 +2.6 cross-avg → so OSFD cùng wall-clock (B ≈ 115) trên dev300, khóa trước khi chạy.
 - **Nhánh mới — tấn công cả DINO-Swin-L:** chạy chẩn đoán miễn phí (chỉ forward): điểm phân loại các query top-k ở encoder DINO (cơ chế chọn query) thay đổi ra sao giữa sạch / OSFD / C1 / C2 / chỉ-cls / bỏ RRB — kiểm kênh "xếp hạng confidence" có phải đường lọt qua encoder không.
+
+---
+
+## 2026-10-03 — Chẩn đoán chọn query encoder DINO → Swin-L giữ 95% GT trong top-900; ý tưởng "phá xếp hạng confidence" KHÔNG được ủng hộ
+
+`scripts/diag_query_select.py` → `results/ablation/mech/query_select.json` (+ log); 100 ảnh dev100; tái tạo `DINO.pre_decoder` (điểm encoder s = max_c sigmoid, top-900). (Lần chạy đầu bị kill ở 20/100 khi phiên khởi động lại; chạy lại trong tmux.)
+
+| DINO | điều kiện | top100 mean | top100 còn giữ | điểm proposal GT | GT còn trong top-900 |
+|---|---|---|---|---|---|
+| Swin-L | sạch | 0.130 | 1.00 | 0.521 | 0.988 |
+| Swin-L | OSFD / C1 / C2 / chỉ-cls | 0.141–0.145 | 0.32–0.41 | 0.409–0.428 | **0.946–0.956** |
+| Swin-L | bỏ RRB | 0.127 | 0.49 | 0.482 | 0.976 |
+| R50 | sạch | 0.143 | 1.00 | 0.404 | 0.971 |
+| R50 | OSFD / C1 / C2 / chỉ-cls | 0.21–0.26 | 0.04–0.18 | 0.09–0.15 | **0.52–0.66** |
+
+- DINO-R50 thua vì GT bị đẩy KHỎI top-900 (chỉ còn ~57%) → decoder không có query để khôi phục.
+- DINO-Swin-L: thứ tự query bị xáo mạnh nhưng ~95% GT vẫn vào decoder (điểm proposal GT chỉ giảm ~20%) → decoder khôi phục.
+- C1 / C2 / chỉ-cls KHÔNG khác OSFD ở tầng encoder → lợi +7 đến +10 của loss phân loại trên Swin-L nằm ở decoder / điểm cuối, không ở chọn query. Ý tưởng I1 (phá xếp hạng confidence encoder) bỏ.
+- Điểm nghẽn Swin-L: phải hạ điểm proposal vùng GT đủ mạnh để GT rơi khỏi top-900.
