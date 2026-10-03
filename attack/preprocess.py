@@ -43,6 +43,22 @@ def make_gt_loss(terms):
     return loss_fn
 
 
+def make_feature_plus_gt_loss(feats_clean, k: float, terms, weight: float):
+    """Probe "feature + cls" (progress_log 2026-10-03): L = L_OSFD + weight · Σ_{terms} loss, trong CÙNG 1
+    forward (bắt feature backbone bằng forward hook khi chạy model.loss) -> không thêm forward/backward."""
+    def loss_fn(model, pixel_tensor, data_sample):
+        cap = {}
+        h = model.backbone.register_forward_hook(lambda m, i, o: cap.__setitem__("f", o))
+        try:
+            batch_inputs, batch_data_samples = to_batch(model, [pixel_tensor], [data_sample])
+            losses = model.loss(batch_inputs, batch_data_samples)
+        finally:
+            h.remove()
+        feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
+        return feat + weight * sum_loss_dict({t: losses[t] for t in terms})
+    return loss_fn
+
+
 def compute_gt_loss(model, pixel_tensor: torch.Tensor, data_sample: DetDataSample
                     ) -> torch.Tensor:
     """Loss GT-assisted (task loss thật của detector) cho 1 ảnh — dùng cho các

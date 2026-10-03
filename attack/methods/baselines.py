@@ -28,13 +28,15 @@ osfd_attack() mặc định dùng FULL RECIPE của paper (MI + RRB + OSFD-loss,
 khớp base.yaml) — truyền use_rrb=False, momentum=0.0 nếu muốn bản OSFD-loss
 đơn lẻ (ablation: tách riêng đóng góp của loss so với input-diversity).
 """
+import torch
 from mmdet.structures import DetDataSample
 
 from attack.losses.osfd import make_osfd_loss_fn
 from attack.methods.core import run_iterative_attack
 from attack.methods.diversity import input_diversity_with_boxes
 from attack.methods.rrb import rrb_views
-from attack.preprocess import compute_gt_loss, make_gt_loss, resize_to_model
+from attack.preprocess import (compute_gt_loss, extract_features, make_feature_plus_gt_loss,
+                               make_gt_loss, resize_to_model)
 
 EPSILON_PRIMARY = 5.0  # 5/255 quy về pixel-space [0,255]
 EPSILON_SECONDARY = 8.0
@@ -70,15 +72,21 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                 rrb_s_max: float = 1.1, rrb_sigma: float = 6.0, on_step=None,
                 stages=None, spatial_weight=None, channel_concave=None,
                 loss: str = "feature", rrb_rotate: bool = True, rrb_resize: bool = True,
-                rrb_noise: bool = True, task_terms=None):
+                rrb_noise: bool = True, task_terms=None, cls_weight: float = 0.0):
     # Feature sạch lấy từ CÙNG phép resize khả vi dùng cho adv (core.py) — tại δ=0
     # adv trùng tuyệt đối clean, loss chỉ đo phần lệch do δ gây ra.
     # spatial_weight: pilot A′1 ("box" / "box_ring"); channel_concave: pilot P2
     # ("median" / "2median") — attack/losses/osfd.py.
     # Ablation OSFD (docs/plan_sota.md): loss="task" thay loss feature bằng task loss GT
     # (RRB khi đó co-transform GT box + mask); rrb_rotate/resize/noise tắt từng phần RRB.
-    assert loss in ("feature", "task")
-    if loss == "task":
+    assert loss in ("feature", "task", "feature+cls")
+    if loss == "feature+cls":
+        # Probe: L_OSFD + cls_weight · (loss_rpn_cls + loss_cls), 1 forward/view (progress_log 2026-10-03).
+        clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
+        with torch.no_grad():
+            feats_clean = tuple(f.detach() for f in extract_features(model, clean_pixels, data_sample))
+        loss_fn = make_feature_plus_gt_loss(feats_clean, k, ("loss_rpn_cls", "loss_cls"), cls_weight)
+    elif loss == "task":
         # task_terms: None = đủ 5 loss Mask R-CNN; tuple key = chỉ các thành phần đó.
         loss_fn = compute_gt_loss if task_terms is None else make_gt_loss(task_terms)
     else:
@@ -89,7 +97,7 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
     if use_rrb:
         rrb_kw = dict(theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho, s_max=rrb_s_max, sigma=rrb_sigma,
                       use_rotate=rrb_rotate, use_resize=rrb_resize, use_noise=rrb_noise)
-        if loss == "task":
+        if loss in ("task", "feature+cls"):
             views_fn = lambda img, ds, k, k_max: rrb_views(img, ds, with_gt=True, **rrb_kw)
         else:
             # Loss feature không phụ thuộc gt_instances -> trả lại data_sample gốc nguyên vẹn.

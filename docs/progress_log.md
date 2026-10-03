@@ -1072,3 +1072,9 @@ Loại lỗi (dev100): chỉ-box làm AP/AP50 thấp nhất (ConvNeXt 0.44, Swin
 **Đính chính giả thuyết entry trước:** "phá định vị là kênh chuyển giao" KHÔNG đứng — lợi của task loss ở ca khó đến từ **số hạng phân loại** (rpn_cls + cls). Phá định vị (box) chỉ đóng góp nhỏ.
 
 **Bổ trợ theo target (mô tả):** loss feature (OSFD) tốt nhất ở YOLOX-S (70.2 vs cls 59.1); loss phân loại tốt nhất ở DINO-Swin-L (32.5–33.8 vs 25.3); ConvNeXt/Swin-T ngang nhau → hai loại objective có thể BỔ TRỢ nhau.
+
+---
+
+## 2026-10-03 — Probe bổ trợ "feature + cls" (trước khi chạy)
+
+User đồng ý probe rẻ: `PROBE-osfd+cls` = MI + RRB (co-transform GT) + L_OSFD + λ·(loss_rpn_cls + loss_cls), 1 forward/view (feature backbone bắt bằng hook trong `model.loss`; kiểm: feature-only qua hook trùng OSFD gốc, sai số 1.5e-7). **λ = 4 khóa trước khi chạy**: median tỉ lệ mean|∇feat| / mean|∇cls| tại δ = 0 trên 5 ảnh đầu dev100 = 3.95 (3.7 / 4.57 / 3.95 / 7.7 / 2.15) → hai thành phần đóng góp gradient ngang nhau; không tune λ theo transfer. dev100, so OSFD / task loss / chỉ-cls. Câu hỏi mô tả: có giữ được YOLOX-S (feature) và tăng DINO-Swin-L (cls) cùng lúc không.
