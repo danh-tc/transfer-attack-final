@@ -1164,3 +1164,15 @@ User chọn S1 sau rà literature (ViT dựa vào thông tin tần thấp / pha 
 - 2 mức liều khóa trước: `S1-lp6` (f0 = 1/6 cycles/pixel) và `S1-lp12` (f0 = 1/12), nền = C2 nguyên vẹn. Kiểm: nhiễu trắng sau lọc có 63% / 98% năng lượng ở dải thấp (trước 9%).
 - Unit test: C2 tự nó KHÔNG tất định (2 lần cùng seed lệch 4.95% pixel sau 3 step — ROIAlign backward GPU; OSFD tất định); `grad_lowpass_f0=None` lệch C2 5.07% — cùng mức → tương đương.
 - dev100, so OSFD / C2; báo cáo 6 model, ưu tiên DINO-Swin-L và việc giữ ConvNeXt/Swin-T/YOLOX.
+
+---
+
+## 2026-10-03 — Probe S1 (C2 + lọc thông thấp gradient) → ÂM, giảm đơn điệu theo liều, kể cả DINO-Swin-L
+
+`results/ablation/s1_dev100/screen.json` (run `metrics_s1_dev100.json`, `generalization_s1_dev100.json`). Relative AP drop % (dev100), R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- OSFD: 96.4 / 91.8 / 78.8 / 74.3 / 70.2 / 25.3 | 74.5
+- C2: 99.3 / 94.5 / 81.1 / 80.2 / 69.9 / **30.5** | 77.0
+- S1 f0 = 1/6: 98.3 / 90.5 / 74.6 / 70.0 / 64.5 / **22.7** | 69.7
+- S1 f0 = 1/12: 95.9 / 78.2 / 55.6 / 56.5 / 56.7 / **15.5** | 56.2
+
+→ Ép δ về tần thấp bằng lọc gradient làm attack YẾU đi đơn điệu theo liều ở MỌI target, kể cả DINO-Swin-L (30.5 → 22.7 → 15.5). Tương quan "phổ thấp ↔ transfer" giữa điều kiện (bước 2) KHÔNG phải nhân quả theo kiểu can thiệp này: tần thấp của RRB là hệ quả đi kèm, không phải nguồn lợi; bỏ tần trung/cao làm mất thông tin hữu ích. Nhánh S1 (kể cả biến thể "nhắm pha" chưa làm) KHÔNG đi tiếp.
