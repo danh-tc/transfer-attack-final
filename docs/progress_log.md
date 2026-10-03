@@ -1091,3 +1091,14 @@ User đồng ý probe rẻ: `PROBE-osfd+cls` = MI + RRB (co-transform GT) + L_OS
 
 So OSFD: CrossAvg₃ **+2.6 [−1.7, +5.3]**, Swin-T +5.9, ConvNeXt +2.3, YOLOX-S −0.3 (giữ được), DINO-Swin-L +5.2 [−0.8, 8.4], R101 +2.7. → Bổ trợ đúng chiều dự đoán (giữ YOLOX của loss feature, tăng DINO-Swin-L/Swin-T nhờ cls) nhưng ở n = 100 CI còn chứa 0; DINO-Swin-L thấp hơn task loss / chỉ cls (30.5 vs 33.8 / 32.5).
 Lưu ý: trên dev300, task loss + MI + RRB đã hơn OSFD +4.1 (dev100 chỉ −0.7) → dev100 nhiễu; ứng viên kết hợp phải vượt CẢ OSFD lẫn task loss + RRB.
+
+---
+
+## 2026-10-03 — Bước 3 plan SOTA: khai báo ứng viên (TRƯỚC khi chạy sàng lọc dev300)
+
+User đồng ý. Đúng 2 ứng viên, cấu hình đóng băng, không thêm ứng viên cứu vãn:
+- **C1** = task loss (5 loss Mask R-CNN) + MI μ = 1 + RRB (co-transform GT box + mask) — `ABL-task-loss` (đã có đủ dev300).
+- **C2** = MI + RRB (co-transform GT) + L_OSFD + 4·(loss_rpn_cls + loss_cls), 1 forward/view — `PROBE-osfd+cls` (λ = 4 khóa trước theo tỉ lệ gradient; nối 200 ảnh còn lại của dev300, cùng seed).
+Ghi chú sửa plan (user duyệt): plan yêu cầu method "khuếch đại nguyên liệu"; C1/C2 thay/bổ sung LOẠI LOSS, dựa trên phát hiện bước 2 mở rộng (feature loss mạnh ở target kiểu CNN/YOLOX, loss phân loại mạnh ở target có encoder tự sửa — DINO-Swin-L), giữ nguyên nguyên liệu RRB + MI.
+
+**Sàng lọc @ dev300 (tiêu chí khóa plan bước 3)**, mỗi ứng viên so OSFD, paired bootstrap 1000 mẫu: QUA nếu ΔCrossAvg₃ ≥ 3 VÀ cận dưới CI > 0; Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S; drop R101 ≥ R101(OSFD) − 3. Cả 2 qua → chọn ΔCrossAvg₃ lớn hơn (chênh < 0.5 → C1, đơn giản hơn). Báo cáo kèm C2 − C1 (CI) và DINO-Swin-L. Không qua cả 2 → dừng method.
