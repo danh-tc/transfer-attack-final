@@ -1,0 +1,296 @@
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 300 ảnh, methods=['OSFD', 'ABL-task-loss', 'ABL-RRB-no-noise', 'ABL-no-MI']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack ABL-task-loss] 16/300  7.8s/ảnh  còn ~37 phút
+[attack ABL-task-loss] 31/300  7.5s/ảnh  còn ~34 phút
+[attack ABL-task-loss] 44/300  7.5s/ảnh  còn ~32 phút
+[attack ABL-task-loss] 57/300  7.6s/ảnh  còn ~31 phút
+[attack ABL-task-loss] 70/300  7.7s/ảnh  còn ~29 phút
+[attack ABL-task-loss] 88/300  7.8s/ảnh  còn ~28 phút
+[attack ABL-task-loss] 102/300  7.8s/ảnh  còn ~26 phút
+[attack ABL-task-loss] 116/300  7.8s/ảnh  còn ~24 phút
+[attack ABL-task-loss] 131/300  7.8s/ảnh  còn ~22 phút
+[attack ABL-task-loss] 151/300  7.8s/ảnh  còn ~19 phút
+[attack ABL-task-loss] 165/300  7.8s/ảnh  còn ~18 phút
+[attack ABL-task-loss] 183/300  7.8s/ảnh  còn ~15 phút
+[attack ABL-task-loss] 197/300  7.8s/ảnh  còn ~13 phút
+[attack ABL-task-loss] 211/300  7.8s/ảnh  còn ~12 phút
+[attack ABL-task-loss] 225/300  7.8s/ảnh  còn ~10 phút
+[attack ABL-task-loss] 239/300  7.8s/ảnh  còn ~8 phút
+[attack ABL-task-loss] 257/300  7.8s/ảnh  còn ~6 phút
+[attack ABL-task-loss] 272/300  7.8s/ảnh  còn ~4 phút
+[attack ABL-task-loss] 285/300  7.8s/ảnh  còn ~2 phút
+[attack ABL-task-loss] 299/300  7.8s/ảnh  còn ~0 phút
+[attack ABL-RRB-no-noise] 16/300  3.3s/ảnh  còn ~16 phút
+[attack ABL-RRB-no-noise] 31/300  3.3s/ảnh  còn ~15 phút
+[attack ABL-RRB-no-noise] 44/300  3.3s/ảnh  còn ~14 phút
+[attack ABL-RRB-no-noise] 57/300  3.3s/ảnh  còn ~13 phút
+[attack ABL-RRB-no-noise] 70/300  3.3s/ảnh  còn ~13 phút
+[attack ABL-RRB-no-noise] 88/300  3.3s/ảnh  còn ~12 phút
+[attack ABL-RRB-no-noise] 102/300  3.3s/ảnh  còn ~11 phút
+[attack ABL-RRB-no-noise] 116/300  3.3s/ảnh  còn ~10 phút
+[attack ABL-RRB-no-noise] 131/300  3.3s/ảnh  còn ~9 phút
+[attack ABL-RRB-no-noise] 151/300  3.3s/ảnh  còn ~8 phút
+[attack ABL-RRB-no-noise] 165/300  3.3s/ảnh  còn ~7 phút
+[attack ABL-RRB-no-noise] 183/300  3.3s/ảnh  còn ~6 phút
+[attack ABL-RRB-no-noise] 197/300  3.3s/ảnh  còn ~6 phút
+[attack ABL-RRB-no-noise] 211/300  3.3s/ảnh  còn ~5 phút
+[attack ABL-RRB-no-noise] 225/300  3.3s/ảnh  còn ~4 phút
+[attack ABL-RRB-no-noise] 239/300  3.3s/ảnh  còn ~3 phút
+[attack ABL-RRB-no-noise] 257/300  3.2s/ảnh  còn ~2 phút
+[attack ABL-RRB-no-noise] 272/300  3.3s/ảnh  còn ~2 phút
+[attack ABL-RRB-no-noise] 285/300  3.2s/ảnh  còn ~1 phút
+[attack ABL-RRB-no-noise] 299/300  3.2s/ảnh  còn ~0 phút
+[attack ABL-no-MI] 16/300  3.3s/ảnh  còn ~16 phút
+[attack ABL-no-MI] 31/300  3.3s/ảnh  còn ~15 phút
+[attack ABL-no-MI] 44/300  3.3s/ảnh  còn ~14 phút
+[attack ABL-no-MI] 57/300  3.3s/ảnh  còn ~13 phút
+[attack ABL-no-MI] 70/300  3.3s/ảnh  còn ~13 phút
+[attack ABL-no-MI] 88/300  3.3s/ảnh  còn ~12 phút
+[attack ABL-no-MI] 102/300  3.3s/ảnh  còn ~11 phút
+[attack ABL-no-MI] 116/300  3.3s/ảnh  còn ~10 phút
+[attack ABL-no-MI] 131/300  3.3s/ảnh  còn ~9 phút
+[attack ABL-no-MI] 151/300  3.3s/ảnh  còn ~8 phút
+[attack ABL-no-MI] 165/300  3.3s/ảnh  còn ~7 phút
+[attack ABL-no-MI] 183/300  3.3s/ảnh  còn ~6 phút
+[attack ABL-no-MI] 197/300  3.3s/ảnh  còn ~6 phút
+[attack ABL-no-MI] 211/300  3.3s/ảnh  còn ~5 phút
+[attack ABL-no-MI] 225/300  3.3s/ảnh  còn ~4 phút
+[attack ABL-no-MI] 239/300  3.3s/ảnh  còn ~3 phút
+[attack ABL-no-MI] 257/300  3.3s/ảnh  còn ~2 phút
+[attack ABL-no-MI] 272/300  3.3s/ảnh  còn ~2 phút
+[attack ABL-no-MI] 285/300  3.3s/ảnh  còn ~1 phút
+[attack ABL-no-MI] 299/300  3.3s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (48s)
+[eval] predict 100/300 (95s)
+[eval] predict 150/300 (142s)
+[eval] predict 200/300 (188s)
+[eval] predict 250/300 (235s)
+[eval] predict 300/300 (281s)
+loading annotations into memory...
+Done (t=0.20s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.30s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.32s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.36s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (432s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          43.4 [ 42.3, 48.1]   45.2 [ 44.1, 49.9]   48.5 [ 47.7, 53.3]   48.5 [ 47.7, 53.5]
+OSFD            0.8 [  0.2,  2.0]    3.2 [  2.5,  4.5]   10.9 [  9.5, 13.4]   12.3 [ 11.1, 15.1]
+ABL-task-loss    0.3 [  0.2,  0.8]    2.0 [  1.7,  3.1]    7.3 [  7.0, 10.3]   10.3 [  9.9, 13.4]
+ABL-RRB-no-noise    0.6 [  0.1,  1.2]    2.0 [  1.5,  3.1]    9.0 [  7.7, 11.3]   11.4 [ 10.2, 14.1]
+ABL-no-MI       0.6 [  0.2,  1.8]    3.7 [  3.0,  5.4]   12.2 [ 10.7, 14.7]   14.2 [ 12.9, 17.1]
+
+=== relative AP drop % [95% CI] ===
+OSFD           98.1 [ 95.5, 99.5]   93.0 [ 90.3, 94.7]   77.4 [ 73.4, 81.1]   74.6 [ 70.5, 77.7]
+ABL-task-loss   99.3 [ 98.3, 99.6]   95.6 [ 93.4, 96.4]   85.0 [ 80.0, 85.8]   78.8 [ 73.9, 80.3]
+ABL-RRB-no-noise   98.7 [ 97.2, 99.7]   95.6 [ 93.3, 96.9]   81.5 [ 77.5, 84.6]   76.5 [ 72.2, 79.6]
+ABL-no-MI      98.6 [ 96.0, 99.6]   91.8 [ 88.4, 93.6]   74.9 [ 70.7, 78.4]   70.7 [ 66.3, 73.9]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  76.0 [ 72.2, 79.0]  gap→ConvNeXt  15.6 [ 12.1, 18.6]  gap→Swin  18.4 [ 15.5, 21.5]  gap→avg  17.0 [ 14.0, 19.6]
+ABL-task-loss CrossAvg  81.9 [ 77.3, 82.9]  gap→ConvNeXt  10.7 [  9.5, 15.0]  gap→Swin  16.9 [ 15.2, 20.9]  gap→avg  13.8 [ 12.6, 17.5]
+ABL-RRB-no-noise CrossAvg  79.0 [ 75.1, 81.6]  gap→ConvNeXt  14.1 [ 11.0, 17.3]  gap→Swin  19.1 [ 16.2, 22.3]  gap→avg  16.6 [ 13.8, 19.5]
+ABL-no-MI    CrossAvg  72.8 [ 68.8, 76.0]  gap→ConvNeXt  16.9 [ 13.2, 19.9]  gap→Swin  21.1 [ 17.8, 24.2]  gap→avg  19.0 [ 15.8, 21.9]
+
+=== runtime === {'OSFD': 3.3, 'ABL-task-loss': 7.8, 'ABL-RRB-no-noise': 3.2, 'ABL-no-MI': 3.2}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/metrics_abl_dev300.json
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.36s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/300 (2s)
+[gen yolox_s] 100/300 (3s)
+[gen yolox_s] 150/300 (5s)
+[gen yolox_s] 200/300 (6s)
+[gen yolox_s] 250/300 (7s)
+[gen yolox_s] 300/300 (9s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (27s)
+[gen dino_swin_l] 100/300 (55s)
+[gen dino_swin_l] 150/300 (80s)
+[gen dino_swin_l] 200/300 (108s)
+[gen dino_swin_l] 250/300 (139s)
+[gen dino_swin_l] 300/300 (171s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.48s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 45.2  yolox_s: 42.6  dino_swin_l: 62.5
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+OSFD           93.0 [ 90.3, 94.7]   68.7 [ 63.2, 73.3]   24.9 [ 21.0, 27.4]
+ABL-task-loss   95.6 [ 93.4, 96.4]   69.4 [ 63.3, 71.5]   34.9 [ 29.8, 36.7]
+ABL-RRB-no-noise   95.6 [ 93.3, 96.9]   59.7 [ 54.7, 64.3]   21.5 [ 18.2, 24.1]
+ABL-no-MI      91.8 [ 88.4, 93.6]   64.1 [ 58.8, 68.6]   21.1 [ 17.1, 23.4]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           24.3 [ 20.5, 28.5]   68.1 [ 64.8, 71.8]
+ABL-task-loss   26.2 [ 23.7, 31.8]   60.7 [ 58.2, 65.5]
+ABL-RRB-no-noise   35.9 [ 31.6, 40.2]   74.1 [ 70.8, 77.5]
+ABL-no-MI      27.7 [ 23.3, 31.8]   70.7 [ 67.0, 74.7]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+ABL-task-loss - OSFD      0.8 [ -4.8,  3.0]   10.1 [  5.8, 12.1]
+ABL-RRB-no-noise - OSFD   -9.0 [-11.6, -5.6]   -3.4 [ -5.4, -0.7]
+ABL-RRB-no-noise - ABL-task-loss   -9.8 [-11.8, -3.5]  -13.4 [-15.3, -8.9]
+ABL-no-MI - OSFD         -4.5 [ -6.4, -2.4]   -3.8 [ -5.6, -2.4]
+ABL-no-MI - ABL-task-loss   -5.3 [ -7.4,  0.8]  -13.9 [-16.6, -9.7]
+ABL-no-MI - ABL-RRB-no-noise    4.5 [  1.5,  7.2]   -0.4 [ -3.3,  1.5]
+
+=== model_diff (OSFD) ===
+  dino_swin_l - yolox_s        -43.8 [-48.9,-39.4]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/generalization_abl_dev300.json
+EXIT=0

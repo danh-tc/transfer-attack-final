@@ -954,3 +954,28 @@ Quan sát (mô tả, chưa kết luận cuối — chờ bậc 2):
 - Trong RRB: **xoay** là phần đơn lẻ quan trọng nhất; resize không cần (2 view xoay độc lập ≈ OSFD). Bỏ nhiễu làm YOLOX-S tụt mạnh (−9.2) nhưng R101 tăng (+2.4) — nhiễu có thể giúp riêng target khác pipeline (YOLOX resize 640).
 - Lưu ý compute: ô bỏ RRB chỉ 1 view forward/step (OSFD 2). Nhưng 2 view giống hệt nhau cho cùng gradient với 1 view, nên phần chênh đến từ ĐA DẠNG biến đổi, không từ số forward thuần.
 - **DINO-Swin-L (câu hỏi phụ):** task loss + RRB = 33.8 vs OSFD 25.3, Δ −8.5 [−11.7, −1.6] (CI loại 0) — với ca khó, loss task tốt hơn loss feature; bỏ xoay làm DINO-Swin-L tụt 6.1. Mô tả, không thuộc cổng.
+
+---
+
+## 2026-10-03 — Ablation OSFD bậc 2 (dev300, 3 ô mơ hồ) → kết luận Cổng 1
+
+Run `dev300_B50_eps5` đủ 300 ảnh (`metrics_abl_dev300.json`, `generalization_abl_dev300.json`; bậc 2 chỉ attack/predict 200 ảnh mới), `scripts/ablation_screen.py --tag dev300` → `results/ablation/dev300/screen.json`.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 98.1 / 93.0 / 77.4 / 74.6 / 68.7 / 24.9 | 73.6 | 0.82
+- task loss + MI + RRB: 99.3 / 95.6 / **85.0** / **78.8** / 69.4 / **34.9** | **77.7** | 0.86
+- RRB bỏ nhiễu: 98.7 / 95.6 / 81.5 / 76.5 / **59.7** / 21.5 | 72.5 | 0.83
+- bỏ MI: 98.6 / 91.8 / 74.9 / 70.7 / 64.1 / 21.1 | 69.9 | 0.79
+
+Δ = OSFD − ô trên CrossAvg₃ [95% CI]: task loss **−4.1 [−5.4, +0.3]**; bỏ nhiễu +1.0 [−0.4, 2.3]; bỏ MI **+3.7 [2.5, 4.7]**.
+
+**Cổng 1 (quyết 1 lần ở 300 ảnh, nhị phân: nguyên liệu ⇔ cận dưới ≥ 2):**
+- **Nguyên liệu: RRB (bậc 1, +32.1), xoay trong RRB (bậc 1, +5.5), MI (bậc 2, +3.7).**
+- Không phải: resize trong RRB, k = 5, nhiễu σ (bậc 2, cận dưới −0.4), **loss feature** (thay bằng task loss không làm yếu — ngược lại còn cao hơn 4.1 điểm, CI vừa chạm 0).
+
+Quan sát (mô tả):
+- **Task loss + MI + RRB ≥ OSFD**: CrossAvg₃ +4.1 (CI [−0.3, 5.4] theo chiều ô − OSFD), ConvNeXt +7.6, Swin +4.2, DINO-Swin-L **+10.1 [5.8, 12.1]**, R101 +2.6. Feature loss của OSFD không những không phải nguồn ưu thế mà có thể kém task loss khi đã có RRB.
+- Nhiễu σ: không đóng góp CrossAvg₃ nhưng đổi hướng theo target — bỏ nhiễu YOLOX-S −9.0, R101 +2.6, ConvNeXt +4.1, DINO-Swin-L −3.4. Có thể nhiễu giúp target khác pipeline (YOLOX 640) và ca khó, hại ConvNeXt/R101.
+- Bức tranh: ưu thế OSFD ≈ đa dạng biến đổi hình học (xoay) + momentum; loại loss không quan trọng (task loss thậm chí tốt hơn).
+
+Tiếp theo theo plan: bước 2 (cơ chế, chỉ forward). Cần user quyết trước bước 3: ô task loss không phải "khuếch đại nguyên liệu" nên theo quy tắc khóa KHÔNG tự động là ứng viên.
