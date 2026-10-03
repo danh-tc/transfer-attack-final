@@ -821,3 +821,57 @@ Diễn giải (mô tả, không đổi kết luận):
 **Trạng thái RQ3:** chuỗi đã thử — A′1 (loss không gian, NO-GO @ n300), P1 (bỏ), P2 (dừng ở gate), KG (view cặp, NO-GO @ dev300, còn làm giảm transfer). Chờ user quyết hướng tiếp.
 
 Artifact CHƯA upload HF: `artifacts/runs/dev300_B50_eps5/` (PNG OSFD/E1/E2 dev300, `dets_kg.json`, `gen_dets/`).
+
+---
+
+## 2026-10-03 — Chốt quy tắc pilot R1 (OSFD-adapted SGM backward + OSFD) — TRƯỚC khi code/chạy
+
+> **Trạng thái: LOCKED (user duyệt 2026-10-03).** Gồm cả bản SGM chỉ-nhánh-residual (mục dưới). **Tên gọi: "OSFD-adapted SGM" / "stage-balanced SGM" — KHÔNG gọi là port SGM nguyên bản.** Wording cho paper (user): *"We adapt SGM to OSFD's multi-stage feature objective by applying residual-gradient decay only within residual branches, avoiding depth-dependent rescaling of stage losses."* Không claim đây là exact SGM implementation.
+
+**Cam kết trước (user):** đây là pilot method CUỐI của RQ3. **R1 NO-GO (ở sàng lọc dev300 hoặc GO @ n300) → dừng RQ3, chuyển sang analysis paper.**
+
+Động cơ (giả thuyết): hướng M3 trong `docs/synthesis_2026-09-23.md`; A2 thấy từ stage 2 R101 khuếch đại distortion còn ConvNeXt/Swin thì không → gradient chuẩn của R50 có thể quá đặc thù đường residual của ResNet. SGM (Wu et al., ICLR 2020, "Skip Connections Matter") giảm gradient qua nhánh residual, ưu tiên skip. Khác A3 (chọn stage) và A′1/P2 (đổi loss) và KG (đổi view): giữ forward, loss, RRB, MI; chỉ đổi đường backward. Novelty: SGM/LinBP/PAS đã có ở classification — nếu GO, đóng góp phải nằm ở bằng chứng can thiệp cho RQ2/detector, không phải "gắn SGM vào OSFD". Nếu E_best > E0 rõ, đây là thí nghiệm can thiệp gắn với quan sát khuếch đại residual của A2 (có giá trị cho analysis paper dù method không mới).
+
+### Ngữ nghĩa SGM (port từ code chính thức `csdongxian/skip-connections-matter/utils_sgm.py`)
+
+Code gốc với ResNet-50: hook backward trên MODULE `relu` của mọi Bottleneck trừ block đầu mỗi stage (`'0.relu'` — block có downsample), nhân gradient √γ. Module này dùng 3 lần mỗi block (sau norm1, sau norm2, sau phép cộng residual) → residual × γ^1.5, skip × √γ → **tỉ lệ residual/skip = γ** (phần cốt lõi). Thêm: relu stem cũng bị nhân; hook chuẩn hóa `grad / std` ở mỗi block. Với classification (loss vào DUY NHẤT ở đầu ra) mấy phần thêm chỉ là hằng số vô hướng → vô tác dụng sau `sign()`.
+
+**Vì sao không port nguyên văn — loss nhiều stage:** OSFD đặt loss ở 4 stage, gradient vào backward ở 4 độ sâu. Nhân √γ sau phép cộng (cả skip) làm số hạng stage 4 bị nhân ~(√γ)^12 ≈ 6·10⁻⁵ (γ = 0.2; R50 có 2+3+5+2 = 12 block không phải block đầu) trước khi tới input, còn stage 1 chỉ ~γ → gradient gần như CHỈ từ stage 1 (A3: tấn công riêng stage 1 rất yếu, R101 15.9%). Port nguyên văn sẽ đo "OSFD-stage-1", không đo SGM. Chuẩn hóa std theo block cũng đổi trọng số tương đối giữa các số hạng stage.
+→ **Khóa (OSFD-adapted SGM):** chỉ giữ phần cốt lõi — trong mọi Bottleneck trừ block đầu mỗi stage, nhân gradient √γ ở 2 lần dùng ReLU TRONG nhánh residual (sau norm1, sau norm2); KHÔNG nhân ở ReLU sau phép cộng, KHÔNG nhân relu stem, KHÔNG chuẩn hóa std. Forward giữ nguyên tuyệt đối.
+- **Unit test hướng SGM:** với loss chỉ đặt ở đầu ra stage 4 (1 điểm vào), gradient theo input của bản này phải song song với bản port nguyên văn (3 lần √γ + stem + chuẩn hóa std): cosine ≥ 0.999 trên 5 ảnh, γ ∈ {0.2, 0.5}. Diễn giải: xác nhận bản adapted giữ CÙNG hiệu ứng hướng của SGM trong trường hợp loss một điểm vào — KHÔNG phải "tương đương nói chung"; với OSFD nhiều stage hai bản cố ý không tương đương.
+
+### Điều kiện (dev300; seed ảnh SEED + i như run_baselines)
+
+| | backward |
+|---|---|
+| E0 | OSFD full recipe chuẩn — dùng lại PNG OSFD của run `dev300_B50_eps5` (cùng seed, không attack lại) |
+| E1a | SGM γ = 0.2 (giá trị code gốc minh họa cho ResNet) |
+| E1b | SGM γ = 0.5 (nhẹ hơn; cũng là default argparse của code gốc) |
+| E2 | mỗi step chọn đều γ ∈ {0.2, 0.5} (KHÔNG gồm γ = 1); numpy RNG riêng seed SEED + i (không đụng RNG của RRB) |
+
+Mọi thứ khác giữ OSFD full recipe (MI μ = 1, RRB θ = 7, l_s = 10, ρ = 0.8, s_max = 1.1, σ = 6, ε = 5, α = 1, B = 50, k = 3, noise init 0). Compute không đổi: 1 backward + 2 view forward / step. Không thử γ khác sau khi thấy kết quả.
+
+### Quy trình (1 đường duy nhất)
+
+**Bước 0 — Sanity kỹ thuật** (5 ảnh đầu dev100; không đo transfer, không có ngưỡng hiệu năng):
+- Forward (feature 4 stage + loss OSFD) giữ nguyên tuyệt đối khi bật/tắt SGM.
+- γ = 1 tái tạo gradient chuẩn (trùng tuyệt đối hoặc sai số tương đối < 1e-6).
+- Unit test tương đương với code gốc (mục trên), cosine ≥ 0.999.
+- γ = 0.2 / 0.5 đổi gradient có ý nghĩa: sign agreement(∇SGM, ∇chuẩn) tại δ = 0, KHÔNG RRB/nhiễu, trung bình 5 ảnh < 0.95.
+- Báo cáo thêm (giữ, user nhấn mạnh): tỉ trọng đóng góp gradient từng số hạng stage (chuẩn vs SGM) — nếu bản adapted vẫn để 1 stage chiếm gần toàn bộ gradient input thì diễn giải sẽ lẫn với A3 → phải nêu rõ.
+Hỏng → sửa bug; không chạy dev300 khi chưa đạt.
+
+**Chẩn đoán cơ chế (KHÔNG phải tiêu chí):** trên 20 ảnh đầu dev100, sau 10 step (E0, E1a, E1b), đo D_k (như A2) trên R101 / ConvNeXt-T / Swin-T và tỉ số D_4/D_1; báo cáo cạnh kết quả transfer.
+
+**Bước 1 — Sàng lọc @ dev300** (E1a, E1b, E2; 1 lần; đánh giá R50, R101, ConvNeXt-T, Swin-T, YOLOX-S, DINO-Swin-L như pilot KG). CrossAvg₃ = mean(ConvNeXt-T, Swin-T, YOLOX-S). E_best = điều kiện có CrossAvg₃ cao nhất (chênh < 0.5 → ưu tiên E1 hơn E2, và γ = 0.2 hơn 0.5). E_best QUA nếu đồng thời:
+- ΔCrossAvg₃(E_best − E0) ≥ 3 (điểm ước lượng);
+- E_best − E0 > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S (điểm);
+- drop R101(E_best) ≥ drop R101(E0) − 3.
+Báo cáo (không thuộc quy tắc): E2 − E1a, E2 − E1b, E1a − E1b với CI.
+Không qua → **NO-GO R1 → dừng RQ3.**
+
+**Bước 2 — Đóng băng E_best → GO @ n300** (1 lần; E0 = PNG `n300_B50_eps5` từ HF). GO nếu đồng thời:
+- (G1) ΔCrossAvg₃(E_best − E0) ≥ 3 VÀ cận dưới CI 95% > 0;
+- (G3) E_best − E0 > 0 ở cả 3 target khác họ VÀ ≥ 2/3 target ≥ 3;
+- (G4) drop R101(E_best) ≥ drop R101(E0) − 3.
+Không đạt → NO-GO → dừng RQ3. GO → cân nhắc n1000 (idea.md §14); diễn giải cơ chế chỉ khi chẩn đoán D_k nhất quán (không thì method có thể hữu ích nhưng không viết câu chuyện nhân quả).
