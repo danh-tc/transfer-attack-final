@@ -1034,3 +1034,16 @@ OSFD, cosd theo tầng (cùng detector DINO, chỉ khác backbone):
 - Giữa điều kiện: Spearman(r stage 4, CrossAvg₃) = 0.74 (13 điểm), nhưng biên độ nhỏ; r stage 1 tương quan âm (−0.59).
 - Theo ảnh (OSFD): phần chung S dự đoán retained KHÔNG tốt hơn tổng E (vd stage 2 ConvNeXt −0.35 vs −0.35; YOLOX −0.40 vs −0.36); tỉ lệ r còn yếu hơn.
 → Distortion trên surrogate vốn đã ~80% "chung giữa các góc xoay nhỏ" dù không có RRB; phần chung không phải thứ phân biệt δ transfer tốt với δ transfer kém. **Không có cơ sở cơ chế cho hướng "distortion bất biến" tường minh** (trong phạm vi probe: xoay ±7°, đo trên surrogate). Không khóa ứng viên theo hướng này.
+
+---
+
+## 2026-10-03 — Probe loại lỗi (mất GT / false positive / định vị) → hallucination KHÔNG qua được DINO; lợi của task loss chủ yếu là phá ĐỊNH VỊ
+
+`scripts/probe_error_types.py` → `results/ablation/mech/error_types.json` (+ `error_types_run.log`); dev300, OSFD vs task loss + MI + RRB, từ dets có sẵn (không GPU). Score ≥ 0.3; FP tách nền (IoU < 0.1) / định vị (cùng lớp, 0.1 ≤ IoU < 0.5) / nhầm lớp; AP_noFP = AP khi bỏ mọi FP.
+
+- **Hallucination đã là kiểu phá chính của OSFD trên target kiểu Mask R-CNN/YOLOX** — FP nền/ảnh: R50 2.9 → 41.0, R101 → 28.5, ConvNeXt → 23.4, Swin-T → 18.2, YOLOX-S 0.9 → 9.5 — **nhưng DINO-Swin-L gần như miễn nhiễm**: 1.1 → 1.8 (task loss 2.7). → hướng "hallucination chuyển giao được" KHÔNG nhắm được ca khó; bỏ.
+- DINO-Swin-L, OSFD: recall@0.3 0.76 → 0.57, FP gần như không tăng — thiệt hại đến từ mất GT.
+- **Task loss phá định vị mạnh hơn ở MỌI target khác họ:** AP/AP50 — ConvNeXt 0.62 (OSFD) vs **0.49**; Swin-T 0.56 vs **0.50**; YOLOX-S 0.63 vs **0.55**; DINO-Swin-L 0.74 vs **0.72**; FP định vị/ảnh cũng tăng (ConvNeXt 2.0 → 3.2, Swin-T 1.9 → 3.1, YOLOX 0.8 → 1.7, Swin-L 1.0 → 1.4). Recall@0.3 của task loss KHÔNG thấp hơn OSFD (ConvNeXt 0.32 vs 0.26; Swin-L 0.56 vs 0.57) → task loss làm mất GT ÍT hơn nhưng làm lệch box NHIỀU hơn.
+- DINO-Swin-L: AP drop task loss 34.9 vs OSFD 24.9; AP50 drop 29.5 vs 20.7 — vừa định vị vừa thêm FP (nền + định vị).
+
+**Diễn giải (giả thuyết):** "đồng tiền" chuyển giao sang target khác họ / ca khó không phải hallucination mà là **phá định vị (bbox regression)** — có thể vì tín hiệu định vị dựa trên cấu trúc biên/hình học object chung giữa các kiến trúc. Cần kiểm: thành phần nào của task loss (rpn_cls, rpn_bbox, cls, bbox, mask) gây ra lợi ích.

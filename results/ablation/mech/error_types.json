@@ -1,0 +1,230 @@
+{
+  "r50": {
+    "clean": {
+      "recall@0.3": 0.7241948802642444,
+      "fp_per_img": {
+        "localization": 2.1766666666666667,
+        "background": 2.8633333333333333,
+        "other": 0.7466666666666667,
+        "class_confusion": 0.5733333333333334
+      },
+      "fp_per_img_total": 6.36,
+      "AP": 43.42329839554319,
+      "AP_noFP": 52.314529654494656
+    },
+    "OSFD": {
+      "recall@0.3": 0.028488852188274155,
+      "fp_per_img": {
+        "background": 40.99333333333333,
+        "other": 7.476666666666667,
+        "localization": 1.6666666666666667,
+        "class_confusion": 0.29
+      },
+      "fp_per_img_total": 50.42666666666667,
+      "AP": 0.8236471449906659,
+      "AP_noFP": 1.369326295608119
+    },
+    "ABL-task-loss": {
+      "recall@0.3": 0.0957886044591247,
+      "fp_per_img": {
+        "background": 35.586666666666666,
+        "localization": 2.8266666666666667,
+        "other": 4.826666666666667,
+        "class_confusion": 0.38666666666666666
+      },
+      "fp_per_img_total": 43.626666666666665,
+      "AP": 0.32525823453850183,
+      "AP_noFP": 1.852982863376733
+    }
+  },
+  "r101": {
+    "clean": {
+      "recall@0.3": 0.7436003303055326,
+      "fp_per_img": {
+        "background": 2.5933333333333333,
+        "localization": 2.0166666666666666,
+        "other": 0.58,
+        "class_confusion": 0.51
+      },
+      "fp_per_img_total": 5.7,
+      "AP": 45.195549621767874,
+      "AP_noFP": 53.02988023047084
+    },
+    "OSFD": {
+      "recall@0.3": 0.10776218001651527,
+      "fp_per_img": {
+        "localization": 1.5666666666666667,
+        "background": 28.51,
+        "other": 5.426666666666667,
+        "class_confusion": 0.41333333333333333
+      },
+      "fp_per_img_total": 35.916666666666664,
+      "AP": 3.1669633112284656,
+      "AP_noFP": 6.972510410828272
+    },
+    "ABL-task-loss": {
+      "recall@0.3": 0.1837324525185797,
+      "fp_per_img": {
+        "background": 22.656666666666666,
+        "localization": 2.92,
+        "other": 3.58,
+        "class_confusion": 0.52
+      },
+      "fp_per_img_total": 29.676666666666666,
+      "AP": 1.9701230196616306,
+      "AP_noFP": 6.7234696846903805
+    }
+  },
+  "convnext_t": {
+    "clean": {
+      "recall@0.3": 0.7758051197357556,
+      "fp_per_img": {
+        "background": 3.0566666666666666,
+        "other": 0.7133333333333334,
+        "localization": 2.2333333333333334,
+        "class_confusion": 0.51
+      },
+      "fp_per_img_total": 6.513333333333334,
+      "AP": 48.47721455609479,
+      "AP_noFP": 55.9673108372157
+    },
+    "OSFD": {
+      "recall@0.3": 0.2625928984310487,
+      "fp_per_img": {
+        "background": 23.386666666666667,
+        "localization": 1.9866666666666666,
+        "other": 4.2,
+        "class_confusion": 0.44333333333333336
+      },
+      "fp_per_img_total": 30.016666666666666,
+      "AP": 10.947901851891912,
+      "AP_noFP": 17.44112365397436
+    },
+    "ABL-task-loss": {
+      "recall@0.3": 0.319570602807597,
+      "fp_per_img": {
+        "background": 17.533333333333335,
+        "localization": 3.25,
+        "other": 2.9633333333333334,
+        "class_confusion": 0.5666666666666667
+      },
+      "fp_per_img_total": 24.313333333333333,
+      "AP": 7.2869938791669835,
+      "AP_noFP": 15.829221660113324
+    }
+  },
+  "swin_t": {
+    "clean": {
+      "recall@0.3": 0.7741535920726672,
+      "fp_per_img": {
+        "localization": 2.28,
+        "background": 2.816666666666667,
+        "other": 0.6266666666666667,
+        "class_confusion": 0.39
+      },
+      "fp_per_img_total": 6.113333333333333,
+      "AP": 48.49661546889787,
+      "AP_noFP": 56.33899046678239
+    },
+    "OSFD": {
+      "recall@0.3": 0.2791081750619323,
+      "fp_per_img": {
+        "localization": 1.8566666666666667,
+        "other": 3.433333333333333,
+        "background": 18.246666666666666,
+        "class_confusion": 0.44666666666666666
+      },
+      "fp_per_img_total": 23.983333333333334,
+      "AP": 12.303056348484223,
+      "AP_noFP": 18.9283352997102
+    },
+    "ABL-task-loss": {
+      "recall@0.3": 0.35672997522708505,
+      "fp_per_img": {
+        "localization": 3.13,
+        "background": 14.746666666666666,
+        "other": 2.3466666666666667,
+        "class_confusion": 0.54
+      },
+      "fp_per_img_total": 20.763333333333332,
+      "AP": 10.29538671090228,
+      "AP_noFP": 20.336053754469315
+    }
+  },
+  "yolox_s": {
+    "clean": {
+      "recall@0.3": 0.6036333608587944,
+      "fp_per_img": {
+        "localization": 1.0666666666666667,
+        "other": 0.28,
+        "background": 0.88,
+        "class_confusion": 0.29333333333333333
+      },
+      "fp_per_img_total": 2.52,
+      "AP": 42.617083715530136,
+      "AP_noFP": 51.42716132652092
+    },
+    "OSFD": {
+      "recall@0.3": 0.22089182493806772,
+      "fp_per_img": {
+        "background": 9.496666666666666,
+        "localization": 0.8166666666666667,
+        "class_confusion": 0.21333333333333335,
+        "other": 1.5733333333333333
+      },
+      "fp_per_img_total": 12.1,
+      "AP": 13.34666058012233,
+      "AP_noFP": 20.993086368312856
+    },
+    "ABL-task-loss": {
+      "recall@0.3": 0.3212221304706854,
+      "fp_per_img": {
+        "background": 5.54,
+        "localization": 1.6833333333333333,
+        "class_confusion": 0.35333333333333333,
+        "other": 1.13
+      },
+      "fp_per_img_total": 8.706666666666667,
+      "AP": 13.02557777497464,
+      "AP_noFP": 23.70518646785263
+    }
+  },
+  "dino_swin_l": {
+    "clean": {
+      "recall@0.3": 0.7625928984310487,
+      "fp_per_img": {
+        "other": 0.23666666666666666,
+        "localization": 0.9233333333333333,
+        "background": 1.15,
+        "class_confusion": 0.15
+      },
+      "fp_per_img_total": 2.46,
+      "AP": 62.47109275161852,
+      "AP_noFP": 71.40769927252354
+    },
+    "OSFD": {
+      "recall@0.3": 0.5677126341866227,
+      "fp_per_img": {
+        "localization": 0.9533333333333334,
+        "other": 0.30333333333333334,
+        "background": 1.7566666666666666,
+        "class_confusion": 0.18
+      },
+      "fp_per_img_total": 3.1933333333333334,
+      "AP": 46.93530594530231,
+      "AP_noFP": 57.817452609887084
+    },
+    "ABL-task-loss": {
+      "recall@0.3": 0.5631709331131296,
+      "fp_per_img": {
+        "localization": 1.36,
+        "background": 2.6866666666666665,
+        "class_confusion": 0.19666666666666666,
+        "other": 0.4066666666666667
+      },
+      "fp_per_img_total": 4.65,
+      "AP": 40.65179342168787,
+      "AP_noFP": 54.65806311898943
+    }
+  }
+}
