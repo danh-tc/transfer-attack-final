@@ -922,3 +922,35 @@ Chạy 2 bậc: dev100 trước (seed theo chỉ số dev300), ô mơ hồ mới
 - `attack/methods/baselines.py`: `osfd_attack(loss="task", rrb_rotate/resize/noise)`.
 - `scripts/run_baselines.py`: 7 ô `ABL-*`; `--subset dev100` chạy trong run dev300 với seed theo chỉ số dev300. `scripts/eval_generalization.py`: `--subset`, resume theo (điều kiện, ảnh) qua khóa `_done` (điều kiện cũ coi như đủ cả split) — bậc 2 chỉ predict ảnh còn thiếu.
 - Unit test: (1) `rrb_views` cờ mặc định trùng TUYỆT ĐỐI bản cũ (lấy từ git, 3 ảnh × 3 seed); ảnh ở chế độ `with_gt` trùng ảnh mặc định. (2) Co-transform: IoU(bbox của mask, box) — không biến đổi 0.958, chỉ resize 0.955 (khớp), chỉ xoay 0.834 (AABB của box xoay lỏng hơn mask, như AugTrans trước đây); kiểm chiều xoay: tỉ lệ pixel mask sau xoay nằm trong box đã xoay trung vị 1.000, p5 1.000, min 0.917 (n = 628). (3) Cả 7 ô chạy được, L∞ đúng.
+
+---
+
+## 2026-10-03 — Ablation OSFD bậc 1 (dev100) → RRB là nguyên liệu chính, loss feature KHÔNG phải
+
+Run `dev300_B50_eps5` subset dev100 (`metrics_abl_dev100.json`, `generalization_abl_dev100.json`), phân loại `scripts/ablation_screen.py` → `results/ablation/dev100/screen.json`. n = 100, paired bootstrap 1000 mẫu.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 96.4 / 91.8 / 78.8 / 74.3 / 70.2 / 25.3 | 74.5 | 0.83
+- task loss (+ MI + RRB co-transform GT): 98.6 / 92.5 / 80.1 / 73.7 / 67.6 / **33.8** | 73.8 | 0.83
+- bỏ RRB: 99.6 / 84.8 / 52.8 / 41.1 / 33.2 / 13.3 | **42.4** | 0.55
+- RRB bỏ nhiễu: 96.4 / 94.2 / 80.5 / 75.8 / **61.0** / 22.2 | 72.4 | 0.83
+- RRB bỏ xoay: 97.0 / 92.4 / 73.8 / 67.0 / 65.9 / 19.2 | **68.9** | 0.76
+- RRB bỏ resize: 96.7 / 92.3 / 79.0 / 75.7 / 67.8 / 24.3 | 74.2 | 0.84
+- bỏ MI: 96.8 / 90.4 / 77.2 / 71.5 / 68.1 / 22.4 | 72.3 | 0.82
+- k = 5: 96.6 / 90.9 / 78.0 / 74.4 / 69.6 / 23.9 | 74.0 | 0.84
+
+Δ = OSFD − ô trên CrossAvg₃ [95% CI] → phân loại (quy tắc khóa):
+- bỏ RRB **+32.1 [26.3, 37.8] → nguyên liệu**
+- RRB bỏ xoay **+5.5 [3.3, 8.7] → nguyên liệu**
+- RRB bỏ resize +0.3 [−1.4, 1.8] → không phải
+- k = 5 +0.4 [−1.1, 2.0] → không phải
+- task loss +0.7 [−2.8, 5.6] → mơ hồ
+- RRB bỏ nhiễu +2.0 [−0.2, 4.4] → mơ hồ
+- bỏ MI +2.2 [1.1, 4.1] → mơ hồ
+→ Bậc 2 (đủ dev300) cho 3 ô mơ hồ: đang chạy (`results/ablation/run_dev300.log`).
+
+Quan sát (mô tả, chưa kết luận cuối — chờ bậc 2):
+- **Ưu thế của OSFD đến từ RRB, không từ loss feature:** task loss + RRB ≈ OSFD (73.8 vs 74.5). Hệ quả: OSFD thắng M-DI² (+7 CrossAvg₂ @ n300) chủ yếu vì RRB > DI, không vì loss. Bỏ RRB (1 view, không biến đổi) làm η tụt 0.83 → 0.55.
+- Trong RRB: **xoay** là phần đơn lẻ quan trọng nhất; resize không cần (2 view xoay độc lập ≈ OSFD). Bỏ nhiễu làm YOLOX-S tụt mạnh (−9.2) nhưng R101 tăng (+2.4) — nhiễu có thể giúp riêng target khác pipeline (YOLOX resize 640).
+- Lưu ý compute: ô bỏ RRB chỉ 1 view forward/step (OSFD 2). Nhưng 2 view giống hệt nhau cho cùng gradient với 1 view, nên phần chênh đến từ ĐA DẠNG biến đổi, không từ số forward thuần.
+- **DINO-Swin-L (câu hỏi phụ):** task loss + RRB = 33.8 vs OSFD 25.3, Δ −8.5 [−11.7, −1.6] (CI loại 0) — với ca khó, loss task tốt hơn loss feature; bỏ xoay làm DINO-Swin-L tụt 6.1. Mô tả, không thuộc cổng.
