@@ -1305,3 +1305,26 @@ V − C2: CrossAvg₃ +0.4 [−1.9, 3.3], DINO-Swin-L −0.8 [−5.1, 3.6], YOLO
 - `attack/methods/pia.py`: `sample_source_corners` (multi-DOF, π, δ_max), `homography` (8 ẩn, float64), `warp_grid`/`warp` (grid_sample bilinear, ngoài = 0), `pia_views` (companion sạch cùng phép warp, không nhiễu), `geo_osfd_attack` (geo = rrb → GEO-C0 | pia; feature sạch co-transform mỗi view, no_grad). `core.run_iterative_attack(backward_per_step=)` cộng gradient nhiều backward/step (chỉ PIA-N20); mặc định 1.
 - `scripts/run_baselines.py`: ô `GEO-C0`, `PIA`, `PIA-d0.3`, `PIA-aff`, `PIA-N20`; stats ghi `forward_no_grad`, `mode_frac`, `backward` thực (N20 = 4 × B).
 - **Unit test** (`scripts/pia_unit_test.py`) ĐẠT: core mặc định trùng tuyệt đối HEAD (OSFD 3 step, 2 ảnh); H·dst = src và ràng buộc DOF đúng từng mode (1: tịnh tiến; 2: không xoay/không phối cảnh; 3: h31 = h32 = 0; 4: có phối cảnh); warp đồng nhất lệch ≤ 6.6e-3, tịnh tiến đúng chiều, ngoài nguồn = 0; tần suất mode (20000 mẫu) 0.398 / 0.305 / 0.193 / 0.103 ≈ π; gradient 4 view × 1 backward = 2 × 2 view (lệch tương đối 8.8e-8); σ = 0 → view == companion (PIA, GEO-C0); 5 ô chạy được, L∞ đúng, forward no_grad = step × view. Ghi chú: lần chạy test ĐẦU TIÊN sau khi khởi động có 1 lệch "core == HEAD"; kiểm riêng HEAD/HEAD, mới/mới, HEAD/mới đều trùng tuyệt đối, 2 lần chạy lại toàn bộ đều đạt → không tất định lúc khởi động GPU, không do sửa code.
+
+---
+
+## 2026-10-04 — Pilot PIA @ dev30 (mô tả, KHÔNG quyết định) → PIA ≈ RRB trên CrossAvg₃; tín hiệu duy nhất ở DINO-Swin-L
+
+User bỏ ô PIA-N20 giữa chừng (để có số sớm; 15/30 ảnh GEO-C0 đã có từ lần chạy đầu, giữ nguyên, cùng seed). Run `dev300_B50_eps5` subset dev30 (`metrics_pia_dev30.json`, `generalization_pia_dev30.json`), `scripts/ablation_screen.py --subset dev30 --tag pia_dev30` → `results/ablation/pia_dev30/screen.json` (cột "verdict" của script là quy tắc ablation bước 1 — KHÔNG áp dụng cho pilot này). Log `results/pia_dev30/run.log`. n = 30, paired bootstrap 1000.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 97.8 / 93.8 / 83.5 / 77.3 / 75.6 / 26.8 | 78.8 | 0.86
+- GEO-C0 (RRB + co-transform): 97.8 / 91.8 / 78.2 / 80.8 / 78.2 / 21.5 | 79.0 | 0.87
+- PIA (δ 0.6, π paper): 96.8 / 89.9 / 79.7 / 80.4 / 78.4 / **28.8** | 79.5 | 0.89
+- PIA-d0.3: 97.4 / 91.0 / 82.7 / 79.8 / 77.0 / 24.7 | 79.8 | 0.89
+- PIA-aff (chỉ 6-DOF): 95.8 / 88.5 / 73.1 / 78.8 / 76.5 / 27.9 | 76.1 | 0.86
+
+Runtime ~5.5–6.0 s/ảnh mọi ô GEO/PIA (OSFD ~3.3; thêm 2 forward no_grad/step cho feature sạch co-transform). Tỉ lệ mode 4 thực tế 0.39 (≈ π₄).
+
+Mô tả (n = 30, CI hiệu ước ±5):
+- **Thay RRB bằng PIA cùng compute: CrossAvg₃ ngang** (PIA − GEO-C0 +0.5; − OSFD +0.7 [−1.8, 5.1]). Không có lợi trung bình.
+- **DINO-Swin-L:** PIA − GEO-C0 **+7.2 [−1.0, 13.1]**, nhưng GEO-C0 − OSFD −5.2 [−9.8, 0.4] (co-transform có vẻ HẠI Swin-L) → PIA − OSFD chỉ +2.0 [−4.4, 8.3]. Chưa tách được "PIA giúp" với "co-transform hại".
+- R101 giảm theo độ mạnh hình học (OSFD 93.8 → PIA 89.9 → PIA-aff 88.5) trong khi cross ngang → η tăng nhẹ (0.86 → 0.89): δ bớt đặc thù surrogate, cùng chiều cơ chế của RRB.
+- δ 0.3 vs 0.6: CrossAvg₃ ngang; DINO-Swin-L thấp hơn ở 0.3 (24.7 vs 28.8).
+- Chỉ affine: CrossAvg₃ thấp hơn PIA 3.4, chủ yếu ConvNeXt (73.1 vs 79.7) → số hạng phối cảnh có thể có ích cho ConvNeXt; DINO-Swin-L ngang.
+- Đọc chung: giống kết luận về loss — có đa dạng hình học TOÀN CỤC là đủ, LOẠI biến đổi (xoay+resize vs phối cảnh) gần như không đổi trung bình. Muốn đi tiếp với PIA phải khóa tiêu chí (trọng tâm DINO-Swin-L, đối chứng cả OSFD lẫn GEO-C0) rồi chạy dev100.
