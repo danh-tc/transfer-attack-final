@@ -1601,3 +1601,18 @@ Forced, Δ (adv − sạch) trung bình theo GT [CI 95%] — d_s / d_margin / d_
 - P2 (PIA − GEO-C0) cùng quy tắc, báo riêng.
 - XÁC NHẬN → hiện tượng có thật ở dev100: (i) phân tích cơ chế (decoder / theo ảnh) chạy lại trên dev100 trước khi kết luận; (ii) C2-PIA đủ điều kiện làm ứng viên sàng lọc dev300 theo plan_sota bước 3 — cần entry khóa riêng, user quyết. KHÔNG XÁC NHẬN → dừng giải thích lợi Swin-L của C2-PIA; chênh dev30 coi là nhiễu / không ổn định.
 - Mô tả (không quyết định): CrossAvg₃, R101, từng target; Δ C2-PIA − OSFD; cùng các chỉ số trên 70 ảnh mới (dev100 \ dev30) — dev100 chứa dev30 nên không độc lập hoàn toàn.
+
+**Kết quả @ dev100 (`results/ablation/confirm_dev100/screen.json`; `metrics_pia_dev100.json`, `generalization_pia_dev100.json`; log `results/confirm_dev100/run.log`) — theo quy tắc khóa: P1 XÁC NHẬN, P2 XÁC NHẬN.**
+
+Relative AP drop % dev100 (n = 100), R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- OSFD: 96.4 / 91.8 / 78.4 / 74.8 / 69.8 / 24.0 | 74.3
+- GEO-C0: 96.3 / 87.7 / 73.4 / 72.6 / 70.5 / 22.4 | 72.2
+- PIA: 94.5 / 88.2 / 76.4 / 74.2 / 70.4 / 28.5 | 73.7
+- C2: 99.3 / 94.0 / 81.2 / 79.4 / 69.1 / 31.4 | 76.6
+- **C2-PIA: 96.7 / 93.3 / 86.2 / 84.3 / 77.1 / 37.2 | 82.6**
+
+- **P1 (C2-PIA − C2): DINO-Swin-L +5.8 [1.7, 9.1]** (p ≤ 0: 0.004) → XÁC NHẬN; CrossAvg₃ +6.0 [4.1, 8.8]; YOLOX +7.1 [4.5, 12.8], ConvNeXt +6.0, Swin-T +5.9 (cả hai CI > 0); R101 +0.4 [−2.1, 3.8].
+- **P2 (PIA − GEO-C0): DINO-Swin-L +6.0 [2.3, 9.8]** → XÁC NHẬN; CrossAvg₃ +1.5 [0.3, 4.0].
+- C2-PIA − OSFD (mô tả): DINO-Swin-L +13.2 [6.2, 15.5], CrossAvg₃ +8.2 [5.4, 11.3], Δ > 0 ở cả 3 target khác họ, R101 +1.5 (93.3 vs 91.8).
+- 70 ảnh mới (dev100 \ dev30, mô tả): P1 Swin-L +3.6 [0.05, 7.3], CrossAvg₃ +6.3 [4.2, 9.8]; P2 Swin-L +5.7 [1.8, 8.7]; C2-PIA − OSFD Swin-L +14.2, CrossAvg₃ +6.4 → hiệu ứng tái lập trên ảnh không dùng ở dev30.
+- Đọc chung: lợi của PIA trên DINO-Swin-L CÓ THẬT ở cả hai khung loss (≈ +6 điểm), và với loss cls còn kéo theo +6 CrossAvg₃ trên mọi target khác họ. Như vậy 3 phân tích cơ chế ở dev30 (đa scale, distortion, đầu ra decoder) đã thất bại trong việc giải thích một hiệu ứng có thật, không phải đang giải thích nhiễu. Theo quy tắc khóa: (i) phân tích cơ chế chạy lại trên dev100 trước khi kết luận; (ii) C2-PIA đủ điều kiện làm ứng viên sàng lọc dev300 (plan_sota bước 3) — cần entry khóa riêng, user quyết.
