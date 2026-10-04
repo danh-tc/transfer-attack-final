@@ -194,17 +194,20 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
     geo="morgd" | "smooth": trường dịch chuyển mượt neo theo GT object | neo ngẫu nhiên (pilot MORGD).
+    geo="pia_morgd2" | "pia_smooth2" | "morgd2": MORGD-v2 (phân vùng theo box) ∘ PIA | đối chứng tâm ngẫu nhiên ∘ PIA |
+    MORGD-v2 không PIA (morgd2.py); RNG (r, a) = Random(seed + 1), tâm ngẫu nhiên = Random(seed + 2).
     geo="grgd" | "grgd_random": T_relative ∘ PIA, neo tại tâm GT | tâm ngẫu nhiên (pilot GRGD-v0, attack/methods/grgd.py);
     ξ từ random.Random(torch.initial_seed() + 1), tâm ngẫu nhiên từ random.Random(torch.initial_seed() + 2).
     cls_weight > 0 (C2-PIA / C2-MORGD / C2-SMOOTH, không cho geo="rrb"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
     1 forward/view (repair.make_view_loss, không sửa = loss của C2)."""
-    assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random")  # morgd/smooth: morgd.py; grgd*: grgd.py
+    assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
+                   "pia_morgd2", "pia_smooth2", "morgd2")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
-    log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": []}
-    if geo.startswith("grgd"):
+    log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": [], "morgd2": []}
+    if geo.startswith("grgd") or geo.endswith("2"):
         rng_xi = random.Random(torch.initial_seed() + 1)
         rng_c = random.Random(torch.initial_seed() + 2)
     rrb_kw = dict(theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho, s_max=rrb_s_max, sigma=sigma)
@@ -222,6 +225,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         elif geo == "pia":
             triples = pia_views(img, n_views, delta_max, pi, sigma, companion=comp, log=log["modes"],
                                 data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"])
+        elif geo.endswith("2"):
+            from attack.methods.morgd2 import morgd2_views  # tránh import vòng
+            triples = morgd2_views(img, n_views, ds, rng_xi, rng_c, anchors="random" if geo == "pia_smooth2" else "object",
+                                   use_pia=geo != "morgd2", delta_max=delta_max, pi=pi, sigma=sigma, companion=comp,
+                                   with_gt=cls_weight > 0, log=log["modes"], gt_log=log["gt_kept"], stats=log["morgd2"])
         elif geo.startswith("grgd"):
             from attack.methods.grgd import grgd_views  # tránh import vòng
             triples = grgd_views(img, n_views, ds, rng_xi, rng_c, anchors="object" if geo == "grgd" else "random",

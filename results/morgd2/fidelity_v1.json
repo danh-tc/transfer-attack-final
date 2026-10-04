@@ -1,0 +1,28 @@
+{
+  "version": "v1",
+  "split": "dev30",
+  "views_per_image": 10,
+  "n_objects_measured": 3569,
+  "median_ratio_pos": 0.9103096723556519,
+  "mean_ratio_pos": 2.2651715822231875,
+  "mean_cos": 0.2945720079939726,
+  "ratio_pos_by_quartile": [
+    0.48498234152793884,
+    0.9103096723556519,
+    2.1163132190704346
+  ],
+  "d_pair_pos_box": {
+    "object": 0.21531307313748071,
+    "random": 0.2777168026188318
+  },
+  "d_pair_scale_box": {
+    "object": 0.12568206733067774,
+    "random": 0.12101919694274921
+  },
+  "rms_u_px": {
+    "object": 45.45153153856595,
+    "random": 44.32131011803945
+  },
+  "object_over_random_d_pair_pos_box": 0.7752972492377401,
+  "hypothesis_supported": true
+}

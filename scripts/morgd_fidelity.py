@@ -21,6 +21,7 @@ from attack.data import AttackDataset, load_image_ids
 from attack.methods.box_transforms import get_gt
 from attack.methods.grgd import _box_pair_stats
 from attack.methods.morgd import flow_field, pixel_coords, sample_anchors, to_grid, warp_boxes_by_grid
+from attack.methods.morgd2 import morgd2_views
 from attack.preprocess import resize_to_model
 
 SEED = 0  # = run_baselines.SEED
@@ -49,10 +50,11 @@ def v1_view(boxes, h, w, anchors, xs, ys):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--version", choices=["v1"], default="v1")
+    p.add_argument("--version", choices=["v1", "v2"], default="v1")
     p.add_argument("--views", type=int, default=10)
-    p.add_argument("--out", default=os.path.join(REPO_ROOT, "results/morgd2/fidelity_v1.json"))
+    p.add_argument("--out", default=None)
     args = p.parse_args()
+    args.out = args.out or os.path.join(REPO_ROOT, f"results/morgd2/fidelity_{args.version}.json")
 
     split = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev300.csv"))
     ds = AttackDataset(load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev30.csv")))
@@ -68,6 +70,15 @@ def main():
         seed = SEED + split.index(smp["img_id"])
         for anc in rows:
             random.seed(seed); torch.manual_seed(seed)
+            if args.version == "v2":  # bản xếp chồng trên PIA, RNG như geo_osfd_attack
+                st = []
+                morgd2_views(im, args.views, d, random.Random(seed + 1), random.Random(seed + 2), anchors=anc, stats=st)
+                for x in st:
+                    if x["moved"]:
+                        objs += x.pop("fid") if anc == "object" else []
+                        x.pop("fid", None)
+                        rows[anc].append(x)
+                continue
             for _ in range(args.views):
                 st, ob = v1_view(boxes, h, w, anc, xs, ys)
                 st["n_objects"] = len(boxes)
@@ -85,8 +96,14 @@ def main():
            "d_pair_pos_box": {k: mean(v, "d_pair_pos_box") for k, v in rows.items()},
            "d_pair_scale_box": {k: mean(v, "d_pair_scale_box") for k, v in rows.items()},
            "rms_u_px": {k: mean(v, "rms_u_px") for k, v in rows.items()},
-           "object_over_random_d_pair_pos_box": ratio,
-           "hypothesis_supported": bool(med < 0.75 or ratio < 1.5)}
+           "object_over_random_d_pair_pos_box": ratio}
+    if args.version == "v1":
+        out["hypothesis_supported"] = bool(med < 0.75 or ratio < 1.5)
+    else:
+        rms = out["rms_u_px"]["object"] / out["rms_u_px"]["random"]
+        out["gate"] = {"median_ratio_pos>=0.75": med >= 0.75, "object/random d_pair_pos_box>=1.5": ratio >= 1.5,
+                       "rms_ratio": rms, "rms_ratio_in_[0.9,1.1]": 0.9 <= rms <= 1.1}
+        out["gate_pass"] = all(v for k, v in out["gate"].items() if k != "rms_ratio")
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)

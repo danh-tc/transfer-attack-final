@@ -125,9 +125,13 @@ METHODS.update({
     # Pilot GRGD-v0 (progress_log 2026-10-04): khung C2-PIA + T_relative sau PIA; neo tâm GT | tâm ngẫu nhiên.
     "C2-GRGD": (functools.partial(geo_osfd_attack, geo="grgd", cls_weight=4.0), 2),
     "C2-PIA-RESIDUAL": (functools.partial(geo_osfd_attack, geo="grgd_random", cls_weight=4.0), 2),
+    # Cải tiến MORGD (progress_log 2026-10-04): MORGD-v2 phân vùng theo box, xếp chồng sau PIA | đối chứng | không PIA.
+    "C2-PIA-MORGD2": (functools.partial(geo_osfd_attack, geo="pia_morgd2", cls_weight=4.0), 2),
+    "C2-PIA-SMOOTH2": (functools.partial(geo_osfd_attack, geo="pia_smooth2", cls_weight=4.0), 2),
+    "C2-MORGD2": (functools.partial(geo_osfd_attack, geo="morgd2", cls_weight=4.0), 2),
 })
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
-               "C2-GRGD", "C2-PIA-RESIDUAL"}
+               "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
@@ -198,6 +202,14 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                                    "disp_pia_px": float(np.mean([v["disp_pia_px"] for v in g]))}
                     for key in set().union(*[v.keys() for v in rel]) - {"n_objects", "disp_pia_px"}:
                         rec["grgd"][key] = float(np.mean([v[key] for v in rel if key in v]))
+                if info["morgd2"]:
+                    g = info["morgd2"]
+                    mv = [v for v in g if v["moved"]]
+                    fid = [r for v in mv for r, _ in v.get("fid", [])]
+                    rec["morgd2"] = {"frac_views_moved": len(mv) / len(g),
+                                     "rms_u_px": float(np.mean([v["rms_u_px"] for v in mv])) if mv else 0.0,
+                                     "d_pair_pos_box": float(np.mean([v["d_pair_pos_box"] for v in mv if "d_pair_pos_box" in v])) if mv else None,
+                                     "median_ratio_pos": float(np.median(fid)) if fid else None}
                 if info["gt_kept"]:
                     rec["gt_kept_frac"] = sum(a for a, _ in info["gt_kept"]) / max(1, sum(b for _, b in info["gt_kept"]))
             if name in KG_METHODS:
