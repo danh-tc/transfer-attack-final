@@ -1,0 +1,61 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.44s)
+creating index...
+index created!
+[equivariance] 1/30
+[equivariance] 2/30
+[equivariance] 3/30
+[equivariance] 4/30
+[equivariance] 5/30
+[equivariance] 6/30
+[equivariance] 7/30
+[equivariance] 8/30
+[equivariance] 9/30
+[equivariance] 10/30
+[equivariance] 11/30
+[equivariance] 12/30
+[equivariance] 13/30
+[equivariance] 14/30
+[equivariance] 15/30
+[equivariance] 16/30
+[equivariance] 17/30
+[equivariance] 18/30
+[equivariance] 19/30
+[equivariance] 20/30
+[equivariance] 21/30
+[equivariance] 22/30
+[equivariance] 23/30
+[equivariance] 24/30
+[equivariance] 25/30
+[equivariance] 26/30
+[equivariance] 27/30
+[equivariance] 28/30
+[equivariance] 29/30
+[equivariance] 30/30
+
+=== δ = delta0: d_T = 1 − cos (trùng dấu) ===
+họ                         |u|=10              |u|=30              |u|=60
+translation         0.628 (0.59)       0.634 (0.58)       0.634 (0.55)
+scale               0.626 (0.59)       0.658 (0.55)       0.714 (0.50)
+rotation            0.620 (0.60)       0.658 (0.57)       0.718 (0.54)
+shear               0.500 (0.64)       0.581 (0.60)       0.699 (0.54)
+perspective         0.574 (0.61)       0.651 (0.58)       0.684 (0.57)
+lens                0.571 (0.60)       0.661 (0.54)       0.751 (0.47)
+  |u|=10.0: min(rot,persp) − max(trans,scale) = -0.054 [-0.065, -0.045]
+  |u|=30.0: min(rot,persp) − max(trans,scale) = -0.007 [-0.012, -0.002]
+  |u|=60.0: min(rot,persp) − max(trans,scale) = -0.030 [-0.037, -0.023]
+
+=== δ = osfd: d_T = 1 − cos (trùng dấu) ===
+họ                         |u|=10              |u|=30              |u|=60
+translation         0.620 (0.60)       0.628 (0.58)       0.629 (0.56)
+scale               0.619 (0.60)       0.647 (0.56)       0.699 (0.51)
+rotation            0.615 (0.60)       0.643 (0.58)       0.693 (0.56)
+shear               0.496 (0.65)       0.569 (0.61)       0.681 (0.55)
+perspective         0.573 (0.61)       0.643 (0.58)       0.675 (0.58)
+lens                0.565 (0.61)       0.660 (0.55)       0.741 (0.48)
+  |u|=10.0: min(rot,persp) − max(trans,scale) = -0.048 [-0.056, -0.041]
+  |u|=30.0: min(rot,persp) − max(trans,scale) = -0.004 [-0.008, -0.002]
+  |u|=60.0: min(rot,persp) − max(trans,scale) = -0.024 [-0.031, -0.017]
+
+NGUYÊN LÝ ĐƯỢC ỦNG HỘ: False
