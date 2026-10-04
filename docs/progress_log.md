@@ -1511,3 +1511,20 @@ Hiệu chính: Δ_extra = RESIDUAL − C2-PIA; **Δ_object = GRGD − RESIDUAL**
 - **Tách 2 tầng mất mát (mean):** d_ij yêu cầu 0.212 → nghiệm t 0.132 (×0.62, co bình phương tối thiểu — nguyên nhân 1) → hiệu dụng sau ráp trường 0.049 (×0.37). **Tầng thứ hai lớn hơn và KHÔNG được dự đoán:** kernel Gaussian rộng bằng cỡ box của các object gần / chồng nhau (COCO) bị trung bình hóa trong u = Σ K_i u_i / (Σ K_i + ε), nên tại c'_i trường không bằng t_i. Ca 2 box tách xa trong unit test (0.93) không đại diện. → Đồ thị cây khung chỉ sửa tầng ×0.62; trần lý thuyết vẫn ≈ 0.37 < 0.75 nếu giữ cách ráp trường của MORGD.
 - **Quan trọng cho tính hợp lệ của phép thử E2 − E1:** thay đổi hình học tương đối mà GT box (thứ detector thấy) THỰC SỰ chịu gần như như nhau giữa hai ô — D_pair_pos_box GRGD **0.046** = RESIDUAL **0.046**; D_pair_scale_box 0.049 vs 0.039. Trường neo ngẫu nhiên cũng làm lệch quan hệ giữa các GT object ngang trường neo theo object → ở thiết kế này hai ô gần như không khác nhau về đại lượng mà giả thuyết nói tới.
 - Không có attack nào của GRGD được chạy (v0 lẫn sửa B). Hướng tiếp (user quyết): dừng nhánh, hoặc khóa entry mới sửa CẢ hai tầng (cây khung + cách ráp trường giữ được t_i tại object, vd phân hoạch theo mask/box thay kernel Gaussian rộng) và đặt lại cổng (gồm điều kiện D_pair_pos_box GRGD > RESIDUAL).
+
+---
+
+## 2026-10-04 — Pivot (user): DINO-Swin-L làm failure case — PIA phá được Swin-L qua đâu? (forward-only @ dev30, quy tắc khóa TRƯỚC khi chạy)
+
+**Bối cảnh:** dừng nhánh MORGD/GRGD (user). Giả thuyết mới (user): "Swin-L bền ≈ distortion hình học đa scale không tới được phân cấp nông→sâu của Swin-L + encoder dập". PIA là phép hình học duy nhất có tín hiệu rõ trên Swin-L (C2-PIA 34.7 vs OSFD 26.8 vs C2 26.1; PIA − GEO-C0 +7.2 @ dev30). Nếu lợi của PIA đi qua stage nông và/hoặc làm encoder bớt dập → cơ sở thiết kế "Multi-Scale Projective Diversity" (CHƯA code). Nếu không → bỏ tiền đề đa scale.
+
+**Đo (chỉ forward, PNG có sẵn `artifacts/runs/dev300_B50_eps5/adv/`, dev30, `scripts/mech_swinl_geo.py` → `results/ablation/mech/swinl_geo.json`):** DINO-Swin-L, ảnh sạch vs adv qua cùng test pipeline (như `mech_swinl.py`): backbone stage 1–4 (stride 4/8/16/32), ChannelMapper 5 mức, memory encoder (toàn bộ + tách 5 mức theo `spatial_shapes`). Chỉ số cosd = 1 − cos (vector phẳng) và rel = ‖a − c‖/‖c‖, mỗi ảnh. A_enc(ảnh) = cosd_encoder(toàn bộ) / cosd_backbone stage 4. Kèm A_l = cosd_encoder mức l / cosd_neck mức l.
+
+**Ô:** cặp CHÍNH (cùng loss, khác hình học): **P1 = C2-PIA vs C2** (`PROBE-osfd+cls`), **P2 = PIA vs GEO-C0** (cùng co-transform feature sạch — cặp sạch nhất). Mô tả: OSFD, PIA-aff, PIA-d0.3, MORGD, SMOOTH, C2-MORGD, C2-SMOOTH (tham chiếu âm).
+
+**Quy tắc (paired bootstrap 1000 mẫu trên ảnh, BOOT_SEED 2026; Δ = mean(A) − mean(B); rel = mean(A) / mean(B)):**
+- **SHALLOW-SPECIFIC** đúng trong một cặp nếu ∃ stage s ∈ {1, 2}: cận dưới CI Δcosd_s > 0 VÀ rel_s ≥ 1.25 VÀ rel_s ≥ rel_4 (tăng ở nông không kém tăng ở sâu — phân biệt "tới được scale nông" với "mọi thứ mạnh hơn đều").
+- **ENCODER** đúng trong một cặp nếu cận dưới CI ΔA_enc > 0.
+- **Kết luận:** SHALLOW-SPECIFIC ở CẢ P1 và P2 → ủng hộ tiền đề đa scale → được khóa entry thiết kế Multi-Scale Projective Diversity. Không SHALLOW nhưng ENCODER ở cả hai → một phần: hình học tạo distortion encoder khó sửa nhưng không qua stage nông; tiền đề đa scale KHÔNG được ủng hộ, user quyết. Không cái nào ở cả hai cặp → bác giả thuyết, KHÔNG xây hình học đa scale.
+- Mô tả (không quyết định): cosd encoder theo 5 mức, A_l; Spearman giữa các ô (11 ô) của mean cosd từng tầng với AP drop DINO-Swin-L đã có; câu hỏi mode PIA (Q3) chỉ trả lời gián tiếp qua PIA-aff (chỉ 6-DOF) và PIA-d0.3 — tách thật theo mode cần attack mới, chưa làm.
+- Caveat: n = 30 (CI rộng); PNG C2 là bản sinh lại trên dev100 (cùng seed).
