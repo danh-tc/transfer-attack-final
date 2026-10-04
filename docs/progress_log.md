@@ -1544,3 +1544,28 @@ cosd trung bình, DINO-Swin-L (drop % | bb1 / bb2 / bb3 / bb4 | neck5 | enc | A_
 - **Độ lớn distortion KHÔNG giải thích AP drop của Swin-L ở bất kỳ tầng nào:** Spearman giữa 11 ô của mean cosd từng tầng với drop Swin-L nằm trong [−0.45, +0.18] (bb2 −0.45, enc −0.15, A_enc −0.34). Họ C2 có distortion THẤP hơn họ loss-feature ở MỌI tầng (C2-PIA enc 0.053 < OSFD 0.067, PIA 0.063) nhưng C2-PIA có drop cao nhất (34.7). Khớp phát hiện cũ ("task loss có cosd encoder thấp hơn OSFD nhưng drop cao hơn"): lợi trên Swin-L đến từ HƯỚNG (tín hiệu phân loại sau encoder), không từ lượng distortion feature.
 - Q3 (mode PIA, gián tiếp): PIA-aff ≈ PIA ở mọi tầng (bb4 0.410 vs 0.420, enc 0.056 vs 0.063); PIA-d0.3 ở giữa. Không có dấu hiệu số hạng phối cảnh tạo loại distortion riêng.
 - Đọc chung: trong cặp cùng loss, PIA làm feature sâu + encoder lệch thêm ~10–25% tương đối, nhưng trục "lượng distortion" không theo được AP drop giữa các ô → muốn hiểu vì sao C2-PIA phá Swin-L tốt hơn cần đo ở đầu ra (điểm phân loại query decoder, xếp hạng, loại lỗi) chứ không ở độ lớn feature. Hướng tiếp: user quyết.
+
+---
+
+## 2026-10-04 — Phân tích đầu ra decoder DINO-Swin-L: C2-PIA phá Swin-L qua phân loại hay định vị? (forward-only @ dev30, quy tắc khóa TRƯỚC khi chạy)
+
+**Câu hỏi (user):** lợi của C2-PIA trên DINO-Swin-L (34.7 vs C2 26.1) có nằm ở bằng chứng PHÂN LOẠI của query khớp GT (margin, xếp hạng) không, hay ở định vị / gán lại query. Chưa thiết kế method; chưa phân tích theo tầng decoder (chỉ làm nếu đầu ra cuối có hiệu ứng).
+
+**Cặp:** P1 = C2-PIA vs C2 (`PROBE-osfd+cls`) — chính, cùng loss khác hình học; P2 = PIA vs GEO-C0. Mô tả: OSFD, PIA-aff. PNG có sẵn, dev30, test pipeline như `mech_swinl.py`.
+
+**Định nghĩa "query cố định" cho DINO (điều chỉnh bắt buộc so với đề xuất, user được báo):** DINO two-stage — slot k của decoder = embedding nội dung học sẵn thứ k + box tham chiếu của token encoder có điểm xếp hạng thứ k (`DINO.pre_decoder`: top-900 theo max_c logit encoder). Slot k trên adv vì vậy KHÔNG cùng object với slot k trên ảnh sạch. → **Primary ("forced"):** trên adv, decoder dùng ĐÚNG tập + thứ tự token encoder đã chọn trên ảnh sạch (topk_indices sạch; box tham chiếu và memory lấy từ adv tại các token đó) → slot k cùng token, cùng embedding nội dung, chỉ khác nội dung ảnh. Loại bỏ hiệu ứng chọn/gán lại query (đo riêng ở secondary). **Secondary ("natural"):** forward bình thường trên adv.
+
+**Chọn query trên ảnh sạch (giống nhau cho mọi điều kiện):** với mỗi GT i (lớp c_i), q*_i = argmax_q IoU(box cuối của q, GT), giữ GT nếu IoU ≥ 0.5. **Dự phòng khai báo trước:** nếu trung vị sigmoid(z_{q*,c}) trên ảnh sạch < 0.3 (argmax IoU rơi vào query trùng lặp điểm thấp) → q*_i = argmax z_{q,c_i} trong các query IoU ≥ 0.5.
+
+**Chỉ số mỗi GT (lớp cuối decoder, logit thô — sigmoid focal):** s = z_{q*,c}; margin m = z_{q*,c} − max_{c'≠c} z_{q*,c'}; rank percentile r = (R − 1)/(Q − 1), R = hạng của z_{q*,c} trong 900 query theo lớp c (1 = cao nhất); I = IoU(box q*, GT). Δ = adv − sạch.
+
+**Quy tắc (paired bootstrap theo ẢNH, 1000 mẫu, BOOT_SEED 2026; trung bình theo GT có trọng số ảnh):**
+- **CLS** đúng ở cặp (A, B) nếu cận trên CI[Δm(A) − Δm(B)] < 0 VÀ cận dưới CI[Δr(A) − Δr(B)] > 0.
+- **LOC** đúng ở cặp nếu cận trên CI[ΔI(A) − ΔI(B)] < 0 (chỉ xác định KIỂU cơ chế, không phải điều kiện của CLS).
+- Diễn giải: P1 CLS + P2 CLS → hình học PIA tự tạo bất ổn phân loại query; **P1 CLS, P2 không → tương tác loss × hình học**; P1 không CLS nhưng LOC → lợi ở định vị / gán query; P1 và P2 đều không CLS, không LOC → giả thuyết mức query bị bác, chuyển sang xếp hạng toàn cục / FP.
+
+**Secondary (mô tả):** (a) natural: tỉ lệ token sạch của q* bị loại khỏi top-900 adv; trên phần còn lại: Δm, Δr, ΔI của slot chứa token đó. (b) gán lại: s_best = max_q z_{q,c_i} (natural adv), IoU của query đạt max; Δs_best. (c) Phân rã lỗi (natural, 100 detection như `predict` của DINO, ngưỡng 0.3), trên GT được phát hiện ở ảnh sạch (đúng lớp, IoU ≥ 0.5, score ≥ 0.3): preserved (vẫn vậy trên adv) → nếu không: **conf/rank failure** (có query adv IoU ≥ 0.5 với GT, bất kể lớp; tách riêng phần nhầm lớp) → **loc failure** (có query adv sigmoid z_c ≥ 0.3 với 0.1 ≤ IoU < 0.5) → **lost**. (d) FP/ảnh (score ≥ 0.3): nền / định vị / nhầm lớp như `probe_error_types.py`, phân bố score FP.
+
+**Sanity trước khi đọc kết quả:** forced trên ảnh sạch == natural trên ảnh sạch (logit trùng); 100 detection natural khớp `model.predict` (box, score); tỉ lệ GT có q* IoU ≥ 0.5; trung vị score sạch của q*; chọn q* độc lập điều kiện.
+
+**Code + sanity (TRƯỚC khi chạy đủ dev30):** `scripts/diag_decoder_output.py`. Sanity trên 3 ảnh đầu: forced trên ảnh sạch == natural (logit lệch tối đa 0.0); detection tự dựng khớp tuyệt đối `model.predict` (score, box lệch 0.0) — sửa ghi chú: DINO `test_cfg.max_per_img` = **300** (không phải 100), script lấy từ model; phân rã lỗi / FP dùng ngưỡng 0.3 nên gần như không đổi. 9/9 GT có q* IoU ≥ 0.5. **Trung vị sigmoid score sạch của q* (argmax IoU) = 0.012 < 0.3 → kích hoạt dự phòng khai báo trước: chạy chính với `--select maxlogit`** (q* = argmax z_{q,c} trong các query IoU ≥ 0.5). Số của lần thử 3 ảnh KHÔNG dùng.
