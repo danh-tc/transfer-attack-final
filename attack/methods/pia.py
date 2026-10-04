@@ -15,12 +15,14 @@ Nền chung mọi ô GEO (khác OSFD ĐÚNG ở phép biến đổi + co-transfo
 (T(x_clean)) cùng tham số hình học, không nhiễu, no_grad (forward thêm không tính B).
 GEO-C0: T = RRB gốc (`rrb_views(companion=)`), đối chứng riêng hiệu ứng co-transform.
 """
+import contextlib
 import copy
 import random
 
 import torch
 import torch.nn.functional as F
 from mmdet.structures.mask import BitmapMasks
+from torch.nn.utils.stateless import _reparametrize_module
 
 from attack.methods.box_transforms import get_gt
 from attack.methods.core import run_iterative_attack
@@ -161,11 +163,32 @@ def _view_loss(feats_clean, k: float):
     return loss_fn
 
 
+def rapa_sampler(model, p: float, device):
+    """RaPA (Su et al., CVPR 2026; progress_log 2026-10-04 MORGD-RaPA): DropConnect lên weight + bias của mọi
+    BatchNorm2d trong backbone, M ~ Bernoulli(1 − p), không nhân bù. Trả về hàm () -> context manager thay TẠM
+    tham số backbone bằng tensor masked (dùng nhất quán cả forward lẫn backward — khác code chính thức, vốn đổi
+    `.data` rồi khôi phục trước backward). RNG riêng, seed = torch.initial_seed() của ảnh."""
+    params = [(f"{n}.{a}", getattr(m, a)) for n, m in model.backbone.named_modules()
+              if isinstance(m, torch.nn.BatchNorm2d) for a in ("weight", "bias")]
+    gen = torch.Generator(device=device)
+    gen.manual_seed(torch.initial_seed())
+    stats = {"masked": 0, "total": 0}
+
+    def sample():
+        masked = {}
+        for name, t in params:
+            m = torch.bernoulli(torch.full_like(t, 1.0 - p), generator=gen)
+            stats["masked"] += int((m == 0).sum()); stats["total"] += m.numel()
+            masked[name] = t.detach() * m
+        return lambda: _reparametrize_module(model.backbone, masked)
+    return sample, stats
+
+
 def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float = 5.0,
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
                     pi=PI_PAPER, sigma: float = 6.0, info=None, on_step=None,
-                    co_transform: bool = True, cls_weight: float = 0.0,
+                    co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
@@ -176,6 +199,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert geo in ("rrb", "pia", "morgd", "smooth")  # morgd/smooth: attack/methods/morgd.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
+    assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
     log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": []}
     rrb_kw = dict(theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho, s_max=rrb_s_max, sigma=sigma)
@@ -183,6 +207,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     if not co_transform:
         with torch.no_grad():
             feats_fixed = tuple(f.detach() for f in extract_features(model, clean_pixels, data_sample))
+
+    rapa = rapa_sampler(model, rapa_p, clean_pixels.device) if rapa_p is not None else None
 
     def views_fn(img, ds, step_idx, total):
         comp = clean_pixels if co_transform else None
@@ -198,14 +224,17 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                   gt_log=log["gt_kept"])
         out = []
         for v, c, dsv in triples:
+            ctx = rapa[0]() if rapa is not None else contextlib.nullcontext  # CÙNG mask cho sạch và adv của view
             if co_transform:
-                with torch.no_grad():
+                with torch.no_grad(), ctx():
                     fc = tuple(f.detach() for f in extract_features(model, c, ds))
                 log["forward_no_grad"] += 1
             else:
                 fc = feats_fixed
             if cls_weight > 0:
                 out.append((v, dsv, make_view_loss(fc, k, "c2", cls_weight)))
+            elif rapa is not None:
+                out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
             else:
                 out.append((v, ds, _view_loss(fc, k)))
         return out
@@ -213,6 +242,15 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                  epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                  on_step=on_step, backward_per_step=backward_per_step)
+    if rapa is not None:
+        log["rapa_masked_frac"] = rapa[1]["masked"] / max(1, rapa[1]["total"])
     if info is not None:
         info.update(log)
     return noise
+
+
+def _with_ctx(loss_fn, ctx):
+    def wrapped(model, pixel_tensor, data_sample):
+        with ctx():
+            return loss_fn(model, pixel_tensor, data_sample)
+    return wrapped

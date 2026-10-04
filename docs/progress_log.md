@@ -1420,3 +1420,24 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 - **Bản thuần: mọi phép biến đổi toàn cục/mượt đều ngang nhau** — CrossAvg₃ 79.0 (RRB) / 79.5 (PIA) / 79.7 (SMOOTH) / 80.5 (MORGD), chênh ≤ 1.5, CI ±4–5. MORGD − GEO-C0: DINO-Swin-L +5.8 [−3.1, 11.3]; MORGD − PIA: DINO-Swin-L −1.5.
 - MORGD − SMOOTH (thuần): CrossAvg₃ +0.8, YOLOX +1.6, DINO-Swin-L +1.6 — ngược dấu với khung C2 (−0.6) → phần "theo object" ≈ 0, trong nhiễu.
 - **Tương tác với cls (thuần → C2):** PIA +4.1 (79.5 → 83.6), SMOOTH +2.2 (79.7 → 81.9), MORGD +0.8 (80.5 → 81.3); DINO-Swin-L: PIA +5.9, SMOOTH +2.4, MORGD 0.0. → lợi khi thêm cls lớn nhất ở PIA (biên độ hình học lớn nhất, ~4× MORGD/SMOOTH); gợi ý (chưa kiểm) loss cls cần biến đổi MẠNH mới phát huy.
+
+---
+
+## 2026-10-04 — Pilot MORGD-RaPA @ dev30 (user: chỉ áp RaPA lên MORGD) — quy tắc khóa TRƯỚC khi code/chạy
+
+**Nguồn đã đọc:** paper RaPA (Su et al., CVPR 2026, arXiv 2504.18594, TeX) + code chính thức `github.com/molarsu/RaPA` (`core/attacker/DropConnect.py`, `config/__base__/attacker/RaPA.py`). Paper: DropConnect lên weight + bias của MỌI lớp Linear và Normalization (BN/LN), M ~ Bernoulli(1 − p), KHÔNG nhân bù 1/(1 − p), mask rút lại mỗi lần inference; ResNet-50 p = 0.05; setting chính targeted, 1000 iteration, S = 5. **Phụ lục: ở untargeted RaPA cho "similar ASRs" (không lợi rõ)** — tác giả giải thích do bão hòa (CFM 98.2%); detection khác họ của ta chưa bão hòa (CrossAvg₃ ~80, DINO-Swin-L 25–35).
+
+**Phát hiện ở code chính thức:** pre-hook gán `weight.data = original·mask`, forward hook trả `weight.data = original` ngay sau forward → khi backward autograd đọc trọng số ĐÃ KHÔI PHỤC (đổi `.data` không tăng version counter) → gradient theo input là "lai" (forward masked, đạo hàm tại chính lớp đó dùng trọng số gốc). Paper không nhắc.
+
+**Ô `MORGD-RaPA`** = đúng ô `MORGD` thuần (loss feature OSFD k = 3, MI μ = 1, 2 view/step, 1 backward, σ = 6, feature sạch co-transform, λ = 0.25, s ∈ [0.8, 1.25], ε = 0.05) + RaPA:
+- Phạm vi: 53 lớp BatchNorm2d của backbone R50 (weight + bias affine, 53 120 tham số). Backbone KHÔNG có Linear; loss feature chỉ đi qua backbone → tương đương "mọi Linear + Norm" trên đường loss.
+- p = 0.05 (giá trị paper cho ResNet-50), S = 1, mask Bernoulli(0.95) từng phần tử, không nhân bù, **rút mới mỗi view**; forward ảnh sạch co-transform và forward ảnh adv của CÙNG view dùng CÙNG mask (nếu khác mask, chênh feature do tham số bị tính như distortion adv).
+- **Lệch có chủ đích so với code chính thức:** tham số masked dùng nhất quán cả forward lẫn backward (thay tạm tham số bằng tensor masked qua `torch.nn.utils.stateless._reparametrize_module`, không sửa `.data`) — gradient đúng toán học.
+- RNG mask: `torch.Generator` riêng trên GPU, seed = `torch.initial_seed()` của ảnh (= SEED + chỉ số dev300) → không đụng RNG của biến đổi/nhiễu: p = 0 phải trùng tuyệt đối ô MORGD.
+- Compute: không thêm forward/backward (forward sạch đã có do co-transform).
+
+**Unit test trước khi chạy:** p = 0 trùng tuyệt đối MORGD; tỉ lệ phần tử bị mask ≈ 0.05; tham số model sau attack không đổi; cùng mask → tại adv = sạch, σ = 0 feature view == feature companion và khác feature không mask; gradient chảy qua tham số masked (kiểm bằng so sánh với forward thủ công có mask); chạy được, L∞ đúng.
+
+**Báo cáo (mô tả):** so MORGD, SMOOTH, GEO-C0, PIA, OSFD; 6 model, CrossAvg₃.
+
+**Code + unit test (TRƯỚC khi chạy):** `pia.rapa_sampler` (53 BN backbone, Bernoulli(0.95), `_reparametrize_module`, RNG riêng), `geo_osfd_attack(rapa_p=)`; ô `MORGD-RaPA`. `scripts/rapa_unit_test.py` ĐẠT: MORGD trùng tuyệt đối HEAD; rapa_p = 0 trùng tuyệt đối MORGD; tỉ lệ mask 0.0502; tham số model không đổi sau attack; cùng context → cùng mask, khác feature không mask; gradient theo input dưới context == khi gán tham số masked thật (lệch tương đối 7.1e-8, tức masked nhất quán cả forward lẫn backward); L∞ đúng.

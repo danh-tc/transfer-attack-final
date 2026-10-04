@@ -120,8 +120,10 @@ METHODS.update({
     # Bản thuần (không cls), khung như ô PIA — baseline so RRB.
     "MORGD": (functools.partial(geo_osfd_attack, geo="morgd"), 2),
     "SMOOTH": (functools.partial(geo_osfd_attack, geo="smooth"), 2),
+    # RaPA (progress_log 2026-10-04): DropConnect BN backbone, p = 0.05, S = 1, cùng mask sạch/adv mỗi view.
+    "MORGD-RaPA": (functools.partial(geo_osfd_attack, geo="morgd", rapa_p=0.05), 2),
 })
-GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH"}
+GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
@@ -180,6 +182,8 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                 rec["forward_no_grad"] = info["forward_no_grad"]
                 if info["modes"]:
                     rec["mode_frac"] = {m: info["modes"].count(m) / len(info["modes"]) for m in (4, 3, 2, 1)}
+                if "rapa_masked_frac" in info:
+                    rec["rapa_masked_frac"] = info["rapa_masked_frac"]
                 if info["disp"]:
                     rec["mean_disp_px"] = sum(info["disp"]) / len(info["disp"])
                 if info["gt_kept"]:
