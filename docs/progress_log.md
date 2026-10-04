@@ -1452,3 +1452,54 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 - **RaPA làm attack yếu đi mạnh ở mọi target:** MORGD-RaPA − MORGD: CrossAvg₃ −25.0, YOLOX −21.6 [−29.6, −12.8], DINO-Swin-L −8.6 [−16.9, −1.1], R101 −13.0; cả R50 white-box −2.9.
 - **Chẩn đoán (forward-only, 5 ảnh dev30, ảnh sạch):** cos(feature backbone sạch, feature cùng ảnh dưới mask) theo stage 1→4: p = 0.05: 0.855 / 0.749 / 0.689 / 0.702; cos giữa 2 mask khác nhau: 0.827 / 0.723 / 0.676 / 0.700. p = 0.01: 0.962 / 0.934 / 0.915 / 0.925 (2 mask: 0.945 / 0.905 / 0.880 / 0.891). → Với p = 0.05, mỗi view là một biến thể surrogate lệch ~30% feature sâu; với loss feature (đo trực tiếp trên feature backbone) và chỉ 50 step × S = 1, hướng gradient giữa các biến thể gần như không cộng hưởng → mất "utility". p = 0.05 được paper chọn cho ResNet-50 CLASSIFICATION (loss trên logit, 1000 iteration, S = 5), không chuyển được sang setting này.
 - Chưa tách: (a) liều p (0.01 ít phá feature hơn nhiều); (b) gradient "lai" của code chính thức (backward dùng trọng số gốc → hướng gradient gần surrogate gốc hơn) có thể chính là thứ giữ utility ở paper — bản của ta dùng gradient nhất quán. Không chạy thêm biến thể nếu user không yêu cầu.
+
+---
+
+## 2026-10-04 — Pilot GRGD-v0 @ dev30 (user, spec từ trợ lý khác) — quy tắc khóa TRƯỚC khi code/chạy
+
+**Ý tưởng:** T_GRGD = T_relative ∘ T_PIA trên khung C2-PIA (không đổi gì khác: ε = 5, α = 1, B = 50, μ = 1, 2 view/step, 1 backward, σ = 6 chỉ cộng vào adv, L_OSFD k = 3 + 4·(loss_rpn_cls + loss_cls), feature sạch + GT co-transform qua CẢ HAI phép). T_relative thay đổi quan hệ vị trí/tỉ lệ GIỮA các object (sau PIA), đã trừ phần giải thích được bằng một homography. Prior (đã nêu với user): MORGD neo theo object ≈ neo ngẫu nhiên (dev30, cả 2 khung) — câu hỏi lần này là sample QUAN HỆ cặp trực tiếp + trừ thành phần phối cảnh có khác không.
+
+**T_relative (trên GT còn lại sau PIA, N object; N < 2 → đồng nhất, bỏ bước warp thứ hai):**
+1. Đồ thị đầy đủ mọi cặp i < j. Mỗi cạnh: ξˣ, ξʸ, ξˢ ~ U(−1, 1); d_x = λ_r·(w_i + w_j)/2·ξˣ, d_y = λ_r·(h_i + h_j)/2·ξʸ, d_s = ln(1.25)·ξˢ; **λ_r = 0.25** (từ MORGD, không tune).
+2. Ma trận liên thuộc A (E × N, A_ei = 1, A_ej = −1); giải riêng x, y, log-scale bằng KKT: [[AᵀA + 1e-6·I, ω], [ωᵀ, 0]]·[z; ν] = [Aᵀd; 0], ω_i = w_i h_i / Σ w h (trung bình có trọng số diện tích = 0) → t_i = (z_x, z_y), s_i = exp(z_s).
+3. Trường thô u_raw = Σ K_i u_i / (Σ K_i + 0.05), u_i(q) = (q − c_i)(1/s_i − 1) − t_i/s_i, K_i Gaussian tâm c'_i = c_i + t_i, độ rộng (w_i, h_i) — đúng công thức MORGD.
+4. **Trừ thành phần phối cảnh:** điểm điều khiển = 5 điểm/object (4 góc + tâm của box cỡ w_i × h_i đặt tại c'_i), p_m = q_m + u_raw(q_m); fit H_r: q → p bằng DLT bình phương tối thiểu (chuẩn hóa Hartley, float64, SVD); u_H(q) = H_r(q) − q; M(q) = Σ K_i / (Σ K_i + 0.05); **u_rel = u_raw − M·u_H**.
+5. Ảnh ra = grid_sample(ảnh sau PIA, q + u_rel), bilinear, ngoài = 0. GT: box sau PIA → AABB của mặt nạ chữ nhật warp (≥ 0.5); mask warp; bỏ instance rỗng / < 1 px (như MORGD).
+
+**Ô (dev30, chỉ mô tả):**
+| Ô | Định nghĩa |
+|---|---|
+| C2-PIA | PNG có sẵn (mốc, 83.6) |
+| C2-PIA-RESIDUAL | như C2-GRGD nhưng tâm neo c_i thay bằng tâm ngẫu nhiên đều trên khung; GIỮ NGUYÊN kích thước, ξ_ij, d_ij, nghiệm (t, s), kernel, bước trừ phối cảnh |
+| C2-GRGD | như trên, tâm neo = tâm GT thật (sau PIA) |
+Hiệu chính: Δ_extra = RESIDUAL − C2-PIA; **Δ_object = GRGD − RESIDUAL** (chỉ khi > 0 mới là bằng chứng cho đóng góp mới).
+
+**RNG:** H của PIA và nhiễu σ dùng đúng RNG như C2-PIA (`random`, torch); ξ_ij từ `random.Random` riêng (seed = torch.initial_seed() + 1); tâm ngẫu nhiên của RESIDUAL từ `random.Random` riêng thứ hai (seed + 2) → mỗi view: H, ξ, σ trùng nhau giữa 2 ô, chỉ khác tâm neo.
+
+**Log mỗi ảnh:** n_objects, n_edges, |u| trung bình phần PIA / u_raw / u_H·M / u_rel, R_proj = 1 − ‖u_rel‖₂ / ‖u_raw‖₂, D_pair_pos (mục tiêu, theo t) và D_pair_pos_eff (hiệu dụng, dời tâm ≈ −u_rel(c'_i)) chuẩn hóa bởi (√A_i + √A_j)/2, D_pair_scale = mean |ln((s_i/s_j))| (mục tiêu), gt_kept_frac.
+
+**Unit test (sửa từ spec, user được báo):** C2 không tất định → "λ_r = 0 trùng C2-PIA" kiểm ở MỨC VIEW (ảnh, companion, GT trùng tuyệt đối pia_views), không ở mức attack. Danh sách: (1) λ_r = 0 → view trùng tuyệt đối PIA; (2) N < 2 → trùng; (3) ξ = 0 → |u_rel| ≈ 0; (4) 2 box: (t₁ − t₂) = d₁₂ đúng dấu và độ lớn; (5) Σ ω t = 0; (6) u_raw sinh từ MỘT homography → sau khi trừ, RMS ≈ 0; (7) 2 object chuyển động khác nhau → báo RMS dư; (8) xa object |u_rel| ≈ 0; (9) σ = 0, adv = sạch → view == companion; (10) IoU(mask, box) view GRGD; (11) ô cũ (PIA, MORGD) trùng HEAD; (12) C2-GRGD / C2-PIA-RESIDUAL chạy được, hữu hạn, L∞ đúng.
+
+**Code + unit test (TRƯỚC khi chạy):** `attack/methods/grgd.py` (`complete_edges`, `sample_pairwise`, `solve_graph_motion` — KKT, `fit_homography_dlt` — Hartley + SVD, `RelativeField` — u_raw / M·u_H / u_rel, `relative_motion`, `grgd_views`); `geo_osfd_attack(geo="grgd" | "grgd_random")`; ô `C2-GRGD`, `C2-PIA-RESIDUAL` trong `run_baselines.py` (stats `grgd`: trung bình mỗi ảnh các chỉ số log ở trên + `frac_views_relative`). `morgd.flow_grid` tách thành `flow_field` / `pixel_coords` / `to_grid` (không đổi số). `scripts/grgd_unit_test.py` ĐẠT: λ_r = 0 và N = 0 / 1 → view (ảnh, companion, GT) trùng tuyệt đối `pia_views`; ξ = 0 → max |u_rel| 6.7e-13 px; 2 box: t₁ − t₂ = d₁₂ đúng (22.0, −14.375, log-scale 0.134); Σ ω t = Σ ω log s = 0 (≤ 1.3e-15); 1 homography → fit lại đúng (RMS dư 1.4e-13); 2 object khác chuyển động → RMS dư 3.72 px; xa object |u_rel| 1.3e-13; σ = 0, adv = sạch → view == companion; IoU(AABB mask warp, box warp) mean 0.754 (trung vị 0.753, p5 0.456; PIA 0.823 — thấp hơn do 2 lần nội suy mask); mẫu số H_r > 0 trên toàn khung; GEO-C0 / PIA / MORGD trùng tuyệt đối HEAD, `morgd_views` HEAD == mới, C2-PIA lệch HEAD/mới 0.031 ≈ HEAD/HEAD 0.034; **chẩn đoán RNG: C2-GRGD và C2-PIA-RESIDUAL có mode PIA + nhiễu σ trùng tuyệt đối C2-PIA mỗi view (4 step × 2 view)** — sampler mmdet dùng `torch.randperm` trên CPU, nhiễu σ dùng RNG CUDA nên không lệch theo GT; 2 ô chạy được, L∞ đúng, forward no_grad = 2 × step.
+
+**Chẩn đoán liều (forward-only, dev30, 6 view/ảnh, 156 view có N ≥ 2; 26/30 ảnh có N ≥ 2, trung vị N = 10) — T_relative theo spec gần như KHÔNG đổi hình học tương đối:**
+- D_pair_pos mục tiêu 0.126 → hiệu dụng (sau trừ phối cảnh) **0.025** (tỉ lệ 0.22); theo N: 2–4 object 0.180 → 0.023 (0.13), 5–10: 0.135 → 0.028, ≥ 11: 0.094 → 0.025.
+- |u| trung bình raw / M·u_H / rel: 8.4 / 9.8 / 6.0 px (N 2–4), 3.7 / 3.2 / 2.8 px (N ≥ 11); PIA ~179 px, MORGD ~41 px. R_proj mean 0.21, có view âm (bước trừ thêm biến dạng lớn hơn phần nó bỏ).
+- Ca 2 box (unit test 4): mục tiêu dời tương đối (22.0, −14.4) px; không trừ phối cảnh → (20.5, −13.5); có trừ → **(1.5, −0.5)**.
+- Hai nguyên nhân: (1) nghiệm bình phương tối thiểu trên đồ thị đầy đủ là t_i = (1/N) Σ_j d_ij → biên độ co theo N; (2) homography 8-DOF giải thích gần hết chuyển động của vài object (affine đã đưa 3 tâm tới vị trí bất kỳ) → bước trừ phối cảnh xóa phần lớn chính quan hệ cặp mà nhánh này định tạo.
+- Hệ quả: chạy đúng spec thì C2-GRGD và C2-PIA-RESIDUAL gần như là C2-PIA cộng thêm warp ~3–6 px → kết quả ngang nhau sẽ không phân biệt được "hình học tương đối không có ích" với "liều quá nhỏ". **Chưa chạy attack — chờ user quyết** (chạy đúng spec / sửa spec trước khi chạy / dừng nhánh).
+
+---
+
+## 2026-10-04 — GRGD-v0 sửa (B): bỏ phép trừ phối cảnh + cổng độ trung thực forward-only (user, khóa TRƯỚC khi chạy cổng; CHƯA có attack nào của GRGD)
+
+**Quyết định (user):** *GRGD-v0 original projection is rejected before attack execution.* Chẩn đoán forward cho thấy fit rồi trừ trường phối cảnh tốt nhất xóa chính chuyển động tương đối giữa object, vì chuyển động phối cảnh và hình học tương đối giữa object KHÔNG phải hai không gian rời nhau (homography toàn cục cũng đổi khoảng cách, tỉ lệ, vị trí tương đối). GRGD được định nghĩa lại TRƯỚC khi thấy bất kỳ kết quả attack nào: thành phần toàn cục = H_PIA do chính ta rút; nhánh relative từ đồ thị cặp chỉ bị ràng buộc gauge Σ ω_i t_i = 0 và Σ ω_i a_i = 0 (a = log s). **T_GRGD(x) = W_rel(H_PIA(x)), u_rel = u_raw** (bước 4 của entry GRGD-v0 bỏ; fit H_r giữ lại CHỈ để chẩn đoán). Không tune hyperparameter attack nào; λ_r = 0.25 giữ nguyên. Mọi thứ khác của entry GRGD-v0 (đồ thị đầy đủ, KKT, kernel, RNG, 3 ô, Δ_object = GRGD − RESIDUAL) giữ nguyên.
+
+**Code:** `RelativeField(remove_projective=False)` mặc định (True = spec v0 gốc, chỉ để đối chiếu); stats thêm `d_pair_pos_req` (theo d_ij đã rút, chuẩn hóa (√A_i + √A_j)/2), `rho_pos` = D_pair_pos_eff / D_pair_pos_req, `cos_pair_eff_req`, `d_pair_scale_req`, `rms_rel_px`, `d_pair_pos_box` / `d_pair_scale_box` (đo trên GT box trước/sau warp relative, cặp còn giữ cả hai). Unit test chạy lại ĐẠT toàn bộ + 2 mục mới: mặc định u_rel == u_raw; 2 box sửa B dời hiệu dụng / mục tiêu = 0.93 / 0.94 (spec v0: (1.5, −0.5) vs (22.0, −14.4)).
+
+**Cổng độ trung thực (forward-only, `scripts/grgd_fidelity_gate.py` → `results/grgd/fidelity_gate.json`):** dev30, 10 view/ảnh, seed như `run_baselines` (SEED + chỉ số dev300; ξ, tâm ngẫu nhiên từ RNG riêng seed + 1 / + 2), GRGD và RESIDUAL cùng H, ξ, nhiễu; chỉ view N ≥ 2.
+- **G1:** median ρ_pos (GRGD) ≥ 0.75. "Requested" = d_ij đã rút (KHÔNG phải t sau khi giải) — để cổng bắt được cả việc nghiệm bình phương tối thiểu co biên độ.
+- **G2:** mean D_pair_pos_eff > 0 VÀ mean D_pair_scale_box > 0 (GRGD).
+- **G3:** mean RMS |u_rel| GRGD / RESIDUAL ∈ [0.9, 1.1] (liều hình học khớp).
+- **PASS cả 3 → chạy 2 ô attack** C2-GRGD, C2-PIA-RESIDUAL @ dev30 (mô tả, như entry GRGD-v0). **FAIL → KHÔNG chạy attack**, ghi log; nếu trượt G1 do co bình phương tối thiểu thì ứng viên sửa tiếp (user nêu) là đồ thị thưa liên thông (cây khung, |E| = N − 1, ràng buộc nhất quán theo cấu trúc) — cần entry khóa mới, KHÔNG tăng λ_r để bù.
+- **Dự đoán ghi trước (giải tích):** với đồ thị đầy đủ và d_ij độc lập, t_i − t_j = (1/N)[2d_ij + Σ_{k≠i,j}(d_ik + d_kj)] → ‖t_i − t_j‖ / ‖d_ij‖ ≈ √(2/N) (≈ 0.45 ở N = 10); unit test (ảnh 4 object) đã cho ρ_pos mean 0.45 → **G1 nhiều khả năng TRƯỢT**.

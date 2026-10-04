@@ -122,8 +122,12 @@ METHODS.update({
     "SMOOTH": (functools.partial(geo_osfd_attack, geo="smooth"), 2),
     # RaPA (progress_log 2026-10-04): DropConnect BN backbone, p = 0.05, S = 1, cùng mask sạch/adv mỗi view.
     "MORGD-RaPA": (functools.partial(geo_osfd_attack, geo="morgd", rapa_p=0.05), 2),
+    # Pilot GRGD-v0 (progress_log 2026-10-04): khung C2-PIA + T_relative sau PIA; neo tâm GT | tâm ngẫu nhiên.
+    "C2-GRGD": (functools.partial(geo_osfd_attack, geo="grgd", cls_weight=4.0), 2),
+    "C2-PIA-RESIDUAL": (functools.partial(geo_osfd_attack, geo="grgd_random", cls_weight=4.0), 2),
 })
-GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA"}
+GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
+               "C2-GRGD", "C2-PIA-RESIDUAL"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
@@ -186,6 +190,14 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                     rec["rapa_masked_frac"] = info["rapa_masked_frac"]
                 if info["disp"]:
                     rec["mean_disp_px"] = sum(info["disp"]) / len(info["disp"])
+                if info["grgd"]:
+                    g = info["grgd"]
+                    rel = [v for v in g if v["n_edges"] > 0]
+                    rec["grgd"] = {"frac_views_relative": len(rel) / len(g),
+                                   "n_objects": float(np.mean([v["n_objects"] for v in g])),
+                                   "disp_pia_px": float(np.mean([v["disp_pia_px"] for v in g]))}
+                    for key in set().union(*[v.keys() for v in rel]) - {"n_objects", "disp_pia_px"}:
+                        rec["grgd"][key] = float(np.mean([v[key] for v in rel if key in v]))
                 if info["gt_kept"]:
                     rec["gt_kept_frac"] = sum(a for a, _ in info["gt_kept"]) / max(1, sum(b for _, b in info["gt_kept"]))
             if name in KG_METHODS:

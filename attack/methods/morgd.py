@@ -42,10 +42,8 @@ def sample_anchors(boxes: torch.Tensor, h: int, w: int, anchors: str, lam: float
     return out
 
 
-def flow_grid(anchors, h: int, w: int, device, eps: float = EPS):
-    """Trả về (grid [1,h,w,2] cho grid_sample align_corners=True, |u| trung bình px)."""
-    ys, xs = torch.meshgrid(torch.arange(h, dtype=torch.float32, device=device),
-                            torch.arange(w, dtype=torch.float32, device=device), indexing="ij")
+def flow_field(anchors, xs: torch.Tensor, ys: torch.Tensor, eps: float = EPS):
+    """Trường u = Σ K_i u_i / (Σ K_i + ε) tại tọa độ (xs, ys) bất kỳ. Trả về (ux, uy, Σ K_i)."""
     num_x = torch.zeros_like(xs); num_y = torch.zeros_like(xs); den = torch.zeros_like(xs)
     for cx, cy, bw, bh, dx, dy, s in anchors:
         ncx, ncy = cx + dx, cy + dy
@@ -53,9 +51,24 @@ def flow_grid(anchors, h: int, w: int, device, eps: float = EPS):
         num_x += k * ((xs - cx) * (1 / s - 1) - dx / s)
         num_y += k * ((ys - cy) * (1 / s - 1) - dy / s)
         den += k
-    ux, uy = num_x / (den + eps), num_y / (den + eps)
-    grid = torch.stack([(xs + ux) / (w - 1) * 2 - 1, (ys + uy) / (h - 1) * 2 - 1], dim=-1).unsqueeze(0)
-    return grid, float(torch.sqrt(ux ** 2 + uy ** 2).mean())
+    return num_x / (den + eps), num_y / (den + eps), den
+
+
+def pixel_coords(h: int, w: int, device, dtype=torch.float32):
+    return torch.meshgrid(torch.arange(h, dtype=dtype, device=device),
+                          torch.arange(w, dtype=dtype, device=device), indexing="ij")
+
+
+def to_grid(xs, ys, ux, uy, h: int, w: int) -> torch.Tensor:
+    """Lưới grid_sample [1,h,w,2] (align_corners=True) lấy mẫu tại (xs + ux, ys + uy)."""
+    return torch.stack([(xs + ux) / (w - 1) * 2 - 1, (ys + uy) / (h - 1) * 2 - 1], dim=-1).unsqueeze(0)
+
+
+def flow_grid(anchors, h: int, w: int, device, eps: float = EPS):
+    """Trả về (grid [1,h,w,2] cho grid_sample align_corners=True, |u| trung bình px)."""
+    ys, xs = pixel_coords(h, w, device)
+    ux, uy, _ = flow_field(anchors, xs, ys, eps)
+    return to_grid(xs, ys, ux, uy, h, w), float(torch.sqrt(ux ** 2 + uy ** 2).mean())
 
 
 def warp_boxes_by_grid(boxes: torch.Tensor, grid: torch.Tensor, h: int, w: int):
