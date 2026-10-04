@@ -1587,3 +1587,17 @@ Forced, Δ (adv − sạch) trung bình theo GT [CI 95%] — d_s / d_margin / d_
 - Natural (mô tả): token q* bị loại khỏi top-900 19–24% (C2-PIA 23.6% cao nhất, C2 21.3%); trên phần còn lại margin tụt 1.21–1.41. Gán lại: max_q z_c (adv) chỉ giảm 0.29–0.42 logit (forced giảm ~1.2) → decoder phần lớn "nhận lại" bằng query khác (IoU của query max chỉ 0.19–0.21 — bị lẫn bởi instance khác cùng lớp, chỉ để tham khảo).
 - Phân rã lỗi (266 GT phát hiện được ở ảnh sạch): preserved C2-PIA **0.726** vs C2 0.771 / OSFD 0.763 / PIA 0.756 / GEO-C0 0.774; phần mất thêm của C2-PIA rơi vào conf/rank (0.241 vs 0.211). Loc / lost ≤ 3% ở mọi ô. FP/ảnh: họ C2 tăng FP nền (2.9 vs sạch 1.6), C2-PIA không hơn C2 (5.27 vs 5.70 tổng).
 - Đọc chung: chênh AP +8.6 (C2-PIA − C2 trên Swin-L @ dev30, CI [0.3, 13.6]) KHÔNG thấy ở bằng chứng phân loại / xếp hạng / định vị trung bình theo GT trên query cố định; chỉ thấy ~4.5 điểm preserved@0.3 (12/266 GT) — cỡ nhiễu ở n = 30. Hai khả năng chưa tách: (a) lợi AP tập trung ở ít ảnh / ít GT (đuôi), (b) chênh AP dev30 phần lớn là nhiễu (cận dưới CI 0.3). Hướng tiếp: user quyết.
+
+---
+
+## 2026-10-04 — Xác nhận C2-PIA trên DINO-Swin-L @ dev100 (user: "khóa rồi chạy") — quy tắc khóa TRƯỚC khi chạy
+
+**Lý do:** 3 vòng phân tích (đa scale, distortion, đầu ra decoder) không thấy dấu vết cơ chế cho chênh Swin-L +8.6 (C2-PIA − C2 @ dev30, CI [0.3, 13.6]) → phải xác nhận chính hiện tượng trước khi giải thích tiếp.
+
+**Chạy:** `run_baselines.py --split dev300 --subset dev100 --methods OSFD PROBE-osfd+cls GEO-C0 PIA C2-PIA --out metrics_pia_dev100.json` (resume: OSFD, C2 có đủ 100 PNG; GEO-C0 / PIA / C2-PIA attack thêm 70 ảnh, cùng seed SEED + chỉ số dev300, code KHÔNG đổi so với lần chạy dev30) → `eval_generalization.py --subset dev100 --models yolox_s dino_swin_l` → `scripts/pair_screen.py --tag confirm_dev100 --pairs C2-PIA:PROBE-osfd+cls PIA:GEO-C0 C2-PIA:OSFD --exclude dev30`. Paired bootstrap 1000, BOOT_SEED 2026.
+
+**Quy tắc (trên dev100, n = 100):**
+- **P1 XÁC NHẬN** nếu Δ DINO-Swin-L (C2-PIA − C2) ≥ +3 VÀ cận dưới CI 95% > 0. Ngược lại **KHÔNG XÁC NHẬN**.
+- P2 (PIA − GEO-C0) cùng quy tắc, báo riêng.
+- XÁC NHẬN → hiện tượng có thật ở dev100: (i) phân tích cơ chế (decoder / theo ảnh) chạy lại trên dev100 trước khi kết luận; (ii) C2-PIA đủ điều kiện làm ứng viên sàng lọc dev300 theo plan_sota bước 3 — cần entry khóa riêng, user quyết. KHÔNG XÁC NHẬN → dừng giải thích lợi Swin-L của C2-PIA; chênh dev30 coi là nhiễu / không ổn định.
+- Mô tả (không quyết định): CrossAvg₃, R101, từng target; Δ C2-PIA − OSFD; cùng các chỉ số trên 70 ảnh mới (dev100 \ dev30) — dev100 chứa dev30 nên không độc lập hoàn toàn.
