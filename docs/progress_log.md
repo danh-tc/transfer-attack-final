@@ -1385,3 +1385,19 @@ Runtime: C2-PIA 11.5 s/ảnh, PIA-noCT 3.7. C2-PIA giữ trung bình 90.7% insta
 **Unit test trước khi chạy:** (1) ô cũ (GEO/PIA/C2-PIA) trùng HEAD; (2) 1 neo, ε = 0 → trùng phép đồng dạng tương ứng qua homography (warp PIA); (3) xa neo → ảnh gần như giữ nguyên; (4) box 1 neo, ε = 0 khớp c' ± s·(w, h)/2 (sai số rời rạc hóa); (5) SMOOTH dùng đúng multiset kích thước GT; (6) chạy được, hữu hạn, L∞ đúng. Báo cáo thêm biên độ dịch chuyển trung bình |u| (px) mỗi view của MORGD / SMOOTH / PIA để thấy chênh liều.
 
 **Code + unit test (TRƯỚC khi chạy):** `attack/methods/morgd.py` (`sample_anchors`, `flow_grid`, `warp_boxes_by_grid`, `morgd_views`); `geo_osfd_attack(geo="morgd" | "smooth")`; ô `C2-MORGD`, `C2-SMOOTH` (stats thêm `mean_disp_px`). `scripts/morgd_unit_test.py` ĐẠT: GEO-C0, PIA trùng tuyệt đối HEAD; C2-PIA lệch HEAD/mới 0.032 ≈ HEAD/HEAD 0.036 (không tất định đã biết); 1 neo ε = 0 trùng phép đồng dạng (lưới lệch 1.8e-7); xa neo lệch ≤ 0.006; box 1 neo khớp đúng c' ± s·(w, h)/2; SMOOTH đúng multiset kích thước GT; C2-MORGD/C2-SMOOTH chạy được, L∞ đúng. **Biên độ |u| trung bình mỗi view (3 ảnh × 10 view): MORGD 43.0 px, SMOOTH 50.1, PIA 176.7** → MORGD/SMOOTH yếu hơn PIA ~4× về biên độ hình học (nền giữ nguyên theo thiết kế) — phải nhớ khi đọc kết quả.
+
+**Kết quả @ dev30 (mô tả, KHÔNG quyết định)** — `metrics_morgd_dev30.json`, `generalization_morgd_dev30.json`, `results/ablation/morgd_dev30/screen.json`, log `results/pia_dev30/run3.log`.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 97.8 / 93.8 / 83.5 / 77.3 / 75.6 / 26.8 | 78.8 | 0.86
+- C2: 99.9 / 94.7 / 84.6 / 82.6 / 67.8 / 26.1 | 78.3 | 0.88
+- C2-PIA: 99.5 / 94.8 / 86.8 / 85.9 / 78.2 / **34.7** | **83.6** | 0.91
+- C2-MORGD: 99.9 / 96.0 / 87.7 / 83.5 / 72.8 / 27.3 | 81.3 | 0.89
+- C2-SMOOTH: 99.5 / 95.0 / 86.0 / 84.4 / 75.3 / 28.1 | 81.9 | 0.90
+
+Runtime ~11 s/ảnh cả hai; |u| trung bình 40.9 (MORGD) / 40.5 px (SMOOTH); giữ 99.5% / 99.2% instance GT.
+
+- **Phần "theo object" KHÔNG có tác dụng:** C2-MORGD − C2-SMOOTH: CrossAvg₃ −0.6, YOLOX −2.5 [−6.5, 0.5], DINO-Swin-L −0.8 [−5.2, 3.5]. Neo theo GT object không hơn neo ngẫu nhiên cùng biên độ.
+- **Cả hai thua C2-PIA**, rõ nhất ở DINO-Swin-L: MORGD − C2-PIA −7.5 [−10.2, −0.9], SMOOTH − C2-PIA −6.7 [−9.8, −0.0]; YOLOX −5.4 [−10.7, −2.0] (MORGD). CrossAvg₃ thấp hơn C2-PIA 1.7–2.3.
+- Vẫn hơn C2 (RRB) và OSFD về CrossAvg₃ (+2.5 đến +3.6 so OSFD, CI chứa 0).
+- Gây nhiễu chưa tách: biên độ hình học của MORGD/SMOOTH ~¼ PIA (41 vs 177 px) → thua C2-PIA có thể do liều, KHÔNG kết luận được "phi cứng kém hơn phối cảnh". Nhưng câu hỏi chính của MORGD (object-conditioned > generic cùng liều) trả lời ÂM ở dev30, khớp prior từ KG / A′1.
