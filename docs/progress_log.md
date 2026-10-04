@@ -1640,3 +1640,27 @@ Nếu kết luận dev100 khác dev30: dev100 là kết quả dùng (n lớn hơ
 - Natural: token q* bị loại khỏi top-900 C2-PIA 23.4% vs C2 20.6%, PIA 21.3% vs GEO-C0 18.5% (+2.8 điểm cả hai cặp). Gán lại: max_q z_c giảm 0.36–0.53 (forced 1.2–1.5).
 - FP/ảnh: C2-PIA 5.58 vs C2 5.20 (FP nền 3.59 vs 3.02); PIA 2.80 vs GEO-C0 2.98.
 - **Đọc chung (không đổi nhãn khóa):** tiêu chí CLS trượt chỉ vì rank percentile không đổi; margin và score GT giảm có ý nghĩa, ΔIoU tuy CI < 0 nhưng rất nhỏ (−0.02, IoU sạch 0.84). Chỉ số gắn trực tiếp với AP (preserved@0.3) cho thấy lợi của PIA trên Swin-L là **hạ confidence lớp GT dưới ngưỡng trong khi vẫn định vị đúng**, cộng thêm phá chọn query nhẹ (+2.8 điểm deselection). Rank percentile trong 900 query có thể kém nhạy (q* sạch ở pct 0.009, adv ~0.07 ở mọi ô). Cơ chế phía feature: PIA làm lệch mạnh hơn ở feature sâu và đặc biệt mức encoder thô, encoder dập ít hơn (A_enc ↑) — hai phân tích nhất quán ở mức "PIA đẩy thêm một lượng nhỏ, đều" chứ không mở kênh mới. Hướng tiếp: user quyết.
+
+---
+
+## 2026-10-04 — Cải tiến MORGD (user): chẩn đoán vì sao MORGD âm → MORGD-v2 (phân vùng theo box) xếp chồng trên PIA @ dev30 — quy tắc khóa TRƯỚC khi chạy
+
+**Giả thuyết:** MORGD chưa từng thực hiện được chuyển động riêng theo object. Cách ráp trường u = Σ K_i u_i / (Σ K_i + ε) với kernel Gaussian rộng bằng cỡ box trung bình hóa chuyển động của các object gần / chồng nhau (đã đo ở GRGD: tầng ráp trường làm mất ×0.37) → trường "neo theo object" ≈ warp mượt chung chung → object ≈ random. Prior thấp (3 lần âm: KG, A′1, MORGD); user chọn hướng này vì novelty.
+
+**Bước 0 — chẩn đoán MORGD hiện tại (forward-only, `scripts/morgd_fidelity.py --version v1`):** dev30, 10 view/ảnh, seed như run_baselines (SEED + chỉ số dev300), `sample_anchors` + `flow_grid` gốc (λ = 0.25, s ∈ [0.8, 1.25], ε = 0.05). Mỗi object (MORGD): dời tâm thực tế = tâm AABB(mặt nạ chữ nhật warp) − tâm gốc; ratio_pos = ‖thực tế‖ / ‖Δ_i‖ (bỏ object |Δ_i| < 1 px), cos(thực tế, Δ_i). Cả MORGD và SMOOTH: D_pair_pos_box, D_pair_scale_box (như GRGD), RMS |u|.
+- **Giả thuyết ĐƯỢC ỦNG HỘ** nếu median ratio_pos < 0.75 HOẶC D_pair_pos_box(MORGD) / D_pair_pos_box(SMOOTH) < 1.5 → sang bước 1. Ngược lại (MORGD đã thực hiện đúng mà vẫn ≈ random) → kết quả âm của MORGD là thật → **dừng nhánh**.
+
+**Bước 1 — MORGD-v2 + cổng độ trung thực (forward-only):**
+- Mỗi object i (box ở khung hiện tại; bản xếp chồng: box SAU PIA): t_i = (λ w_i r_x, λ h_i r_y), r ~ U(−1, 1), a_i = U(−ln 1.25, ln 1.25), λ = 0.25 (giữ của MORGD); gauge: trừ trung bình có trọng số diện tích ω (Σ ω t = 0, Σ ω a = 0); s_i = exp(a_i); c'_i = c_i + t_i.
+- Ánh xạ ngược đồng dạng chính xác: u_i(q) = c_i + (q − c'_i)/s_i − q.
+- Vùng của object i (khung ra) = AABB(box gốc ∪ box đã dời cỡ s_i·(w_i, h_i) tại c'_i) — phủ cả chỗ object rời đi để không để lại "bóng" object chưa gán nhãn. Trọng số mềm α_i(q) = σ((d_x)/τ_i)·σ((d_y)/τ_i), d = khoảng cách có dấu vào trong biên vùng, τ_i = 0.05·√(w_i h_i).
+- Chồng lấn: ghép "over" theo diện tích giảm dần (object nhỏ ưu tiên, thường ở trước): u ← α_i u_i + (1 − α_i) u. Ngoài mọi vùng u = 0.
+- SMOOTH-v2 (đối chứng): cùng cơ chế, CÙNG (t_i, s_i, kích thước theo chỉ số), tâm c_i đều ngẫu nhiên trên khung.
+- RNG: (r, a) từ `random.Random(seed + 1)`, tâm ngẫu nhiên từ `random.Random(seed + 2)`; H của PIA và nhiễu σ như C2-PIA → mỗi view H, (t, s), σ trùng giữa các ô, chỉ khác tâm.
+- GT co-transform: AABB mặt nạ chữ nhật warp, mask warp, bỏ instance rỗng / < 1 px (như MORGD).
+- **Cổng (bản xếp chồng trên PIA, cả 3):** median ratio_pos (MORGD-v2) ≥ 0.75; D_pair_pos_box(MORGD-v2) / D_pair_pos_box(SMOOTH-v2) ≥ 1.5; RMS |u| MORGD-v2 / SMOOTH-v2 ∈ [0.9, 1.1]. Trượt → dừng nhánh, KHÔNG attack.
+- Unit test trước cổng: λ = 0 hoặc không có GT → view trùng tuyệt đối pia_views; 1 object không chồng lấn → box dời đúng c' ± s·(w, h)/2 (≤ 2 px); xa mọi vùng u = 0; σ = 0, adv = sạch → view == companion; ô cũ trùng HEAD; chạy được, L∞ đúng.
+
+**Bước 2 — attack @ dev30 (mô tả, khung C2: L_OSFD k = 3 + 4·(loss_rpn_cls + loss_cls), MI μ = 1, ε = 5, α = 1, B = 50, 2 view/step, 1 backward, σ = 6, feature sạch + GT co-transform):** C2-PIA (PNG có sẵn, mốc) | C2-PIA-SMOOTH2 | **C2-PIA-MORGD2** | C2-MORGD2 (MORGD-v2 không PIA). Hiệu chính **Δ_object = C2-PIA-MORGD2 − C2-PIA-SMOOTH2**; kèm Δ_extra = C2-PIA-SMOOTH2 − C2-PIA.
+
+**Bước 3 — quyết định (dev30, điểm ước lượng):** đi tiếp (khóa entry xác nhận dev100: Δ_object DINO-Swin-L hoặc CrossAvg₃ ≥ +3 VÀ cận dưới CI > 0) nếu Δ_object ≥ +2 trên DINO-Swin-L HOẶC CrossAvg₃ VÀ Δ_object > 0 ở ≥ 3/5 target khác surrogate (R101, ConvNeXt-T, Swin-T, YOLOX-S, DINO-Swin-L). **Δ_object ≤ 0 trên cả DINO-Swin-L và CrossAvg₃ → dừng hẳn nhánh MORGD.** Không thêm biến thể cứu vãn.
