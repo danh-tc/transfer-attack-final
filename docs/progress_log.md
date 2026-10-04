@@ -1364,3 +1364,24 @@ Runtime: C2-PIA 11.5 s/ảnh, PIA-noCT 3.7. C2-PIA giữ trung bình 90.7% insta
 - **PIA-noCT sụp** (CrossAvg₃ 36.6, kể cả white-box R50 53.6): với biến đổi mạnh, so feature adv đã warp với feature sạch CHƯA warp làm loss gần như vô nghĩa → co-transform là BẮT BUỘC cho PIA; không phải co-transform "hại" (câu hỏi gây nhiễu của entry trước được trả lời: +7.2 DINO-Swin-L của PIA − GEO-C0 không phải do so với một đối chứng bị hạ giả tạo; co-transform cần cho PIA, còn với RRB biên độ nhỏ thì không cần).
 - Tương tác loss × biến đổi: với RRB, thêm cls gần như không đổi CrossAvg₃ trên dev30 (C2 − OSFD −0.5; dev300 +4.7); với PIA, thêm cls +4.1 CrossAvg₃ và +5.9 DINO-Swin-L.
 - Lưu ý: C2-PIA khác C2 ở 2 chỗ (RRB → PIA VÀ co-transform feature sạch). n = 30, CI rộng. Muốn đi tiếp: khóa tiêu chí sàng lọc (so OSFD và C2) rồi chạy dev100 → dev300.
+
+---
+
+## 2026-10-04 — Pilot MORGD @ dev30 (user: xem xu hướng trước) — quy tắc khóa TRƯỚC khi code/chạy
+
+**Bối cảnh:** đề xuất MORGD (Multi-Object Relative Geometry Diversification — biến dạng mượt toàn ảnh, điều kiện theo từng object, tạo đa dạng vị trí/tỉ lệ TƯƠNG ĐỐI giữa các object) đến từ trao đổi với một trợ lý khác, không có paper/code. Prior yếu (đã nêu với user): pilot KG (quan hệ object) và A′1 (trọng số theo box) đều NO-GO; loại biến đổi toàn cục ít ảnh hưởng (RRB ≈ PIA); paper PIA: warp phi cứng (Elastic 23.0, TPS 37.5) thua phối cảnh (49.3) ở classification. Câu hỏi ở dev30 (CHỈ mô tả): MORGD có tiến tới / vượt C2-PIA không, và phần "theo object" có hơn warp mượt generic cùng biên độ không.
+
+**Khung:** như C2-PIA (MI μ = 1, ε = 5, α = 1, 50 step, 2 view/step, 1 backward, σ = 6, L_OSFD k = 3 + 4·(loss_rpn_cls + loss_cls), 1 forward/view, feature sạch co-transform, GT co-transform), CHỈ thay phép biến đổi PIA bằng:
+
+| Ô | Biến đổi | So với |
+|---|---|---|
+| C2-MORGD | trường dịch chuyển mượt, neo tại từng GT object | C2-PIA, C2, OSFD |
+| C2-SMOOTH | cùng cơ chế, neo tại vị trí NGẪU NHIÊN đều trên ảnh, kích thước = kích thước GT hoán vị ngẫu nhiên (cùng số neo, cùng phân phối biên độ) | C2-MORGD: phần "theo object" |
+
+**Định nghĩa biến đổi (khóa, tự chọn vì nguồn không cho số — KHÔNG tune):** mỗi neo i (box tâm c_i, cỡ w_i × h_i ở khung model): Δ_i = (λ·w_i·r_x, λ·h_i·r_y), r ~ U(−1, 1), **λ = 0.25**; s_i = exp(U(−ln 1.25, ln 1.25)). Ánh xạ ngược của neo i (pixel ra q → nguồn): u_i(q) = (q − c_i)(1/s_i − 1) − Δ_i/s_i (đồng dạng: tâm c_i dời tới c_i + Δ_i, co giãn s_i). Trọng số K_i(q) = exp(−½[((q_x − c'_x)/w_i)² + ((q_y − c'_y)/h_i)²]), c' = c_i + Δ_i. Trường u = Σ K_i u_i / (Σ K_i + **ε = 0.05**) (xa mọi neo → u → 0, nền giữ nguyên); ảnh ra(q) = x(q + u(q)) bằng grid_sample bilinear, ngoài = 0. Đa dạng tương đối r′_ij − r_ij đến từ việc rút (Δ_i, s_i) ĐỘC LẬP mỗi object (không có sampler cặp tường minh — mức tối thiểu của ý tưởng). RNG: `random` của Python. Ảnh không GT → không neo → đồng nhất.
+
+**GT co-transform:** box = AABB của ảnh warp (cùng lưới) của mặt nạ chữ nhật box (≥ 0.5); mask warp cùng lưới; bỏ instance rỗng / < 1 px.
+
+**Unit test trước khi chạy:** (1) ô cũ (GEO/PIA/C2-PIA) trùng HEAD; (2) 1 neo, ε = 0 → trùng phép đồng dạng tương ứng qua homography (warp PIA); (3) xa neo → ảnh gần như giữ nguyên; (4) box 1 neo, ε = 0 khớp c' ± s·(w, h)/2 (sai số rời rạc hóa); (5) SMOOTH dùng đúng multiset kích thước GT; (6) chạy được, hữu hạn, L∞ đúng. Báo cáo thêm biên độ dịch chuyển trung bình |u| (px) mỗi view của MORGD / SMOOTH / PIA để thấy chênh liều.
+
+**Code + unit test (TRƯỚC khi chạy):** `attack/methods/morgd.py` (`sample_anchors`, `flow_grid`, `warp_boxes_by_grid`, `morgd_views`); `geo_osfd_attack(geo="morgd" | "smooth")`; ô `C2-MORGD`, `C2-SMOOTH` (stats thêm `mean_disp_px`). `scripts/morgd_unit_test.py` ĐẠT: GEO-C0, PIA trùng tuyệt đối HEAD; C2-PIA lệch HEAD/mới 0.032 ≈ HEAD/HEAD 0.036 (không tất định đã biết); 1 neo ε = 0 trùng phép đồng dạng (lưới lệch 1.8e-7); xa neo lệch ≤ 0.006; box 1 neo khớp đúng c' ± s·(w, h)/2; SMOOTH đúng multiset kích thước GT; C2-MORGD/C2-SMOOTH chạy được, L∞ đúng. **Biên độ |u| trung bình mỗi view (3 ảnh × 10 view): MORGD 43.0 px, SMOOTH 50.1, PIA 176.7** → MORGD/SMOOTH yếu hơn PIA ~4× về biên độ hình học (nền giữ nguyên theo thiết kế) — phải nhớ khi đọc kết quả.

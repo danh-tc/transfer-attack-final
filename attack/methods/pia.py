@@ -170,13 +170,14 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
-    cls_weight > 0 (C2-PIA, chỉ geo="pia"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
+    geo="morgd" | "smooth": trường dịch chuyển mượt neo theo GT object | neo ngẫu nhiên (pilot MORGD).
+    cls_weight > 0 (C2-PIA / C2-MORGD / C2-SMOOTH, không cho geo="rrb"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
     1 forward/view (repair.make_view_loss, không sửa = loss của C2)."""
-    assert geo in ("rrb", "pia")
-    assert cls_weight == 0.0 or geo == "pia"
+    assert geo in ("rrb", "pia", "morgd", "smooth")  # morgd/smooth: attack/methods/morgd.py
+    assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
-    log = {"forward_no_grad": 0, "modes": [], "gt_kept": []}
+    log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": []}
     rrb_kw = dict(theta=rrb_theta, l_s=rrb_l_s, rho=rrb_rho, s_max=rrb_s_max, sigma=sigma)
     feats_fixed = None
     if not co_transform:
@@ -187,9 +188,14 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         comp = clean_pixels if co_transform else None
         if geo == "rrb":
             triples = [(v, c, ds) for v, _, c in rrb_views(img, ds, with_gt=True, companion=comp, **rrb_kw)]
-        else:
+        elif geo == "pia":
             triples = pia_views(img, n_views, delta_max, pi, sigma, companion=comp, log=log["modes"],
                                 data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"])
+        else:
+            from attack.methods.morgd import morgd_views  # tránh import vòng (morgd dùng pia.warp)
+            triples = morgd_views(img, n_views, ds, anchors="object" if geo == "morgd" else "random",
+                                  sigma=sigma, companion=comp, with_gt=cls_weight > 0, log=log["disp"],
+                                  gt_log=log["gt_kept"])
         out = []
         for v, c, dsv in triples:
             if co_transform:
