@@ -1,0 +1,34 @@
+{
+  "version": "v2",
+  "split": "dev30",
+  "views_per_image": 10,
+  "n_objects_measured": 3190,
+  "median_ratio_pos": 0.9395567378938783,
+  "mean_ratio_pos": 1.0659385189038006,
+  "mean_cos": 0.6183556417451268,
+  "ratio_pos_by_quartile": [
+    0.6113102283433836,
+    0.9395567378938783,
+    1.103095132370176
+  ],
+  "d_pair_pos_box": {
+    "object": 0.2885771130028466,
+    "random": 0.23600933215902575
+  },
+  "d_pair_scale_box": {
+    "object": 0.30659914435580965,
+    "random": 0.21723272305614408
+  },
+  "rms_u_px": {
+    "object": 45.08908271417942,
+    "random": 44.794713697165264
+  },
+  "object_over_random_d_pair_pos_box": 1.2227360264228877,
+  "gate": {
+    "median_ratio_pos>=0.75": true,
+    "object/random d_pair_pos_box>=1.5": false,
+    "rms_ratio": 1.006571512411135,
+    "rms_ratio_in_[0.9,1.1]": true
+  },
+  "gate_pass": false
+}
