@@ -1347,3 +1347,20 @@ Vẫn dev30, CHỈ mô tả, không quyết định. Nền như entry PIA (MI μ
 **Báo cáo:** 6 model, CrossAvg₃, so OSFD / C2 / PIA / GEO-C0 (paired bootstrap, chỉ để thấy CI), runtime, tỉ lệ instance bị bỏ.
 
 **Code + unit test (TRƯỚC khi chạy):** `pia.warp_boxes` (H⁻¹, AABB, clip, bỏ < 1 px / mẫu số ≤ 0), `pia.gt_with_keep`, `pia_views(data_sample=)`; `geo_osfd_attack(co_transform=, cls_weight=)`; ô `C2-PIA`, `PIA-noCT` trong `run_baselines.py` (stats thêm `gt_kept_frac`). `scripts/pia_c2_unit_test.py` ĐẠT: 4 ô cũ trùng tuyệt đối HEAD (3 step); tịnh tiến → box dời (−dx, −dy); đẩy ra ngoài → bỏ hết; IoU(AABB mask warp, box warp) view PIA mean **0.823** (trung vị 0.839, p5 0.580; không biến đổi 0.951; xoay RRB 0.834) → co-transform GT dùng được; 159/180 instance giữ (12% bị bỏ); PIA-noCT 0 forward no_grad, loss == loss OSFD; make_view_loss(c2, 0) == loss feature; GT rỗng → loss hữu hạn; C2-PIA 3 step × 2 ảnh hữu hạn, L∞ đúng.
+
+**Kết quả @ dev30 (mô tả, KHÔNG quyết định)** — `metrics_pia2_dev30.json`, `generalization_pia2_dev30.json`, `results/ablation/pia2_dev30/screen.json`, log `results/pia_dev30/run2.log`. C2 = PNG `PROBE-osfd+cls` sinh lại trên dev100 (cùng seed).
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 97.8 / 93.8 / 83.5 / 77.3 / 75.6 / 26.8 | 78.8 | 0.86
+- C2: 99.9 / 94.7 / 84.6 / 82.6 / 67.8 / 26.1 | 78.3 | 0.88
+- GEO-C0: 97.8 / 91.8 / 78.2 / 80.8 / 78.2 / 21.5 | 79.0 | 0.87
+- PIA: 96.8 / 89.9 / 79.7 / 80.4 / 78.4 / 28.8 | 79.5 | 0.89
+- **C2-PIA: 99.5 / 94.8 / 86.8 / 85.9 / 78.2 / 34.7 | 83.6 | 0.91**
+- PIA-noCT: 53.6 / 47.6 / 32.7 / 40.0 / 37.0 / 5.3 | 36.6 | 0.76
+
+Runtime: C2-PIA 11.5 s/ảnh, PIA-noCT 3.7. C2-PIA giữ trung bình 90.7% instance GT mỗi view.
+
+- **C2-PIA − OSFD: CrossAvg₃ +4.8 [1.5, 10.6], DINO-Swin-L +7.9 [1.6, 13.8]**, ConvNeXt +3.3, Swin-T +8.6, YOLOX +2.5, R101 +1.0. So C2: YOLOX +10.4 [2.8, 19.1], DINO-Swin-L +8.7 [0.3, 13.6]. So PIA: DINO-Swin-L +5.9 [1.6, 9.9], CrossAvg₃ +4.1. → Loss cls và PIA CỘNG được: C2-PIA cao nhất ở mọi target khác họ, và lấy lại YOLOX mà C2 (RRB) mất trên dev30.
+- **PIA-noCT sụp** (CrossAvg₃ 36.6, kể cả white-box R50 53.6): với biến đổi mạnh, so feature adv đã warp với feature sạch CHƯA warp làm loss gần như vô nghĩa → co-transform là BẮT BUỘC cho PIA; không phải co-transform "hại" (câu hỏi gây nhiễu của entry trước được trả lời: +7.2 DINO-Swin-L của PIA − GEO-C0 không phải do so với một đối chứng bị hạ giả tạo; co-transform cần cho PIA, còn với RRB biên độ nhỏ thì không cần).
+- Tương tác loss × biến đổi: với RRB, thêm cls gần như không đổi CrossAvg₃ trên dev30 (C2 − OSFD −0.5; dev300 +4.7); với PIA, thêm cls +4.1 CrossAvg₃ và +5.9 DINO-Swin-L.
+- Lưu ý: C2-PIA khác C2 ở 2 chỗ (RRB → PIA VÀ co-transform feature sạch). n = 30, CI rộng. Muốn đi tiếp: khóa tiêu chí sàng lọc (so OSFD và C2) rồi chạy dev100 → dev300.
