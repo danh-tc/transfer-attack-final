@@ -81,6 +81,54 @@ def homography(dst: torch.Tensor, src: torch.Tensor) -> torch.Tensor:
     return torch.cat([h, h.new_ones(1)]).view(3, 3)
 
 
+FACTORS = ("T", "R", "S", "K", "P")  # tịnh tiến, xoay, co giãn đẳng hướng, lệch tỉ lệ + trượt, phối cảnh
+
+
+def _center(h: int, w: int) -> torch.Tensor:
+    return torch.tensor([[1, 0, (w - 1) / 2], [0, 1, (h - 1) / 2], [0, 0, 1]], dtype=torch.float64)
+
+
+def decompose_h(H: torch.Tensor, h: int, w: int) -> dict:
+    """Giai đoạn A (progress_log 2026-10-04): H (pixel ra -> nguồn) ở tọa độ tâm ảnh, H' = C⁻¹ H C = H_S·H_A·H_P.
+    -> {t [2], theta, s, k1, k2, v [2]} (float64)."""
+    C = _center(h, w)
+    Hc = torch.linalg.inv(C) @ H.double() @ C
+    Hc = Hc / Hc[2, 2]
+    A, t, v = Hc[:2, :2], Hc[:2, 2], Hc[2, :2]
+    Q, U = torch.linalg.qr(A - torch.outer(t, v))
+    D = torch.diag(torch.sign(torch.diagonal(U)))
+    Q, U = Q @ D, D @ U  # đường chéo U dương
+    assert torch.det(Q) > 0, "homography có phản xạ"
+    sc = torch.sqrt(torch.det(U))
+    K = U / sc
+    return {"t": t, "theta": torch.atan2(Q[1, 0], Q[0, 0]), "s": sc, "k1": K[0, 0], "k2": K[0, 1], "v": v}
+
+
+def compose_h(f: dict, h: int, w: int) -> torch.Tensor:
+    c, sn = torch.cos(f["theta"]), torch.sin(f["theta"])
+    R = torch.stack([torch.stack([c, -sn]), torch.stack([sn, c])])
+    K = torch.stack([torch.stack([f["k1"], f["k2"]]), torch.stack([torch.zeros_like(f["k1"]), 1 / f["k1"]])])
+    M = f["s"] * R @ K
+    Hc = torch.eye(3, dtype=torch.float64)
+    Hc[:2, :2] = M + torch.outer(f["t"], f["v"])
+    Hc[:2, 2] = f["t"]
+    Hc[2, :2] = f["v"]
+    C = _center(h, w)
+    return C @ Hc @ torch.linalg.inv(C)
+
+
+IDENTITY = {"T": {"t": torch.zeros(2, dtype=torch.float64)}, "R": {"theta": torch.tensor(0.0, dtype=torch.float64)},
+            "S": {"s": torch.tensor(1.0, dtype=torch.float64)},
+            "K": {"k1": torch.tensor(1.0, dtype=torch.float64), "k2": torch.tensor(0.0, dtype=torch.float64)},
+            "P": {"v": torch.zeros(2, dtype=torch.float64)}}
+
+
+def drop_factor(H: torch.Tensor, factor: str, h: int, w: int):
+    """-> (H với thành phần `factor` đặt về đồng nhất, các thành phần đã tách của H gốc)."""
+    f = decompose_h(H, h, w)
+    return compose_h(dict(f, **IDENTITY[factor]), h, w), f
+
+
 def warp_grid(H: torch.Tensor, h: int, w: int, device) -> torch.Tensor:
     """Lưới grid_sample [1,h,w,2] (align_corners=True): pixel ra (x, y) lấy mẫu ở H·(x, y, 1)."""
     ys, xs = torch.meshgrid(torch.arange(h, dtype=torch.float64), torch.arange(w, dtype=torch.float64),
@@ -128,11 +176,14 @@ def gt_with_keep(data_sample, boxes, masks, keep):
 
 
 def pia_views(adv_pixels: torch.Tensor, n: int, delta_max: float = DELTA_PAPER, pi=PI_PAPER,
-              sigma: float = 6.0, companion=None, log=None, data_sample=None, gt_log=None):
+              sigma: float = 6.0, companion=None, log=None, data_sample=None, gt_log=None, drop=None,
+              factor_log=None):
     """n view PIA của adv (khung model [C,H,W]); companion (ảnh sạch) nhận CÙNG phép warp, không nhiễu.
     Trả về [(view_nhiễu, companion_warp, data_sample_view)]; data_sample_view = None nếu không truyền
     data_sample, ngược lại GT co-transform (box qua H⁻¹, mask cùng lưới). Rút tham số tuần tự từng view
-    (cụm 5 × 4 lần = 20 lần 1); co-transform GT không tiêu thụ RNG."""
+    (cụm 5 × 4 lần = 20 lần 1); co-transform GT không tiêu thụ RNG.
+    drop ∈ FACTORS (Giai đoạn A): bỏ 1 thành phần của H sau khi rút (không đổi RNG); factor_log nhận
+    (thành phần của H gốc, |u| trung bình px của H dùng thật)."""
     h, w = adv_pixels.shape[-2:]
     dst = torch.tensor([(0.0, 0.0), (w - 1.0, 0.0), (w - 1.0, h - 1.0), (0.0, h - 1.0)], dtype=torch.float64)
     gt = get_gt(data_sample, adv_pixels.device) if data_sample is not None else None
@@ -142,7 +193,18 @@ def pia_views(adv_pixels: torch.Tensor, n: int, delta_max: float = DELTA_PAPER, 
         if log is not None:
             log.append(mode)
         H = homography(dst, src)
+        if drop is not None:
+            H, f = drop_factor(H, drop, h, w)
         grid = warp_grid(H, h, w, adv_pixels.device)
+        if factor_log is not None:
+            g = grid[0].double()
+            disp = float(torch.sqrt(((g[..., 0] + 1) / 2 * (w - 1) - torch.arange(w, device=g.device)) ** 2
+                                    + ((g[..., 1] + 1) / 2 * (h - 1) - torch.arange(h, device=g.device)[:, None]) ** 2).mean())
+            ff = f if drop is not None else decompose_h(homography(dst, src), h, w)
+            factor_log.append({"t": float(ff["t"].norm()), "theta_deg": float(ff["theta"].abs() * 180 / torch.pi),
+                               "abs_ln_s": float(ff["s"].log().abs()), "abs_ln_k1": float(ff["k1"].log().abs()),
+                               "abs_k2": float(ff["k2"].abs()), "v_px": float(ff["v"].norm() * max(h, w)),
+                               "disp_px": disp})
         view = gaussian_blur(warp(adv_pixels, grid), sigma=sigma) if sigma > 0 else warp(adv_pixels, grid)
         dsv = None
         if gt is not None:
@@ -188,12 +250,13 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
                     pi=PI_PAPER, sigma: float = 6.0, info=None, on_step=None,
-                    co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None,
+                    co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None, pia_drop=None,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
     geo="morgd" | "smooth": trường dịch chuyển mượt neo theo GT object | neo ngẫu nhiên (pilot MORGD).
+    pia_drop ∈ FACTORS (geo="pia"): Giai đoạn A — bỏ 1 thành phần homography (T, R, S, K, P) mỗi view.
     geo="pia_morgd2" | "pia_smooth2" | "morgd2": MORGD-v2 (phân vùng theo box) ∘ PIA | đối chứng tâm ngẫu nhiên ∘ PIA |
     MORGD-v2 không PIA (morgd2.py); RNG (r, a) = Random(seed + 1), tâm ngẫu nhiên = Random(seed + 2).
     geo="grgd" | "grgd_random": T_relative ∘ PIA, neo tại tâm GT | tâm ngẫu nhiên (pilot GRGD-v0, attack/methods/grgd.py);
@@ -206,7 +269,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
-    log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": [], "morgd2": []}
+    log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": [], "morgd2": [], "pia_factors": []}
     if geo.startswith("grgd") or geo.endswith("2"):
         rng_xi = random.Random(torch.initial_seed() + 1)
         rng_c = random.Random(torch.initial_seed() + 2)
@@ -224,7 +287,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             triples = [(v, c, ds) for v, _, c in rrb_views(img, ds, with_gt=True, companion=comp, **rrb_kw)]
         elif geo == "pia":
             triples = pia_views(img, n_views, delta_max, pi, sigma, companion=comp, log=log["modes"],
-                                data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"])
+                                data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"], drop=pia_drop,
+                                factor_log=log["pia_factors"] if pia_drop is not None else None)
         elif geo.endswith("2"):
             from attack.methods.morgd2 import morgd2_views  # tránh import vòng
             triples = morgd2_views(img, n_views, ds, rng_xi, rng_c, anchors="random" if geo == "pia_smooth2" else "object",
