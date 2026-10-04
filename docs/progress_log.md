@@ -1676,3 +1676,17 @@ Nếu kết luận dev100 khác dev30: dev100 là kết quả dùng (n lớn hơ
 - Đọc: v2 sửa được việc thực hiện chuyển động theo object (hướng đúng hơn gấp đôi, biên độ sát mục tiêu), và object đã vượt random (1.22 so với 0.78 ở v1). Nhưng đối chứng neo ngẫu nhiên vẫn đổi quan hệ giữa các GT tới ~82% mức của bản neo theo object: các vùng cỡ GT đặt ngẫu nhiên vẫn trùm và dời cứng một phần object thật. Về cấu trúc, mọi warp cục bộ cỡ object đều đổi hình học tương đối của GT, nên tương phản object − random chỉ còn ~20% đại lượng mà giả thuyết nói tới → so 2 ô attack ở dev30 (CI ±5) gần như chắc chắn không phân biệt được. Ngưỡng 1.5 đã khóa trước; không nới sau khi thấy số.
 
 **User BỎ QUA cổng (quyết định SAU khi thấy số cổng v2) — chạy bước 2 để xem xu hướng.** Kết quả bước 2 chỉ MÔ TẢ, không dùng để biện minh cho nhánh; quy tắc bước 3 vẫn áp dụng như đã khóa (Δ_object ≤ 0 trên cả DINO-Swin-L và CrossAvg₃ → dừng hẳn), nhưng một kết quả dương cũng phải được đọc kèm việc cổng đã trượt (tương phản object − random chỉ ~20% về hình học). Chạy: `run_baselines.py --split dev300 --subset dev30 --methods OSFD PROBE-osfd+cls C2-PIA C2-MORGD C2-PIA-SMOOTH2 C2-PIA-MORGD2 C2-MORGD2 --out metrics_morgd2_dev30.json` → `eval_generalization.py --subset dev30 --models yolox_s dino_swin_l` → `pair_screen.py --subset dev30 --tag morgd2_dev30 --pairs C2-PIA-MORGD2:C2-PIA-SMOOTH2 C2-PIA-SMOOTH2:C2-PIA C2-PIA-MORGD2:C2-PIA C2-MORGD2:C2-MORGD C2-MORGD2:C2-PIA`. Log `results/morgd2/run.log`.
+
+**Bước 2 — kết quả @ dev30 (mô tả; cổng đã trượt, user bỏ qua) — `results/ablation/morgd2_dev30/screen.json`, `metrics_morgd2_dev30.json`, `generalization_morgd2_dev30.json`, log `results/morgd2/run.log`.**
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ (runtime s/ảnh):
+- C2-PIA: 99.5 / 94.8 / 86.8 / 85.9 / 78.2 / **34.7** | **83.6** (11.3)
+- C2-PIA-SMOOTH2: 98.3 / 92.6 / 78.6 / 83.3 / 76.9 / 22.5 | 79.6 (12.6)
+- C2-PIA-MORGD2: 96.8 / 89.3 / 78.3 / 76.9 / 71.7 / 23.3 | 75.7 (12.4)
+- C2-MORGD (v1): 99.9 / 96.0 / 87.7 / 83.5 / 72.8 / 27.3 | 81.3
+- C2-MORGD2: 99.7 / 93.6 / 80.2 / 81.9 / 70.8 / 21.5 | 77.6 (11.9)
+
+- **Δ_object (C2-PIA-MORGD2 − C2-PIA-SMOOTH2): DINO-Swin-L +0.7 [−3.3, +3.4], CrossAvg₃ −4.0 [−7.4, −0.9]**; > 0 chỉ ở 1/5 target (Swin-L) → theo bước 3: KHÔNG đi tiếp (điều kiện "dừng hẳn" Δ ≤ 0 trên CẢ HAI không kích hoạt vì Swin-L +0.7, nhưng điều kiện đi tiếp trượt rõ) → **dừng nhánh MORGD**.
+- **Thêm warp cục bộ lên PIA làm attack YẾU đi mạnh, bất kể neo:** SMOOTH2 − C2-PIA: Swin-L −12.2 [−15.9, −4.8], CrossAvg₃ −4.0; MORGD2 − C2-PIA: Swin-L −11.4, CrossAvg₃ −7.9 [−12.6, −5.0]; cả R50 white-box (99.5 → 96.8–98.3) và R101 (−2.2 / −5.6) giảm → tối ưu trên surrogate kém đi, không chỉ transfer.
+- **MORGD-v2 đứng riêng kém v1:** C2-MORGD2 − C2-MORGD: Swin-L −5.8 [−9.1, −2.4], CrossAvg₃ −3.7 — trường cứng từng mảnh (seam) kém trường mượt.
+- Đọc (giả thuyết, chưa kiểm): **có điểm tối ưu của đa dạng hình học ở B cố định.** PIA δ_max 0.6 có vẻ đã gần mức đó; thêm biến đổi (dù toàn cục RaPA hay cục bộ SMOOTH2/MORGD2) làm gradient giữa các view mất tương quan → với 50 step × 2 view thì δ không tích lũy được (cùng chiều với MORGD-RaPA −25). Hệ quả kiểm được: tăng số view mỗi backward (giảm phương sai gradient) sẽ cho phép biến đổi mạnh hơn mà không mất utility. Hướng tiếp: user quyết.
