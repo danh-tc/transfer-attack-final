@@ -1,0 +1,88 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.42s)
+creating index...
+index created!
+[swinl_geo] 10/100
+[swinl_geo] 20/100
+[swinl_geo] 30/100
+[swinl_geo] 40/100
+[swinl_geo] 50/100
+[swinl_geo] 60/100
+[swinl_geo] 70/100
+[swinl_geo] 80/100
+[swinl_geo] 90/100
+[swinl_geo] 100/100
+ô                 drop     bb1     bb2     bb3     bb4   neck1   neck5     enc    enc1    enc2    enc3    enc4    enc5   A_enc
+OSFD              24.0   0.067   0.108   0.276   0.424   0.097   0.243   0.066   0.050   0.116   0.115   0.084   0.029   0.149
+GEO-C0            22.4   0.068   0.114   0.265   0.388   0.099   0.205   0.056   0.043   0.096   0.088   0.063   0.018   0.139
+PIA               28.5   0.068   0.114   0.279   0.417   0.099   0.234   0.064   0.048   0.110   0.105   0.079   0.025   0.146
+PROBE-osfd+cls    31.4   0.067   0.099   0.221   0.332   0.096   0.167   0.044   0.033   0.078   0.075   0.050   0.017   0.129
+C2-PIA            37.2   0.068   0.103   0.244   0.374   0.097   0.202   0.057   0.042   0.101   0.103   0.072   0.023   0.145
+ρ giữa ô vs drop    -0.50   -0.80   -0.50   -0.60   -0.50   -0.60   -0.20   -0.60   -0.20   -0.20   -0.20   -0.20   -0.20
+
+P1 C2-PIA − PROBE-osfd+cls: bb1 Δ+0.000 [+0.000, +0.000] ×1.01  bb2 Δ+0.004 [+0.003, +0.004] ×1.04  bb3 Δ+0.022 [+0.019, +0.026] ×1.10  bb4 Δ+0.042 [+0.035, +0.050] ×1.13  neck1 Δ+0.002 [+0.001, +0.002] ×1.02  neck5 Δ+0.036 [+0.027, +0.045] ×1.21  enc Δ+0.013 [+0.009, +0.016] ×1.29  enc1 Δ+0.009 [+0.007, +0.011] ×1.28  enc2 Δ+0.023 [+0.017, +0.029] ×1.29  enc3 Δ+0.028 [+0.020, +0.036] ×1.37  enc4 Δ+0.022 [+0.015, +0.031] ×1.44  enc5 Δ+0.006 [+0.002, +0.010] ×1.33  A_enc Δ+0.016 [+0.010, +0.022] ×1.12
+   {'SHALLOW_SPECIFIC': False, 'shallow_stages': [], 'ENCODER': True}
+
+P2 PIA − GEO-C0: bb1 Δ-0.000 [-0.000, -0.000] ×1.00  bb2 Δ-0.000 [-0.001, -0.000] ×1.00  bb3 Δ+0.014 [+0.012, +0.017] ×1.05  bb4 Δ+0.029 [+0.025, +0.035] ×1.08  neck1 Δ-0.000 [-0.000, +0.000] ×1.00  neck5 Δ+0.029 [+0.023, +0.035] ×1.14  enc Δ+0.008 [+0.005, +0.010] ×1.14  enc1 Δ+0.005 [+0.004, +0.007] ×1.13  enc2 Δ+0.014 [+0.010, +0.019] ×1.14  enc3 Δ+0.016 [+0.011, +0.023] ×1.18  enc4 Δ+0.017 [+0.011, +0.023] ×1.27  enc5 Δ+0.006 [+0.004, +0.009] ×1.36  A_enc Δ+0.007 [+0.003, +0.012] ×1.05
+   {'SHALLOW_SPECIFIC': False, 'shallow_stages': [], 'ENCODER': True}
+
+KẾT LUẬN: ENCODER ở cả P1, P2, không SHALLOW -> một phần, tiền đề đa scale không được ủng hộ
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.47s)
+creating index...
+index created!
+[decoder] 10/100
+[decoder] 20/100
+[decoder] 30/100
+[decoder] 40/100
+[decoder] 50/100
+[decoder] 60/100
+[decoder] 70/100
+[decoder] 80/100
+[decoder] 90/100
+[decoder] 100/100
+SANITY {"forced_eq_natural_clean_maxabs": 0.0, "predict_score_maxabs": 0.0, "predict_box_maxabs": 0.0, "n_gt": 982, "n_gt_sel": 955, "frac_gt_sel": 0.9725050916496945, "clean_sel_score_median": 0.5575586557388306, "clean_sel_score_frac_ge_0.3": 0.7706806282722513, "fallback_triggered": false}
+clean q*: {'s': 0.286, 'margin': 4.209, 'rank_pct': 0.009, 'iou': 0.838}
+
+forced                             d_s              d_margin            d_rank_pct                 d_iou
+OSFD              -1.343 [-1.60,-1.13]  -1.337 [-1.64,-1.10]  +0.060 [+0.05,+0.07]  -0.108 [-0.13,-0.09]
+GEO-C0            -1.180 [-1.41,-1.00]  -1.164 [-1.41,-0.98]  +0.053 [+0.04,+0.06]  -0.096 [-0.12,-0.08]
+PIA               -1.373 [-1.65,-1.16]  -1.363 [-1.65,-1.14]  +0.056 [+0.05,+0.07]  -0.113 [-0.13,-0.09]
+PROBE-osfd+cls    -1.278 [-1.49,-1.10]  -1.235 [-1.49,-1.05]  +0.057 [+0.05,+0.07]  -0.105 [-0.12,-0.09]
+C2-PIA            -1.478 [-1.73,-1.28]  -1.423 [-1.69,-1.20]  +0.064 [+0.05,+0.08]  -0.125 [-0.14,-0.11]
+
+natural              frac_deselected    tracked_d_margin  tracked_d_rank_pct       tracked_d_iou            d_s_best            iou_best
+OSFD                           0.206              -1.492               0.102              -0.052              -0.489               0.273
+GEO-C0                         0.185              -1.484               0.107              -0.048              -0.415               0.279
+PIA                            0.213              -1.520               0.097              -0.047              -0.533               0.262
+PROBE-osfd+cls                 0.206              -1.542               0.094              -0.044              -0.361               0.258
+C2-PIA                         0.234              -1.642               0.102              -0.053              -0.474               0.244
+
+lỗi                     preserved        conf_rank conf_wrong_class              loc             lostn_gt_detected_clean
+clean                       0.749            0.209            0.014            0.004            0.023          982.000
+OSFD                        0.740            0.226            0.015            0.005            0.014          736.000
+GEO-C0                      0.769            0.198            0.008            0.004            0.020          736.000
+PIA                         0.736            0.228            0.010            0.005            0.020          736.000
+PROBE-osfd+cls              0.746            0.221            0.014            0.007            0.012          736.000
+C2-PIA                      0.693            0.265            0.019            0.005            0.018          736.000
+
+FP/ảnh                background    localization class_confusion           other           total fp_score_median
+clean                      1.330           1.280           0.130           0.220           2.960           0.372
+OSFD                       1.900           1.290           0.170           0.310           3.670           0.362
+GEO-C0                     1.590           0.990           0.160           0.240           2.980           0.376
+PIA                        1.400           1.030           0.140           0.230           2.800           0.370
+PROBE-osfd+cls             3.020           1.560           0.220           0.400           5.200           0.383
+C2-PIA                     3.590           1.370           0.230           0.390           5.580           0.382
+
+P1 C2-PIA − PROBE-osfd+cls: d_s -0.199 [-0.331, -0.072]  d_margin -0.188 [-0.303, -0.078]  d_rank_pct +0.007 [-0.003, +0.017]  d_iou -0.020 [-0.030, -0.010] {'CLS': False, 'LOC': True}
+
+P2 PIA − GEO-C0: d_s -0.194 [-0.311, -0.090]  d_margin -0.199 [-0.299, -0.098]  d_rank_pct +0.004 [-0.007, +0.014]  d_iou -0.017 [-0.029, -0.006] {'CLS': False, 'LOC': True}
+
+KẾT LUẬN: P1 không CLS nhưng LOC -> lợi ở định vị / gán query
+MECH_DONE

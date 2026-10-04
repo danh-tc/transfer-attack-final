@@ -1625,3 +1625,18 @@ Theo quy tắc của entry xác nhận (i). Giữ NGUYÊN định nghĩa, cặp 
 1. **Distortion Swin-L** (entry "Pivot … failure case"): `mech_swinl_geo.py --subset dev100 --conds OSFD GEO-C0 PIA PROBE-osfd+cls C2-PIA --gen pia_dev100 --out swinl_geo_dev100.json`. SHALLOW-SPECIFIC / ENCODER như cũ. Spearman giữa ô chỉ còn 5 ô → chỉ mô tả.
 2. **Đầu ra decoder** (entry "Phân tích đầu ra decoder"): `diag_decoder_output.py --subset dev100 --conds OSFD GEO-C0 PIA PROBE-osfd+cls C2-PIA --select maxlogit --out decoder_output_dev100.json`. Chọn q* bằng maxlogit (dự phòng đã kích hoạt ở dev30 — giữ cùng định nghĩa để so được giữa 2 cỡ mẫu); sanity in ra cả trung vị score q*. CLS / LOC như cũ.
 Nếu kết luận dev100 khác dev30: dev100 là kết quả dùng (n lớn hơn, hiệu ứng AP đã xác nhận trên chính tập này); dev30 giữ trong log như bản thử.
+
+**Kết quả @ dev100** (`results/ablation/mech/{swinl_geo_dev100,decoder_output_dev100}.json`, log `results/confirm_dev100/mech.log`).
+
+**1. Distortion Swin-L — theo quy tắc: ENCODER ở cả P1 và P2, không SHALLOW → "một phần": PIA tạo distortion encoder khó sửa hơn nhưng KHÔNG qua stage nông; tiền đề đa scale vẫn không được ủng hộ.** (dev30: ENCODER chỉ P1 — dev30 thiếu lực.)
+- bb1 0.067–0.068 ở cả 5 ô (lại bất biến); bb2 P1 ×1.04, P2 ×1.00.
+- P1: bb4 ×1.13, neck5 ×1.21, encoder ×1.29 (enc3 ×1.37, enc4 ×1.44), A_enc +0.016 [+0.010, +0.022]. P2: bb4 ×1.08, encoder ×1.14 (enc4 ×1.27, enc5 ×1.36), A_enc +0.007 [+0.003, +0.012]. Tăng lớn nhất ở các mức encoder THÔ (stride 32–64).
+- Giữa 5 ô, độ lớn distortion vẫn KHÔNG theo drop (ρ −0.2 đến −0.8): họ C2 distortion thấp hơn nhưng drop cao hơn. Trong cùng loss, PIA tăng cả distortion sâu/encoder lẫn drop.
+
+**2. Đầu ra decoder — theo quy tắc: P1 không CLS (margin có, rank không) nhưng LOC → nhãn khóa trước "lợi ở định vị / gán query"; P2 giống hệt.**
+- Sanity: forced sạch == natural (0.0), khớp `predict`; 955/982 GT có q* (97.3%); trung vị score sạch q* 0.56.
+- P1 (C2-PIA − C2): d_margin **−0.19 [−0.30, −0.08]**, d_s −0.20 [−0.33, −0.07], d_rank_pct +0.007 [−0.003, +0.017] (không), d_iou **−0.020 [−0.030, −0.010]**. P2 (PIA − GEO-C0): d_margin −0.20 [−0.30, −0.10], d_rank +0.004 (không), d_iou −0.017 [−0.029, −0.006]. (dev30: P1 margin −0.006 — dev30 thiếu lực.)
+- **Phân rã lỗi (736 GT phát hiện được ở ảnh sạch) KHÔNG khớp nhãn "định vị":** preserved C2-PIA **0.693** vs C2 0.746 (−5.3 điểm ≈ 39 GT), PIA 0.736 vs GEO-C0 0.769 (−3.3); phần mất thêm gần như toàn bộ là **conf/rank** (C2-PIA 0.265 vs C2 0.221; PIA 0.228 vs GEO-C0 0.198) — GT vẫn có query IoU ≥ 0.5 nhưng score < 0.3. Loc failure ≤ 0.7% và lost ≤ 2% ở mọi ô.
+- Natural: token q* bị loại khỏi top-900 C2-PIA 23.4% vs C2 20.6%, PIA 21.3% vs GEO-C0 18.5% (+2.8 điểm cả hai cặp). Gán lại: max_q z_c giảm 0.36–0.53 (forced 1.2–1.5).
+- FP/ảnh: C2-PIA 5.58 vs C2 5.20 (FP nền 3.59 vs 3.02); PIA 2.80 vs GEO-C0 2.98.
+- **Đọc chung (không đổi nhãn khóa):** tiêu chí CLS trượt chỉ vì rank percentile không đổi; margin và score GT giảm có ý nghĩa, ΔIoU tuy CI < 0 nhưng rất nhỏ (−0.02, IoU sạch 0.84). Chỉ số gắn trực tiếp với AP (preserved@0.3) cho thấy lợi của PIA trên Swin-L là **hạ confidence lớp GT dưới ngưỡng trong khi vẫn định vị đúng**, cộng thêm phá chọn query nhẹ (+2.8 điểm deselection). Rank percentile trong 900 query có thể kém nhạy (q* sạch ở pct 0.009, adv ~0.07 ở mọi ô). Cơ chế phía feature: PIA làm lệch mạnh hơn ở feature sâu và đặc biệt mức encoder thô, encoder dập ít hơn (A_enc ↑) — hai phân tích nhất quán ở mức "PIA đẩy thêm một lượng nhỏ, đều" chứ không mở kênh mới. Hướng tiếp: user quyết.
