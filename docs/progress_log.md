@@ -1616,3 +1616,12 @@ Relative AP drop % dev100 (n = 100), R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S 
 - C2-PIA − OSFD (mô tả): DINO-Swin-L +13.2 [6.2, 15.5], CrossAvg₃ +8.2 [5.4, 11.3], Δ > 0 ở cả 3 target khác họ, R101 +1.5 (93.3 vs 91.8).
 - 70 ảnh mới (dev100 \ dev30, mô tả): P1 Swin-L +3.6 [0.05, 7.3], CrossAvg₃ +6.3 [4.2, 9.8]; P2 Swin-L +5.7 [1.8, 8.7]; C2-PIA − OSFD Swin-L +14.2, CrossAvg₃ +6.4 → hiệu ứng tái lập trên ảnh không dùng ở dev30.
 - Đọc chung: lợi của PIA trên DINO-Swin-L CÓ THẬT ở cả hai khung loss (≈ +6 điểm), và với loss cls còn kéo theo +6 CrossAvg₃ trên mọi target khác họ. Như vậy 3 phân tích cơ chế ở dev30 (đa scale, distortion, đầu ra decoder) đã thất bại trong việc giải thích một hiệu ứng có thật, không phải đang giải thích nhiễu. Theo quy tắc khóa: (i) phân tích cơ chế chạy lại trên dev100 trước khi kết luận; (ii) C2-PIA đủ điều kiện làm ứng viên sàng lọc dev300 (plan_sota bước 3) — cần entry khóa riêng, user quyết.
+
+---
+
+## 2026-10-04 — Chạy lại 2 phân tích cơ chế trên dev100 (user: không chạy dev300, phân tích tiếp trên dev100) — khóa TRƯỚC khi chạy
+
+Theo quy tắc của entry xác nhận (i). Giữ NGUYÊN định nghĩa, cặp (P1 = C2-PIA vs C2, P2 = PIA vs GEO-C0), quy tắc và bootstrap (1000, BOOT_SEED 2026) của 2 entry gốc; chỉ đổi n = 30 → 100. Ô có PNG dev100: OSFD, GEO-C0, PIA, C2, C2-PIA (PIA-aff, PIA-d0.3, MORGD/SMOOTH chỉ có dev30 → bỏ).
+1. **Distortion Swin-L** (entry "Pivot … failure case"): `mech_swinl_geo.py --subset dev100 --conds OSFD GEO-C0 PIA PROBE-osfd+cls C2-PIA --gen pia_dev100 --out swinl_geo_dev100.json`. SHALLOW-SPECIFIC / ENCODER như cũ. Spearman giữa ô chỉ còn 5 ô → chỉ mô tả.
+2. **Đầu ra decoder** (entry "Phân tích đầu ra decoder"): `diag_decoder_output.py --subset dev100 --conds OSFD GEO-C0 PIA PROBE-osfd+cls C2-PIA --select maxlogit --out decoder_output_dev100.json`. Chọn q* bằng maxlogit (dự phòng đã kích hoạt ở dev30 — giữ cùng định nghĩa để so được giữa 2 cỡ mẫu); sanity in ra cả trung vị score q*. CLS / LOC như cũ.
+Nếu kết luận dev100 khác dev30: dev100 là kết quả dùng (n lớn hơn, hiệu ứng AP đã xác nhận trên chính tập này); dev30 giữ trong log như bản thử.

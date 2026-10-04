@@ -156,6 +156,9 @@ def main():
     ap.add_argument("--select", choices=["iou", "maxlogit"], default="iou",
                     help="maxlogit = dự phòng khai báo trước (trung vị score sạch của q* < 0.3)")
     ap.add_argument("--limit", type=int, default=None, help="chỉ để thử sanity")
+    ap.add_argument("--subset", default="dev30")
+    ap.add_argument("--conds", nargs="+", default=CONDS)
+    ap.add_argument("--out", default="decoder_output.json")
     args = ap.parse_args()
     dev = "cuda:0"
     from mmdet.apis import init_detector
@@ -164,7 +167,8 @@ def main():
     MAX_PER_IMG = model.bbox_head.test_cfg.get("max_per_img", 100)
     data = build_attack_dataset("dev300")
     pos = {img_id: i for i, img_id in enumerate(data.image_ids)}
-    img_ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev30.csv"))[:args.limit]
+    img_ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{args.subset}.csv"))[:args.limit]
+    CONDS[:] = args.conds
 
     forced = {c: [] for c in CONDS}           # mỗi ảnh: [G_sel, 4] Δ(s, m, r, I)
     clean_sel = []                            # mỗi ảnh: [G_sel, 4] giá trị sạch
@@ -244,7 +248,7 @@ def main():
                    "clean_sel_score_frac_ge_0.3": float(np.mean(sc_sel >= SCORE))})
     sanity["fallback_triggered"] = sanity["clean_sel_score_median"] < SCORE
     names = ["d_s", "d_margin", "d_rank_pct", "d_iou"]
-    out = {"select": args.select, "n_images": n, "conds": CONDS, "pairs": {k: list(v) for k, v in PAIRS.items()}, "sanity": sanity,
+    out = {"subset": args.subset, "select": args.select, "n_images": n, "conds": CONDS, "pairs": {k: list(v) for k, v in PAIRS.items()}, "sanity": sanity,
            "clean_selected": {k: float(v) for k, v in zip(["s", "margin", "rank_pct", "iou"], wmean(clean_sel, W)[0])},
            "forced": {}, "natural": {}, "error_decomp": {}, "fp_per_img": {}, "pair_tests": {}, "verdict": {}}
     for cond in CONDS:
@@ -280,7 +284,7 @@ def main():
         "P1 không CLS, không LOC" + (" (P2 CLS)" if v2["CLS"] else " (P2 LOC)" if v2["LOC"] else
                                      "; P2 cũng không -> giả thuyết mức query bị bác"))
 
-    path = os.path.join(REPO_ROOT, "results/ablation/mech", "decoder_output.json" if args.limit is None else "decoder_output_try.json")
+    path = os.path.join(REPO_ROOT, "results/ablation/mech", args.out if args.limit is None else "decoder_output_try.json")
     with open(path, "w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
     print("SANITY", json.dumps(sanity, ensure_ascii=False))
