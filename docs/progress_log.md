@@ -1176,3 +1176,63 @@ User chọn S1 sau rà literature (ViT dựa vào thông tin tần thấp / pha 
 - S1 f0 = 1/12: 95.9 / 78.2 / 55.6 / 56.5 / 56.7 / **15.5** | 56.2
 
 → Ép δ về tần thấp bằng lọc gradient làm attack YẾU đi đơn điệu theo liều ở MỌI target, kể cả DINO-Swin-L (30.5 → 22.7 → 15.5). Tương quan "phổ thấp ↔ transfer" giữa điều kiện (bước 2) KHÔNG phải nhân quả theo kiểu can thiệp này: tần thấp của RRB là hệ quả đi kèm, không phải nguồn lợi; bỏ tần trung/cao làm mất thông tin hữu ích. Nhánh S1 (kể cả biến thể "nhắm pha" chưa làm) KHÔNG đi tiếp.
+
+---
+
+## 2026-10-04 — Phân tích vì sao OSFD/C2 không thắng DINO-Swin-L + chốt quy tắc hướng "Repair-Robust Attack" (TRƯỚC khi code/chạy)
+
+> **Trạng thái: LOCKED (user duyệt 2026-10-04).** Không đổi định nghĩa/ngưỡng sau khi thấy kết quả. Thứ tự ưu tiên: R-a chính, R-b dự phòng (khai báo ngay bây giờ, KHÔNG phải ứng viên cứu vãn).
+
+### Phân tích (từ số đã commit: `results/ablation/mech/{swinl,query_select,error_types}.json`, dev100)
+
+- **Điểm nghẽn ở sau backbone, không ở backbone:** cosd cuối backbone Swin-T (Mask R-CNN) **0.244 < Swin-L 0.424**, nhưng drop Swin-T 74% vs Swin-L 25%. FPN của Swin-T khuếch đại (→ 0.49–0.52); encoder DINO dập (Swin-L 0.424 → **0.066**, ×6.4; DINO-R50 0.873 → 0.324, ×2.7).
+- **Stage nông Swin-L gần như sạch:** cosd stride 4 / 8 = 0.067 / 0.108 (OSFD; task loss, bỏ RRB tương tự) → encoder deformable đa scale có "mỏ neo sạch" để sửa distortion vừa phải ở stage sâu. Theo ảnh, distortion encoder dự đoán retained mạnh nhất (ρ −0.44).
+- **Chọn query không bị phá:** GT còn trong top-900 0.95–0.96 ở mọi method (DINO-R50: 0.52–0.66); điểm proposal GT 0.52 → 0.41–0.43.
+- **Budget hallucination lãng phí với DINO:** FP nền/ảnh trên Swin-L 1.1 → 1.8 (Mask R-CNN target 18–41). `loss_rpn_cls + loss_cls` của C2 (ascent) đẩy CẢ mẫu âm thành foreground.
+- **Lợi của loss phân loại nằm sau encoder:** task loss có cosd encoder 0.033 (< OSFD 0.066) nhưng drop cao hơn (33.8 vs 25.3).
+- Đã loại: trọng số không gian, gộp lõm channel, crop cặp KG, SGM, ép tần thấp (S1), distortion bất biến tường minh.
+- Caveat giữ nguyên: sức bền Swin-L phần lớn gắn với scale + pretrain IN-22k/384 → "thắng Swin-L" = thắng ca generalization khó, không phải bằng chứng nhân quả họ backbone.
+
+**Giả thuyết (chưa là cơ chế):** encoder DINO hoạt động như một bộ lọc nhiễu ngầm dùng các mức nông còn sạch. Mô phỏng phép "sửa" đó NGAY TRÊN surrogate R50 và tối ưu δ để tín hiệu phân loại sống sót qua phép sửa (EOT trên một "defense" là thiên kiến kiến trúc của target). Vẫn đúng threat model (1 surrogate, 0 query, không dùng weight target). Khác OSFD (đa dạng đầu vào) và C2 (trộn loss): đa dạng trong không gian FEATURE theo mô hình phép sửa. Rủi ro novelty: Clean Feature Mixup (CVPR'23), Ghost Networks — phải rà literature trước GO @ n300.
+
+### Probe phụ V — loss phân loại "chỉ đẩy GT về nền" (vanishing-only)
+
+- **Mục đích:** tách hiệu ứng "bỏ budget hallucination" khỏi hiệu ứng phép sửa; quyết định thành phần phân loại cho R-a. Không phải đóng góp novelty.
+- **Định nghĩa:** L_V = −[ mean_{a∈P_rpn} BCE(o_a, 0) + mean_{r∈P_roi} CE(z_r, background) ]; P = mọi anchor/RoI dương do assigner train_cfg của surrogate gán (RPN IoU ≥ 0.7, RCNN IoU ≥ 0.5, kể cả GT-as-proposal), KHÔNG lấy mẫu âm, KHÔNG có số hạng đẩy mẫu âm. Ascent trên L_V = kéo objectness/lớp của vùng GT về nền.
+- **Phương thức:** C2 thay `(loss_rpn_cls + loss_cls)` bằng L_V; mọi thứ khác giữ C2 (MI μ = 1, RRB đủ + co-transform GT, L_OSFD k = 3, 1 forward/view, B = 50, ε = 5, α = 1, noise init 0, seed ảnh SEED + chỉ số dev300).
+- **λ_V theo ĐÚNG luật đã dùng cho C2** (khóa trước): median tỉ lệ mean|∇ₓL_OSFD| / mean|∇ₓL_V| tại δ = 0 trên 5 ảnh đầu dev100, làm tròn số nguyên gần nhất (≥ 1); ghi số vào log trước khi chạy attack.
+- **Unit test:** P khớp tập dương của assigner chuẩn; L_V tại δ = 0 hữu hạn; ảnh không có mẫu dương → L_V = 0 (chỉ còn L_OSFD).
+- **Chạy dev100**, so C2 (cùng seed). **Quy tắc chọn (điểm ước lượng):** dùng L_V làm thành phần phân loại cho R-a nếu Δ DINO-Swin-L(V − C2) ≥ +2 VÀ ΔCrossAvg₃(V − C2) ≥ −2; ngược lại R-a dùng `loss_rpn_cls + loss_cls` của C2. Báo cáo CI + loại lỗi (FP nền, recall@0.3) trên 6 model.
+
+### R-a — thay mức nông bằng bản sạch trước FPN (ứng viên chính)
+
+- **Phép sửa R_a:** sau backbone R50, thay C2, C3 (stride 4, 8 — ứng với stage Swin-L cosd 0.067 / 0.108) bằng feature SẠCH (detach) rồi mới qua FPN → RPN/ROI. C4, C5 giữ adv.
+- **Objective:** L = L_OSFD(backbone adv, đủ 4 stage, k = 3, KHÔNG qua phép sửa) + λ·L_cls(head(FPN(R_a(C_adv)))), L_cls = thành phần chọn theo probe V; λ thừa kế (tại δ = 0 phép sửa không đổi gì → luật λ cho cùng giá trị).
+- **Ngẫu nhiên hóa (liều):** mỗi step 1 lần Bernoulli(p) (numpy RNG riêng, seed SEED + i, không đụng RNG của RRB); trúng → thay CẢ C2 và C3 ở mọi view của step đó. **Đúng 2 liều: p = 0.5, p = 1.0** (p = 0 = nền đã có).
+- **Feature sạch đúng hình học view:** C2/C3 sạch tính trên ảnh SẠCH đã áp CÙNG phép xoay/resize của view RRB (không cộng nhiễu σ), no_grad; forward thêm không tính vào B — báo cáo số forward no_grad + runtime.
+- **Sanity:** p = 0 trùng nền (C2 hoặc V) trong sai số không tất định đã biết (~5% pixel sau 3 step); tại δ = 0 loss R_a = loss nền; L∞ = 5.
+
+### Cổng độ trung thực (forward-only, TRƯỚC mọi attack R-a)
+
+PNG OSFD + C2 trên dev100 (sinh lại nếu thiếu, cùng seed) + dets DINO-Swin-L.
+- Q_rep(ảnh) = retained confidence (định nghĩa `attack/mechanism.py`: GT detect được ở ảnh sạch, score ≥ 0.3, IoU ≥ 0.5) của **R50 khi C2, C3 thay bằng sạch** (p = 1, không RRB); Q_plain = cùng chỉ số với R50 thường.
+- **QUA nếu ở CẢ OSFD và C2:** Spearman(Q_rep, retained DINO-Swin-L) ≥ +0.30 VÀ ρ(Q_rep) − ρ(Q_plain) ≥ +0.10 với cận dưới CI 95% paired bootstrap (1000 mẫu, BOOT_SEED 2026) > 0.
+- Mô tả kèm: mean Q_rep vs Q_plain, cosd FPN có/không sửa, tương quan với Swin-T / ConvNeXt-T / YOLOX-S.
+- **Trượt → R-b** (dự phòng, cùng cổng, q = 0.3). R-b cũng trượt → dừng hướng Repair-Robust.
+
+### R-b — trộn sạch theo ô không gian (DỰ PHÒNG, chỉ khi R-a trượt cổng độ trung thực)
+
+Chia khung model thành ô 64×64 px (căn theo stride: C2 16×16, C3 8×8, C4 4×4, C5 2×2 cell); mỗi ô thay bằng sạch với xác suất q, độc lập, CÙNG mặt nạ (theo tọa độ ảnh) cho cả 4 stage, rồi qua FPN → head. Objective/λ/RNG như R-a. Liều q ∈ {0.3, 0.5}. Nếu R-a qua cổng nhưng trượt các bước sau → KHÔNG chạy R-b.
+
+### Liều–đáp ứng @ dev100 (R-a, hoặc R-b nếu thay)
+
+So nền (p = 0) cùng seed. Đi tiếp nếu: ≥ 1 liều có Δ DINO-Swin-L ≥ +3 (điểm) VÀ liều đó có ΔCrossAvg₃ ≥ −2 VÀ ΔR101 ≥ −3. Chọn liều có DINO-Swin-L cao hơn (chênh < 1 → p = 0.5). Không qua → dừng hướng.
+
+### Sàng lọc @ dev300 (1 lần, cấu hình đóng băng)
+
+QUA nếu đồng thời:
+- Δ DINO-Swin-L(ứng viên − C2) ≥ 3 VÀ cận dưới CI 95% > 0;
+- ΔCrossAvg₃(ứng viên − C2) ≥ −1.5 (không thua C2, điểm);
+- ΔCrossAvg₃(ứng viên − OSFD) ≥ 3 VÀ cận dưới CI > 0; Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S so OSFD;
+- drop R101 ≥ R101(OSFD) − 3.
+Không qua → dừng, ghi log, không biến thể mới. Qua → rà literature (CFM, Ghost Networks, feature-level augmentation cho detection) rồi GO @ n300 (cần hoàn tất C2 @ n300 trước để có mốc C2; tiêu chí GO khóa riêng trước khi chạy).

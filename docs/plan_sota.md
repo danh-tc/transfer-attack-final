@@ -2,7 +2,9 @@
 
 > **Trạng thái: LOCKED (user duyệt 2026-10-03).** Đổi plan = ghi lý do vào `docs/progress_log.md` TRƯỚC khi đổi.
 >
-> **Tiến độ (2026-10-03):** Bước 1 ✅ (nguyên liệu: RRB, xoay, MI) · Bước 2 ✅ (cơ chế + Swin-L + loại lỗi) · Bước 3 ✅ (C2 = OSFD + 4·cls QUA sàng lọc dev300; ứng viên mở rộng sang loại loss — lý do ở progress_log) · **Bước 4: GO @ n300 đang chạy.**
+> **Tiến độ (2026-10-03):** Bước 1 ✅ (nguyên liệu: RRB, xoay, MI) · Bước 2 ✅ (cơ chế + Swin-L + loại lỗi) · Bước 3 ✅ (C2 = OSFD + 4·cls QUA sàng lọc dev300; ứng viên mở rộng sang loại loss — lý do ở progress_log) · Bước 4: GO @ n300 cho C2 **tạm hoãn** (110/300, chưa eval).
+>
+> **Nhánh DINO-Swin-L (2026-10-04):** quy tắc "Repair-Robust Attack" (probe V, R-a chính, R-b dự phòng, cổng độ trung thực, sàng lọc so C2 + OSFD) khóa trong `docs/progress_log.md` entry 2026-10-04.
 
 ## Mục tiêu
 
