@@ -1407,3 +1407,16 @@ Runtime ~11 s/ảnh cả hai; |u| trung bình 40.9 (MORGD) / 40.5 px (SMOOTH); g
 ## 2026-10-04 — MORGD / SMOOTH thuần (không cls) @ dev30 — làm baseline so RRB (user), khóa TRƯỚC khi chạy
 
 Ô `MORGD` / `SMOOTH` = đúng khung ô `PIA` (loss feature OSFD k = 3, MI μ = 1, 2 view/step, 1 backward, σ = 6, feature sạch co-transform, KHÔNG cls, KHÔNG GT), phép biến đổi như entry MORGD (λ = 0.25, s ∈ [0.8, 1.25], ε = 0.05). So OSFD, GEO-C0 (RRB + co-transform — đối chứng công bằng nhất), PIA. Chỉ mô tả. Không code mới (chỉ đăng ký ô trong `run_baselines.py`; `geo_osfd_attack(geo="morgd" | "smooth", cls_weight=0)` đã qua unit test entry MORGD).
+
+**Kết quả @ dev30 (mô tả)** — `metrics_morgd0_dev30.json`, `generalization_morgd0_dev30.json`, `results/ablation/morgd0_dev30/screen.json`, log `results/pia_dev30/run4.log`. Runtime 5.2 s/ảnh cả hai.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- OSFD: 97.8 / 93.8 / 83.5 / 77.3 / 75.6 / 26.8 | 78.8 | 0.86
+- GEO-C0 (RRB): 97.8 / 91.8 / 78.2 / 80.8 / 78.2 / 21.5 | 79.0 | 0.87
+- PIA: 96.8 / 89.9 / 79.7 / 80.4 / 78.4 / 28.8 | 79.5 | 0.89
+- MORGD: 96.9 / 91.5 / 83.3 / 80.2 / 77.9 / 27.3 | 80.5 | 0.89
+- SMOOTH: 97.4 / 91.7 / 83.8 / 79.1 / 76.4 / 25.7 | 79.7 | 0.89
+
+- **Bản thuần: mọi phép biến đổi toàn cục/mượt đều ngang nhau** — CrossAvg₃ 79.0 (RRB) / 79.5 (PIA) / 79.7 (SMOOTH) / 80.5 (MORGD), chênh ≤ 1.5, CI ±4–5. MORGD − GEO-C0: DINO-Swin-L +5.8 [−3.1, 11.3]; MORGD − PIA: DINO-Swin-L −1.5.
+- MORGD − SMOOTH (thuần): CrossAvg₃ +0.8, YOLOX +1.6, DINO-Swin-L +1.6 — ngược dấu với khung C2 (−0.6) → phần "theo object" ≈ 0, trong nhiễu.
+- **Tương tác với cls (thuần → C2):** PIA +4.1 (79.5 → 83.6), SMOOTH +2.2 (79.7 → 81.9), MORGD +0.8 (80.5 → 81.3); DINO-Swin-L: PIA +5.9, SMOOTH +2.4, MORGD 0.0. → lợi khi thêm cls lớn nhất ở PIA (biên độ hình học lớn nhất, ~4× MORGD/SMOOTH); gợi ý (chưa kiểm) loss cls cần biến đổi MẠNH mới phát huy.
