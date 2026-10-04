@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-**Trạng thái (cập nhật 2026-10-04): C2 (bước 3 của [docs/plan_sota.md](docs/plan_sota.md)) đã QUA sàng lọc dev300 — ghi nhận tích cực; GO @ n300 TẠM HOÃN (user, 110/300 ảnh đã attack, chưa eval). Nhánh DINO-Swin-L: chẩn đoán query + S1 đều âm → hướng mới "Repair-Robust Attack" (mô phỏng phép sửa của encoder DINO trên surrogate) đã KHÓA quy tắc, CHƯA code/chạy.** Thứ tự: probe V (cls chỉ đẩy GT về nền) + cổng độ trung thực R-a → liều–đáp ứng dev100 → sàng lọc dev300. Đọc entry 2026-10-04 cuối `docs/progress_log.md` trước khi làm gì về method.
+**Trạng thái (cập nhật 2026-10-04 tối): TẠM DỪNG giữa chuỗi "hiểu bản chất đa dạng hình học" (khung loss feature thuần, KHÔNG C2). Đọc entry cuối "TẠM DỪNG (user)" trong `docs/progress_log.md` trước khi làm gì** — có tổng kết những gì đã biết + thí nghiệm kế tiếp (đồng hướng gradient surrogate ↔ target) ĐÃ ĐỀ XUẤT nhưng CHƯA khóa / CHƯA code. Mục tiêu user: method mới có novelty ở NGUYÊN LÝ (không phải thêm họ biến đổi kiểu PIA), xây từ phép biến đổi cơ bản, thắng trên DINO-Swin-L.
 
 Tóm tắt đường đi tới đây (chi tiết + số liệu trong progress_log):
 - RQ1 PASS @ n300; Generalization Panel ĐI TIẾP; Mechanism A1–A4 không đạt tiêu chí; 5 pilot đoán-cơ-chế (A′1, P1, P2, KG, R1/SGM) đều NO-GO → mở lại RQ3 theo plan mới: **phân tích SOTA (OSFD) trước, method sau.**

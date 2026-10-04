@@ -1784,3 +1784,21 @@ d_T = 1 − cos (δ = 0), |u| = 10 / 30 / 60 px: tịnh tiến 0.628 / 0.634 / 0
 
 - **Tịnh tiến chỉ 10 px đã làm gradient mất tương quan ~63% (cos ≈ 0.37), ngang mọi họ khác.** Gradient theo pixel của surrogate cực nhạy với BẤT KỲ phép lấy mẫu lại nào (lệch pha stride + nội suy bilinear) → đa dạng gradient mức pixel BÃO HÒA ngay ở biên độ nhỏ, không phân biệt được loại biến đổi, và không theo được transfer (tịnh tiến: d cao nhưng vô ích về transfer).
 - Hệ quả: "đa dạng hiệu dụng" đo bằng cos gradient pixel KHÔNG phải trục giải thích; giả thuyết "đa dạng có ích = phá đối xứng" (theo cách đo này) bị bác. Không thêm biến thể đo hậu kiểm vào quy tắc này. Hướng tiếp theo đã khai báo trước: đo ĐỒNG HƯỚNG giữa gradient surrogate (trung bình qua biến đổi) và gradient target — dùng target CHỈ để phân tích, không sinh attack. User quyết.
+
+---
+
+## 2026-10-04 — TẠM DỪNG (user): tổng kết chuỗi "hiểu bản chất đa dạng hình học" + việc dở dang
+
+**Mục tiêu đang theo (user):** hiểu biến đổi hình học NÀO, THẾ NÀO cho lợi tối đa (nhất là DINO-Swin-L), rồi diễn đạt bằng phép biến đổi cơ bản → method mới có novelty ở NGUYÊN LÝ (không phải thêm một họ biến đổi như PIA — PIA đã chiếm luận điểm "phủ phân cấp 2→8-DOF"). Khung ưu tiên: loss feature thuần (KHÔNG C2).
+
+**Đã biết (dev30 trừ khi ghi khác):**
+1. Lợi của PIA trên Swin-L là THẬT (dev100: PIA − GEO-C0 +6.0 [2.3, 9.8]); trong khung thuần PIA chưa vượt OSFD trên CrossAvg₃ (dev100 73.7 vs 74.3).
+2. Giai đoạn A (bỏ từng thành phần homography): phối cảnh là thành phần duy nhất dương ở cả Swin-L (+2.8) và CrossAvg₃ (+1.6); tịnh tiến chiếm > nửa biên độ PIA nhưng VÔ ÍCH (bỏ đi hơi tốt hơn: PIA-noT Swin-L 29.8, CrossAvg₃ 80.5); co giãn ≈ 0; xoay giúp ConvNeXt, hơi hại Swin-L.
+3. Giai đoạn B: phối cảnh thuần căn tâm CAM-R30 (78 px) cho CrossAvg₃ 82.7 (+3.2 [+0.3, +5.7] so PIA — cao nhất khung thuần) NHƯNG Swin-L −7.4; LENS yếu, không cộng thêm → hai nhóm target (CNN / Mask R-CNN / YOLOX vs DINO-Swin-L) phản ứng NGƯỢC nhau với cùng loại biến đổi; lợi Swin-L của PIA cần TỔ HỢP thành phần.
+4. Xếp chồng thêm biến đổi lên PIA làm hại (warp cục bộ −11 Swin-L, RaPA −25) → có trần đa dạng–hiệu dụng ở B / số view cố định.
+5. Trục "LƯỢNG" đều thất bại: lượng distortion feature không theo AP drop giữa các ô; đa dạng gradient pixel (1 − cos) bão hòa ngay từ tịnh tiến 10 px (~0.63, ngang mọi họ) → nguyên lý "phá đối xứng" (theo cách đo này) bị bác.
+6. Nhánh đã đóng: MORGD v1/v2, GRGD, object-aware nói chung (4 lần âm), đa scale/stage nông, Repair-Robust, RaPA, LENS.
+
+**Việc dở dang — ĐỀ XUẤT, CHƯA KHÓA, CHƯA CODE:** thí nghiệm "đồng hướng gradient surrogate ↔ target" (dùng target CHỈ để phân tích, không sinh attack): mỗi phép biến đổi cơ bản (tịnh tiến, co giãn, xoay, trượt, phối cảnh căn tâm, méo ống kính) ở cùng |u| (30, 60 px), gradient R50 (loss feature OSFD, đích co-transform) TRUNG BÌNH qua 8 view → cos với gradient target trên cùng ảnh sạch, cho DINO-Swin-L, ConvNeXt-T, YOLOX-S. Loss target đề xuất: loss PHÂN LOẠI có GT của chính target (decoder: lợi Swin-L nằm ở hạ confidence lớp GT) + loss feature backbone target để đối chiếu. Câu hỏi: phép / liều nào làm gradient trung bình R50 giống gradient Swin-L nhất, có khác nhóm CNN không, có khớp thứ hạng transfer đã đo không. Ước tính ~10 phút code + ~15 phút chạy dev30. Phải khóa quy tắc (định nghĩa loss target, tiêu chí "khớp thứ hạng") TRƯỚC khi chạy.
+
+**Khác:** GO @ n300 cho C2 vẫn tạm hoãn (110/300); C2-PIA đã xác nhận @ dev100 (Swin-L +5.8 so C2, CrossAvg₃ +8.2 so OSFD) — chưa sàng lọc dev300 (user chọn không chạy dev300 lúc này). 11 ảnh dev100 \ dev30 của PIA-noT có sẵn (resume được). Nhiều commit CHƯA push.
