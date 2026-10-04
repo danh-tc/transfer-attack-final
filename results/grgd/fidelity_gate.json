@@ -1,0 +1,78 @@
+{
+  "split": "dev30",
+  "views_per_image": 10,
+  "n_views_N_ge_2": 257,
+  "pass": false,
+  "gates": {
+    "G1_median_rho_pos": {
+      "value": 0.1941768076960486,
+      "threshold": ">= 0.75",
+      "pass": false
+    },
+    "G2_pos_eff_and_scale_box_gt_0": {
+      "value": [
+        0.049247257150944114,
+        0.04901121375428504
+      ],
+      "pass": true
+    },
+    "G3_rms_ratio_grgd_over_residual": {
+      "value": 0.8168825475213928,
+      "threshold": "[0.9, 1.1]",
+      "pass": false
+    }
+  },
+  "rho_pos_by_N": {
+    "2-4": {
+      "n_views": 69,
+      "median_rho_pos": 0.2505393679044354,
+      "mean_sqrt_2_over_N": 0.8024347959476262
+    },
+    "5-10": {
+      "n_views": 69,
+      "median_rho_pos": 0.17103633298794071,
+      "mean_sqrt_2_over_N": 0.5251991091196608
+    },
+    "11-1000": {
+      "n_views": 119,
+      "median_rho_pos": 0.1778010228852628,
+      "mean_sqrt_2_over_N": 0.3302072301070851
+    }
+  },
+  "describe": {
+    "GRGD": {
+      "n_objects": 12.536964980544747,
+      "rms_rel_px": 7.474515122999175,
+      "disp_rel_px": 6.453924648325893,
+      "d_pair_pos_req": 0.21194289222876747,
+      "d_pair_pos": 0.13161048963444752,
+      "d_pair_pos_eff": 0.049247257150944114,
+      "rho_pos": 0.23335479066946274,
+      "cos_pair_eff_req": 0.2953739359487231,
+      "d_pair_pos_box": 0.04555842202081525,
+      "d_pair_scale_req": 0.11343299644156474,
+      "d_pair_scale": 0.053751987746071095,
+      "d_pair_scale_box": 0.04901121375428504,
+      "fit_rms_ctrl_px": 2.797531990037957,
+      "raw_rms_ctrl_px": 7.740410138269002,
+      "disp_pia_px": 191.30951463968623
+    },
+    "RESIDUAL": {
+      "n_objects": 12.536964980544747,
+      "rms_rel_px": 9.150048737947152,
+      "disp_rel_px": 8.01759961243812,
+      "d_pair_pos_req": 0.21194289222876747,
+      "d_pair_pos": 0.13161048963444752,
+      "d_pair_pos_eff": 0.07475752161325014,
+      "rho_pos": 0.3499851549250201,
+      "cos_pair_eff_req": 0.33207245570895305,
+      "d_pair_pos_box": 0.04647898941649618,
+      "d_pair_scale_req": 0.11343299644156474,
+      "d_pair_scale": 0.053751987746071095,
+      "d_pair_scale_box": 0.03916149406881719,
+      "fit_rms_ctrl_px": 3.9732854407958995,
+      "raw_rms_ctrl_px": 9.902449796087962,
+      "disp_pia_px": 191.30951463968623
+    }
+  }
+}
