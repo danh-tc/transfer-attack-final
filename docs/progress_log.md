@@ -1762,3 +1762,18 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 - **Cùng biên độ:** mỗi họ hiệu chỉnh tham số để |u| trung bình = 10 / 30 / 60 px (chia đôi trên khung từng ảnh); 4 lần rút (dấu / hướng) mỗi (ảnh, họ, mức). dev30, n = 30.
 - **Quy tắc:** NGUYÊN LÝ ĐƯỢC ỦNG HỘ nếu ở CẢ 3 mức biên độ và CẢ 2 điểm δ: min(d_xoay, d_phối cảnh) − max(d_tịnh tiến, d_co giãn) > 0 với cận dưới CI 95% paired bootstrap theo ảnh (1000, BOOT_SEED 2026) > 0. Ngược lại: không được ủng hộ. Trượt và méo ống kính: mô tả.
 - Mô tả kèm: so d_T với các ô đã chạy (tương quan giữa họ biến đổi và lợi transfer ở Giai đoạn A/B) — không quyết định.
+
+**Kết quả @ dev30 (mô tả) — `results/ablation/cam_dev30/screen.json`, `metrics_cam_dev30.json`, `generalization_cam_dev30.json`, log `results/camgeo/run.log`.** |u| thực: CAM-R15 22.6, CAM-R30 78.5, LENS 20.1, CAM-R15+LENS 31.2 px.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- PIA: 96.8 / 89.9 / 79.7 / 80.4 / 78.4 / **28.8** | 79.5
+- PIA-noT: 97.0 / 91.1 / 82.0 / 81.8 / 77.7 / **29.8** | 80.5
+- CAM-R15: 98.2 / 92.1 / 81.8 / 81.0 / 74.5 / 25.1 | 79.1
+- **CAM-R30: 96.8 / 92.3 / 84.0 / 82.7 / 81.5 / 21.3 | 82.7**
+- LENS: 97.8 / 91.1 / 81.4 / 79.5 / 69.5 / 24.8 | 76.8
+- CAM-R15+LENS: 98.7 / 91.5 / 81.9 / 81.2 / 77.4 / 25.3 | 80.2
+
+- **Không ô nào "triển vọng"** theo tiêu chí khai báo (≥ PIA + 2 trên Swin-L VÀ ≥ PIA trên CrossAvg₃).
+- **CAM-R30 (phối cảnh thuần, 78 px): CrossAvg₃ +3.2 [+0.3, +5.7] so PIA** (cao nhất trong mọi ô hình học khung thuần đến nay; ConvNeXt +4.3, YOLOX +3.1, Swin-T +2.3, R101 +2.4) **nhưng DINO-Swin-L −7.4 [−10.8, −0.4]**. Đánh đổi rõ: phối cảnh thuần mạnh giúp target CNN / Mask R-CNN / YOLOX, hại DINO-Swin-L.
+- LENS: yếu (CrossAvg₃ −2.7, YOLOX −8.9); thêm LENS lên CAM-R15 gần như không đổi (+0.2 Swin-L, +1.1 CrossAvg₃) → claim "ngoài homography" KHÔNG được ủng hộ ở dev30.
+- Đọc: lợi Swin-L của PIA KHÔNG đến từ phối cảnh thuần đứng riêng; nó trải trên nhiều thành phần (Giai đoạn A: bỏ P −2.8, S −1.2, K −1.0, bỏ R +2.3) — có thể cần TỔ HỢP. Hai nhóm target phản ứng khác nhau với cùng một loại biến đổi → một tiêu chí "đa dạng" duy nhất có thể không đủ; thí nghiệm cơ chế (đang chạy) sẽ cho biết đa dạng gradient trên surrogate có theo được nhóm nào.
