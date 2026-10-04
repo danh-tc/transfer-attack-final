@@ -1817,3 +1817,17 @@ d_T = 1 − cos (δ = 0), |u| = 10 / 30 / 60 px: tịnh tiến 0.628 / 0.634 / 0
 **Unit test trước khi chạy:** FLIP p = 1, σ = 0 → view == torch.flip(ảnh); NOISE σ = 0 → view == ảnh; POOL σ = 0, adv = sạch → view == companion; nhánh (a) của POOL trùng lưới PIA-noT khi cùng tham số; ô cũ trùng HEAD; chạy được, L∞ đúng.
 
 **Code + unit test (TRƯỚC khi chạy):** `attack/methods/geopool.py` (`flip_views`, `pool_grid`, `pool_views`), `geo_osfd_attack(geo="noise" | "flip" | "pool")`, ô NOISE / FLIP / POOL. `scripts/geopool_unit_test.py` ĐẠT: FLIP p = 1, σ = 0 → view == lật ngang (companion cùng phép); NOISE σ = 0 → view == ảnh; POOL σ = 0, adv = sạch → view == companion; nhánh (a) POOL == lưới PIA-noT cùng tham số; PIA / PIA-noT / CAM-R30 trùng tuyệt đối HEAD; 3 ô chạy được, L∞ đúng.
+
+**Kết quả @ dev30 (mô tả) — `results/ablation/pool_dev30/screen.json`, `metrics_pool_dev30.json`, `generalization_pool_dev30.json`, log `results/geopool/{run,eval2}.log`.** (Pipeline lỗi ở dòng IN cuối của `eval_generalization.py` khi run không có OSFD — json đã lưu; thêm điều kiện bỏ qua phần in, chạy lại eval + screen, số không đổi.)
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- NOISE: 98.7 / 89.8 / 67.2 / 69.0 / 57.3 / 15.0 | 64.5
+- FLIP: 98.9 / 92.1 / 76.7 / 73.6 / 71.5 / 18.1 | 73.9
+- PIA: 96.8 / 89.9 / 79.7 / 80.4 / 78.4 / 28.8 | 79.5
+- PIA-noT: 97.0 / 91.1 / 82.0 / 81.8 / 77.7 / 29.8 | 80.5
+- CAM-R30: 96.8 / 92.3 / 84.0 / 82.7 / 81.5 / 21.3 | 82.7
+- POOL: 96.5 / 91.5 / 80.9 / 82.4 / 81.9 / 27.4 | 81.7
+
+- **Quy luật "ngoài augmentation lúc train" KHÔNG được ủng hộ (theo tiêu chí khai báo):** FLIP − NOISE: CrossAvg₃ **+9.4 [+7.5, +12.8]**, Swin-L +3.1 [−0.5, +6.1] (≥ 2). Lật ngang — có trong augmentation train — vẫn có ích rõ. Nhưng yếu hơn nhiều so với biến đổi ngoài augmentation: PIA-noT − NOISE CrossAvg₃ +16.0, Swin-L **+14.8 [+9.0, +18.9]** → dạng yếu hơn ("trong augmentation thì ít lợi hơn") còn đứng, dạng mạnh ("vô ích") sai.
+- Mốc NOISE xác nhận lại: không có hình học thì Swin-L chỉ 15.0, CrossAvg₃ 64.5 — hình học kiểu PIA-noT cộng +15 / +16.
+- **POOL không "triển vọng":** Swin-L 27.4 < max(PIA 28.8, PIA-noT 29.8); CrossAvg₃ 81.7 = CAM-R30 − 1.0 (vừa chạm ngưỡng). POOL ≈ trung bình hai thành phần: kéo CrossAvg₃ lên so PIA (+2.2 [+0.2, +5.1], YOLOX +4.2 so PIA-noT) nhưng mất một phần Swin-L của PIA-noT (−2.4). Trộn theo view không lấy được "cả hai".

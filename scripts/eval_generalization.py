@@ -179,9 +179,10 @@ def main():
     print(f"\n=== method_diff ===\n{'':<22}" + "".join(f"{k:>21}" for k in gen_keys))
     for name, row in out["method_diff"].items():
         print(f"{name:<22}" + "".join(f"{fmt(row[k]):>21}" for k in gen_keys))
-    print("\n=== model_diff (OSFD) ===")
-    for k, v in out["model_diff"]["OSFD"].items():
-        print(f"  {k:<28} {fmt(v)}")
+    if "OSFD" in out["model_diff"]:  # in tham khảo; run không có OSFD thì bỏ qua
+        print("\n=== model_diff (OSFD) ===")
+        for k, v in out["model_diff"]["OSFD"].items():
+            print(f"  {k:<28} {fmt(v)}")
     print("saved:", os.path.join(run_dir, args.out))
 
 
