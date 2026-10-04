@@ -1270,3 +1270,38 @@ V − C2: CrossAvg₃ +0.4 [−1.9, 3.3], DINO-Swin-L −0.8 [−5.1, 3.6], YOLO
 - Diễn giải: R50 Mask R-CNN không có cơ chế "sửa" dựa vào mức nông — thiệt hại nằm ở C4/C5 và đi thẳng qua FPN top-down; phép thay C2/C3 không mô phỏng được encoder DINO.
 
 **Theo quy tắc khóa:** R-a trượt cổng → chạy **R-b** (ô 64×64 thay sạch, cùng mặt nạ cho 4 stage, q = 0.3) qua CÙNG cổng. Mặt nạ cổng: 1 lần rút mỗi ảnh, seed = SEED + chỉ số dev300 (numpy). R-b trượt → dừng hướng Repair-Robust.
+
+---
+
+## 2026-10-04 — Dừng nhánh Repair-Robust (user); pilot xu hướng "đa dạng hình học kiểu PIA" @ dev30 — quy tắc khóa TRƯỚC khi code/chạy
+
+**Dừng Repair-Robust (user):** cổng R-b bị dừng giữa chừng theo yêu cầu user — KHÔNG có kết quả, không kết luận về R-b. Trọng tâm chuyển sang phân tích OSFD: chấp nhận (user) "RRB đóng góp phần lớn; loss feature không phải nguồn ưu thế, có target kém hơn task loss (DINO-Swin-L −10, ConvNeXt −7.6 @ dev300) nhưng bổ trợ loss phân loại".
+
+**Bỏ BSR trước khi code (user):** bản nháp đầu của entry này khai báo pilot BSR (GEO-B1/B2, chưa code, chưa chạy, chưa commit) — thay bằng PIA. Lý do: ablation cho thấy nguyên liệu là XOAY (biến đổi toàn cục); phép chiếu phối cảnh ⊃ affine ⊃ similarity ⊃ xoay → PIA là mở rộng trực tiếp nguyên liệu đã có tác dụng ("khuếch đại nguyên liệu", plan_sota bước 3), còn shuffle khối của BSR phá cấu trúc object (khó co-transform GT cho detection).
+
+**Câu hỏi:** thay RRB bằng biến đổi phối cảnh đa bậc tự do kiểu PIA (Liang, Cao, Xiao — "Perspective-Invariant Attack…", arXiv 2608.15115, IEEE TIFS 2026) có tăng transfer trên detection không; phần lợi (nếu có) đến từ số hạng phối cảnh hay chỉ từ affine mạnh; liều δ_max của paper (cho ảnh phân loại 299×299) có hợp với detection không. Port PIA sang detection = BASELINE, không phải đóng góp; phát hiện riêng cho detection chỉ có thể là đường liều / vai trò số hạng phối cảnh.
+
+**dev30 (user chọn — CHỈ xem xu hướng, mô tả):** = 30 ảnh đầu của dev100 theo thứ tự dev300 (thứ tự eval), `data/image_lists/dev30.csv`, ⊂ dev100 ⊂ dev300. **Không ra quyết định GO/sàng lọc ở dev30** (CI hiệu 2 method ở n = 30 ước ±5 điểm); ứng viên muốn đi tiếp phải khóa tiêu chí riêng rồi chạy dev100/dev300.
+
+**Nền chung (mọi ô):** loss feature OSFD (backbone R50, 4 stage, k = 3), MI μ = 1, ε = 5, α = 1, noise init 0, 50 step, seed ảnh SEED + chỉ số dev300; mỗi step 2 view, 1 backward (trừ ô N20), mỗi view cộng nhiễu Gaussian σ = 6 như RRB (giữ để chỉ HÌNH HỌC khác nhau). **Feature sạch co-transform:** mỗi view so với k·F_clean(T(x_clean)) — cùng tham số hình học, không nhiễu, no_grad (forward thêm không tính B, báo cáo). Lý do: phối cảnh δ_max = 0.6 dời góc ảnh tới 30% cạnh → so với F_clean chưa biến đổi là vô nghĩa.
+
+| Ô | Biến đổi mỗi view | Câu hỏi |
+|---|---|---|
+| OSFD | RRB gốc, F_clean KHÔNG co-transform (PNG có sẵn) | mốc |
+| GEO-C0 | RRB gốc (chain xoay → resize, nhiễu), F_clean co-transform | đối chứng: riêng việc co-transform F_clean đổi OSFD bao nhiêu |
+| PIA | PIA đúng tham số paper: δ_max = 0.6, π = (π₄, π₃, π₂, π₁) = (0.4, 0.3, 0.2, 0.1) | PIA có thắng RRB cùng compute? |
+| PIA-d0.3 | như PIA, δ_max = 0.3 | liều: ảnh detection nhiều object nhỏ / sát biên — 0.6 có quá mạnh? |
+| PIA-aff | như PIA nhưng π = (0, 1, 0, 0) (chỉ mode 3 = affine 6-DOF), δ_max = 0.6 | lợi đến từ số hạng phối cảnh (h31, h32) hay chỉ affine? |
+| PIA-N20 (mô tả) | PIA tham số paper, N = 20 view/step như paper, gradient cộng dồn 4 cụm × 5 view → 4 backward/step (B thực = 200, view forward = 1000) | trần khi bỏ ràng buộc compute; báo kèm runtime |
+
+**Biến đổi PIA (port theo paper, không có code chính thức trong paper):** khung = ảnh ở khung model (img_shape, trước pad). 4 góc ảnh ra (TL, TR, BR, BL) ánh xạ về 4 điểm nguồn trong ảnh vào, điểm nguồn = góc + (int(ξ_x·δ_max·w/2), int(ξ_y·δ_max·h/2)), ξ ~ U(−1, 1), được phép ra ngoài ảnh. Mode rút theo π mỗi view: mode 4 — 4 góc độc lập (8-DOF); mode 3 — 3 góc độc lập (góc thiếu chọn đều ngẫu nhiên), góc còn lại hoàn thiện hình bình hành (6-DOF); mode 2 — TL, BR độc lập, TR/BL dựng hình chữ nhật trục (4-DOF); mode 1 — 1 vector dịch chung (2-DOF). Giải homography 8 ẩn (float64), warp bằng `grid_sample` bilinear khả vi, vùng ngoài ảnh nguồn lấp 0 (= "crop" về cỡ gốc). RNG: `random` của Python cho mode/góc, torch cho nhiễu σ (cùng nguồn như RRB). Tham số (δ_max, π, N) lấy từ paper, KHÔNG tune; δ_max = 0.3 và π affine là 2 ô liều/đối chứng khai báo trước. Lệch đã biết: paper không có nhiễu σ (ta giữ σ = 6 ở mọi ô GEO để chỉ hình học khác OSFD); paper N = 20 (ô chính dùng N = 2 để cùng compute với OSFD).
+
+**Báo cáo (mô tả):** relative AP drop 6 model, CrossAvg₃, Δ so OSFD và so GEO-C0 (paired bootstrap, chỉ để thấy độ rộng CI), runtime, số view forward, số forward no_grad.
+
+---
+
+## 2026-10-04 — Pilot PIA: code + unit test (TRƯỚC khi chạy)
+
+- `attack/methods/pia.py`: `sample_source_corners` (multi-DOF, π, δ_max), `homography` (8 ẩn, float64), `warp_grid`/`warp` (grid_sample bilinear, ngoài = 0), `pia_views` (companion sạch cùng phép warp, không nhiễu), `geo_osfd_attack` (geo = rrb → GEO-C0 | pia; feature sạch co-transform mỗi view, no_grad). `core.run_iterative_attack(backward_per_step=)` cộng gradient nhiều backward/step (chỉ PIA-N20); mặc định 1.
+- `scripts/run_baselines.py`: ô `GEO-C0`, `PIA`, `PIA-d0.3`, `PIA-aff`, `PIA-N20`; stats ghi `forward_no_grad`, `mode_frac`, `backward` thực (N20 = 4 × B).
+- **Unit test** (`scripts/pia_unit_test.py`) ĐẠT: core mặc định trùng tuyệt đối HEAD (OSFD 3 step, 2 ảnh); H·dst = src và ràng buộc DOF đúng từng mode (1: tịnh tiến; 2: không xoay/không phối cảnh; 3: h31 = h32 = 0; 4: có phối cảnh); warp đồng nhất lệch ≤ 6.6e-3, tịnh tiến đúng chiều, ngoài nguồn = 0; tần suất mode (20000 mẫu) 0.398 / 0.305 / 0.193 / 0.103 ≈ π; gradient 4 view × 1 backward = 2 × 2 view (lệch tương đối 8.8e-8); σ = 0 → view == companion (PIA, GEO-C0); 5 ô chạy được, L∞ đúng, forward no_grad = step × view. Ghi chú: lần chạy test ĐẦU TIÊN sau khi khởi động có 1 lệch "core == HEAD"; kiểm riêng HEAD/HEAD, mới/mới, HEAD/mới đều trùng tuyệt đối, 2 lần chạy lại toàn bộ đều đạt → không tất định lúc khởi động GPU, không do sửa code.

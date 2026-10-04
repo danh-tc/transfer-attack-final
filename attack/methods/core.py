@@ -59,6 +59,7 @@ def run_iterative_attack(
     views_fn: Optional[ViewsFn] = None,
     on_step: Optional[Callable[[int, torch.Tensor], None]] = None,
     grad_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+    backward_per_step: int = 1,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -78,6 +79,10 @@ def run_iterative_attack(
     steps PHẢI bằng B (gradient-evaluation budget, docs/protocol_lock.md) — mỗi step
     đúng 1 lần .backward() qua surrogate (qua torch.autograd.grad), không hơn, bất kể
     views_fn sinh ra bao nhiêu view.
+
+    backward_per_step > 1 (chỉ ô mô tả PIA-N20, progress_log 2026-10-04): mỗi step gọi views_fn
+    + backward lặp lại bấy nhiêu lần và CỘNG gradient (cụm view không vừa 1 graph) — B thực
+    = steps × backward_per_step. Mặc định 1 trùng tuyệt đối bản cũ.
     """
     model_size = tuple(data_sample.img_shape)
     noise = torch.zeros_like(orig_pixels)
@@ -85,20 +90,23 @@ def run_iterative_attack(
 
     for step_idx in range(steps):
         noise = noise.detach().requires_grad_(True)
-        adv_orig = torch.clamp(orig_pixels + noise, min=0.0, max=255.0)
-        adv_pixels = resize_to_model(adv_orig, model_size)
-        views = (views_fn(adv_pixels, data_sample, step_idx, steps)
-                if views_fn is not None else [(adv_pixels, data_sample)])
+        grad = None
+        for _ in range(backward_per_step):
+            adv_orig = torch.clamp(orig_pixels + noise, min=0.0, max=255.0)
+            adv_pixels = resize_to_model(adv_orig, model_size)
+            views = (views_fn(adv_pixels, data_sample, step_idx, steps)
+                    if views_fn is not None else [(adv_pixels, data_sample)])
 
-        loss = None
-        for view in views:
-            # Phần tử thứ 3 (tùy chọn) = loss riêng của view — pilot KG: view cặp so với
-            # feature sạch của CHÍNH vùng crop (attack/methods/kg_pair.py).
-            view_img, view_data_sample = view[0], view[1]
-            view_loss_fn = view[2] if len(view) > 2 else loss_fn
-            term = view_loss_fn(model, view_img, view_data_sample)
-            loss = term if loss is None else loss + term
-        grad = torch.autograd.grad(loss, noise)[0]
+            loss = None
+            for view in views:
+                # Phần tử thứ 3 (tùy chọn) = loss riêng của view — pilot KG: view cặp so với
+                # feature sạch của CHÍNH vùng crop (attack/methods/kg_pair.py).
+                view_img, view_data_sample = view[0], view[1]
+                view_loss_fn = view[2] if len(view) > 2 else loss_fn
+                term = view_loss_fn(model, view_img, view_data_sample)
+                loss = term if loss is None else loss + term
+            g = torch.autograd.grad(loss, noise)[0]
+            grad = g if grad is None else grad + g
         if grad_transform is not None:  # vd lọc thông thấp gradient (nhánh S1, progress_log 2026-10-03)
             grad = grad_transform(grad)
 

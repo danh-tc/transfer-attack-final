@@ -36,6 +36,7 @@ from attack.data import build_attack_dataset, load_image_ids
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize, to_coco_dets
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.kg_pair import kg_osfd_attack
+from attack.methods.pia import geo_osfd_attack
 from attack.methods.repair import repair_robust_attack
 from attack.methods.sgm import GAMMAS, sgm_osfd_attack
 from attack.models import CONTROLLED_PANEL, SURROGATE_KEY, load_model
@@ -102,6 +103,17 @@ METHODS.update({
     for c, cls, w in (("c2", "c2", 4.0), ("v", "vanish", 0.3)) for p in (0.5, 1.0)
 })
 RR_METHODS = {"PROBE-V"} | {m for m in METHODS if m.startswith("RA-")}
+# Pilot PIA @ dev30 (progress_log 2026-10-04): loss feature OSFD + MI, feature sạch co-transform theo view.
+# PIA-N20: 20 view/step = 4 backward × 5 view (B thực = 4 × budget).
+METHODS.update({
+    "GEO-C0": (functools.partial(geo_osfd_attack, geo="rrb"), 2),
+    "PIA": (functools.partial(geo_osfd_attack, geo="pia"), 2),
+    "PIA-d0.3": (functools.partial(geo_osfd_attack, geo="pia", delta_max=0.3), 2),
+    "PIA-aff": (functools.partial(geo_osfd_attack, geo="pia", pi=(0.0, 1.0, 0.0, 0.0)), 2),
+    "PIA-N20": (functools.partial(geo_osfd_attack, geo="pia", n_views=5, backward_per_step=4), 20),
+})
+GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20"}
+BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 
@@ -141,6 +153,8 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                 kw = {"gamma_seed": seed, "info": info}
             if name in RR_METHODS:
                 kw = {"repair_seed": seed, "info": info}
+            if name in GEO_METHODS:
+                kw = {"info": info}
             noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon, **kw)
             torch.cuda.synchronize()
             runtime = time.time() - t0
@@ -151,8 +165,12 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
             mmcv.imwrite(adv.permute(1, 2, 0).cpu().numpy().astype(np.uint8), png)
             rec = {"method": name, "img_id": img_id, "linf_255": linf,
                    "l2": float(delta.norm()), "l2_per_pixel_rms": float(delta.pow(2).mean().sqrt()),
-                   "runtime_s": runtime, "backward": args.budget,
+                   "runtime_s": runtime, "backward": args.budget * BACKWARD_PER_STEP.get(name, 1),
                    "forward_views": args.budget * views}
+            if name in GEO_METHODS:
+                rec["forward_no_grad"] = info["forward_no_grad"]
+                if info["modes"]:
+                    rec["mode_frac"] = {m: info["modes"].count(m) / len(info["modes"]) for m in (4, 3, 2, 1)}
             if name in KG_METHODS:
                 sp, log = info["sampler"], info["sampler"].log
                 rec.update({
