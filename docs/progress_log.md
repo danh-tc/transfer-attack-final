@@ -1711,3 +1711,22 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 **Phân bố thành phần PIA (10 000 mẫu, khung 800 × 1199, trung vị):** |t| 157.5 px, |θ| 3.1°, |ln s| 0.104, |ln k₁| 0.091, |k₂| 0.140, v = 0 ở ~60% view (mode 3/2/1). **|u| trung bình:** PIA 194 px; noT 91, noR 192, noS 190, noK 181, noP 198 → biên độ PIA chủ yếu là TỊNH TIẾN (kèm vùng lấp 0 khi dịch); co giãn của PIA chỉ ~±10% (giả thuyết "vượt mức FPN" kém khả năng hơn dự kiến — ghi trước khi có kết quả).
 
 **Đổi thứ tự (user, trước khi có số dev30):** chỉ chạy dev30 để xem xu hướng, TẠM HOÃN phần mở rộng dev100 (pipeline dừng sau khi xong dev30). Quy tắc "nguyên liệu / không phải / mơ hồ" vẫn chỉ áp dụng ở dev100 khi (nếu) chạy; số dev30 chỉ mô tả.
+
+**Kết quả @ dev30 (mô tả; dev100 hoãn) — `results/ablation/piafac_dev30/screen.json`, `metrics_piafac_dev30.json`, `generalization_piafac_dev30.json`, log `results/pia_factor/run.log`.** (Pipeline bị dừng chủ động ngay khi bắt đầu dev100; dev100 chưa có ảnh nào hoàn tất ngoài phần đã có.)
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | |u| px:
+- OSFD: 97.8 / 93.8 / 83.5 / 77.3 / 75.6 / 26.8 | 78.8
+- PIA: 96.8 / 89.9 / 79.7 / 80.4 / 78.4 / 28.8 | 79.5 | ~194
+- PIA-noT: 97.0 / 91.1 / 82.0 / 81.8 / 77.7 / 29.8 | 80.5 | 90.5
+- PIA-noR: 97.0 / 90.2 / 73.8 / 79.7 / 77.4 / 31.1 | 77.0 | 186.8
+- PIA-noS: 97.1 / 89.8 / 79.0 / 80.3 / 78.9 / 27.5 | 79.4 | 181.8
+- PIA-noK: 97.2 / 91.3 / 85.2 / 82.3 / 76.1 / 27.8 | 81.2 | 177.3
+- PIA-noP: 96.8 / 90.4 / 81.8 / 75.9 / 76.0 / 25.9 | 77.9 | 190.8
+
+Δ = PIA − ô (dương = thành phần có ích), DINO-Swin-L | CrossAvg₃ [CI 95%]:
+- **T (tịnh tiến): −1.0 [−4.5, +3.0] | −1.0 [−2.7, +0.6]** — bỏ T giảm |u| hơn một nửa (194 → 91 px) mà KHÔNG mất gì (hơi tốt hơn) → tịnh tiến (phần lớn biên độ của PIA) không phải nguyên liệu; giả thuyết "đa dạng vị trí/pha lưới qua tịnh tiến lớn" không được ủng hộ.
+- R (xoay): −2.3 [−5.4, +0.6] | +2.5 [−0.8, +4.2] — giúp ConvNeXt (+5.9), hơi hại Swin-L.
+- S (co giãn): +1.2 | +0.1 — ≈ 0 → giả thuyết "co giãn vượt mức FPN" không được ủng hộ (co giãn PIA chỉ ~±10%).
+- K (lệch tỉ lệ + trượt): +1.0 | −1.7 (ConvNeXt −5.5 [−10.6, −1.4]: bỏ K TỐT hơn cho ConvNeXt).
+- **P (phối cảnh): +2.8 [−1.1, +6.0] | +1.6 [−0.2, +3.5]** — thành phần duy nhất dương ở cả Swin-L và CrossAvg₃ (YOLOX +2.4 [+0.3, +7.5], Swin-T +4.5); bỏ P gần như không giảm |u| (191 px) → lợi của P là do LOẠI biến đổi, không do biên độ.
+- Đọc chung (n = 30, phần lớn CI chứa 0): nguyên liệu khả dĩ nhất của PIA là **số hạng phối cảnh**; tịnh tiến chiếm phần lớn biên độ nhưng "lãng phí" (bỏ đi không mất, khớp quan sát trần đa dạng–hiệu dụng). (Lưu ý: PIA-aff @ dev30 — đổi phân phối mode sang toàn 6-DOF — có Swin-L 27.9 ≈ PIA; phép bỏ P ở đây giữ nguyên các thành phần khác nên sạch hơn.) Muốn kết luận phải chạy dev100 (quy tắc khóa).
