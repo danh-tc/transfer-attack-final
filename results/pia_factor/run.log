@@ -603,3 +603,5 @@ Done (t=0.54s)
 creating index...
 index created!
 [run] dev300_B50_eps5: 100 ảnh (subset dev100), methods=['OSFD', 'GEO-C0', 'PIA', 'PIA-noT', 'PIA-noR', 'PIA-noS', 'PIA-noK', 'PIA-noP']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack PIA-noT] 40/100  5.4s/ảnh  còn ~5 phút

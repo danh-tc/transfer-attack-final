@@ -1712,7 +1712,7 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 
 **Đổi thứ tự (user, trước khi có số dev30):** chỉ chạy dev30 để xem xu hướng, TẠM HOÃN phần mở rộng dev100 (pipeline dừng sau khi xong dev30). Quy tắc "nguyên liệu / không phải / mơ hồ" vẫn chỉ áp dụng ở dev100 khi (nếu) chạy; số dev30 chỉ mô tả.
 
-**Kết quả @ dev30 (mô tả; dev100 hoãn) — `results/ablation/piafac_dev30/screen.json`, `metrics_piafac_dev30.json`, `generalization_piafac_dev30.json`, log `results/pia_factor/run.log`.** (Pipeline bị dừng chủ động ngay khi bắt đầu dev100; dev100 chưa có ảnh nào hoàn tất ngoài phần đã có.)
+**Kết quả @ dev30 (mô tả; dev100 hoãn) — `results/ablation/piafac_dev30/screen.json`, `metrics_piafac_dev30.json`, `generalization_piafac_dev30.json`, log `results/pia_factor/run.log`.** (Pipeline dừng chủ động khi bắt đầu dev100; watcher chỉ dừng script cha, tiến trình con `run_baselines` dev100 chạy sót ~4 phút → đã attack thêm 11 ảnh dev100 \ dev30 cho PIA-noT (cùng seed, giữ lại để resume), rồi bị dừng tay. Không có eval dev100.)
 
 Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | |u| px:
 - OSFD: 97.8 / 93.8 / 83.5 / 77.3 / 75.6 / 26.8 | 78.8
