@@ -136,10 +136,15 @@ METHODS.update({
     "CAM-R30": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=30.0), 2),
     "LENS": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=0.0, cam_kappa=0.25), 2),
     "CAM-R15+LENS": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=15.0, cam_kappa=0.25), 2),
+    # Quy luật "ngoài augmentation lúc train" + POOL (progress_log 2026-10-04).
+    "NOISE": (functools.partial(geo_osfd_attack, geo="noise"), 2),
+    "FLIP": (functools.partial(geo_osfd_attack, geo="flip"), 2),
+    "POOL": (functools.partial(geo_osfd_attack, geo="pool"), 2),
 })
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
-               "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS"}
+               "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS",
+               "NOISE", "FLIP", "POOL"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 

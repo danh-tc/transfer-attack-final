@@ -1802,3 +1802,18 @@ d_T = 1 − cos (δ = 0), |u| = 10 / 30 / 60 px: tịnh tiến 0.628 / 0.634 / 0
 **Việc dở dang — ĐỀ XUẤT, CHƯA KHÓA, CHƯA CODE:** thí nghiệm "đồng hướng gradient surrogate ↔ target" (dùng target CHỈ để phân tích, không sinh attack): mỗi phép biến đổi cơ bản (tịnh tiến, co giãn, xoay, trượt, phối cảnh căn tâm, méo ống kính) ở cùng |u| (30, 60 px), gradient R50 (loss feature OSFD, đích co-transform) TRUNG BÌNH qua 8 view → cos với gradient target trên cùng ảnh sạch, cho DINO-Swin-L, ConvNeXt-T, YOLOX-S. Loss target đề xuất: loss PHÂN LOẠI có GT của chính target (decoder: lợi Swin-L nằm ở hạ confidence lớp GT) + loss feature backbone target để đối chiếu. Câu hỏi: phép / liều nào làm gradient trung bình R50 giống gradient Swin-L nhất, có khác nhóm CNN không, có khớp thứ hạng transfer đã đo không. Ước tính ~10 phút code + ~15 phút chạy dev30. Phải khóa quy tắc (định nghĩa loss target, tiêu chí "khớp thứ hạng") TRƯỚC khi chạy.
 
 **Khác:** GO @ n300 cho C2 vẫn tạm hoãn (110/300); C2-PIA đã xác nhận @ dev100 (Swin-L +5.8 so C2, CrossAvg₃ +8.2 so OSFD) — chưa sàng lọc dev300 (user chọn không chạy dev300 lúc này). 11 ảnh dev100 \ dev30 của PIA-noT có sẵn (resume được). Nhiều commit CHƯA push.
+
+---
+
+## 2026-10-04 — Quy luật "đa dạng có ích = biến đổi NGOÀI augmentation lúc huấn luyện của detector" + POOL @ dev30 (user, quy tắc khóa TRƯỚC khi chạy)
+
+**Giả thuyết:** 3 phép vô ích (tịnh tiến / crop, co giãn, resize) đều nằm trong augmentation lúc train của mọi checkpoint mmdet dùng ở đây (multi-scale, crop, flip); 3 phép có ích (xoay, phối cảnh, trượt) KHÔNG có. **Dự đoán kiểm được:** lật ngang (có trong augmentation train) vô ích như tịnh tiến.
+
+**Khung (mọi ô):** loss feature OSFD k = 3, MI μ = 1, ε = 5, α = 1, B = 50, 2 view/step, 1 backward, nhiễu σ = 6 cộng vào adv, feature sạch co-transform; seed SEED + chỉ số dev300; RNG biến đổi = `random` của Python.
+- **NOISE:** 2 view chỉ có nhiễu σ (không hình học) — đối chứng.
+- **FLIP:** mỗi view lật ngang với xác suất 0.5 (torch.flip, chính xác), + nhiễu σ.
+- **POOL:** mỗi view rút một trong hai loại với xác suất 0.5: (a) PIA bỏ tịnh tiến (như ô PIA-noT: rút góc PIA δ_max 0.6, π paper, rồi drop T); (b) phối cảnh thuần căn tâm như CAM-R30 (yaw, pitch ~ U(±30°)). Không chồng hai phép lên một view.
+**Đọc (dev30, mô tả, khai báo trước):** quy luật được ỦNG HỘ nếu |FLIP − NOISE| < 2 trên CẢ DINO-Swin-L VÀ CrossAvg₃ (điểm ước lượng) trong khi PIA-noT − NOISE ≥ +5 trên CrossAvg₃ (có biến đổi ngoài augmentation thì có lợi rõ). POOL "triển vọng" nếu ≥ max(PIA, PIA-noT) trên Swin-L VÀ ≥ CAM-R30 − 1 trên CrossAvg₃.
+**Unit test trước khi chạy:** FLIP p = 1, σ = 0 → view == torch.flip(ảnh); NOISE σ = 0 → view == ảnh; POOL σ = 0, adv = sạch → view == companion; nhánh (a) của POOL trùng lưới PIA-noT khi cùng tham số; ô cũ trùng HEAD; chạy được, L∞ đúng.
+
+**Code + unit test (TRƯỚC khi chạy):** `attack/methods/geopool.py` (`flip_views`, `pool_grid`, `pool_views`), `geo_osfd_attack(geo="noise" | "flip" | "pool")`, ô NOISE / FLIP / POOL. `scripts/geopool_unit_test.py` ĐẠT: FLIP p = 1, σ = 0 → view == lật ngang (companion cùng phép); NOISE σ = 0 → view == ảnh; POOL σ = 0, adv = sạch → view == companion; nhánh (a) POOL == lưới PIA-noT cùng tham số; PIA / PIA-noT / CAM-R30 trùng tuyệt đối HEAD; 3 ô chạy được, L∞ đúng.

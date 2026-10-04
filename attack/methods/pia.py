@@ -266,7 +266,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     cls_weight > 0 (C2-PIA / C2-MORGD / C2-SMOOTH, không cho geo="rrb"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
     1 forward/view (repair.make_view_loss, không sửa = loss của C2)."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
-                   "pia_morgd2", "pia_smooth2", "morgd2", "cam")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
+                   "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
@@ -291,6 +291,13 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             triples = pia_views(img, n_views, delta_max, pi, sigma, companion=comp, log=log["modes"],
                                 data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"], drop=pia_drop,
                                 factor_log=log["pia_factors"] if pia_drop is not None else None)
+        elif geo in ("noise", "flip", "pool"):
+            assert cls_weight == 0.0
+            from attack.methods.geopool import flip_views, pool_views  # tránh import vòng
+            if geo == "pool":
+                triples = pool_views(img, n_views, sigma, companion=comp, log=log["disp"])
+            else:
+                triples = flip_views(img, n_views, 0.5 if geo == "flip" else 0.0, sigma, companion=comp)
         elif geo == "cam":
             from attack.methods.camgeo import cam_views  # tránh import vòng
             triples = cam_views(img, n_views, cam_theta, cam_kappa, sigma, companion=comp,
