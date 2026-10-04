@@ -1,0 +1,26 @@
+loading annotations into memory...
+Done (t=0.54s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 100 ảnh (subset dev100), methods=['OSFD', 'PROBE-osfd+cls']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD] 10/100  3.2s/ảnh  còn ~5 phút
+[attack OSFD] 20/100  3.2s/ảnh  còn ~4 phút
+[attack OSFD] 30/100  3.2s/ảnh  còn ~4 phút
+[attack OSFD] 40/100  3.2s/ảnh  còn ~3 phút
+[attack OSFD] 50/100  3.2s/ảnh  còn ~3 phút
+[attack OSFD] 60/100  3.2s/ảnh  còn ~2 phút
+[attack OSFD] 70/100  3.2s/ảnh  còn ~2 phút
+[attack OSFD] 80/100  3.2s/ảnh  còn ~1 phút
+[attack OSFD] 90/100  3.1s/ảnh  còn ~1 phút
+[attack OSFD] 100/100  3.1s/ảnh  còn ~0 phút
+[attack PROBE-osfd+cls] 10/100  9.4s/ảnh  còn ~14 phút
+[attack PROBE-osfd+cls] 20/100  8.9s/ảnh  còn ~12 phút
+[attack PROBE-osfd+cls] 30/100  8.9s/ảnh  còn ~10 phút
+[attack PROBE-osfd+cls] 40/100  8.8s/ảnh  còn ~9 phút
+[attack PROBE-osfd+cls] 50/100  8.8s/ảnh  còn ~7 phút
+[attack PROBE-osfd+cls] 60/100  9.1s/ảnh  còn ~6 phút
+[attack PROBE-osfd+cls] 70/100  9.0s/ảnh  còn ~4 phút
+[attack PROBE-osfd+cls] 80/100  8.9s/ảnh  còn ~3 phút
+[attack PROBE-osfd+cls] 90/100  8.8s/ảnh  còn ~1 phút
+[attack PROBE-osfd+cls] 100/100  8.7s/ảnh  còn ~0 phút

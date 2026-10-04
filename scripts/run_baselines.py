@@ -95,7 +95,13 @@ METHODS.update({
 METHODS.update({
     "PROBE-V": (functools.partial(repair_robust_attack, cls="vanish", cls_weight=0.3, repair_p=0.0), 2),
 })
-RR_METHODS = {"PROBE-V"}
+# R-a: C2, C3 thay bằng sạch trước FPN với xác suất p mỗi step; thành phần phân loại theo quy tắc chọn của
+# probe V (chỉ chạy biến thể được chọn). λ thừa kế: C2 = 4, V = 0.3.
+METHODS.update({
+    f"RA-{c}-p{p}": (functools.partial(repair_robust_attack, cls=cls, cls_weight=w, repair_p=p), 2)
+    for c, cls, w in (("c2", "c2", 4.0), ("v", "vanish", 0.3)) for p in (0.5, 1.0)
+})
+RR_METHODS = {"PROBE-V"} | {m for m in METHODS if m.startswith("RA-")}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 

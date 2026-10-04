@@ -1247,3 +1247,26 @@ Không qua → dừng, ghi log, không biến thể mới. Qua → rà literatur
 - **Hiệu chỉnh λ** (`scripts/rr_calibrate_lambda.py` → `results/repair_robust/lambda_calibration.json`): áp luật cho C2 tái tạo được — 3.88 / 3.70 / 3.55 / 7.89 / 2.19, median 3.70 → λ = 4 (log cũ 3.95 → 4; lệch nhỏ do không tất định + resize khả vi). L_V: 0.28 / 0.19 / 6.79 / 0.14 / 0.31, median **0.28**.
 - **Đổi luật làm tròn (user duyệt, chưa có số transfer nào):** luật khóa "làm tròn số nguyên, ≥ 1" cho λ_V = 1 → gradient L_V ≈ 3.6× L_OSFD, trái ý định cân bằng 1:1 của luật C2 (không lường trước tỉ lệ < 1). Sửa: **làm tròn 1 chữ số có nghĩa → λ_V = 0.3** (C2 vẫn = 4, không đổi). Ảnh 3 (11615, 6.79): R50 vốn không phát hiện GT duy nhất (objectness 0.027) → L_V gần 0; median không bị ảnh hưởng.
 - λ của R-a thừa kế từ thành phần phân loại được chọn (C2: 4, V: 0.3).
+
+---
+
+## 2026-10-04 — Repair-Robust: probe V KHÔNG chọn; cổng độ trung thực R-a TRƯỢT → chuyển R-b (theo quy tắc khóa)
+
+Sự cố vận hành: pipeline chờ bằng `tmux has-session -t rr` khớp TIỀN TỐ với chính session `rr2` → treo ~45 phút; sửa bằng khớp chính xác (`-t =name`). Không ảnh hưởng kết quả.
+
+**PNG dev100 sinh lại** (seed theo chỉ số dev300): OSFD tái tạo R50 / R101 trùng tuyệt đối số đã commit (96.4 / 91.8); ConvNeXt-T 78.4 (cũ 78.8), Swin-T 74.8 (74.3), YOLOX-S 69.8 (70.2), DINO-Swin-L 24.0 (25.3) — lệch ≤ 1.3, mức không tất định của suy luận target. Runtime: OSFD ~3.3 s/ảnh, C2 ~8.9 s/ảnh, V tương tự C2.
+
+**Probe V** (`results/repair_robust/v_dev100/screen.json`; run `metrics_rr_dev100.json`, `generalization_rr_dev100.json`). Relative AP drop % dev100, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃:
+- C2: 99.3 / 94.0 / 81.2 / 79.4 / 69.1 / 31.4 | 76.6
+- V (λ_V = 0.3): 97.2 / 94.3 / 80.6 / 79.4 / 70.9 / 30.6 | 77.0
+- OSFD: 96.4 / 91.8 / 78.4 / 74.8 / 69.8 / 24.0 | 74.3
+
+V − C2: CrossAvg₃ +0.4 [−1.9, 3.3], DINO-Swin-L −0.8 [−5.1, 3.6], YOLOX-S +1.8. **Quy tắc khóa (Δ Swin-L ≥ +2) → KHÔNG chọn; R-a/R-b dùng loss phân loại của C2 (λ = 4).** Mô tả: V làm đúng cơ chế dự định — FP nền/ảnh Swin-T 24.4 → 16.8, YOLOX 11.4 → 7.6, DINO-Swin-L 3.0 → 1.7; recall@0.3 thấp hơn (Swin-T 0.35 → 0.26; DINO-Swin-L 0.57 → 0.52) — nhưng DINO-Swin-L AP drop không tăng → budget hallucination KHÔNG phải yếu tố giới hạn trên Swin-L.
+
+**Cổng độ trung thực R-a** (`scripts/rr_fidelity_gate.py` → `results/repair_robust/fidelity_gate_Ra.json`) — **TRƯỢT ở cả OSFD và C2, không sát ngưỡng:**
+- OSFD: ρ(Q_rep, retained Swin-L) +0.15 [−0.04, 0.33], ρ(Q_plain) +0.15, chênh +0.00 [−0.02, 0.03].
+- C2: ρ_rep +0.12, ρ_plain +0.08, chênh +0.04 [−0.01, 0.13].
+- Mô tả: thay C2/C3 bằng sạch gần như KHÔNG đổi R50 — retained 0.029 → 0.031 (OSFD), 0.047 → 0.055 (C2); cosd FPN 0.772 → 0.756, 0.647 → 0.631. Q_plain tương quan tốt với target Mask R-CNN (R101 +0.60, ConvNeXt +0.47, Swin-T +0.37) và YOLOX (+0.37) nhưng yếu với DINO-Swin-L (+0.08 đến +0.15).
+- Diễn giải: R50 Mask R-CNN không có cơ chế "sửa" dựa vào mức nông — thiệt hại nằm ở C4/C5 và đi thẳng qua FPN top-down; phép thay C2/C3 không mô phỏng được encoder DINO.
+
+**Theo quy tắc khóa:** R-a trượt cổng → chạy **R-b** (ô 64×64 thay sạch, cùng mặt nạ cho 4 stage, q = 0.3) qua CÙNG cổng. Mặt nạ cổng: 1 lần rút mỗi ảnh, seed = SEED + chỉ số dev300 (numpy). R-b trượt → dừng hướng Repair-Robust.

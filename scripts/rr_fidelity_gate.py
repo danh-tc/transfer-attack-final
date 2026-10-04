@@ -43,6 +43,27 @@ def repair_hook(clean_feats, n=2):
     return lambda m, i, o: tuple(clean_feats[:n]) + tuple(o[n:])
 
 
+CELL_PX, STRIDES = 64, (4, 8, 16, 32)
+
+
+def cell_mask(canvas_hw, q, rng, device):
+    """R-b: mặt nạ ô 64×64 px ở khung model (canvas đã pad), 1 = thay sạch, xác suất q, độc lập."""
+    ny, nx = -(-canvas_hw[0] // CELL_PX), -(-canvas_hw[1] // CELL_PX)
+    return torch.from_numpy(rng.random((ny, nx)) < q).float().to(device)
+
+
+def cell_hook(clean_feats, mask):
+    """Thay sạch theo ô, CÙNG mặt nạ (tọa độ ảnh) cho cả 4 stage backbone."""
+    def hook(m, i, o):
+        out = []
+        for st, fa, fc in zip(STRIDES, o, clean_feats):
+            r = CELL_PX // st
+            mk = mask.repeat_interleave(r, 0).repeat_interleave(r, 1)[:fa.shape[-2], :fa.shape[-1]]
+            out.append(mk * fc + (1 - mk) * fa)
+        return tuple(out)
+    return hook
+
+
 def spearman(a, b, ii):
     x, y = a[ii], b[ii]
     ok = ~(np.isnan(x) | np.isnan(y))
@@ -52,6 +73,9 @@ def spearman(a, b, ii):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dets", default="dets_rr_dev100.json", help="dets Controlled Panel (mô tả)")
+    ap.add_argument("--op", choices=["ra", "rb"], default="ra",
+                    help="ra: C2, C3 sạch; rb (dự phòng): ô 64×64 sạch xác suất q, mọi stage")
+    ap.add_argument("--q", type=float, default=0.3)
     args = ap.parse_args()
     art = os.path.join(REPO_ROOT, "artifacts/runs", RUN)
     dev300 = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev300.csv"))
@@ -77,10 +101,16 @@ def main():
             clean_feats = extract_features(model, x, dsm)
             dets["clean"] += to_coco_dets(predict(model, x, dsm), ids[i], cat_ids)
             fpn_clean = fpn(x, dsm)
+            if args.op == "ra":
+                rep_hook = repair_hook(clean_feats)
+            else:  # 1 mặt nạ / ảnh, seed = SEED (0) + chỉ số dev300; dùng chung cho OSFD và C2
+                canvas = tuple(to_batch(model, [x], [dsm])[0].shape[-2:])
+                rng = np.random.default_rng(dev300.index(ids[i]))
+                rep_hook = cell_hook(clean_feats, cell_mask(canvas, args.q, rng, x.device))
             for c in CONDS:
                 adv = torch.from_numpy(mmcv.imread(os.path.join(art, "adv", c, f"{ids[i]}.png"))).permute(2, 0, 1)
                 adv = pipeline_resize(adv.float().cuda(), x.shape[-2:])
-                for v, hook in (("plain", None), ("rep", repair_hook(clean_feats))):
+                for v, hook in (("plain", None), ("rep", rep_hook)):
                     h = model.backbone.register_forward_hook(hook) if hook else None
                     try:
                         dets[f"{c}|{v}"] += to_coco_dets(predict(model, adv, dsm), ids[i], cat_ids)
@@ -141,8 +171,10 @@ def main():
             print(f"  {t:<12} ρ_rep {f_(v['rho_rep'])}  ρ_plain {f_(v['rho_plain'])}  diff {f_(v['diff'])}")
         print(f"  -> {'QUA' if ok else 'TRƯỢT'}")
     res["gate_pass"] = bool(all(passes))
-    print(f"\nCỔNG ĐỘ TRUNG THỰC R-a: {'QUA' if res['gate_pass'] else 'TRƯỢT'}")
-    out = os.path.join(REPO_ROOT, "results/repair_robust/fidelity_gate_Ra.json")
+    res["op"] = args.op if args.op == "ra" else f"rb q={args.q}"
+    print(f"\nCỔNG ĐỘ TRUNG THỰC {res['op']}: {'QUA' if res['gate_pass'] else 'TRƯỢT'}")
+    out = os.path.join(REPO_ROOT, "results/repair_robust",
+                       "fidelity_gate_Ra.json" if args.op == "ra" else f"fidelity_gate_Rb_q{args.q:g}.json")
     with open(out, "w") as f:
         json.dump(res, f, indent=2, ensure_ascii=False)
     print("saved:", out)
