@@ -1528,3 +1528,19 @@ Hiệu chính: Δ_extra = RESIDUAL − C2-PIA; **Δ_object = GRGD − RESIDUAL**
 - **Kết luận:** SHALLOW-SPECIFIC ở CẢ P1 và P2 → ủng hộ tiền đề đa scale → được khóa entry thiết kế Multi-Scale Projective Diversity. Không SHALLOW nhưng ENCODER ở cả hai → một phần: hình học tạo distortion encoder khó sửa nhưng không qua stage nông; tiền đề đa scale KHÔNG được ủng hộ, user quyết. Không cái nào ở cả hai cặp → bác giả thuyết, KHÔNG xây hình học đa scale.
 - Mô tả (không quyết định): cosd encoder theo 5 mức, A_l; Spearman giữa các ô (11 ô) của mean cosd từng tầng với AP drop DINO-Swin-L đã có; câu hỏi mode PIA (Q3) chỉ trả lời gián tiếp qua PIA-aff (chỉ 6-DOF) và PIA-d0.3 — tách thật theo mode cần attack mới, chưa làm.
 - Caveat: n = 30 (CI rộng); PNG C2 là bản sinh lại trên dev100 (cùng seed).
+
+**Kết quả (`results/ablation/mech/swinl_geo.json`, n = 30) — theo quy tắc khóa: BÁC giả thuyết (không SHALLOW-SPECIFIC ở cặp nào; ENCODER chỉ ở P1) → KHÔNG xây hình học đa scale.**
+
+cosd trung bình, DINO-Swin-L (drop % | bb1 / bb2 / bb3 / bb4 | neck5 | enc | A_enc):
+- OSFD 26.8 | 0.070 / 0.115 / 0.281 / 0.426 | 0.246 | 0.067 | 0.153
+- GEO-C0 21.5 | 0.071 / 0.121 / 0.271 / 0.392 | 0.206 | 0.056 | 0.142
+- PIA 28.8 | 0.071 / 0.121 / 0.285 / 0.420 | 0.232 | 0.063 | 0.147
+- C2 26.1 | 0.070 / 0.106 / 0.227 / 0.337 | 0.171 | 0.042 | 0.123
+- C2-PIA 34.7 | 0.070 / 0.109 / 0.246 / 0.369 | 0.195 | 0.053 | 0.140
+- (PIA-aff, PIA-d0.3, MORGD, SMOOTH, C2-MORGD, C2-SMOOTH trong file.)
+
+- **Stage nông KHÔNG đổi theo bất kỳ phương pháp nào:** bb1 = 0.070–0.071 ở cả 11 ô (P1 Δ +0.000, P2 Δ −0.000); bb2 0.106–0.122, rel P1 ×1.03, P2 ×1.00. Mức distortion stage 1 có vẻ là "sàn" của nhiễu ε = 5 ở độ phân giải cao, không phụ thuộc loss hay hình học → tiền đề "đưa distortion hình học tới scale nông" không có chỗ bám trong dữ liệu.
+- **PIA tăng ở SÂU và ở encoder:** bb4 ×1.09 (P1) / ×1.07 (P2), neck5 ×1.14 / ×1.13, encoder ×1.27 / ×1.13 (mọi mức encoder trừ enc5 ở P1 có CI > 0). A_enc: P1 +0.016 [+0.008, +0.026] (ENCODER đúng), P2 +0.005 [−0.001, +0.012] (không).
+- **Độ lớn distortion KHÔNG giải thích AP drop của Swin-L ở bất kỳ tầng nào:** Spearman giữa 11 ô của mean cosd từng tầng với drop Swin-L nằm trong [−0.45, +0.18] (bb2 −0.45, enc −0.15, A_enc −0.34). Họ C2 có distortion THẤP hơn họ loss-feature ở MỌI tầng (C2-PIA enc 0.053 < OSFD 0.067, PIA 0.063) nhưng C2-PIA có drop cao nhất (34.7). Khớp phát hiện cũ ("task loss có cosd encoder thấp hơn OSFD nhưng drop cao hơn"): lợi trên Swin-L đến từ HƯỚNG (tín hiệu phân loại sau encoder), không từ lượng distortion feature.
+- Q3 (mode PIA, gián tiếp): PIA-aff ≈ PIA ở mọi tầng (bb4 0.410 vs 0.420, enc 0.056 vs 0.063); PIA-d0.3 ở giữa. Không có dấu hiệu số hạng phối cảnh tạo loại distortion riêng.
+- Đọc chung: trong cặp cùng loss, PIA làm feature sâu + encoder lệch thêm ~10–25% tương đối, nhưng trục "lượng distortion" không theo được AP drop giữa các ô → muốn hiểu vì sao C2-PIA phá Swin-L tốt hơn cần đo ở đầu ra (điểm phân loại query decoder, xếp hạng, loại lỗi) chứ không ở độ lớn feature. Hướng tiếp: user quyết.
