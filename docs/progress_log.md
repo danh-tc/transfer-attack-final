@@ -1441,3 +1441,14 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 **Báo cáo (mô tả):** so MORGD, SMOOTH, GEO-C0, PIA, OSFD; 6 model, CrossAvg₃.
 
 **Code + unit test (TRƯỚC khi chạy):** `pia.rapa_sampler` (53 BN backbone, Bernoulli(0.95), `_reparametrize_module`, RNG riêng), `geo_osfd_attack(rapa_p=)`; ô `MORGD-RaPA`. `scripts/rapa_unit_test.py` ĐẠT: MORGD trùng tuyệt đối HEAD; rapa_p = 0 trùng tuyệt đối MORGD; tỉ lệ mask 0.0502; tham số model không đổi sau attack; cùng context → cùng mask, khác feature không mask; gradient theo input dưới context == khi gán tham số masked thật (lệch tương đối 7.1e-8, tức masked nhất quán cả forward lẫn backward); L∞ đúng.
+
+**Kết quả @ dev30 (mô tả)** — `metrics_rapa_dev30.json`, `generalization_rapa_dev30.json`, `results/ablation/rapa_dev30/screen.json`, log `results/pia_dev30/run5.log`. Runtime 6.1 s/ảnh (MORGD 5.2). Tỉ lệ mask thực tế ≈ 0.050.
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | η:
+- MORGD: 96.9 / 91.5 / 83.3 / 80.2 / 77.9 / 27.3 | 80.5 | 0.89
+- **MORGD-RaPA: 94.0 / 78.5 / 52.4 / 57.9 / 56.3 / 18.7 | 55.5 | 0.70**
+(OSFD 78.8, GEO-C0 79.0, PIA 79.5, SMOOTH 79.7 — như entry trước.)
+
+- **RaPA làm attack yếu đi mạnh ở mọi target:** MORGD-RaPA − MORGD: CrossAvg₃ −25.0, YOLOX −21.6 [−29.6, −12.8], DINO-Swin-L −8.6 [−16.9, −1.1], R101 −13.0; cả R50 white-box −2.9.
+- **Chẩn đoán (forward-only, 5 ảnh dev30, ảnh sạch):** cos(feature backbone sạch, feature cùng ảnh dưới mask) theo stage 1→4: p = 0.05: 0.855 / 0.749 / 0.689 / 0.702; cos giữa 2 mask khác nhau: 0.827 / 0.723 / 0.676 / 0.700. p = 0.01: 0.962 / 0.934 / 0.915 / 0.925 (2 mask: 0.945 / 0.905 / 0.880 / 0.891). → Với p = 0.05, mỗi view là một biến thể surrogate lệch ~30% feature sâu; với loss feature (đo trực tiếp trên feature backbone) và chỉ 50 step × S = 1, hướng gradient giữa các biến thể gần như không cộng hưởng → mất "utility". p = 0.05 được paper chọn cho ResNet-50 CLASSIFICATION (loss trên logit, 1000 iteration, S = 5), không chuyển được sang setting này.
+- Chưa tách: (a) liều p (0.01 ít phá feature hơn nhiều); (b) gradient "lai" của code chính thức (backward dùng trọng số gốc → hướng gradient gần surrogate gốc hơn) có thể chính là thứ giữ utility ở paper — bản của ta dùng gradient nhất quán. Không chạy thêm biến thể nếu user không yêu cầu.
