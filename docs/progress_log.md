@@ -1569,3 +1569,21 @@ cosd trung bình, DINO-Swin-L (drop % | bb1 / bb2 / bb3 / bb4 | neck5 | enc | A_
 **Sanity trước khi đọc kết quả:** forced trên ảnh sạch == natural trên ảnh sạch (logit trùng); 100 detection natural khớp `model.predict` (box, score); tỉ lệ GT có q* IoU ≥ 0.5; trung vị score sạch của q*; chọn q* độc lập điều kiện.
 
 **Code + sanity (TRƯỚC khi chạy đủ dev30):** `scripts/diag_decoder_output.py`. Sanity trên 3 ảnh đầu: forced trên ảnh sạch == natural (logit lệch tối đa 0.0); detection tự dựng khớp tuyệt đối `model.predict` (score, box lệch 0.0) — sửa ghi chú: DINO `test_cfg.max_per_img` = **300** (không phải 100), script lấy từ model; phân rã lỗi / FP dùng ngưỡng 0.3 nên gần như không đổi. 9/9 GT có q* IoU ≥ 0.5. **Trung vị sigmoid score sạch của q* (argmax IoU) = 0.012 < 0.3 → kích hoạt dự phòng khai báo trước: chạy chính với `--select maxlogit`** (q* = argmax z_{q,c} trong các query IoU ≥ 0.5). Số của lần thử 3 ảnh KHÔNG dùng.
+
+**Kết quả @ dev30 (`results/ablation/mech/decoder_output.json`, `--select maxlogit`) — theo quy tắc khóa: P1 không CLS, không LOC; P2 cũng không → GIẢ THUYẾT MỨC QUERY BỊ BÁC.**
+
+Sanity đủ 30 ảnh: forced sạch == natural (0.0), khớp `predict` (0.0); 352/362 GT (97%) có q*; trung vị score sạch q* 0.51 (75.6% ≥ 0.3). q* sạch: logit 0.17, margin 4.14, rank pct 0.011, IoU 0.82.
+
+Forced, Δ (adv − sạch) trung bình theo GT [CI 95%] — d_s / d_margin / d_rank_pct / d_iou:
+- OSFD −1.21 / −1.16 / +0.067 / −0.110
+- GEO-C0 −1.06 / −1.02 / +0.051 / −0.102
+- PIA −1.20 / −1.15 / +0.060 / −0.109
+- PIA-aff −1.16 / −1.09 / +0.058 / −0.099
+- C2 −1.26 / −1.18 / +0.060 / −0.111
+- C2-PIA −1.30 / −1.19 / +0.063 / −0.118
+
+- **P1 (C2-PIA − C2):** d_margin −0.006 [−0.18, +0.18], d_rank +0.003 [−0.013, +0.022], d_iou −0.007 [−0.023, +0.009] → không khác. **P2 (PIA − GEO-C0):** d_margin −0.14 [−0.25, −0.03] (CI < 0) nhưng d_rank +0.009 [−0.006, +0.024] → CLS sai theo quy tắc (cần cả hai); d_iou −0.007.
+- **Ở mức query, tác động lên DINO-Swin-L gần như BẤT BIẾN theo phương pháp:** cả 6 ô giảm margin ~1.0–1.2 logit, rank tụt 5–7 percentile, IoU −0.10 đến −0.12 — chênh giữa các ô nhỏ hơn nhiều so với CI.
+- Natural (mô tả): token q* bị loại khỏi top-900 19–24% (C2-PIA 23.6% cao nhất, C2 21.3%); trên phần còn lại margin tụt 1.21–1.41. Gán lại: max_q z_c (adv) chỉ giảm 0.29–0.42 logit (forced giảm ~1.2) → decoder phần lớn "nhận lại" bằng query khác (IoU của query max chỉ 0.19–0.21 — bị lẫn bởi instance khác cùng lớp, chỉ để tham khảo).
+- Phân rã lỗi (266 GT phát hiện được ở ảnh sạch): preserved C2-PIA **0.726** vs C2 0.771 / OSFD 0.763 / PIA 0.756 / GEO-C0 0.774; phần mất thêm của C2-PIA rơi vào conf/rank (0.241 vs 0.211). Loc / lost ≤ 3% ở mọi ô. FP/ảnh: họ C2 tăng FP nền (2.9 vs sạch 1.6), C2-PIA không hơn C2 (5.27 vs 5.70 tổng).
+- Đọc chung: chênh AP +8.6 (C2-PIA − C2 trên Swin-L @ dev30, CI [0.3, 13.6]) KHÔNG thấy ở bằng chứng phân loại / xếp hạng / định vị trung bình theo GT trên query cố định; chỉ thấy ~4.5 điểm preserved@0.3 (12/266 GT) — cỡ nhiễu ở n = 30. Hai khả năng chưa tách: (a) lợi AP tập trung ở ít ảnh / ít GT (đuôi), (b) chênh AP dev30 phần lớn là nhiễu (cận dưới CI 0.3). Hướng tiếp: user quyết.
