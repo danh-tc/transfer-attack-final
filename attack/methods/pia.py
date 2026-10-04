@@ -251,11 +251,13 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
                     pi=PI_PAPER, sigma: float = 6.0, info=None, on_step=None,
                     co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None, pia_drop=None,
+                    cam_theta: float = 15.0, cam_kappa: float = 0.0,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
     geo="morgd" | "smooth": trường dịch chuyển mượt neo theo GT object | neo ngẫu nhiên (pilot MORGD).
+    geo="cam": Giai đoạn B — xoay camera ảo (cam_theta độ, yaw/pitch) + méo ống kính (cam_kappa), camgeo.py.
     pia_drop ∈ FACTORS (geo="pia"): Giai đoạn A — bỏ 1 thành phần homography (T, R, S, K, P) mỗi view.
     geo="pia_morgd2" | "pia_smooth2" | "morgd2": MORGD-v2 (phân vùng theo box) ∘ PIA | đối chứng tâm ngẫu nhiên ∘ PIA |
     MORGD-v2 không PIA (morgd2.py); RNG (r, a) = Random(seed + 1), tâm ngẫu nhiên = Random(seed + 2).
@@ -264,7 +266,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     cls_weight > 0 (C2-PIA / C2-MORGD / C2-SMOOTH, không cho geo="rrb"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
     1 forward/view (repair.make_view_loss, không sửa = loss của C2)."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
-                   "pia_morgd2", "pia_smooth2", "morgd2")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
+                   "pia_morgd2", "pia_smooth2", "morgd2", "cam")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
@@ -289,6 +291,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             triples = pia_views(img, n_views, delta_max, pi, sigma, companion=comp, log=log["modes"],
                                 data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"], drop=pia_drop,
                                 factor_log=log["pia_factors"] if pia_drop is not None else None)
+        elif geo == "cam":
+            from attack.methods.camgeo import cam_views  # tránh import vòng
+            triples = cam_views(img, n_views, cam_theta, cam_kappa, sigma, companion=comp,
+                                data_sample=ds if cls_weight > 0 else None, log=log["disp"], gt_log=log["gt_kept"])
         elif geo.endswith("2"):
             from attack.methods.morgd2 import morgd2_views  # tránh import vòng
             triples = morgd2_views(img, n_views, ds, rng_xi, rng_c, anchors="random" if geo == "pia_smooth2" else "object",

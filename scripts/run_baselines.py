@@ -131,10 +131,15 @@ METHODS.update({
     "C2-MORGD2": (functools.partial(geo_osfd_attack, geo="morgd2", cls_weight=4.0), 2),
     # Giai đoạn A (progress_log 2026-10-04): PIA bỏ 1 thành phần homography (khung loss feature thuần).
     **{f"PIA-no{f}": (functools.partial(geo_osfd_attack, geo="pia", pia_drop=f), 2) for f in "TRSKP"},
+    # Giai đoạn B (progress_log 2026-10-04): đa dạng mô hình camera (khung loss feature thuần).
+    "CAM-R15": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=15.0), 2),
+    "CAM-R30": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=30.0), 2),
+    "LENS": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=0.0, cam_kappa=0.25), 2),
+    "CAM-R15+LENS": (functools.partial(geo_osfd_attack, geo="cam", cam_theta=15.0, cam_kappa=0.25), 2),
 })
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
-               "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP"}
+               "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 

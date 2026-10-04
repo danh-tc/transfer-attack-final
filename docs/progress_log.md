@@ -1730,3 +1730,23 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 - K (lệch tỉ lệ + trượt): +1.0 | −1.7 (ConvNeXt −5.5 [−10.6, −1.4]: bỏ K TỐT hơn cho ConvNeXt).
 - **P (phối cảnh): +2.8 [−1.1, +6.0] | +1.6 [−0.2, +3.5]** — thành phần duy nhất dương ở cả Swin-L và CrossAvg₃ (YOLOX +2.4 [+0.3, +7.5], Swin-T +4.5); bỏ P gần như không giảm |u| (191 px) → lợi của P là do LOẠI biến đổi, không do biên độ.
 - Đọc chung (n = 30, phần lớn CI chứa 0): nguyên liệu khả dĩ nhất của PIA là **số hạng phối cảnh**; tịnh tiến chiếm phần lớn biên độ nhưng "lãng phí" (bỏ đi không mất, khớp quan sát trần đa dạng–hiệu dụng). (Lưu ý: PIA-aff @ dev30 — đổi phân phối mode sang toàn 6-DOF — có Swin-L 27.9 ≈ PIA; phép bỏ P ở đây giữ nguyên các thành phần khác nên sạch hơn.) Muốn kết luận phải chạy dev100 (quy tắc khóa).
+
+---
+
+## 2026-10-04 — Giai đoạn B (thử nhanh @ dev30, user): "đa dạng mô hình camera" — xoay camera ảo thuần phối cảnh + méo ống kính (ngoài họ homography) — quy tắc khóa TRƯỚC khi code/chạy
+
+**Bối cảnh:** Giai đoạn A @ dev30 gợi ý phối cảnh là nguyên liệu của PIA, tịnh tiến (≥ nửa biên độ) vô ích. User chọn thử thẳng method mới ở dev30 (bỏ xác nhận dev100 của Giai đoạn A). Rủi ro novelty đã nêu: xoay camera ảo vẫn trong họ homography của PIA (chỉ là phân phối rút khác) → thêm **méo ống kính xuyên tâm** — biến đổi camera toàn cục, mượt, có nghĩa vật lý, KHÔNG biểu diễn được bằng homography.
+
+**Khung:** như ô `PIA` (loss feature OSFD k = 3, MI μ = 1, ε = 5, α = 1, B = 50, 2 view/step, 1 backward, σ = 6 cộng vào adv, feature sạch co-transform cùng lưới, KHÔNG cls). Seed ảnh SEED + chỉ số dev300; tham số biến đổi rút từ `random` của Python mỗi view; vùng ngoài ảnh nguồn lấp 0.
+
+**Biến đổi (ánh xạ ngược pixel ra q → nguồn, khung model h × w, tâm c = ((w−1)/2, (h−1)/2)):**
+- **CAM-R(θ):** K = [[f, 0, c_x], [0, f, c_y], [0, 0, 1]], f = max(h, w); yaw, pitch ~ U(−θ, θ) độc lập, roll = 0; H = K·R_y(yaw)·R_x(pitch)·K⁻¹; nguồn = H·q (chia đồng nhất). Hai liều θ = 15°, 30° (khai báo trước, không tune thêm).
+- **LENS(κ):** d = q − c, ρ = ‖d‖ / R, R = nửa đường chéo; nguồn = c + d·(1 + k·ρ²), k ~ U(−κ, κ), κ = 0.25 (k > 0 / < 0: pincushion / barrel theo chiều ánh xạ ngược).
+- **CAM-R+LENS:** nguồn = H·(c + d·(1 + kρ²)) — méo ống kính ở khung ra, rồi xoay camera; θ = 15°, κ = 0.25.
+- GT co-transform (khi cần cho khung cls về sau): AABB mặt nạ chữ nhật warp như MORGD; không dùng trong khung thuần.
+
+**Ô @ dev30 (mô tả):** CAM-R15, CAM-R30, LENS, CAM-R15+LENS; mốc: PIA, PIA-noT, OSFD, GEO-C0 (PNG có sẵn). Báo |u| trung bình mỗi view.
+**Đọc xu hướng (khai báo trước, không phải cổng):** ứng viên "triển vọng" nếu ≥ PIA + 2 trên DINO-Swin-L VÀ ≥ PIA trên CrossAvg₃ (điểm ước lượng, dev30) → khóa tiêu chí xác nhận dev100 (so PIA, ≥ +3 Swin-L, cận dưới CI > 0). LENS hoặc CAM-R15+LENS triển vọng mới hỗ trợ được claim "ngoài homography".
+**Unit test trước khi chạy:** θ = 0, κ = 0 → lưới ≈ đồng nhất; yaw thuần → tâm ảnh ánh xạ tới c_x + f·tan(yaw) (đúng chiều); LENS k > 0 → góc ảnh ánh xạ ra ngoài đúng k·R; σ = 0, adv = sạch → view == companion; ô cũ trùng HEAD; chạy được, L∞ đúng.
+
+**Code + unit test (TRƯỚC khi chạy):** `attack/methods/camgeo.py` (`rotation_homography`, `camera_grid`, `cam_views`); `geo_osfd_attack(geo="cam", cam_theta=, cam_kappa=)`; ô CAM-R15, CAM-R30, LENS, CAM-R15+LENS. **Sửa spec phát hiện ở unit test (trước khi chạy):** xoay camera bậc nhất = dịch f·tan θ (yaw 15° ≈ 320 px; CAM-R15 |u| 254 px — chính thành phần tịnh tiến Giai đoạn A cho là vô ích) → **căn lại tâm**: H ← T·H, T đưa ảnh của tâm về tâm; chỉ giữ méo phối cảnh. `scripts/camgeo_unit_test.py` ĐẠT: θ = κ = 0 → đồng nhất (8e-6 px); yaw 10° căn tâm → tâm giữ nguyên, mép trái / phải dời 31.4 / 78.3 px (keystone bất đối xứng); LENS k = 0.2 → góc ra ngoài đúng k·R; σ = 0, adv = sạch → view == companion; GEO-C0 / PIA / PIA-noT trùng tuyệt đối HEAD; 4 ô chạy được, L∞ đúng. **|u| trung bình (sau sửa):** CAM-R15 22.3, CAM-R30 84.9, LENS 21.4, CAM-R15+LENS 31.2 px (PIA ~194, PIA-noT ~91).
