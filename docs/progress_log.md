@@ -1236,3 +1236,14 @@ QUA nếu đồng thời:
 - ΔCrossAvg₃(ứng viên − OSFD) ≥ 3 VÀ cận dưới CI > 0; Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S so OSFD;
 - drop R101 ≥ R101(OSFD) − 3.
 Không qua → dừng, ghi log, không biến thể mới. Qua → rà literature (CFM, Ghost Networks, feature-level augmentation cho detection) rồi GO @ n300 (cần hoàn tất C2 @ n300 trước để có mốc C2; tiêu chí GO khóa riêng trước khi chạy).
+
+---
+
+## 2026-10-04 — Repair-Robust: code + unit test + hiệu chỉnh λ; đổi cách làm tròn λ_V (user duyệt, TRƯỚC khi chạy V)
+
+- **Môi trường:** máy mới RTX 3090, bootstrap xong; `download_checkpoints.sh --gen` đủ 7 checkpoint Generalization Panel; COCO val2017 5000 ảnh. Không có `artifacts/` (PNG dev300 cũ chưa từng lên HF → mất) → sinh lại PNG OSFD + C2 trên dev100 (cùng seed theo chỉ số dev300).
+- **Code:** `attack/methods/repair.py` (`vanish_loss` = L_V; `make_view_loss` hook backbone: L_OSFD trên C_adv, nhánh head qua R-a nếu có; `repair_robust_attack`); `rrb_views(companion=)` áp cùng phép xoay/resize lên ảnh sạch, không nhiễu, không tiêu thụ RNG.
+- **Unit test** (`scripts/rr_unit_test.py`) ĐẠT: rrb_views mặc định trùng tuyệt đối HEAD (3 ảnh × 3 seed, cả with_gt); companion không đổi RNG và khớp hình học; `make_view_loss(c2)` trùng `make_feature_plus_gt_loss` (rtol 1e-6); L_V hữu hạn, ≤ 0, có anchor/RoI dương (vd 22/56, 14/29, 6/12), ảnh không GT → 0; R-a tại δ = 0, σ = 0 trùng không sửa (cả c2 và vanish); attack p = 0/0.5/1 chạy, đếm forward no_grad = 2 × số step sửa.
+- **Hiệu chỉnh λ** (`scripts/rr_calibrate_lambda.py` → `results/repair_robust/lambda_calibration.json`): áp luật cho C2 tái tạo được — 3.88 / 3.70 / 3.55 / 7.89 / 2.19, median 3.70 → λ = 4 (log cũ 3.95 → 4; lệch nhỏ do không tất định + resize khả vi). L_V: 0.28 / 0.19 / 6.79 / 0.14 / 0.31, median **0.28**.
+- **Đổi luật làm tròn (user duyệt, chưa có số transfer nào):** luật khóa "làm tròn số nguyên, ≥ 1" cho λ_V = 1 → gradient L_V ≈ 3.6× L_OSFD, trái ý định cân bằng 1:1 của luật C2 (không lường trước tỉ lệ < 1). Sửa: **làm tròn 1 chữ số có nghĩa → λ_V = 0.3** (C2 vẫn = 4, không đổi). Ảnh 3 (11615, 6.79): R50 vốn không phát hiện GT duy nhất (objectness 0.027) → L_V gần 0; median không bị ảnh hưởng.
+- λ của R-a thừa kế từ thành phần phân loại được chọn (C2: 4, V: 0.3).

@@ -117,7 +117,7 @@ def rrb_views(adv_pixels: torch.Tensor, data_sample: DetDataSample,
              prob: float = 1.0, theta: float = 7.0, l_s: int = 10,
              rho: float = 0.8, s_max: float = 1.1, sigma: float = 6.0,
              use_rotate: bool = True, use_resize: bool = True, use_noise: bool = True,
-             with_gt: bool = False) -> List:
+             with_gt: bool = False, companion=None) -> List:
     """Sinh 2 view theo đúng chain của bản gốc: view1 = rotate(adv) (nếu trúng prob),
     view2 = resize(view1) (nếu trúng prob) — rồi cả 2 cùng bị Gaussian blur.
     Hyperparameter mặc định khớp ref-repo/OSFD-main/config/base.yaml (không phải
@@ -126,7 +126,12 @@ def rrb_views(adv_pixels: torch.Tensor, data_sample: DetDataSample,
     Ablation OSFD (docs/plan_sota.md): use_rotate / use_resize / use_noise = False tắt
     từng phần (cờ mặc định trùng tuyệt đối bản gốc, cả thứ tự tiêu thụ RNG). Tắt resize:
     view2 = một lần xoay MỚI của adv (rút lại tham số). with_gt = True (ô task loss):
-    trả về [(ảnh, data_sample đã co-transform GT box + mask)] thay vì [ảnh]."""
+    trả về [(ảnh, data_sample đã co-transform GT box + mask)] thay vì [ảnh].
+
+    companion (Repair-Robust, progress_log 2026-10-04): ảnh [C,H,W] đi kèm (ảnh SẠCH ở khung
+    model) nhận ĐÚNG phép xoay/resize của từng view, KHÔNG cộng nhiễu, không tiêu thụ RNG —
+    phần tử cuối của mỗi view (chỉ hỗ trợ cùng with_gt=True)."""
+    assert companion is None or with_gt
     # data_sample (và gt_instances bên trong) không tự động theo device của ảnh —
     # AttackDataset trả về data_sample nguyên bản từ pipeline (CPU), chỉ tensor ảnh
     # mới được caller .to(device) thủ công. Phải tự đồng bộ device ở đây.
@@ -136,18 +141,20 @@ def rrb_views(adv_pixels: torch.Tensor, data_sample: DetDataSample,
     if with_gt:
         boxes, masks = get_gt(data_sample, adv_pixels.device)
 
-    def rotate_view(img, b, m):
+    def rotate_view(img, b, m, c):
         angle, center = _sample_rotation(img, gt_boxes, theta, l_s)
         img = rotate(img.unsqueeze(0), angle, center=center).squeeze(0)
         if with_gt:
             b = rotate_boxes(b, angle, center, h, w)
             m = rotate(m, angle, center=center) if m is not None and len(m) else m
-        return img, b, m
+        if c is not None:
+            c = rotate(c.unsqueeze(0), angle, center=center).squeeze(0)
+        return img, b, m, c
 
-    view, b, m = adv_pixels, boxes, masks
+    view, b, m, c = adv_pixels, boxes, masks, companion
     if random.random() < prob and use_rotate:
-        view, b, m = rotate_view(view, b, m)
-    view1, b1, m1 = view, b, m
+        view, b, m, c = rotate_view(view, b, m, c)
+    view1, b1, m1, c1 = view, b, m, c
 
     if random.random() < prob:
         if use_resize:
@@ -156,12 +163,16 @@ def rrb_views(adv_pixels: torch.Tensor, data_sample: DetDataSample,
             if with_gt:
                 b = _resize_boxes(b, p)
                 m = _apply_resize(m, p) if m is not None and len(m) else m
+            if c is not None:
+                c = _apply_resize(c, p)
         elif use_rotate:
-            view, b, m = rotate_view(adv_pixels, boxes, masks)
-    view2, b2, m2 = view, b, m
+            view, b, m, c = rotate_view(adv_pixels, boxes, masks, companion)
+    view2, b2, m2, c2 = view, b, m, c
 
     noisy = (lambda v: gaussian_blur(v, sigma=sigma)) if use_noise else (lambda v: v)
     out = [noisy(view1), noisy(view2)]
     if not with_gt:
         return out
+    if companion is not None:
+        return [(out[0], gt_with(data_sample, b1, m1), c1), (out[1], gt_with(data_sample, b2, m2), c2)]
     return [(out[0], gt_with(data_sample, b1, m1)), (out[1], gt_with(data_sample, b2, m2))]

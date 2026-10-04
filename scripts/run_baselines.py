@@ -36,6 +36,7 @@ from attack.data import build_attack_dataset, load_image_ids
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize, to_coco_dets
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.kg_pair import kg_osfd_attack
+from attack.methods.repair import repair_robust_attack
 from attack.methods.sgm import GAMMAS, sgm_osfd_attack
 from attack.models import CONTROLLED_PANEL, SURROGATE_KEY, load_model
 from attack.preprocess import pipeline_resize, predict, to_adv_image
@@ -89,6 +90,12 @@ METHODS.update({
     "S1-lp6": (functools.partial(osfd_attack, loss="feature+cls", cls_weight=4.0, grad_lowpass_f0=1 / 6), 2),
     "S1-lp12": (functools.partial(osfd_attack, loss="feature+cls", cls_weight=4.0, grad_lowpass_f0=1 / 12), 2),
 })
+# Repair-Robust (progress_log 2026-10-04): probe V = C2 với L_V (chỉ đẩy GT về nền), λ_V = 0.3.
+# Nhận repair_seed = SEED + i, info (bật/tắt sửa mỗi step, forward no_grad).
+METHODS.update({
+    "PROBE-V": (functools.partial(repair_robust_attack, cls="vanish", cls_weight=0.3, repair_p=0.0), 2),
+})
+RR_METHODS = {"PROBE-V"}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
 
@@ -126,6 +133,8 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
             kw = {"pair_seed": seed, "info": info} if name in KG_METHODS else {}
             if name in SGM_MIX:
                 kw = {"gamma_seed": seed, "info": info}
+            if name in RR_METHODS:
+                kw = {"repair_seed": seed, "info": info}
             noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon, **kw)
             torch.cuda.synchronize()
             runtime = time.time() - t0
@@ -148,6 +157,9 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                     "same_class_rate_E2": float(np.mean([r["same_class_q"] for r in log])) if log else None,
                     "same_class_rate_E1": float(np.mean([r["same_class_e1"] for r in log])) if log else None,
                 })
+            if name in RR_METHODS:
+                rec["forward_no_grad"] = info["forward_no_grad"]
+                rec["frac_steps_repair"] = float(np.mean(info["repair_on"]))
             if name in SGM_MIX:
                 rec["frac_steps_gamma_0.2"] = float(np.mean([g == 0.2 for g in info["gammas"]]))
             with open(stats_path, "a") as f:
