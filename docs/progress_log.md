@@ -1401,3 +1401,9 @@ Runtime ~11 s/ảnh cả hai; |u| trung bình 40.9 (MORGD) / 40.5 px (SMOOTH); g
 - **Cả hai thua C2-PIA**, rõ nhất ở DINO-Swin-L: MORGD − C2-PIA −7.5 [−10.2, −0.9], SMOOTH − C2-PIA −6.7 [−9.8, −0.0]; YOLOX −5.4 [−10.7, −2.0] (MORGD). CrossAvg₃ thấp hơn C2-PIA 1.7–2.3.
 - Vẫn hơn C2 (RRB) và OSFD về CrossAvg₃ (+2.5 đến +3.6 so OSFD, CI chứa 0).
 - Gây nhiễu chưa tách: biên độ hình học của MORGD/SMOOTH ~¼ PIA (41 vs 177 px) → thua C2-PIA có thể do liều, KHÔNG kết luận được "phi cứng kém hơn phối cảnh". Nhưng câu hỏi chính của MORGD (object-conditioned > generic cùng liều) trả lời ÂM ở dev30, khớp prior từ KG / A′1.
+
+---
+
+## 2026-10-04 — MORGD / SMOOTH thuần (không cls) @ dev30 — làm baseline so RRB (user), khóa TRƯỚC khi chạy
+
+Ô `MORGD` / `SMOOTH` = đúng khung ô `PIA` (loss feature OSFD k = 3, MI μ = 1, 2 view/step, 1 backward, σ = 6, feature sạch co-transform, KHÔNG cls, KHÔNG GT), phép biến đổi như entry MORGD (λ = 0.25, s ∈ [0.8, 1.25], ε = 0.05). So OSFD, GEO-C0 (RRB + co-transform — đối chứng công bằng nhất), PIA. Chỉ mô tả. Không code mới (chỉ đăng ký ô trong `run_baselines.py`; `geo_osfd_attack(geo="morgd" | "smooth", cls_weight=0)` đã qua unit test entry MORGD).

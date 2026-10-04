@@ -117,8 +117,11 @@ METHODS.update({
     # Pilot MORGD (progress_log 2026-10-04): khung C2-PIA, phép biến đổi = warp mượt neo theo object / ngẫu nhiên.
     "C2-MORGD": (functools.partial(geo_osfd_attack, geo="morgd", cls_weight=4.0), 2),
     "C2-SMOOTH": (functools.partial(geo_osfd_attack, geo="smooth", cls_weight=4.0), 2),
+    # Bản thuần (không cls), khung như ô PIA — baseline so RRB.
+    "MORGD": (functools.partial(geo_osfd_attack, geo="morgd"), 2),
+    "SMOOTH": (functools.partial(geo_osfd_attack, geo="smooth"), 2),
 })
-GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH"}
+GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
