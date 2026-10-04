@@ -111,8 +111,11 @@ METHODS.update({
     "PIA-d0.3": (functools.partial(geo_osfd_attack, geo="pia", delta_max=0.3), 2),
     "PIA-aff": (functools.partial(geo_osfd_attack, geo="pia", pi=(0.0, 1.0, 0.0, 0.0)), 2),
     "PIA-N20": (functools.partial(geo_osfd_attack, geo="pia", n_views=5, backward_per_step=4), 20),
+    # Bổ sung (progress_log 2026-10-04): C2 với RRB -> PIA; PIA không co-transform feature sạch.
+    "C2-PIA": (functools.partial(geo_osfd_attack, geo="pia", cls_weight=4.0), 2),
+    "PIA-noCT": (functools.partial(geo_osfd_attack, geo="pia", co_transform=False), 2),
 })
-GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20"}
+GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT"}
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
@@ -171,6 +174,8 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                 rec["forward_no_grad"] = info["forward_no_grad"]
                 if info["modes"]:
                     rec["mode_frac"] = {m: info["modes"].count(m) / len(info["modes"]) for m in (4, 3, 2, 1)}
+                if info["gt_kept"]:
+                    rec["gt_kept_frac"] = sum(a for a, _ in info["gt_kept"]) / max(1, sum(b for _, b in info["gt_kept"]))
             if name in KG_METHODS:
                 sp, log = info["sampler"], info["sampler"].log
                 rec.update({

@@ -135,7 +135,7 @@ def main():
         g = None
         for n in chunks:
             vs = pia.pia_views(x, n)
-            loss = sum(pia._view_loss(fc, 3.0)(model, v, dsm) for v, _ in vs)
+            loss = sum(pia._view_loss(fc, 3.0)(model, v, dsm) for v, _, _ in vs)
             gi = torch.autograd.grad(loss, x)[0]
             g = gi if g is None else g + gi
         return g
@@ -146,7 +146,7 @@ def main():
     # 6. co-transform
     seed(3)
     vs = pia.pia_views(clean, 3, sigma=0.0, companion=clean)
-    check(all(torch.equal(v, c) for v, c in vs), "PIA σ = 0: view == companion")
+    check(all(torch.equal(v, c) for v, c, _ in vs), "PIA σ = 0: view == companion")
     seed(3)
     vs = rrb_views(clean, dsm, sigma=0.0, with_gt=True, companion=clean)
     check(all((v - c).abs().max().item() == 0 for v, _, c in vs), "GEO-C0 σ = 0: view == companion")

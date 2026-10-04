@@ -1328,3 +1328,22 @@ Mô tả (n = 30, CI hiệu ước ±5):
 - δ 0.3 vs 0.6: CrossAvg₃ ngang; DINO-Swin-L thấp hơn ở 0.3 (24.7 vs 28.8).
 - Chỉ affine: CrossAvg₃ thấp hơn PIA 3.4, chủ yếu ConvNeXt (73.1 vs 79.7) → số hạng phối cảnh có thể có ích cho ConvNeXt; DINO-Swin-L ngang.
 - Đọc chung: giống kết luận về loss — có đa dạng hình học TOÀN CỤC là đủ, LOẠI biến đổi (xoay+resize vs phối cảnh) gần như không đổi trung bình. Muốn đi tiếp với PIA phải khóa tiêu chí (trọng tâm DINO-Swin-L, đối chứng cả OSFD lẫn GEO-C0) rồi chạy dev100.
+
+---
+
+## 2026-10-04 — Pilot PIA bổ sung @ dev30: C2-PIA + PIA-noCT (user) — quy tắc khóa TRƯỚC khi code/chạy
+
+Vẫn dev30, CHỈ mô tả, không quyết định. Nền như entry PIA (MI μ = 1, ε = 5, α = 1, 50 step, 2 view/step, 1 backward, σ = 6, PIA δ_max = 0.6, π paper, seed SEED + chỉ số dev300).
+
+| Ô | Định nghĩa | Câu hỏi |
+|---|---|---|
+| C2-PIA | C2 (L_OSFD k = 3 + 4·(loss_rpn_cls + loss_cls), 1 forward/view, feature bắt bằng hook) với RRB thay bằng PIA; feature sạch co-transform như ô PIA; GT co-transform qua homography | lợi DINO-Swin-L của PIA và của loss cls có cộng được không? so C2 (PNG có sẵn) và PIA |
+| PIA-noCT | ô PIA nhưng feature sạch KHÔNG co-transform (so với F_clean của ảnh sạch chưa biến đổi, như OSFD gốc) | DINO-Swin-L +7.2 (PIA − GEO-C0) là nhờ PIA hay do co-transform hạ GEO-C0? |
+
+**Co-transform GT qua homography (C2-PIA):** H ánh xạ pixel ra → nguồn, nên box (khung vào) đi qua H⁻¹: 4 góc mỗi box → AABB → clip vào khung; mask warp bằng CÙNG lưới grid_sample với ảnh (threshold 0.5 như `with_gt`). Instance có box sau clip rộng hoặc cao < 1 px (object bị đẩy ra khỏi khung — δ_max = 0.6 dời góc tới 30%) hoặc mẫu số homography ≤ 0 ở góc box → BỎ instance đó (box, nhãn, mask) cho view đó; ảnh mất hết GT → chỉ còn loss feature + loss cls với toàn mẫu âm (như model.loss xử lý). Báo cáo tỉ lệ instance bị bỏ.
+
+**Unit test trước khi chạy:** (1) ô GEO-C0/PIA/PIA-d0.3/PIA-aff trùng tuyệt đối code HEAD (cờ mặc định); (2) tịnh tiến nguyên: box dời đúng (dx, dy); (3) IoU(AABB của mask đã warp, box đã warp) — so với mức của xoay RRB (0.834, entry ablation); (4) PIA-noCT: 0 forward no_grad, loss tại view = loss OSFD; (5) C2-PIA tại cờ cls_weight = 0 trùng ô PIA về loss; không NaN trên 2 ảnh × 3 step; L∞ đúng.
+
+**Báo cáo:** 6 model, CrossAvg₃, so OSFD / C2 / PIA / GEO-C0 (paired bootstrap, chỉ để thấy CI), runtime, tỉ lệ instance bị bỏ.
+
+**Code + unit test (TRƯỚC khi chạy):** `pia.warp_boxes` (H⁻¹, AABB, clip, bỏ < 1 px / mẫu số ≤ 0), `pia.gt_with_keep`, `pia_views(data_sample=)`; `geo_osfd_attack(co_transform=, cls_weight=)`; ô `C2-PIA`, `PIA-noCT` trong `run_baselines.py` (stats thêm `gt_kept_frac`). `scripts/pia_c2_unit_test.py` ĐẠT: 4 ô cũ trùng tuyệt đối HEAD (3 step); tịnh tiến → box dời (−dx, −dy); đẩy ra ngoài → bỏ hết; IoU(AABB mask warp, box warp) view PIA mean **0.823** (trung vị 0.839, p5 0.580; không biến đổi 0.951; xoay RRB 0.834) → co-transform GT dùng được; 159/180 instance giữ (12% bị bỏ); PIA-noCT 0 forward no_grad, loss == loss OSFD; make_view_loss(c2, 0) == loss feature; GT rỗng → loss hữu hạn; C2-PIA 3 step × 2 ảnh hữu hạn, L∞ đúng.
