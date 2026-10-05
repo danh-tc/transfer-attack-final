@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-**Trạng thái (cập nhật 2026-10-04 tối): TẠM DỪNG giữa chuỗi "hiểu bản chất đa dạng hình học" (khung loss feature thuần, KHÔNG C2). Đọc entry cuối "TẠM DỪNG (user)" trong `docs/progress_log.md` trước khi làm gì** — có tổng kết những gì đã biết + thí nghiệm kế tiếp (đồng hướng gradient surrogate ↔ target) ĐÃ ĐỀ XUẤT nhưng CHƯA khóa / CHƯA code. Mục tiêu user: method mới có novelty ở NGUYÊN LÝ (không phải thêm họ biến đổi kiểu PIA), xây từ phép biến đổi cơ bản, thắng trên DINO-Swin-L.
+**Trạng thái (cập nhật 2026-10-05): TẠM DỪNG giữa bước 1 của chuỗi "công thức hình học tối giản hơn RRB"** — quét liều từng phép biến đổi CƠ BẢN (xoay, trượt, lệch tỉ lệ, co giãn đều; + mốc OSFD/NOISE/FLIP/PIA/PIA-noT/CAM-R15/R30) @ dev30, khung loss feature thuần. Quy tắc khóa + cách nối tiếp: entry cuối `docs/progress_log.md` (2026-10-05). Nối tiếp: `bash scripts/bootstrap.sh` rồi `bash results/elem/run.sh` (tmux, resume được, ~1 h trên máy mới). Mục tiêu user: xác định phép cơ bản nào / liều nào có lợi, ghép thành công thức đơn giản vượt RRB (OSFD gốc); xếp hạng theo CrossAvg₃, DINO-Swin-L không thấp hơn OSFD. Bước 2 (ghép trong cùng view) và bước 3 (xác nhận dev100) khóa entry riêng sau bước 1.
 
 Tóm tắt đường đi tới đây (chi tiết + số liệu trong progress_log):
 - RQ1 PASS @ n300; Generalization Panel ĐI TIẾP; Mechanism A1–A4 không đạt tiêu chí; 5 pilot đoán-cơ-chế (A′1, P1, P2, KG, R1/SGM) đều NO-GO → mở lại RQ3 theo plan mới: **phân tích SOTA (OSFD) trước, method sau.**
@@ -33,8 +33,8 @@ Quy tắc cứng: dev300 là tập development DUY NHẤT; không tune trên n30
 
 ## Chạy môi trường
 
-Máy GPU thuê mới hoàn toàn — chạy 1 lệnh duy nhất, làm hết mọi thứ (dựng venv, tải checkpoint,
-tải dataset, chốt danh sách ảnh n=300/n=1000):
+Máy GPU thuê mới hoàn toàn — chạy 1 lệnh duy nhất, làm hết mọi thứ (dựng venv, tải ĐỦ checkpoint Controlled +
+Generalization Panel + chẩn đoán, tải dataset, chốt danh sách ảnh; có `HF_TOKEN` trong `.env` thì kéo luôn PNG baseline n300):
 
 ```bash
 bash scripts/bootstrap.sh

@@ -43,6 +43,7 @@ if [ "${1:-}" = "--gen" ]; then
     "yolox_l_8x8_300e_coco"
     "dino-5scale_swin-l_8xb2-36e_coco"
     "dino-4scale_r50_8xb2-12e_coco"     # chẩn đoán post hoc, xem progress_log 2026-09-23
+    "mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco"  # chẩn đoán post hoc (capacity Swin), eval_generalization mrcnn_swin_s
   )
 fi
 
