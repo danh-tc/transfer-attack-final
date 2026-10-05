@@ -1831,3 +1831,31 @@ Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | C
 - **Quy luật "ngoài augmentation lúc train" KHÔNG được ủng hộ (theo tiêu chí khai báo):** FLIP − NOISE: CrossAvg₃ **+9.4 [+7.5, +12.8]**, Swin-L +3.1 [−0.5, +6.1] (≥ 2). Lật ngang — có trong augmentation train — vẫn có ích rõ. Nhưng yếu hơn nhiều so với biến đổi ngoài augmentation: PIA-noT − NOISE CrossAvg₃ +16.0, Swin-L **+14.8 [+9.0, +18.9]** → dạng yếu hơn ("trong augmentation thì ít lợi hơn") còn đứng, dạng mạnh ("vô ích") sai.
 - Mốc NOISE xác nhận lại: không có hình học thì Swin-L chỉ 15.0, CrossAvg₃ 64.5 — hình học kiểu PIA-noT cộng +15 / +16.
 - **POOL không "triển vọng":** Swin-L 27.4 < max(PIA 28.8, PIA-noT 29.8); CrossAvg₃ 81.7 = CAM-R30 − 1.0 (vừa chạm ngưỡng). POOL ≈ trung bình hai thành phần: kéo CrossAvg₃ lên so PIA (+2.2 [+0.2, +5.1], YOLOX +4.2 so PIA-noT) nhưng mất một phần Swin-L của PIA-noT (−2.4). Trộn theo view không lấy được "cả hai".
+
+---
+
+## 2026-10-05 — Phép biến đổi cơ bản: quét liều từng phép đứng riêng @ dev30 (bước 1 của chuỗi "công thức hình học tối giản hơn RRB") — quy tắc khóa TRƯỚC khi chạy
+
+**Mục tiêu (user):** xác định phép biến đổi hình học CƠ BẢN nào, ở liều nào, cho transfer tốt nhất; ghép vài phép đơn giản thành công thức cuối vượt RRB (OSFD gốc). Lỗ hổng dữ liệu: xoay là nguyên liệu của RRB nhưng chưa từng tăng liều (RRB ±7°, PIA trung vị |θ| 3.1°); trượt và lệch tỉ lệ chưa từng thử riêng (chỉ lẫn trong PIA); chỉ phối cảnh đã có đường liều (CAM-R15 / R30).
+
+**Máy:** RTX 3090, venv có sẵn; tải lại 10 checkpoint (`--gen`) + COCO val2017. Không có `artifacts/` (PNG dev300 chưa từng lên HF) → **sinh lại các ô mốc trên dev30** cùng seed: OSFD, NOISE, FLIP, PIA, PIA-noT, CAM-R15, CAM-R30. Sanity: số sinh lại phải ≈ số đã commit (`results/ablation/{pool,cam,piafac}_dev30/screen.json`); lệch > 3 điểm CrossAvg₃ ở ô tất định → dừng, điều tra trước khi đọc ô mới.
+
+**Khung (mọi ô mới):** = ô `PIA` — loss feature OSFD k = 3, MI μ = 1, ε = 5, α = 1, B = 50, 2 view/step, 1 backward, nhiễu σ = 6 cộng vào adv, feature sạch co-transform cùng lưới, KHÔNG cls; seed SEED + chỉ số dev300; ngoài ảnh nguồn lấp 0. Phép biến đổi (`attack/methods/elem.py`): tuyến tính A quanh TÂM ảnh, không tịnh tiến, không phối cảnh; tham số rút đều mỗi view (`random` của Python):
+
+| Ô | Phép | Liều |
+|---|---|---|
+| ROT7 / ROT15 / ROT30 | xoay A = R(θ) | θ ~ U(±7°), U(±15°), U(±30°) |
+| SHR15 / SHR30 | trượt [[1, k], [0, 1]] hoặc [[1, 0], [k, 1]] (xác suất 0.5) | k ~ U(±0.15), U(±0.30) |
+| ANI10 / ANI25 | lệch tỉ lệ diag(k, 1/k) | ln k ~ U(±0.10), U(±0.25) |
+| SCL25 | co giãn đều s·I (đối chứng — dự đoán vô ích) | ln s ~ U(±0.25) |
+
+Mốc so sánh: **OSFD (= RRB gốc, KHÔNG co-transform — mốc "hơn RRB")**, NOISE (không hình học), FLIP, phối cảnh CAM-R15 / R30, PIA, PIA-noT. Không so với GEO-C0 (yếu hơn OSFD @ dev100: 72.2 vs 74.3).
+
+**Tiêu chí xếp hạng (user chọn phương án a):** CrossAvg₃ là chính; ràng buộc DINO-Swin-L không thấp hơn OSFD. Ở dev30 (CI hiệu ±5) ràng buộc nới thành ≥ OSFD − 2 (điểm ước lượng); xác nhận dev100 dùng ràng buộc chặt.
+
+**Quy tắc chọn họ phép sang bước 2 (dev30, điểm ước lượng, khai báo trước):** họ = {xoay, trượt, lệch tỉ lệ, co giãn đều, phối cảnh (CAM-R15/R30), lật (FLIP)}. Liều tốt nhất của họ = liều có CrossAvg₃ cao nhất trong các liều thỏa Swin-L ≥ OSFD − 2. Họ ĐƯỢC CHỌN nếu ở liều tốt nhất: CrossAvg₃ ≥ NOISE + 5 VÀ CrossAvg₃ ≥ OSFD − 2. Tối đa 3 họ (CrossAvg₃ cao nhất). Không họ nào được chọn → dừng chuỗi, ghi log.
+**Bước 2 (khóa entry riêng sau bước 1):** ghép các họ được chọn TRONG CÙNG MỘT VIEW (mỗi phép rút độc lập mỗi view, liều tốt nhất), so với từng phép đứng riêng; POOL đã cho thấy trộn GIỮA view chỉ ra trung bình. **Bước 3:** công thức tốt nhất xác nhận @ dev100 so OSFD (+ PIA), tiêu chí khóa trước.
+
+**Báo cáo kèm:** |u| trung bình mỗi view (tách hiệu ứng loại phép khỏi biên độ), 6 model, R101, η, runtime. Paired bootstrap 1000 (BOOT_SEED 2026) chỉ để thấy độ rộng CI.
+
+**Unit test trước khi chạy (`scripts/elem_unit_test.py`):** liều 0 → lưới đồng nhất; tâm ảnh cố định, xoay đúng góc / chiều; det A = 1 (xoay, trượt, lệch tỉ lệ); |u| mỗi ô; [GPU] σ = 0, adv = sạch → view == companion; 8 ô chạy 3 step, L∞ ≤ 5, hữu hạn, forward no_grad = 2 × step. Code ô cũ không đổi (chỉ thêm nhánh `geo="elem"`); ô mốc sinh lại khớp số cũ là kiểm tra hồi quy.

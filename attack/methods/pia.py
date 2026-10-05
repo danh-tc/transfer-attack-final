@@ -251,7 +251,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
                     pi=PI_PAPER, sigma: float = 6.0, info=None, on_step=None,
                     co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None, pia_drop=None,
-                    cam_theta: float = 15.0, cam_kappa: float = 0.0,
+                    cam_theta: float = 15.0, cam_kappa: float = 0.0, elem=None,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
@@ -263,10 +263,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     MORGD-v2 không PIA (morgd2.py); RNG (r, a) = Random(seed + 1), tâm ngẫu nhiên = Random(seed + 2).
     geo="grgd" | "grgd_random": T_relative ∘ PIA, neo tại tâm GT | tâm ngẫu nhiên (pilot GRGD-v0, attack/methods/grgd.py);
     ξ từ random.Random(torch.initial_seed() + 1), tâm ngẫu nhiên từ random.Random(torch.initial_seed() + 2).
+    geo="elem": phép biến đổi cơ bản quanh tâm (attack/methods/elem.py), elem = {loại: liều}.
     cls_weight > 0 (C2-PIA / C2-MORGD / C2-SMOOTH, không cho geo="rrb"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
     1 forward/view (repair.make_view_loss, không sửa = loss của C2)."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
-                   "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
+                   "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
@@ -298,6 +299,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 triples = pool_views(img, n_views, sigma, companion=comp, log=log["disp"])
             else:
                 triples = flip_views(img, n_views, 0.5 if geo == "flip" else 0.0, sigma, companion=comp)
+        elif geo == "elem":
+            assert cls_weight == 0.0
+            from attack.methods.elem import elem_views  # tránh import vòng
+            triples = elem_views(img, n_views, elem, sigma, companion=comp, log=log["disp"])
         elif geo == "cam":
             from attack.methods.camgeo import cam_views  # tránh import vòng
             triples = cam_views(img, n_views, cam_theta, cam_kappa, sigma, companion=comp,

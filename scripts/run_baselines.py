@@ -141,10 +141,15 @@ METHODS.update({
     "FLIP": (functools.partial(geo_osfd_attack, geo="flip"), 2),
     "POOL": (functools.partial(geo_osfd_attack, geo="pool"), 2),
 })
+# Quét liều phép biến đổi cơ bản quanh tâm (progress_log 2026-10-05): xoay (độ), trượt k, ln k lệch tỉ lệ, ln s co giãn.
+ELEM_CELLS = {"ROT7": {"rot": 7.0}, "ROT15": {"rot": 15.0}, "ROT30": {"rot": 30.0},
+              "SHR15": {"shear": 0.15}, "SHR30": {"shear": 0.30},
+              "ANI10": {"aniso": 0.10}, "ANI25": {"aniso": 0.25}, "SCL25": {"scale": 0.25}}
+METHODS.update({c: (functools.partial(geo_osfd_attack, geo="elem", elem=s), 2) for c, s in ELEM_CELLS.items()})
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
                "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS",
-               "NOISE", "FLIP", "POOL"}
+               "NOISE", "FLIP", "POOL"} | set(ELEM_CELLS)
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 
