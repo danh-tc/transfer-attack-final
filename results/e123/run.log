@@ -1,0 +1,97 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.26s)
+creating index...
+index created!
+[E1 target] r50: 30 ảnh, 6s; cls=['loss_cls', 'loss_rpn_cls']; task=['loss_bbox', 'loss_cls', 'loss_mask', 'loss_rpn_bbox', 'loss_rpn_cls']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.28s)
+creating index...
+index created!
+[E1 target] r101: 30 ảnh, 6s; cls=['loss_cls', 'loss_rpn_cls']; task=['loss_bbox', 'loss_cls', 'loss_mask', 'loss_rpn_bbox', 'loss_rpn_cls']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+[E1 target] convnext_t: 30 ảnh, 6s; cls=['loss_cls', 'loss_rpn_cls']; task=['loss_bbox', 'loss_cls', 'loss_mask', 'loss_rpn_bbox', 'loss_rpn_cls']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.31s)
+creating index...
+index created!
+[E1 target] swin_t: 30 ảnh, 7s; cls=['loss_cls', 'loss_rpn_cls']; task=['loss_bbox', 'loss_cls', 'loss_mask', 'loss_rpn_bbox', 'loss_rpn_cls']
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+loading annotations into memory...
+Done (t=0.43s)
+creating index...
+index created!
+[E1 target] yolox_s: 30 ảnh, 1s; cls=['loss_cls', 'loss_obj']; task=['loss_bbox', 'loss_cls', 'loss_obj']
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.31s)
+creating index...
+index created!
+[E1 target] dino_swin_l: 30 ảnh, 48s; cls=['d0.loss_cls', 'd1.loss_cls', 'd2.loss_cls', 'd3.loss_cls', 'd4.loss_cls', 'enc_loss_cls', 'loss_cls']; task=['d0.loss_bbox', 'd0.loss_cls', 'd0.loss_iou', 'd1.loss_bbox', 'd1.loss_cls', 'd1.loss_iou', 'd2.loss_bbox', 'd2.loss_cls', 'd2.loss_iou', 'd3.loss_bbox', 'd3.loss_cls', 'd3.loss_iou', 'd4.loss_bbox', 'd4.loss_cls', 'd4.loss_iou', 'enc_loss_bbox', 'enc_loss_cls', 'enc_loss_iou', 'loss_bbox', 'loss_cls', 'loss_iou']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.30s)
+creating index...
+index created!
+[E1 surrogate] 1/30 (15s)
+[E1 surrogate] 2/30 (30s)
+[E1 surrogate] 3/30 (45s)
+[E1 surrogate] 4/30 (59s)
+[E1 surrogate] 5/30 (74s)
+[E1 surrogate] 6/30 (90s)
+[E1 surrogate] 7/30 (106s)
+[E1 surrogate] 8/30 (122s)
+[E1 surrogate] 9/30 (134s)
+[E1 surrogate] 10/30 (149s)
+[E1 surrogate] 11/30 (165s)
+[E1 surrogate] 12/30 (179s)
+[E1 surrogate] 13/30 (193s)
+[E1 surrogate] 14/30 (209s)
+[E1 surrogate] 15/30 (225s)
+[E1 surrogate] 16/30 (241s)
+[E1 surrogate] 17/30 (256s)
+[E1 surrogate] 18/30 (272s)
+[E1 surrogate] 19/30 (287s)
+[E1 surrogate] 20/30 (302s)
+[E1 surrogate] 21/30 (318s)
+[E1 surrogate] 22/30 (333s)
+[E1 surrogate] 23/30 (348s)
+[E1 surrogate] 24/30 (363s)
+[E1 surrogate] 25/30 (380s)
+[E1 surrogate] 26/30 (394s)
+[E1 surrogate] 27/30 (410s)
+[E1 surrogate] 28/30 (425s)
+[E1 surrogate] 29/30 (439s)
+[E1 surrogate] 30/30 (456s)
+Traceback (most recent call last):
+  File "/workspace/transfer-attack-final/scripts/e1_expected_grad.py", line 248, in <module>
+    main()
+  File "/workspace/transfer-attack-final/scripts/e1_expected_grad.py", line 244, in main
+    analyze(args)
+  File "/workspace/transfer-attack-final/scripts/e1_expected_grad.py", line 218, in analyze
+    json.dump(out, f, indent=2, ensure_ascii=False)
+  File "/usr/lib/python3.10/json/__init__.py", line 179, in dump
+    for chunk in iterable:
+  File "/usr/lib/python3.10/json/encoder.py", line 431, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/usr/lib/python3.10/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.10/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.10/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.10/json/encoder.py", line 438, in _iterencode
+    o = _default(o)
+  File "/usr/lib/python3.10/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type bool_ is not JSON serializable

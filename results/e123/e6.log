@@ -1,0 +1,41 @@
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[E6 r50] 100/300 (19s)
+[E6 r50] 200/300 (36s)
+[E6 r50] 300/300 (52s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+[E6 r101] 100/300 (21s)
+[E6 r101] 200/300 (42s)
+[E6 r101] 300/300 (63s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+[E6 convnext_t] 100/300 (21s)
+[E6 convnext_t] 200/300 (42s)
+[E6 convnext_t] 300/300 (63s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[E6 swin_t] 100/300 (24s)
+[E6 swin_t] 200/300 (47s)
+[E6 swin_t] 300/300 (70s)
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[E6 yolox_s] 100/300 (8s)
+[E6 yolox_s] 200/300 (15s)
+[E6 yolox_s] 300/300 (22s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[E6 dino_swin_l] 100/300 (132s)
+[E6 dino_swin_l] 200/300 (264s)
+[E6 dino_swin_l] 300/300 (394s)
+=== E6 mean retained (small / medium / large) ===
+r50          BLUR02: 0.58/0.56/0.56  BLUR05: 0.37/0.25/0.21  SHUF3: 0.15/0.13/0.27  SHUF6: 0.12/0.04/0.10   nGT {'small': 490, 'medium': 586, 'large': 462}
+r101         BLUR02: 0.59/0.58/0.60  BLUR05: 0.40/0.24/0.18  SHUF3: 0.17/0.12/0.27  SHUF6: 0.14/0.05/0.09   nGT {'small': 483, 'medium': 592, 'large': 465}
+convnext_t   BLUR02: 0.63/0.61/0.69  BLUR05: 0.44/0.31/0.24  SHUF3: 0.15/0.15/0.23  SHUF6: 0.14/0.06/0.10   nGT {'small': 572, 'medium': 640, 'large': 470}
+swin_t       BLUR02: 0.61/0.60/0.65  BLUR05: 0.40/0.27/0.19  SHUF3: 0.16/0.16/0.30  SHUF6: 0.13/0.07/0.17   nGT {'small': 571, 'medium': 649, 'large': 469}
+yolox_s      BLUR02: 0.62/0.56/0.51  BLUR05: 0.36/0.20/0.12  SHUF3: 0.18/0.12/0.17  SHUF6: 0.13/0.04/0.07   nGT {'small': 361, 'medium': 523, 'large': 431}
+dino_swin_l  BLUR02: 0.66/0.64/0.74  BLUR05: 0.45/0.34/0.37  SHUF3: 0.21/0.17/0.16  SHUF6: 0.18/0.11/0.12   nGT {'small': 587, 'medium': 621, 'large': 460}
+I BLUR02|SHUF3: small: -0.017 [-0.054,+0.019]  medium: +0.018 [-0.017,+0.058]  large: +0.195 [+0.159,+0.233]
+I BLUR05|SHUF6: small: -0.005 [-0.042,+0.029]  medium: +0.023 [-0.009,+0.056]  large: +0.185 [+0.150,+0.222]
+ỦNG HỘ giả thuyết hình dạng: True
+PIPELINE_DONE

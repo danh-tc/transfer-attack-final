@@ -1,0 +1,150 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.25s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (52s)
+[gen dino_swin_l] 100/300 (105s)
+[gen dino_swin_l] 150/300 (158s)
+[gen dino_swin_l] 200/300 (212s)
+[gen dino_swin_l] 250/300 (265s)
+[gen dino_swin_l] 300/300 (317s)
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.24s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.26s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 46.2  dino_swin_l: 62.4
+
+=== relative AP drop % [95% CI] ===
+                             r101          dino_swin_l
+MI-FGSM        77.3 [ 71.6, 79.7]   16.9 [ 14.1, 18.9]
+M-DI2-FGSM     93.0 [ 89.7, 94.7]   26.1 [ 22.0, 28.1]
+OSFD           92.4 [ 88.4, 95.4]   24.6 [ 20.4, 27.4]
+
+=== headroom = drop(R101) − drop(model) ===
+MI-FGSM        60.4 [ 55.1, 63.5]
+M-DI2-FGSM     66.9 [ 63.3, 70.7]
+OSFD           67.8 [ 63.6, 72.7]
+
+=== method_diff ===
+                                dino_swin_l
+M-DI2-FGSM - MI-FGSM      9.2 [  6.5, 10.4]
+OSFD - MI-FGSM            7.7 [  4.1, 10.6]
+OSFD - M-DI2-FGSM        -1.5 [ -4.8,  2.1]
+
+=== model_diff (OSFD) ===
+saved: /workspace/transfer-attack-final/results/runs/n300_B50_eps5/generalization_e2_swinl.json
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.24s)
+creating index...
+index created!
+[E2] 25/300 (23s)
+[E2] 50/300 (47s)
+[E2] 75/300 (69s)
+[E2] 100/300 (92s)
+[E2] 125/300 (116s)
+[E2] 150/300 (138s)
+[E2] 175/300 (161s)
+[E2] 200/300 (184s)
+[E2] 225/300 (206s)
+[E2] 250/300 (228s)
+[E2] 275/300 (250s)
+[E2] 300/300 (272s)
+loading annotations into memory...
+Done (t=0.31s)
+creating index...
+index created!
+=== E2 n300: mean E (1 − retained R50) ===
+MI-FGSM       id=0.694  noise8=0.346  surv=0.519  rot10=0.477  shear15=0.597  persp15=0.502  trans7_5=0.501
+M-DI2-FGSM    id=0.657  noise8=0.469  surv=0.634  rot10=0.646  shear15=0.650  persp15=0.626  trans7_5=0.616
+OSFD          id=0.965  noise8=0.948  surv=0.959  rot10=0.946  shear15=0.964  persp15=0.963  trans7_5=0.964
+MI-FGSM/dino_swin_l          ρ(E_id)=+0.09  ρ(E_noise8)=-0.05  ρ(E_surv)=-0.02  surv−id=-0.11 [-0.20,-0.02]  surv−noise=+0.02 [-0.10,+0.15]
+M-DI2-FGSM/dino_swin_l       ρ(E_id)=+0.00  ρ(E_noise8)=-0.11  ρ(E_surv)=-0.08  surv−id=-0.09 [-0.16,-0.01]  surv−noise=+0.02 [-0.08,+0.12]
+OSFD/dino_swin_l             ρ(E_id)=-0.07  ρ(E_noise8)=-0.06  ρ(E_surv)=-0.05  surv−id=+0.02 [-0.05,+0.09]  surv−noise=+0.02 [-0.05,+0.08]
+MI-FGSM/convnext_t           ρ(E_id)=-0.07  ρ(E_noise8)=-0.20  ρ(E_surv)=-0.27  surv−id=-0.20 [-0.29,-0.11]  surv−noise=-0.07 [-0.18,+0.07]
+M-DI2-FGSM/convnext_t        ρ(E_id)=-0.19  ρ(E_noise8)=-0.18  ρ(E_surv)=-0.24  surv−id=-0.05 [-0.14,+0.02]  surv−noise=-0.06 [-0.17,+0.04]
+OSFD/convnext_t              ρ(E_id)=-0.34  ρ(E_noise8)=-0.42  ρ(E_surv)=-0.42  surv−id=-0.07 [-0.15,+0.00]  surv−noise=+0.01 [-0.07,+0.09]
+MI-FGSM/swin_t               ρ(E_id)=-0.04  ρ(E_noise8)=-0.26  ρ(E_surv)=-0.25  surv−id=-0.21 [-0.31,-0.12]  surv−noise=+0.01 [-0.12,+0.13]
+M-DI2-FGSM/swin_t            ρ(E_id)=-0.14  ρ(E_noise8)=-0.22  ρ(E_surv)=-0.19  surv−id=-0.04 [-0.13,+0.03]  surv−noise=+0.04 [-0.06,+0.14]
+OSFD/swin_t                  ρ(E_id)=-0.35  ρ(E_noise8)=-0.41  ρ(E_surv)=-0.41  surv−id=-0.06 [-0.13,+0.01]  surv−noise=+0.00 [-0.08,+0.08]
+MI-FGSM/r101                 ρ(E_id)=-0.16  ρ(E_noise8)=-0.32  ρ(E_surv)=-0.41  surv−id=-0.25 [-0.36,-0.16]  surv−noise=-0.09 [-0.20,+0.04]
+M-DI2-FGSM/r101              ρ(E_id)=-0.30  ρ(E_noise8)=-0.28  ρ(E_surv)=-0.32  surv−id=-0.02 [-0.11,+0.06]  surv−noise=-0.04 [-0.14,+0.06]
+OSFD/r101                    ρ(E_id)=-0.52  ρ(E_noise8)=-0.60  ρ(E_surv)=-0.59  surv−id=-0.07 [-0.14,+0.01]  surv−noise=+0.01 [-0.06,+0.09]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.24s)
+creating index...
+index created!
+[E3] r50: 4s  rot10/s0=0.042  rot10/s1=0.160  rot10/s2=0.206  rot10/s3=0.194  shear15/s0=0.023  shear15/s1=0.080  shear15/s2=0.108  shear15/s3=0.100  persp15/s0=0.032  persp15/s1=0.119  persp15/s2=0.137  persp15/s3=0.106  trans7_5/s0=0.033  trans7_5/s1=0.110  trans7_5/s2=0.135  trans7_5/s3=0.071
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+[E3] r101: 5s  rot10/s0=0.021  rot10/s1=0.180  rot10/s2=0.186  rot10/s3=0.169  shear15/s0=0.011  shear15/s1=0.095  shear15/s2=0.095  shear15/s3=0.088  persp15/s0=0.016  persp15/s1=0.145  persp15/s2=0.117  persp15/s3=0.088  trans7_5/s0=0.018  trans7_5/s1=0.138  trans7_5/s2=0.108  trans7_5/s3=0.056
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+[E3] convnext_t: 5s  rot10/s0=0.086  rot10/s1=0.039  rot10/s2=0.045  rot10/s3=0.051  shear15/s0=0.042  shear15/s1=0.020  shear15/s2=0.023  shear15/s3=0.025  persp15/s0=0.059  persp15/s1=0.027  persp15/s2=0.026  persp15/s3=0.025  trans7_5/s0=0.058  trans7_5/s1=0.025  trans7_5/s2=0.026  trans7_5/s3=0.015
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.17s)
+creating index...
+index created!
+[E3] swin_t: 5s  rot10/s0=0.082  rot10/s1=0.158  rot10/s2=0.230  rot10/s3=0.083  shear15/s0=0.047  shear15/s1=0.090  shear15/s2=0.147  shear15/s3=0.056  persp15/s0=0.071  persp15/s1=0.120  persp15/s2=0.132  persp15/s3=0.040  trans7_5/s0=0.082  trans7_5/s1=0.128  trans7_5/s2=0.101  trans7_5/s3=0.024
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+loading annotations into memory...
+Done (t=0.30s)
+creating index...
+index created!
+[E3] yolox_s: 1s  rot10/s0=0.173  rot10/s1=0.210  rot10/s2=0.240  shear15/s0=0.102  shear15/s1=0.119  shear15/s2=0.155  persp15/s0=0.139  persp15/s1=0.166  persp15/s2=0.146  trans7_5/s0=0.121  trans7_5/s1=0.149  trans7_5/s2=0.099
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+[E3] dino_swin_l: 21s  rot10/s0=0.073  rot10/s1=0.096  rot10/s2=0.164  rot10/s3=0.262  shear15/s0=0.041  shear15/s1=0.056  shear15/s2=0.117  shear15/s3=0.176  persp15/s0=0.061  persp15/s1=0.074  persp15/s2=0.119  persp15/s3=0.175  trans7_5/s0=0.068  trans7_5/s1=0.075  trans7_5/s2=0.105  trans7_5/s3=0.130
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+[E3] dino_r50: 4s  rot10/s0=0.144  rot10/s1=0.216  rot10/s2=0.189  shear15/s0=0.076  shear15/s1=0.128  shear15/s2=0.114  persp15/s0=0.109  persp15/s1=0.152  persp15/s2=0.121  trans7_5/s0=0.106  trans7_5/s1=0.174  trans7_5/s2=0.116
+PIPELINE_DONE

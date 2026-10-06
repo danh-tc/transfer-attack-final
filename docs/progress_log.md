@@ -1866,3 +1866,186 @@ Mốc so sánh: **OSFD (= RRB gốc, KHÔNG co-transform — mốc "hơn RRB")**
 - Khi xong: đối chiếu sanity ô mốc với số đã commit (lệch > 3 CrossAvg₃ ở ô tất định → dừng), rồi áp quy tắc chọn họ ở entry trên (`results/ablation/elem_dev30/screen.json`).
 - **Hạ tầng (commit cùng entry này):** `scripts/bootstrap.sh` chạy 1 lần là đủ — bỏ qua `setup_env.sh` khi `.venv` đã dùng được (setup_env luôn xóa venv); tải checkpoint `--gen` (Controlled + Generalization + chẩn đoán); `download_checkpoints.sh --gen` thêm Mask R-CNN Swin-S (trước đây thiếu, `eval_generalization` mrcnn_swin_s cần); nếu `.env` có `HF_TOKEN` thì tự kéo `n300_B50_eps5` từ HF. Đã chạy thử trên máy này: đạt. Máy mới chưa có git identity → `git config user.name/user.email` theo tác giả commit cũ.
 - Đề xuất để lần sau nhanh hơn: upload PNG dev30 của các ô mốc lên HF sau khi chạy xong (cần token) → không phải sinh lại.
+
+---
+
+## 2026-10-06 — Vì sao đa dạng hình học hiệu quả (và vì sao trên DINO-Swin-L)? 3 thí nghiệm rẻ E1–E3 @ dev30 / n300 (user, quy tắc đọc khóa TRƯỚC khi chạy)
+
+**Bối cảnh (user):** có / không có đa dạng hình học chênh rất lớn (bỏ RRB −32 CrossAvg₃ @ dev100; NOISE 64.5 vs hình học ~80 @ dev30; Swin-L 15 → ~30), còn LOẠI phép chỉ chênh bậc hai (RRB / PIA / SMOOTH / MORGD 79.0–80.5; cả dải FLIP 73.9 … CAM-R30 82.7) nhưng phụ thuộc target (CAM-R30 Swin-L 21.3 vs PIA-noT 29.8). Mục tiêu: hiểu VÌ SAO đa dạng hình học giúp transfer, đặc biệt trên DINO-Swin-L (gấp đôi nhưng vẫn ~30 so với ~80), rồi dùng hiểu biết đó tối ưu attack. **Cách làm (user):** dev30 xem xu hướng, ưu tiên thí nghiệm rẻ (forward / gradient, PNG có sẵn); thí nghiệm tốn kém phải phân tích vì sao đáng chạy, user confirm rồi mới chạy. Số dev30 chỉ MÔ TẢ; claim đưa vào paper phải xác nhận ≥ dev100.
+
+**Dữ liệu HF (đã tải 2026-10-06):** `runs/n300_B50_eps5.tar` = PNG MI-FGSM / M-DI²-FGSM / OSFD × 300 ảnh n300 + `dets.json` Controlled Panel (sha256 9eadf774…f8d590, khớp). Không có gen_dets (DINO-Swin-L phải predict lại). `runs/a3_stage_n100_B50_eps5.tar` (OSFD từng stage, chưa dùng). PNG dev300/dev30 của các ô PIA/MORGD/… chưa từng upload → dev30 dùng PNG của pipeline `results/elem/run.sh` (đang chạy lại trên máy này).
+
+### E1 — Gradient KỲ VỌNG qua đa dạng có tiến gần gradient target không? (`scripts/e1_expected_grad.py`, chỉ gradient, dev30, δ = 0)
+- **Surrogate:** mỗi phép T (sampler y hệt ô attack: `elem_views` / `pia_views` / `cam_views` / `flip_views` / `rrb_views`, kèm nhiễu σ = 6, đích feature co-transform, loss OSFD k = 3), gradient theo ẢNH GỐC (qua resize khả vi) của từng view; ḡ_T^K = trung bình K view đầu, K ∈ {1, 4, 16}. Mốc NONE = không biến đổi, không nhiễu.
+- **Target** (chỉ phân tích, không sinh attack): g_t = ∇ₓ loss GT của chính target theo ảnh gốc (qua resize khả vi về khung target). t ∈ {R101, ConvNeXt-T, Swin-T, YOLOX-S, DINO-Swin-L}. **Loss chính = phân loại** (Mask R-CNN: loss_rpn_cls + loss_cls; YOLOX: loss_cls + loss_obj; DINO: mọi số hạng `*loss_cls` không-dn, gồm enc), phụ = đủ task loss (không-dn). DINO tính loss ở train mode với MỌI Dropout / DropPath đặt eval (dn_mask chặn query khớp nhìn dn query → loss khớp không phụ thuộc nhiễu dn).
+- **Chỉ số:** A(T, K, t) = cos(ḡ_T^K, g_t) trên toàn ảnh gốc, kèm tỉ lệ trùng dấu.
+- **Câu hỏi + quy tắc đọc (dev30, mô tả):**
+  - Q1: đa dạng có làm gradient kỳ vọng gần target hơn không — A(T, 16, t) − A(NOISE, 16, t) theo cặp ảnh (bootstrap 1000, BOOT_SEED 2026).
+  - Q2 (chính): giữa các ô (mọi ô có drop dev30 đã đo: OSFD-RRB, GEO-C0, NOISE, FLIP, PIA, PIA-noT, PIA-aff, PIA-d0.3, CAM-R15, CAM-R30, LENS + 8 ô elem khi có số), Spearman(A(T, 16, t), drop dev30 của ô trên t), từng t. **"Alignment giải thích transfer" được ỦNG HỘ** nếu ρ ≥ 0.5 với cận dưới CI (bootstrap ảnh trên A, drop cố định) > 0 ở ≥ 3/4 target khác họ, TRONG ĐÓ có DINO-Swin-L. Kèm: ρ theo K (nếu ρ tăng theo K → lợi nằm ở trung bình, không ở từng view).
+  - Q3 (Swin-L): CAM-R30 có A cao với target CNN/YOLOX nhưng thấp với Swin-L không (giải thích trade-off).
+- Chi phí ước tính: ~20 min GPU.
+
+### E2 — Hiệu ứng của δ có "sống sót" qua biến đổi không, và có dự đoán Swin-L không? (`scripts/e2_survival.py`, chỉ forward)
+- T' cố định (không ngẫu nhiên), áp CÙNG LÚC lên ảnh sạch và adv ở khung R50: xoay +10°, trượt ngang 0.15, phối cảnh yaw 15° (căn tâm), tịnh tiến (+7, +5) px; kèm đồng nhất.
+- R50 predict trên T'(sạch) → detection tham chiếu (score ≥ 0.3); trên T'(adv) → score khớp (cùng lớp, IoU ≥ 0.5) → retained_T'. Không cần GT warp. **E_id = 1 − retained_id; E_surv = 1 − mean_T' retained_T'.**
+- **Đối chứng KHÔNG hình học (thêm trước khi chạy):** E_noise8 = 1 − retained khi cộng nhiễu Gaussian σ = 8 cố định (cùng nhiễu cho sạch / adv). Lý do: với OSFD, E_id trên R50 gần bão hòa (≈ 1) → E_surv có thể "dự đoán tốt hơn" chỉ vì có phương sai; so với E_noise8 (cũng làm yếu attack nhưng không hình học) mới tách được "độ bền HÌNH HỌC".
+- (a) **n300, trong từng method (MI, M-DI², OSFD):** Spearman theo ảnh giữa E_surv và retained DINO-Swin-L (`eval_generalization --models dino_swin_l --run n300_B50_eps5 --out generalization_e2_swinl.json`), so với Spearman(E_id, …) và Spearman(E_noise8, …). **ỦNG HỘ "chỉ phần δ bền với biến đổi HÌNH HỌC chuyển được sang Swin-L"** nếu ρ(E_surv) âm hơn CẢ ρ(E_id) VÀ ρ(E_noise8) với CI hiệu (paired bootstrap ảnh) loại 0 ở CẢ OSFD và M-DI², VÀ hiệu so E_noise8 ở Swin-L lớn hơn ở ConvNeXt-T / Swin-T (dets.json). Mô tả: mean E_surv theo method (MI < M-DI² < OSFD dự đoán).
+- (b) **dev30, giữa các ô** (PNG pipeline elem): Spearman(mean E_surv của ô, drop Swin-L), mô tả.
+- Chi phí: ~15 min (gồm predict Swin-L n300).
+
+### E3 — Target nào "cứng" (đồng biến) với biến đổi hình học? (`scripts/e3_equivariance.py`, chỉ forward, dev30 ảnh sạch, mô tả)
+- Mỗi backbone (R50, R101, ConvNeXt-T, Swin-T, CSPDarknet YOLOX-S, Swin-L DINO), cùng T' của E2: cosd(F_s(T'x), T'(F_s(x))) theo stage s (T' áp lên feature bằng cùng lưới, chỉ vùng hợp lệ). Đo độ đồng biến (sai lệch nhỏ = đồng biến). Câu hỏi: Swin-L có khác hẳn các backbone khác không, và sắp thứ tự có khớp thứ tự "khó transfer" không. Chỉ mô tả, không quyết định.
+
+**Không tune attack nào theo kết quả E1–E3.** Hướng method (nếu có) sẽ khóa entry riêng, user confirm.
+
+**Sự cố vận hành (không ảnh hưởng số):** (1) E1 OOM lần đầu ở DINO-Swin-L (tắt gradient checkpointing → > 21 GB) → giữ checkpointing, dùng `.backward()` + đóng băng tham số (peak 9.8 GB; gradient trùng bản cũ, tất định giữa 2 seed: cos 1.0000; YOLOX tất định; Mask R-CNN 0.98 do sampler). (2) Bước phân tích E1 lỗi ghi JSON (numpy bool) → sửa, `--analyze-only`. (3) Nguồn drop dev30 đổi từ `screen.json` (2 định dạng, sót 3 ô) sang `metrics/generalization_*_dev30.json` gốc — số khớp log (vd NOISE 64.5, Swin-L 15.0). Predict DINO-Swin-L n300 tái lập đúng số đã commit (OSFD 24.6, M-DI² 26.1, MI 16.9). Log: `results/e123/run{,2}.log` (`run_oom.log` = lần OOM).
+
+### Kết quả E1 (`results/mechanism/e1_expected_grad.json`, dev30, 20 ô × 16 view; Q2 trên 11 ô có drop) — theo quy tắc khóa: **KHÔNG ỦNG HỘ** (cả cls lẫn task, 0/4 target đạt).
+- Gradient kỳ vọng R50 gần như TRỰC GIAO với gradient target ở mọi ô: cos ×100 (cls, K = 16) R101 0.13–0.53, ConvNeXt 0.18–0.48, Swin-T 0.07–0.38, **DINO-Swin-L −0.18 … +0.02**, **YOLOX âm nhất quán −0.98 … −1.84** (dù transfer sang YOLOX 70–80%).
+- Q1: đa dạng KHÔNG kéo gradient kỳ vọng gần target hơn NOISE (hiệu cỡ ±0.003, phần lớn CI chứa 0; YOLOX đa số âm có ý nghĩa; Swin-L chỉ OSFD +0.0019 [+0.0005, +0.0035]).
+- Q2 (Spearman giữa 11 ô, cls K = 16): ConvNeXt +0.35 [−0.18, 0.55], Swin-T +0.08, YOLOX **−0.41 [−0.65, −0.03]**, DINO-Swin-L +0.67 [−0.28, 0.85]. Swin-L dương nhất quán qua K và 2 objective (+0.61 … +0.73) nhưng CI chạm 0 — chỉ mô tả.
+- Ước lượng kỳ vọng nhiễu: cos giữa 2 nửa 8 view chỉ 0.35–0.65.
+- Đọc: mở rộng A1 — kể cả trung bình qua đa dạng, HƯỚNG gradient pixel tại ảnh sạch không phải kênh giải thích transfer. Giới hạn: chỉ δ = 0, n = 30, K ≤ 16.
+
+### Kết quả E2 (`results/mechanism/e2_survival_n300.json`, n300) — theo quy tắc khóa: **KHÔNG ỦNG HỘ** (ở mọi method).
+- **Mô tả — đa dạng làm δ BỀN hơn:** E (1 − retained R50) ID → trung bình 4 phép hình học / nhiễu σ8: MI 0.694 → **0.519** / 0.346; M-DI² 0.657 → 0.634 / 0.469; OSFD 0.965 → 0.959 / 0.948. δ của MI mất ~¼ hiệu ứng qua biến đổi hình học nhỏ, M-DI² và OSFD gần như không mất. Thứ tự giữa method (MI < M-DI² ≈ OSFD) khớp thứ tự drop Swin-L (16.9 < 26.1 ≈ 24.6) — chỉ 3 điểm.
+- **Theo ảnh, độ bền KHÔNG dự đoán Swin-L:** ρ(E_surv, retained Swin-L) = −0.02 / −0.08 / −0.05 (MI / M-DI² / OSFD); E_id, E_noise8 cũng ≈ 0 (−0.11 … +0.09). surv − noise8 ≈ +0.02, CI chứa 0 ở cả 3 method.
+- Target khác: ρ(E_surv) có ý nghĩa (OSFD: R101 −0.59, ConvNeXt −0.42, Swin-T −0.41) nhưng NGANG ρ(E_noise8) (surv − noise ≈ 0) → phần dự đoán được là "độ mạnh chung của δ trên R50", không riêng hình học. Với MI, surv − id âm có ý nghĩa ở R101/ConvNeXt/Swin-T (−0.20 … −0.25) nhưng cũng không hơn noise8.
+- Đọc: mức tổn thương theo từng ảnh của DINO-Swin-L KHÔNG đo được bằng bất kỳ đại lượng nào phía R50 đã thử (nhất quán với cổng Repair-Robust: Q_plain ↔ Swin-L +0.08 … +0.15).
+
+### Kết quả E3 (`results/mechanism/e3_equivariance.json`, dev30, mô tả)
+cosd(F(T'x), T'F(x)) (thấp = đồng biến), stage nông → sâu, xoay 10° | phối cảnh 15°:
+- R50 0.04 / 0.16 / 0.21 / 0.19 | 0.03 / 0.12 / 0.14 / 0.11; R101 tương tự.
+- **ConvNeXt-T 0.09 / 0.04 / 0.05 / 0.05 | 0.06 / 0.03 / 0.03 / 0.03** — đồng biến nhất ở stage sâu.
+- Swin-T 0.08 / 0.16 / 0.23 / **0.08** | 0.07 / 0.12 / 0.13 / **0.04**.
+- **DINO-Swin-L 0.07 / 0.10 / 0.16 / 0.26 | 0.06 / 0.07 / 0.12 / 0.18** — tăng đơn điệu theo độ sâu, stage cuối lệch NHIỀU nhất trong họ Transformer (ngược Swin-T).
+- YOLOX-S 0.17 / 0.21 / 0.24 | 0.14 / 0.17 / 0.15; DINO-R50 0.14 / 0.22 / 0.19 | 0.11 / 0.15 / 0.12.
+- Caveat: cosd không trừ trung bình kênh → so GIỮA kiến trúc bị nhiễu bởi thống kê feature (vd ConvNeXt có thể có thành phần DC lớn). Không thấy thứ tự khớp độ khó transfer (YOLOX ít đồng biến nhưng transfer tốt). Chỉ ghi nhận: Swin-L là backbone duy nhất có stage cuối nhạy hình học hơn stage giữa.
+
+---
+
+## 2026-10-06 — E4: mức tổn thương của DINO-Swin-L do PHÍA ẢNH / TARGET quyết định? (n300, không GPU, quy tắc khóa TRƯỚC khi chạy)
+
+**Lý do:** E1, E2 (và cổng Repair-Robust trước đó) cho thấy không đại lượng nào phía R50 / δ dự đoán được theo ảnh việc Swin-L bị lừa (ρ ≈ 0). Giả thuyết: tổn thương do thuộc tính của object / độ tự tin của chính target.
+
+**Dữ liệu (có sẵn, không attack mới):** dets n300 của MI / M-DI² / OSFD — Swin-L từ `artifacts/runs/n300_B50_eps5/gen_dets/dino_swin_l.json` (E2 vừa predict lại), R50 / R101 / ConvNeXt-T / Swin-T từ `dets.json`.
+
+**Đơn vị = GT (không crowd) mà target phát hiện ở ảnh sạch** (cùng lớp, IoU ≥ 0.5, score ≥ 0.3, định nghĩa `attack/mechanism.py`). Biến kết quả: retained = s_adv / s_clean (0 nếu mất), suppressed = s_adv < 0.3.
+**Thuộc tính (đo trước khi nhìn kết quả):** s_clean của chính target; s_clean của R50 cho cùng GT (phía surrogate, đối chứng); log diện tích GT (ảnh gốc); diện tích tương đối; số GT trong ảnh; độ chồng lấn (IoU lớn nhất với GT khác); lớp COCO (mô tả theo nhóm).
+**Thống kê:** Spearman theo GT, CI 95% bootstrap theo ẢNH (cụm, 1000, BOOT_SEED 2026); bảng theo bin (COCO small / medium / large; s_clean tứ phân vị).
+**Quy tắc đọc:** "phía target giải thích" được ỦNG HỘ nếu có thuộc tính với |ρ| ≥ 0.3 (CI loại 0) trên DINO-Swin-L ở CẢ OSFD và M-DI², VÀ |ρ| đó lớn hơn rõ |ρ| của s_clean R50 (đối chứng phía surrogate). Mô tả kèm: cùng phân tích trên R101 / ConvNeXt-T / Swin-T để xem Swin-L có khác không.
+
+### Kết quả E4 (`results/mechanism/e4_target_side.json`, n300, ~1540–1690 GT mỗi target) — theo quy tắc khóa: **KHÔNG ỦNG HỘ** (OSFD trên Swin-L: |ρ| < 0.3 ở mọi thuộc tính; M-DI²: s_clean Swin-L +0.36 nhưng KHÔNG hơn s_clean R50 +0.47).
+- **Tổn thương Swin-L là sức bền DIỆN RỘNG, không phải "một nhóm object miễn nhiễm":** OSFD retained trung bình 0.73 (Swin-T 0.30, ConvNeXt 0.27, R101 0.11); bin yếu nhất (object nhỏ) vẫn giữ 0.69.
+- **"Độ dễ" của object là yếu tố CHUNG, không riêng target:** s_clean của R50 cho cùng GT dự đoán retained trên Swin-L (+0.30 OSFD, +0.47 M-DI²) TỐT HƠN s_clean của chính Swin-L (+0.18 / +0.36) → object dễ (mọi model tự tin) thì sống sót; hiệu ứng mạnh ở attack yếu, yếu dần khi attack mạnh (OSFD ở mọi target chỉ +0.15 … +0.30).
+- Bin s_clean của Swin-L: suppression Q1 [0.30, 0.47] 0.58 → Q4 [0.87, 0.98] 0.08 nhưng retained gần phẳng (0.70 / 0.67 / 0.70 / 0.83) → chênh suppression phần lớn là do GẦN NGƯỠNG 0.3 (thang score DINO thấp hơn Mask R-CNN ~1.0), không phải tổn thương khác.
+- **Phát hiện riêng Swin-L — kích thước object ĐẢO CHIỀU so với target khác dưới OSFD:** suppression nhỏ / vừa / lớn: Swin-L **0.38 / 0.30 / 0.19**; Swin-T 0.64 / 0.65 / **0.72**; ConvNeXt 0.66 / 0.68 / **0.79**. Khoảng cách Swin-L so Swin-T: nhỏ 0.26, lớn **0.53** → sức bền Swin-L tập trung ở object VỪA / LỚN.
+- **Theo thang MI → M-DI² → OSFD:** object nhỏ trên Swin-L bị hạ ngay từ MI / M-DI² (sup 0.29 / 0.43 / 0.38 — OSFD không hơn M-DI²); object lớn chỉ tăng khi tới OSFD (0.04 / 0.08 / 0.19), và trên ConvNeXt / Swin-T bước nhảy lớn nhất cũng ở object lớn (ConvNeXt 0.24 / 0.46 / 0.79). Hai "kênh": object nhỏ (attack nào cũng phá) và object lớn (cần OSFD = RRB + loss feature; chưa tách được phần nào). Swin-L khác target khác chủ yếu ở kênh object lớn.
+- Giả thuyết (CHƯA kiểm): Swin-L nhận object lớn bằng hình dạng / ngữ cảnh toàn cục (cửa sổ 12, IN-22k, encoder DINO đa scale), δ chủ yếu phá cấu trúc cục bộ. Kiểm rẻ được khi có PNG dev30 của pipeline elem: đa dạng hình học (NOISE → PIA / CAM / ROT) tăng suppression Swin-L ở object nhỏ hay lớn.
+
+---
+
+## 2026-10-06 — E5: đa dạng hình học giúp Swin-L qua kênh object NHỎ hay LỚN? (dev30, forward-only trên PNG pipeline elem; khóa TRƯỚC khi có PNG)
+
+**User đồng ý chạy pipeline elem** (`results/elem/run.sh`, tmux `elem`, bắt đầu 2026-10-06 ~14:50; quy tắc bước 1 vẫn là entry 2026-10-05).
+
+**Phân tích (sau khi pipeline xong):** `e4_target_side.py --run dev300_B50_eps5 --subset dev30 --dets dets_elem_dev30.json --methods <15 ô> --base NOISE --tag _elem_dev30`. Cùng tập GT (target phát hiện ở ảnh sạch, không phụ thuộc ô), Δ suppression (ô − NOISE) theo kích thước COCO small / medium / large + (large − small), bootstrap cụm theo ảnh (1000, BOOT_SEED 2026). Trên DINO-Swin-L (chính), Swin-T, ConvNeXt-T (đối chiếu).
+**Kiểm tra code trên n300 (base = MI, không thuộc E5):** Swin-L — M-DI² − MI: nhỏ +0.14, lớn +0.04, large − small −0.10 [−0.15, −0.05]; OSFD − MI: nhỏ +0.09, lớn +0.15, large − small +0.07 [0.00, 0.13]. ConvNeXt — OSFD − MI large − small +0.33 [0.26, 0.41].
+**Đọc (mô tả, n = 30, khai báo trước):** "đa dạng hình học giúp Swin-L qua kênh object LỚN" được ủng hộ nếu, trên Swin-L, (large − small) > 0 (điểm) ở CẢ PIA và PIA-noT (2 ô Swin-L cao nhất đã biết), VÀ (large − small) của CAM-R30 (ô Swin-L thấp dù CrossAvg₃ cao) nhỏ hơn của cả hai. Ngược lại: không ủng hộ. Muốn đưa vào paper phải xác nhận ≥ dev100.
+
+---
+
+## 2026-10-06 — E6 (khóa trước, CHẠY SAU pipeline elem nếu cần): Swin-L nhận object lớn bằng HÌNH DẠNG hay CẤU TRÚC CỤC BỘ? (ảnh sạch n300, chỉ forward)
+
+**Giả thuyết cần kiểm (từ E4):** Swin-L nhận object vừa / lớn chủ yếu bằng hình dạng / bố cục toàn cục, nên δ (phá cấu trúc cục bộ) ít chạm tới; target khác dựa nhiều vào cấu trúc cục bộ hơn.
+
+**Can thiệp trên ảnh SẠCH (ảnh gốc uint8, trong từng GT box không-crowd, box lớn trước → nhỏ sau), mỗi model đọc ảnh qua test pipeline riêng (`inference_detector`):**
+- **BLUR (phá cục bộ, giữ hình dạng):** Gaussian blur σ = f·√(w·h) trong box, f ∈ {0.02, 0.05}.
+- **SHUF (phá hình dạng, giữ cục bộ):** chia box thành g × g ô, hoán vị ngẫu nhiên các ô (RNG theo ảnh: seed = 2026 + img_id), g ∈ {3, 6}.
+- Target: R50, R101, ConvNeXt-T, Swin-T, YOLOX-S, DINO-Swin-L. Đơn vị = GT target phát hiện ở ảnh sạch (score ≥ 0.3); retained = s_corrupt / s_clean (0 nếu mất); tách small / medium / large (COCO).
+
+**Chỉ số tương tác (khử "Swin-L bền với mọi thứ"):** với nhóm kích thước z, R_t(c, z) = mean retained; others = trung bình ConvNeXt-T, Swin-T, YOLOX-S. I(z) = [R_SwinL(BLUR) − R_others(BLUR)] − [R_SwinL(SHUF) − R_others(SHUF)].
+**Quy tắc:** giả thuyết "hình dạng" được ỦNG HỘ nếu I(large) > 0 với cận dưới CI 95% (bootstrap cụm theo ảnh, 1000, BOOT_SEED 2026) > 0 ở CẢ 2 cặp liều (f 0.02 ↔ g 3, f 0.05 ↔ g 6), VÀ I(large) > I(small) (điểm) ở cả 2 cặp. Ngược lại: không ủng hộ. Mô tả kèm: R_t(c, z) đầy đủ, R50 / R101.
+Caveat đã biết: BLUR và SHUF không cùng "liều" tuyệt đối → chỉ so tương tác (Swin-L so với others), không so BLUR với SHUF trực tiếp; box chồng nhau bị làm hỏng chéo.
+
+### Kết quả bước 1 quét liều phép cơ bản @ dev30 (pipeline elem, 2026-10-06; `metrics/generalization_elem_dev30.json`, `results/ablation/elem_dev30/screen.json`)
+**Sanity ô mốc sinh lại (máy mới):** lệch CrossAvg₃ so với số đã commit: OSFD +0.0, NOISE −0.2, FLIP −0.4, PIA +0.1, PIA-noT −0.0, CAM-R15 −0.1, CAM-R30 −0.6 → ĐẠT (ngưỡng dừng 3).
+
+Relative AP drop %, R50 / R101 / ConvNeXt-T / Swin-T / YOLOX-S / DINO-Swin-L | CrossAvg₃ | |u| px:
+- OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9; NOISE … / 14.9 | 64.3; FLIP … / 17.8 | 73.6
+- ROT7 97.9 / 91.0 / 79.9 / 80.5 / 75.1 / 23.4 | 78.5 | 23; ROT15 97.0 / 91.2 / 79.6 / 81.7 / 76.9 / 23.7 | 79.4 | 50; ROT30 97.1 / 90.5 / 78.7 / 77.8 / 70.7 / 24.9 | 75.7 | 100
+- SHR15 98.7 / 92.1 / 81.2 / 78.9 / 72.0 / 17.2 | 77.4 | 19; SHR30 98.6 / 94.0 / 80.6 / 78.0 / 76.5 / 25.2 | 78.3 | 37
+- ANI10 98.6 / 91.5 / 81.4 / 81.0 / 78.6 / 23.3 | 80.3 | 19; ANI25 97.0 / 91.2 / 78.9 / 82.6 / 77.5 / 25.1 | 79.7 | 48
+- SCL25 96.3 / 91.0 / 82.1 / 82.6 / 78.2 / 27.4 | 81.0 | 48
+- (PIA 28.6 | 79.6; PIA-noT 29.8 | 80.4; CAM-R15 25.6 | 79.1; CAM-R30 20.9 | 82.1)
+
+**Quy tắc chọn họ (khóa 2026-10-05):** ngưỡng Swin-L ≥ OSFD − 2 = 25.22; CrossAvg₃ ≥ max(NOISE + 5, OSFD − 2) = 76.87. Xoay: không liều nào đạt Swin-L (23.4 / 23.7 / 24.9) → KHÔNG chọn; lệch tỉ lệ: ANI25 25.107 < 25.22 → KHÔNG; lật: Swin-L 17.8 → KHÔNG. **ĐƯỢC CHỌN (3): co giãn đều SCL25 (81.0), phối cảnh CAM-R15 (79.1), trượt SHR30 (78.3, Swin-L 25.248 — vừa sát ngưỡng).**
+Đọc (mô tả): (1) **co giãn đều — đối chứng được dự đoán "vô ích" — lại có CrossAvg₃ cao nhất và Swin-L cao nhất trong các phép cơ bản** ở liều ln s ±0.25 (|u| 48 px); kết luận "co giãn ≈ 0" trước đây (PIA-noS) là ở liều PIA ~±10% → giả thuyết "phép mà surrogate đồng biến thì vô ích" sai thêm một lần. (2) Mọi phép cơ bản cho CrossAvg₃ 75.7–81.0 (trừ FLIP), chênh nhau ≤ 5 — đúng bức tranh "có đa dạng >> loại". (3) Không phép cơ bản đứng riêng nào vượt PIA-noT trên Swin-L (29.8); tăng liều xoay KHÔNG giúp CrossAvg₃ (ROT30 75.7 < ROT15). n = 30 — mọi chênh ≤ 3 là trong nhiễu.
+
+### Kết quả E5 (`results/mechanism/e4_target_side_elem_dev30.json`) — theo quy tắc khóa: ỦNG HỘ (yếu, mô tả)
+- Swin-L, Δ suppression so NOISE, (large − small): PIA +0.01 [−0.10, 0.14], PIA-noT +0.07 [−0.05, 0.19] (> 0 cả hai), CAM-R30 −0.02 (< cả hai) → đạt tiêu chí khai báo; mọi CI chứa 0, PIA chỉ +0.01.
+- **Mô tả mạnh hơn — giữa 14 ô, drop Swin-L đi theo phần tăng ở object LỚN:** Spearman(Δsup, drop Swin-L) theo kích thước: nhỏ +0.22, vừa +0.49, **lớn +0.64**. Ngược lại Swin-T: nhỏ +0.42, vừa +0.82, lớn +0.24; ConvNeXt: +0.47 / +0.32 / +0.25. → Trên Swin-L, mọi ô hạ object nhỏ gần như ngang nhau (+0.06 … +0.10 so NOISE); khác biệt giữa các ô nằm ở object lớn: OSFD +0.18, PIA-noT +0.16, PIA +0.11 so với phép cơ bản +0.02 … +0.09 (SCL25 chỉ +0.02 dù Swin-L 27.4 — lợi của SCL25 nằm ở object vừa).
+- Khớp E4 (n300): sức bền Swin-L tập trung ở object lớn, và đó cũng là chỗ các ô khác nhau. Đáng chú ý: OSFD gốc (RRB, feature sạch KHÔNG co-transform) có Δ object lớn trên Swin-L cao nhất.
+
+### Kết quả E6 (`results/mechanism/e6_shape_texture.json`, n300 ảnh sạch, log `results/e123/e6.log`) — theo quy tắc khóa: **ỦNG HỘ giả thuyết "hình dạng"** (cả 2 cặp liều, CI loại 0, I(large) ≫ I(small)).
+Mean retained nhỏ / vừa / lớn:
+- BLUR05 (phá cục bộ, giữ hình dạng): R50 0.37 / 0.25 / 0.21; ConvNeXt 0.44 / 0.31 / 0.24; Swin-T 0.40 / 0.27 / 0.19; YOLOX 0.36 / 0.20 / 0.12; **DINO-Swin-L 0.45 / 0.34 / 0.37**.
+- SHUF3 (phá hình dạng, giữ cục bộ): R50 0.15 / 0.13 / 0.27; ConvNeXt 0.15 / 0.15 / 0.23; Swin-T 0.16 / 0.16 / 0.30; YOLOX 0.18 / 0.12 / 0.17; **DINO-Swin-L 0.21 / 0.17 / 0.16**.
+- Tương tác I = [Swin-L − others](BLUR) − [Swin-L − others](SHUF): **f 0.02 | g 3: lớn +0.195 [0.159, 0.233]**, vừa +0.018, nhỏ −0.017; **f 0.05 | g 6: lớn +0.185 [0.150, 0.222]**, vừa +0.023, nhỏ −0.005.
+- Đọc: với object LỚN, Swin-L giữ được khi mất chi tiết cục bộ (BLUR05: 0.37 vs others 0.18) nhưng sụp như / hơn others khi mất hình dạng (SHUF3: 0.16 vs 0.23) — target khác (và chính R50) đi ngược: mất hình dạng còn giữ được nhiều hơn mất chi tiết ở object lớn. Với object nhỏ không khác (I ≈ 0). → **DINO-Swin-L nhận object lớn chủ yếu bằng HÌNH DẠNG / bố cục; R50 (surrogate) và các target khác dựa nhiều vào cấu trúc cục bộ.**
+- **Chuỗi giải thích (E4 + E5 + E6):** surrogate R50 thiên cấu trúc cục bộ → δ phá cấu trúc cục bộ → chuyển tốt sang target cũng thiên cục bộ, và sang mọi target ở object nhỏ (hình dạng ít thông tin); với object lớn trên Swin-L (dựa vào hình dạng) δ ít chạm tới → sức bền tập trung ở object lớn (E4); các method khác nhau trên Swin-L chủ yếu ở object lớn (E5). Khớp literature shape/texture bias (Geirhos et al. ICLR'19: CNN ImageNet thiên texture; mô hình lớn / pretrain lớn thiên hình dạng hơn).
+- Caveat: Swin-L lẫn kiến trúc + scale + IN-22k + encoder DINO — không tách được nguồn của shape bias (như caveat cũ); BLUR / SHUF không cùng liều tuyệt đối (chỉ so tương tác); box chồng nhau bị hỏng chéo; E6 là quan sát trên ảnh sạch — quan hệ nhân quả với attack cần thí nghiệm can thiệp (method nhắm hình dạng object lớn → Swin-L tăng, đặc biệt ở object lớn).
+
+---
+
+## 2026-10-06 — E7: phần δ có tác dụng lên object LỚN của Swin-L là cấu trúc QUY MÔ LỚN hay CỤC BỘ? (n300 PNG có sẵn, chỉ forward, khóa TRƯỚC khi chạy)
+
+**Lý do:** E6 cho thấy Swin-L nhận object lớn bằng hình dạng (trên ảnh sạch). E7 hỏi phía attack: trong δ hiện có, phần nào gây tác dụng lên từng target. Nếu phần chạm được Swin-L (object lớn) là phần cấu trúc quy mô lớn của δ, còn target khác ăn phần cục bộ → cơ sở cho method "đẩy δ lên cấu trúc quy mô object".
+
+**Can thiệp lên δ (không lên ảnh):** δ = PNG adv − ảnh gốc (n300, OSFD và M-DI²). Trong từng GT box (lớn trước → nhỏ sau), biến đổi δ bằng ĐÚNG phép của E6: BLUR_δ (σ = f·√(wh), f ∈ {0.02, 0.05}; giữ cấu trúc lớn của δ, bỏ cục bộ) | SHUF_δ (hoán vị g × g ô, g ∈ {3, 6}; giữ cục bộ, bỏ bố cục); ngoài box giữ δ nguyên. Ảnh = round(clip(x + T(δ))) uint8, mỗi model đọc qua test pipeline riêng.
+**Chỉ số:** đơn vị GT target phát hiện ở ảnh sạch (score ≥ 0.3); sức attack A(c, z) = 1 − mean retained; F(c, z) = A(c, z) / A(δ nguyên, z) (phần tác dụng còn lại). I_δ(z) = [F_SwinL − F_others](BLUR) − [F_SwinL − F_others](SHUF), others = ConvNeXt-T, Swin-T, YOLOX-S; bootstrap cụm theo ảnh (1000, BOOT_SEED 2026; tỉ số tính trên từng mẫu bootstrap).
+**Quy tắc:** "phần δ chạm Swin-L ở object lớn là cấu trúc quy mô lớn" được ỦNG HỘ nếu với OSFD: I_δ(large) > 0, cận dưới CI > 0, ở CẢ 2 cặp liều (f 0.02 ↔ g 3, f 0.05 ↔ g 6), VÀ I_δ(large) > I_δ(small) (điểm). M-DI²: mô tả (cùng chiều = củng cố). Ngược lại: không ủng hộ.
+Chi phí ước tính ~15 min GPU (6 model × 300 ảnh × 8 điều kiện; ảnh sạch / δ nguyên dùng dets có sẵn của E6 và run n300).
+
+### E7 — DỪNG ở bản thử, KHÔNG chạy đủ n300 (lỗi thiết kế: hiệu ứng sàn) — quy tắc khóa KHÔNG áp dụng được
+Thử 3 ảnh rồi 30 ảnh đầu n300 (OSFD; `results/mechanism/e7_delta_scale_limit30_pilot.json`, dets `artifacts/e7/dets_limit30.json`): CẢ BLUR_δ LẪN SHUF_δ đều xóa gần hết tác dụng của δ ở mọi target → F chạm sàn, tương tác vô nghĩa (CI rộng ±0.3; tỉ số nổ khi A(δ nguyên) nhỏ, vd M-DI² Swin-L). Không chạy đủ n300.
+Phần còn lại F (object lớn, n = 30), BLUR02 / BLUR05 / SHUF3 / SHUF6: R50 0.12 / 0.10 / 0.22 / 0.18; R101 0.07 / 0.05 / 0.16 / 0.14; ConvNeXt 0.07 / 0.04 / 0.16 / 0.13; Swin-T 0.10 / 0.08 / 0.22 / 0.16; YOLOX 0.14 / 0.13 / 0.30 / 0.22; **DINO-Swin-L −0.03 / −0.06 / 0.03 / 0.09**.
+Đọc (mô tả, n = 30): **δ của OSFD là mẫu tần cao KHỚP CHÍNH XÁC với nội dung ảnh** — làm mờ δ trong box (giữ cấu trúc quy mô lớn của δ) còn ≤ 14% tác dụng; xáo ô δ (giữ mẫu cục bộ, lệch khỏi nội dung) còn 13–30% ở target thiên cục bộ; trên Swin-L cả hai ≈ 0. → δ gần như KHÔNG có thành phần quy mô lớn / hình dạng; phần nhỏ "texture lệch vị trí" còn tác dụng ở target CNN-like nhưng không ở Swin-L. Khớp chuỗi E4–E6. Hệ quả cho method: thành phần hình dạng phải được TẠO RA có chủ đích; câu hỏi mở là trong ngân sách L∞ 5/255 có làm được không.
+**Bước 2 chuỗi elem (ghép SCL25 + CAM-R15 + SHR30): đề xuất tạm gác** (chờ user) — các phép cơ bản chỉ tăng phá object lớn trên Swin-L +0.02 … +0.09 (OSFD / PIA-noT +0.16 … +0.18), không nhắm nút thắt; CrossAvg₃ hơn OSFD ~2 @ dev30 (trong nhiễu).
+
+---
+
+## 2026-10-06 — E8 (user chọn CHỈ ô WB-OSFD): OSFD white-box trên CHÍNH DINO-Swin-L @ dev30 (đo trần, không phải method) — khóa TRƯỚC khi chạy
+
+**Câu hỏi:** phá feature backbone của chính Swin-L (white-box) có hạ được object lớn không? Tách "δ từ R50 không chuyển được" với "DINO-Swin-L sửa được distortion backbone kể cả white-box".
+**Cấu hình:** `osfd_attack` đúng công thức OSFD (loss MSE(k·F_sạch, F_adv) trên 4 stage backbone, k = 3, MI μ = 1, RRB θ 7 / l_s 10 / ρ 0.8 / s_max 1.1 / σ 6, ε = 5, α = 1, B = 50), surrogate = DINO-Swin-L (khung + GT theo test pipeline của Swin-L), gradient checkpointing của Swin tắt (chỉ backbone). Seed SEED + chỉ số dev300. `scripts/e8_whitebox_lowfreq.py --osfd`; PNG `artifacts/e8/WB-OSFD/`. Các ô tần thấp WB-s1/s16/s32 KHÔNG chạy (user).
+**Đo:** Swin-L (`inference_detector`) suppression theo kích thước + AP drop; mốc transfer OSFD / PIA-noT / NOISE (PNG dev30).
+**Đọc (khai báo trước, mô tả n = 30):** (a) WB-OSFD suppression object lớn ≥ 0.6 → Swin-L KHÔNG bền cơ bản với phá feature; nút thắt là tính chuyển giao từ R50. (b) ≤ suppression lớn của OSFD transfer + 0.15 → kể cả white-box, phá feature backbone không hạ được object lớn → DINO (encoder / decoder) sửa được distortion backbone; hướng "phá feature / hình dạng từ surrogate" có trần thấp. Ở giữa → xám, thảo luận.
+
+### Kết quả E8 (`results/mechanism/e8_whitebox_lowfreq.json`, dev30, log `results/e123/e8.log`) — theo quy tắc: VÙNG XÁM, nghiêng mạnh về (a)
+DINO-Swin-L, AP drop | suppression nhỏ / vừa / lớn [CI]:
+- **WB-OSFD (white-box trên Swin-L): 84.6 | 0.71 [0.56, 0.86] / 0.68 [0.55, 0.80] / 0.57 [0.38, 0.75]**
+- OSFD transfer (R50): 27.2 | 0.24 / 0.21 / 0.25; PIA-noT: 29.8 | 0.26 / 0.23 / 0.23; NOISE: 14.9 | 0.17 / 0.15 / 0.07
+- Object lớn 0.57: dưới ngưỡng (a) 0.6 một chút, trên ngưỡng (b) (0.25 + 0.15 = 0.40) → xám theo quy tắc. Đọc: **Swin-L KHÔNG bền cơ bản ở ε = 5** — phá feature backbone của chính nó (cùng công thức OSFD, B = 50) đưa AP drop 27 → 85; encoder / decoder DINO KHÔNG "sửa" được distortion white-box → giả thuyết cũ "encoder DINO dập distortion" chỉ đúng với distortion VỪA (transfer), không phải giới hạn cơ bản. Object lớn vẫn khó hơn nhỏ (0.57 vs 0.71) — một phần sức bền hình dạng còn lại kể cả white-box. Peak bộ nhớ 19.7 GB.
+
+---
+
+## 2026-10-06 — TỔNG HỢP E1–E8: vì sao đa dạng hình học giúp, vì sao Swin-L khó (mô tả; claim cho paper cần ≥ dev100)
+
+1. **Đa dạng hình học hoạt động qua TÍNH BỀN của nghiệm, không qua hướng gradient từng bước.** E1: gradient kỳ vọng R50 trực giao gradient target ở mọi ô, đa dạng không kéo gần (Q2 không đạt). E2 (n300): δ của MI mất ~¼ tác dụng dưới phép hình học nhỏ, M-DI² / OSFD gần như không mất.
+2. **Sức bền DINO-Swin-L tập trung ở object VỪA / LỚN** (E4 n300: suppression OSFD nhỏ / vừa / lớn 0.38 / 0.30 / 0.19, ngược Swin-T / ConvNeXt), và **khác biệt giữa các method trên Swin-L nằm ở object lớn** (E5: ρ(Δsup lớn, drop Swin-L) +0.64 giữa 14 ô; nhỏ +0.22).
+3. **Swin-L nhận object lớn bằng HÌNH DẠNG; R50 + target khác dựa vào cấu trúc cục bộ** (E6 n300, ỦNG HỘ, tương tác +0.19 [0.16, 0.23] chỉ ở object lớn).
+4. **δ từ R50 là mẫu tần cao khớp chính xác nội dung, gần như không có thành phần quy mô lớn** (E7 bản thử n = 30: làm mờ / xáo δ còn ≤ 14% / 13–30% tác dụng, Swin-L ≈ 0).
+5. **Swin-L KHÔNG bền cơ bản** (E8: white-box OSFD 84.6% AP drop so transfer 27.2%) → khoảng trống 27 → 85 là vấn đề CHUYỂN GIAO.
+6. Yếu tố chung phía object: object "dễ" (mọi model tự tin) sống sót hơn ở mọi target (E4).
+**Câu cơ chế:** surrogate R50 thiên cấu trúc cục bộ → δ là mẫu tần cao khớp nội dung → chuyển được sang target / object mà nhận dạng dựa vào cấu trúc cục bộ (CNN, Swin-T, object nhỏ); DINO-Swin-L nhận object lớn bằng hình dạng nên δ ít chạm tới — dù chính Swin-L không bền khi bị tấn công trực tiếp. Đa dạng hình học làm δ bền hơn và cải thiện phần object lớn một chút (OSFD / PIA-noT +0.16 … +0.18 so NOISE), chưa đủ đóng khoảng trống.
+**Hệ quả cho method (chưa khóa):** cần δ tác động lên biểu diễn ở MỨC OBJECT / hình dạng thay vì từng vị trí. Manh mối hỗ trợ: loss phân loại (C2, C2-PIA — loss ở mức RoI, gộp cả object) là thứ duy nhất đã tăng Swin-L rõ (+7 … +13). Kiểm rẻ đề xuất: phân rã theo kích thước C2 / C2-PIA vs OSFD / PIA trên Swin-L (sinh lại dev30) — lợi của loss mức object có tập trung ở object lớn không.
+
+---
+
+## 2026-10-06 — Bước 2 chuỗi elem: TẠM GÁC (user); E9: lợi của loss mức object (cls) trên Swin-L có tập trung ở object lớn? — khóa TRƯỚC khi chạy
+
+**Bước 2 chuỗi elem (ghép SCL25 + CAM-R15 + SHR30) tạm gác (user đồng ý):** phép cơ bản không nhắm nút thắt object lớn của Swin-L (E5); lợi CrossAvg₃ so OSFD ~2 @ dev30 (trong nhiễu). Quay lại nếu cần recipe đơn giản làm baseline phụ.
+
+**E9:** sinh lại C2 (`PROBE-osfd+cls`) và C2-PIA trên dev30 (cùng seed SEED + chỉ số dev300, code không đổi; PNG cũ mất khi trả máy), eval 6 model; `e4_target_side.py --base OSFD` (C2 vs OSFD: cùng RRB, khác loss) và so C2-PIA với PIA (cùng PIA, khác loss) theo kích thước trên DINO-Swin-L.
+**Đọc (mô tả, n = 30, khai báo trước):** "lợi của loss phân loại (mức object) trên Swin-L tập trung ở object lớn" được ỦNG HỘ nếu trên Swin-L Δsup(large) − Δsup(small) > 0 (điểm) ở CẢ C2 − OSFD VÀ C2-PIA − PIA. Ngược lại: không ủng hộ. Sanity: drop sinh lại so số đã commit (C2 dev30: Swin-L 26.1, CrossAvg₃ 78.3; C2-PIA 34.7 / 83.6) — lệch > 3 CrossAvg₃ → ghi chú (C2 không tất định đã biết, ~5% pixel).
