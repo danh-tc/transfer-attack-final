@@ -2061,3 +2061,16 @@ DINO-Swin-L, Δ suppression nhỏ / vừa / lớn | (lớn − nhỏ):
 - Hệ quả: loss phân loại của surrogate tuy tính trên RoI nhưng δ sinh ra vẫn là nhiễu cục bộ (khớp E7) → "mức object" theo nghĩa loss RoI chưa đủ; cần cách tạo thành phần quy mô lớn / hình dạng trực tiếp hơn.
 
 **HF (2026-10-06):** upload `runs/dev300_B50_eps5.tar` (363 MB, sha256 08f5e429…dcad93ea — PNG dev30 của 15 ô elem + C2 + C2-PIA, dets / gen_dets dev30; GHI ĐÈ bản cũ nếu có) và `runs/e8_wbosfd_dev30.tar` (PNG WB-OSFD dev30). Push GitHub CHƯA được (máy không có credential; `.env` chỉ có HF_TOKEN) — user push tay.
+
+---
+
+## 2026-10-06 — TẠM DỪNG (user, mai tiếp): trạng thái + việc mở
+
+**Xong trong phiên:** E1–E9 (kết quả + quy tắc ở các entry 2026-10-06 phía trên; tổng hợp: entry "TỔNG HỢP E1–E8"); bước 1 chuỗi elem (chọn SCL25, CAM-R15, SHR30), bước 2 tạm gác. Không có tiến trình nào đang chạy.
+**Artifact:** HF có `runs/n300_B50_eps5.tar` (MI / M-DI² / OSFD n300), `runs/dev300_B50_eps5.tar` (PNG dev30: 15 ô elem + C2 + C2-PIA + dets), `runs/e8_wbosfd_dev30.tar`. Chưa upload: `artifacts/e6/dets.json`, `artifacts/e7/` (bản thử), gen_dets Swin-L n300 mới (sinh lại được ~10 phút bằng `eval_generalization --models dino_swin_l --out generalization_e2_swinl.json`).
+**Git:** commit cục bộ `45792ba`, `1f60a25` + entry này — CHƯA PUSH (máy không có credential GitHub). Máy mới: kiểm `git log origin/main` có các commit này chưa; nếu chưa, máy cũ phải push trước khi trả.
+
+**Việc mở cho phiên sau (user chọn):**
+1. **Xác nhận E9 @ dev100** (~30 phút: sinh lại OSFD / PIA / C2 / C2-PIA dev100, tách theo kích thước) — vì lần sinh lại dev30 lợi Swin-L của loss cls gần như mất (C2-PIA 29.3 vs 34.7 cũ), phân rã thiếu lực.
+2. **Thiết kế thí nghiệm "tạo thành phần hình dạng trực tiếp"** — vd attack R50 trên view đã xóa texture (blur / lọc giữ biên / stylize) để buộc δ có tác dụng quy mô object; đo theo kích thước trên Swin-L (kênh object lớn). Lưu ý: lọc thông thấp GRADIENT (S1) đã âm — khác can thiệp lên VIEW. Phải khóa quy tắc + ước chi phí, user confirm trước khi chạy.
+3. Các nợ cũ: GO @ n300 cho C2 (110 / 300), C2-PIA chưa sàng lọc dev300, B = 200 / ε = 8, verify clean AP Generalization Panel.
