@@ -2049,3 +2049,15 @@ DINO-Swin-L, AP drop | suppression nhỏ / vừa / lớn [CI]:
 
 **E9:** sinh lại C2 (`PROBE-osfd+cls`) và C2-PIA trên dev30 (cùng seed SEED + chỉ số dev300, code không đổi; PNG cũ mất khi trả máy), eval 6 model; `e4_target_side.py --base OSFD` (C2 vs OSFD: cùng RRB, khác loss) và so C2-PIA với PIA (cùng PIA, khác loss) theo kích thước trên DINO-Swin-L.
 **Đọc (mô tả, n = 30, khai báo trước):** "lợi của loss phân loại (mức object) trên Swin-L tập trung ở object lớn" được ỦNG HỘ nếu trên Swin-L Δsup(large) − Δsup(small) > 0 (điểm) ở CẢ C2 − OSFD VÀ C2-PIA − PIA. Ngược lại: không ủng hộ. Sanity: drop sinh lại so số đã commit (C2 dev30: Swin-L 26.1, CrossAvg₃ 78.3; C2-PIA 34.7 / 83.6) — lệch > 3 CrossAvg₃ → ghi chú (C2 không tất định đã biết, ~5% pixel).
+
+### Kết quả E9 (`results/mechanism/e4_target_side_e9_vs{OSFD,PIA}.json`; `metrics/generalization_e9_dev30.json`; log `results/e123/e9.log`) — theo quy tắc: **KHÔNG ỦNG HỘ**
+**Sanity sinh lại:** C2 Swin-L 25.6 (cũ 26.1), CrossAvg₃ 78.0 (78.3) — khớp. **C2-PIA Swin-L 29.3 (cũ 34.7, −5.4)**, CrossAvg₃ 83.8 (83.6) — CrossAvg₃ khớp, Swin-L lệch 5.4 (C2 không tất định đã biết; CI dev30 ±5). dev100 trước đây đã xác nhận C2-PIA − C2 Swin-L +5.8 [1.7, 9.1].
+Relative AP drop % (dev30), R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CrossAvg₃: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9; PIA 96.8 / 89.6 / 79.5 / 80.5 / 78.7 / 28.6 | 79.6; C2 99.9 / 94.8 / 82.9 / 84.9 / 66.2 / 25.6 | 78.0; C2-PIA 99.4 / 94.8 / 83.1 / 88.0 / 80.4 / 29.3 | 83.8.
+DINO-Swin-L, Δ suppression nhỏ / vừa / lớn | (lớn − nhỏ):
+- C2 − OSFD: +0.09 / −0.04 / **−0.16** | **−0.25 [−0.44, −0.08]**
+- C2-PIA − PIA: +0.09 / −0.05 / 0.00 | −0.09 [−0.18, +0.01]
+- (C2-PIA − OSFD: +0.12 / −0.04 / −0.07 | −0.19 [−0.34, −0.04])
+- Đọc: phần lợi (nếu có) của loss phân loại trên Swin-L nằm ở object NHỎ (+0.09 … +0.12), KHÔNG ở object lớn — C2 còn phá object lớn của Swin-L KÉM hơn OSFD. Giả thuyết "loss mức RoI (cls) mở kênh object lớn" bị bác ở dev30. Caveat lớn: ở lần sinh lại này lợi AP của loss cls trên Swin-L gần như không còn (C2 − OSFD −1.6; C2-PIA − PIA +0.7) → phân rã một lợi gần 0, lực yếu; muốn kết luận chắc cần dev100 (PNG dev100 đã mất). Swin-T: C2 − OSFD lớn − nhỏ −0.15, cùng chiều.
+- Hệ quả: loss phân loại của surrogate tuy tính trên RoI nhưng δ sinh ra vẫn là nhiễu cục bộ (khớp E7) → "mức object" theo nghĩa loss RoI chưa đủ; cần cách tạo thành phần quy mô lớn / hình dạng trực tiếp hơn.
+
+**HF (2026-10-06):** upload `runs/dev300_B50_eps5.tar` (363 MB, sha256 08f5e429…dcad93ea — PNG dev30 của 15 ô elem + C2 + C2-PIA, dets / gen_dets dev30; GHI ĐÈ bản cũ nếu có) và `runs/e8_wbosfd_dev30.tar` (PNG WB-OSFD dev30). Push GitHub CHƯA được (máy không có credential; `.env` chỉ có HF_TOKEN) — user push tay.
