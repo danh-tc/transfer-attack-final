@@ -45,7 +45,24 @@ def linear_homography(A: torch.Tensor, h: int, w: int) -> torch.Tensor:
     return C @ Hc @ torch.linalg.inv(C)
 
 
+def shift_offset(mode: str) -> float:
+    """Kiểm "pha lưới" (progress_log 2026-10-07): 1 trục tịnh tiến (px, khung model).
+    s32: bội số stride 32 trong ±64 (giữ pha lưới mọi stride ≤ 32); odd: số nguyên ±64 KHÔNG chia hết 32;
+    sub: dưới 1 px, U(−1, 1) (lệch pha ở mọi stride, nội suy bilinear)."""
+    if mode == "s32":
+        return float(random.choice([-64, -32, 0, 32, 64]))
+    if mode == "odd":
+        return float(random.choice([t for t in range(-64, 65) if t % 32 != 0]))
+    if mode == "sub":
+        return random.uniform(-1.0, 1.0)
+    raise ValueError(mode)
+
+
 def sample_elem_h(spec: dict, h: int, w: int) -> torch.Tensor:
+    if "shift" in spec:  # chỉ tịnh tiến: pixel ra q lấy mẫu ở q − t (nội dung dời +t)
+        H = torch.eye(3, dtype=torch.float64)
+        H[0, 2], H[1, 2] = -shift_offset(spec["shift"]), -shift_offset(spec["shift"])
+        return H
     A = torch.eye(2, dtype=torch.float64)
     for kind in ELEM_ORDER:
         if kind in spec:

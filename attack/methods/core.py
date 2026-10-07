@@ -60,6 +60,7 @@ def run_iterative_attack(
     on_step: Optional[Callable[[int, torch.Tensor], None]] = None,
     grad_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     backward_per_step: int = 1,
+    combine: str = "sum",
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -83,7 +84,11 @@ def run_iterative_attack(
     backward_per_step > 1 (chỉ ô mô tả PIA-N20, progress_log 2026-10-04): mỗi step gọi views_fn
     + backward lặp lại bấy nhiêu lần và CỘNG gradient (cụm view không vừa 1 graph) — B thực
     = steps × backward_per_step. Mặc định 1 trùng tuyệt đối bản cũ.
+
+    combine (pilot VC, progress_log 2026-10-07) — cách gộp gradient của backward_per_step lần backward:
+    "sum" (mặc định, như cũ); "consensus" = trung bình, chỉ giữ pixel mà MỌI gradient cùng dấu (0 ở chỗ còn lại).
     """
+    assert combine in ("sum", "consensus")
     model_size = tuple(data_sample.img_shape)
     noise = torch.zeros_like(orig_pixels)
     accumulated_grad = torch.zeros_like(orig_pixels)
@@ -91,6 +96,7 @@ def run_iterative_attack(
     for step_idx in range(steps):
         noise = noise.detach().requires_grad_(True)
         grad = None
+        gs = []
         for _ in range(backward_per_step):
             adv_orig = torch.clamp(orig_pixels + noise, min=0.0, max=255.0)
             adv_pixels = resize_to_model(adv_orig, model_size)
@@ -107,6 +113,12 @@ def run_iterative_attack(
                 loss = term if loss is None else loss + term
             g = torch.autograd.grad(loss, noise)[0]
             grad = g if grad is None else grad + g
+            if combine == "consensus":
+                gs.append(g)
+        if combine == "consensus":
+            s = torch.stack([torch.sign(x) for x in gs])
+            agree = (s == s[0]).all(0) & (s[0] != 0)
+            grad = grad / len(gs) * agree
         if grad_transform is not None:  # vd lọc thông thấp gradient (nhánh S1, progress_log 2026-10-03)
             grad = grad_transform(grad)
 

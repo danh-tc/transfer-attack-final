@@ -1,0 +1,25 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.36s)
+creating index...
+index created!
+[E2] 25/30 (112s)
+[E2] 30/30 (134s)
+=== E2 dev30: mean E (1 − retained R50) ===
+OSFD          id=0.964  noise8=0.952  surv=0.957  rot10=0.947  shear15=0.961  persp15=0.958  trans7_5=0.963
+NOISE         id=0.989  noise8=0.981  surv=0.949  rot10=0.935  shear15=0.973  persp15=0.938  trans7_5=0.951
+FLIP          id=0.988  noise8=0.978  surv=0.964  rot10=0.951  shear15=0.980  persp15=0.958  trans7_5=0.968
+PIA           id=0.957  noise8=0.917  surv=0.950  rot10=0.939  shear15=0.951  persp15=0.955  trans7_5=0.955
+PIA-noT       id=0.968  noise8=0.944  surv=0.955  rot10=0.946  shear15=0.955  persp15=0.958  trans7_5=0.960
+CAM-R15       id=0.984  noise8=0.965  surv=0.976  rot10=0.961  shear15=0.982  persp15=0.986  trans7_5=0.975
+CAM-R30       id=0.972  noise8=0.956  surv=0.963  rot10=0.952  shear15=0.963  persp15=0.969  trans7_5=0.969
+ROT7          id=0.980  noise8=0.964  surv=0.970  rot10=0.962  shear15=0.978  persp15=0.971  trans7_5=0.970
+ROT15         id=0.970  noise8=0.955  surv=0.966  rot10=0.962  shear15=0.970  persp15=0.965  trans7_5=0.969
+ROT30         id=0.964  noise8=0.930  surv=0.961  rot10=0.961  shear15=0.962  persp15=0.959  trans7_5=0.960
+SHR15         id=0.984  noise8=0.971  surv=0.967  rot10=0.958  shear15=0.976  persp15=0.970  trans7_5=0.967
+SHR30         id=0.983  noise8=0.972  surv=0.968  rot10=0.956  shear15=0.980  persp15=0.968  trans7_5=0.969
+ANI10         id=0.982  noise8=0.964  surv=0.972  rot10=0.957  shear15=0.980  persp15=0.977  trans7_5=0.973
+ANI25         id=0.972  noise8=0.955  surv=0.966  rot10=0.958  shear15=0.967  persp15=0.968  trans7_5=0.971
+SCL25         id=0.975  noise8=0.961  surv=0.969  rot10=0.962  shear15=0.968  persp15=0.973  trans7_5=0.972
+PROBE-osfd+clsid=0.779  noise8=0.724  surv=0.766  rot10=0.790  shear15=0.770  persp15=0.772  trans7_5=0.731
+C2-PIA        id=0.824  noise8=0.805  surv=0.859  rot10=0.867  shear15=0.868  persp15=0.862  trans7_5=0.841

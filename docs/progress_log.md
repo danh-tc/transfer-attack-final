@@ -2074,3 +2074,168 @@ DINO-Swin-L, Δ suppression nhỏ / vừa / lớn | (lớn − nhỏ):
 1. **Xác nhận E9 @ dev100** (~30 phút: sinh lại OSFD / PIA / C2 / C2-PIA dev100, tách theo kích thước) — vì lần sinh lại dev30 lợi Swin-L của loss cls gần như mất (C2-PIA 29.3 vs 34.7 cũ), phân rã thiếu lực.
 2. **Thiết kế thí nghiệm "tạo thành phần hình dạng trực tiếp"** — vd attack R50 trên view đã xóa texture (blur / lọc giữ biên / stylize) để buộc δ có tác dụng quy mô object; đo theo kích thước trên Swin-L (kênh object lớn). Lưu ý: lọc thông thấp GRADIENT (S1) đã âm — khác can thiệp lên VIEW. Phải khóa quy tắc + ước chi phí, user confirm trước khi chạy.
 3. Các nợ cũ: GO @ n300 cho C2 (110 / 300), C2-PIA chưa sàng lọc dev300, B = 200 / ε = 8, verify clean AP Generalization Panel.
+
+---
+
+## 2026-10-07 — Định hướng lại (user) + E10, E11: khóa quy tắc TRƯỚC khi chạy (dev30, chỉ mô tả / sinh giả thuyết)
+
+**3 câu hỏi user chốt (thay danh sách việc mở của entry trước):**
+- **Q1:** đa dạng hình học giúp transfer qua ĐẶC TÍNH nào của δ — phải định danh được để tối ưu trực tiếp, không tăng augmentation mò mẫm.
+- **Q2:** vì sao DINO-Swin-L chỉ ~30% (NOISE 14.9 → OSFD / PIA-noT 27–30, gấp đôi) trong khi white-box 84.6% (E8) — δ đánh được Swin-L khác δ từ R50 ở đâu.
+- **Q3:** từ Q1 + Q2 xây method SOTA + novelty. Chỉ thiết kế SAU khi Q1 / Q2 có đặc tính cụ thể; rà literature (shape-bias / low-frequency / object-scale attack) trước khi khóa.
+**Bỏ:** việc mở 1 (E9 @ dev100 — kết quả âm, không trả lời Q1 / Q2). **Hoãn:** việc mở 2 (tổng hợp δ hình dạng từ R50 — nếu âm không tách được "hình dạng không phải yếu tố" với "chưa tạo được δ hình dạng"; chờ E10).
+**Đính chính:** "độ bền ↔ transfer theo ẢNH" đã kiểm ở E2(a) — KHÔNG ủng hộ. E2(b) (giữa ô) chưa chạy; đó mới là mức đúng của Q1 (vì sao METHOD có đa dạng transfer hơn, không phải vì sao ẢNH này dễ hơn).
+
+### E10 (Q2) — mổ xẻ δ ĐÃ đánh được Swin-L (white-box) so với δ từ R50
+**Lý do:** E7 cho thấy δ OSFD-R50 là mẫu tần cao khớp nội dung, ≈ 0 tác dụng còn lại trên Swin-L khi làm mờ / xáo. Chưa biết δ white-box (84.6%) có khác về quy mô không. Mổ xẻ δ đã hiệu quả cho câu trả lời trực tiếp hơn là cố tổng hợp δ hình dạng từ R50.
+**E10a (forward, PNG có sẵn):** δ = PNG − ảnh gốc, dev30, 2 nguồn: **WB-OSFD** (`artifacts/e8/WB-OSFD/`, HF `runs/e8_wbosfd_dev30.tar`) và **OSFD** (R50, `artifacts/runs/dev300_B50_eps5/adv/OSFD/`). Điều kiện trên δ:
+- ID; 4 phép E7 trong GT box (BLUR02, BLUR05, SHUF3, SHUF6 — đúng `corrupt` của E6);
+- **mới — LP toàn ảnh, liều nhẹ (tránh hiệu ứng sàn của bản thử E7):** δ ← G_σ * δ (Gaussian từng kênh, cả ảnh), σ ∈ {1, 2, 4} px.
+Ảnh = round(clip(x + T(δ))) uint8; 6 model (R50, R101, ConvNeXt-T, Swin-T, YOLOX-S, DINO-Swin-L) qua `inference_detector`; dets ảnh sạch dev30 sinh mới (dets E6 là n300, không chứa dev30). Chỉ số như E7: A(c, z) = 1 − mean retained (GT phát hiện ở ảnh sạch, score ≥ 0.3), F(c, z) = A(c, z) / A(ID, z); bootstrap cụm theo ảnh (1000, BOOT_SEED 2026). Mô tả kèm: phân bố năng lượng 3 dải của δ (`band_fracs` của A4) và tỉ lệ năng lượng trong GT box / diện tích box, WB-OSFD vs OSFD.
+**Quy tắc E10a (khai báo trước; chính: Swin-L, object LỚN, điều kiện LP σ = 2):**
+- (i) **"δ đánh được Swin-L mang thành phần QUY MÔ LỚN"** — ỦNG HỘ nếu F_WB(LP2, large) ≥ 0.5 VÀ F_WB − F_OSFD (LP2, large, Swin-L) > 0 với cận dưới CI > 0. Hệ quả: đặc tính đích cho method = thành phần quy mô lớn; nút thắt = R50 không sinh ra thành phần đó.
+- (ii) **"Swin-L cũng bị đánh bằng mẫu tần cao khớp nội dung"** — nếu F_WB(LP2, large) ≤ 0.2. Hệ quả: câu chuyện "hình dạng / quy mô" SAI cho phía δ; khác biệt nằm ở nội dung mẫu (hướng), không ở quy mô → Q2 phải tìm hướng khác.
+- Ở giữa → xám, thảo luận. Mô tả: đường F theo σ ∈ {1, 2, 4}, phép E7 (BLUR / SHUF) cùng chiều = củng cố.
+- Sanity: A(ID) WB-OSFD trên Swin-L khớp E8 (AP drop 84.6, sup large 0.57) trong ±0.05 — lệch → kiểm đường đọc trước khi đọc.
+**E10b (white-box, GPU nặng):** chạy các ô quy mô thô đã thiết kế trong E8 nhưng chưa chạy: `e8_whitebox_lowfreq.py --scales 1 16 32 --budget 50` (δ = upsample(z), lưới thô s, loss cls DINO, MI, ε = 5; B = 50 để ngang WB-OSFD). Ước ~15 min / ô (WB-OSFD 913 s / 30 ảnh), tổng ~45 min, peak ≲ 20 GB.
+**Quy tắc E10b (chính: sup large Swin-L):** "trong ε = 5, RIÊNG nhiễu quy mô lớn hạ được object lớn Swin-L" — ỦNG HỘ nếu WB-s16 sup(large) ≥ 0.40 (= OSFD transfer 0.25 + 0.15, cùng ngưỡng E8). WB-s1 là mốc cùng loss. s32 mô tả. Không ủng hộ → trần của hướng "δ quy mô lớn" thấp, method không nên đặt cược vào đó.
+**Đọc chung E10:** (i) + E10b ủng hộ → đặc tính đích cho method rõ; (ii) → bỏ hướng quy mô, Q2 chuyển sang phân tích hướng / nội dung của δ WB (vd tương đồng δ WB vs δ R50 theo vùng object).
+
+### E11 (Q1) — đặc tính δ nào đi theo transfer GIỮA các ô (E2(b) mở rộng)
+**Ô:** 17 ô dev30 có PNG (HF `runs/dev300_B50_eps5.tar`): OSFD, NOISE, FLIP, PIA, PIA-noT, CAM-R15, CAM-R30, ROT7/15/30, SHR15/30, ANI10/25, SCL25, C2 (`PROBE-osfd+cls`), C2-PIA. Drop từng target lấy từ `metrics/generalization_{elem,e9}_dev30.json` (đã có, không đo lại).
+**Đặc tính (chỉ phía R50 / δ, không chạm target):**
+- P1 **độ bền hình học thuần:** E_surv − E_noise8 trên R50 (`e2_survival.py --run dev300_B50_eps5 --subset dev30 --methods <17 ô> --tag dev30`).
+- P2 **tần thấp:** tỉ lệ năng lượng dải thấp [0, 1/6) của δ (`band_fracs`, A4).
+- P3 **phân bổ không gian:** năng lượng δ trong GT box / tỉ lệ diện tích box (`spatial`, A4).
+- P4 **quy mô hiệu dụng trên R50:** F_R50(LP2) — phần tác dụng còn lại trên R50 sau LP σ = 2 (như E10a, chỉ R50).
+**Phân tích:** Spearman giữa 17 ô (đặc tính trung bình ô ↔ drop dev30), CI bootstrap ảnh trên đặc tính (drop cố định), từng target: ConvNeXt-T, Swin-T, YOLOX-S, DINO-Swin-L; kèm R101 (đối chứng cùng họ).
+**Quy tắc (mô tả, khai báo trước):** đặc tính X "đi theo transfer khác họ" nếu ρ ≥ 0.5, cận dưới CI > 0, ở ≥ 2/3 target CrossAvg₃ VÀ ρ(X, khác họ) > ρ(X, R101) (điểm). Riêng Swin-L báo cáo tách. Đặc tính đạt → ứng viên can thiệp (thí nghiệm nhân quả riêng, khóa entry mới). Không đặc tính nào đạt → Q1 chưa có đặc tính đo được phía δ; ghi nhận.
+**Caveat khai báo trước:** 17 ô phần lớn cùng loss OSFD, chênh drop giữa ô ~5 điểm ≈ nhiễu dev30 (±5) → lực thấp; KHÔNG dùng làm claim paper, chỉ chọn đặc tính để can thiệp. P1 có thể bão hòa (OSFD E ≈ 0.96 ở n300).
+**Chi phí:** E11 ~10 min GPU (R50 forward) + CPU; E10a ~10–15 min (6 model × 30 ảnh × 2 nguồn × 8 điều kiện + ảnh sạch). Cần tải HF: `runs/dev300_B50_eps5.tar`, `runs/e8_wbosfd_dev30.tar`.
+**Thứ tự:** E10a → E11 (rẻ, forward) → E10b (nặng, chỉ chạy sau khi user xem E10a). Không tune attack nào theo E10 / E11.
+
+### Kết quả E10a (`results/mechanism/e10a_wb_dissect.json`, dev30, log `results/e10/e10a.log`, dets `artifacts/e10/dets.json`; script `scripts/e10a_wb_dissect.py`) — theo quy tắc: **(ii) — Swin-L cũng bị đánh bằng mẫu TẦN CAO khớp nội dung**
+**Sanity:** AP drop Swin-L WB-OSFD 84.6 (E8 84.6), OSFD 27.2 (27.2) — khớp tuyệt đối. sup large WB 0.55 (E8 0.57, trong ±0.05). Lưu ý: sup ở script này = s_adv < 0.3·s_clean (tương đối), E8 dùng s_adv < 0.3 tuyệt đối → OSFD 0.18 vs 0.25 là do định nghĩa, không dùng cho quy tắc.
+**Quy tắc:** F_WB(LP2, lớn, Swin-L) = **0.10 [0.01, 0.18]** ≤ 0.2 → (ii). F_WB − F_OSFD = +0.08 [−0.08, +0.16] (CI chứa 0).
+Sức attack A(ID) nhỏ / vừa / lớn trên Swin-L: WB 0.68 / 0.66 / 0.58; OSFD 0.19 / 0.20 / 0.24.
+F (phần còn lại) trên Swin-L, nhỏ / vừa / lớn: WB LP1 0.40 / 0.38 / 0.49, LP2 0.12 / 0.10 / 0.10, LP4 0.04 / 0.03 / 0.03; OSFD LP1 0.26 / 0.36 / 0.17, LP2 0.08 / 0.09 / 0.02. Phép E7 trong box (object lớn): WB BLUR02 0.05, SHUF3 0.09 — sàn như OSFD.
+**Mô tả thêm:**
+- **δ WB còn TẦN CAO HƠN δ R50:** năng lượng thấp / trung / cao WB 0.338 / 0.344 / 0.319 vs OSFD 0.398 / 0.329 / 0.272 (CI dải thấp WB [0.329, 0.347] vs OSFD [0.382, 0.418], tách rời). Không tập trung vào object (in-box ≈ 1.0 cả hai).
+- Ở MỌI model, LP σ = 1 px đã mất ~½ tác dụng, σ = 2 px còn ≤ 0.20 — cả δ WB lẫn δ R50 đều là mẫu mịn cỡ 1–2 px khớp nội dung; đường suy giảm của δ WB trên Swin-L giống δ R50 trên R50 (LP1 0.49 vs 0.57, LP2 0.10 vs 0.17).
+- **Chuyển giao ngược yếu tương tự:** δ WB-Swin-L đánh R50 / R101 / ConvNeXt / Swin-T / YOLOX ở A 0.29–0.54 (vs 0.58–0.68 trên chính Swin-L); tức Swin-L → CNN cũng "rơi" như R50 → Swin-L.
+**Đọc:** Giả thuyết "δ cần thành phần quy mô lớn / hình dạng để đánh Swin-L" bị BÁC ở phía δ (dev30). E6 (Swin-L nhận object lớn sạch bằng hình dạng) vẫn đứng, nhưng attack hiệu quả KHÔNG cần phá hình dạng — một mẫu tần cao đúng "nội dung" đủ hạ cả object lớn (0.58). Khác biệt WB vs R50 không ở quy mô / phổ / phân bổ không gian mà ở **HƯỚNG / NỘI DUNG mẫu** (khớp E1: gradient R50 ⟂ gradient target). Hệ quả: Q2 chuyển sang phân tích hướng / nội dung (vd tương quan δ WB vs δ R50 theo vùng, thành phần chung của δ WB-Swin-L và δ đa dạng hình học). Method không nên đặt cược vào "δ tần thấp / quy mô object". E10b (ô quy mô thô): kỳ vọng âm vì δ WB tối ưu tự do vẫn chọn tần cao; nhưng E10a chỉ lọc δ có sẵn, không loại trừ δ tối ưu trực tiếp ở lưới thô → chạy hay bỏ: user quyết.
+
+### Kết quả E11 (`results/mechanism/e11_cell_props.json`, `e2_per_image_dev30.json` + `e2_survival_dev30.json`; log `results/e10/e11.log`, `results/e10/e11_e2.log`; script `scripts/e11_cell_props.py`) — theo quy tắc: **P4 ĐẠT (hình thức), P1 / P2 / P3 không**
+Spearman giữa 17 ô [CI bootstrap ảnh, drop cố định], ConvNeXt / Swin-T / YOLOX / Swin-L / R101:
+- P1 (bền hình học thuần, E_surv − E_noise8 trên R50): +0.21 / +0.69 / +0.32 / **+0.60 [0.42, 0.75]** / −0.00 → chỉ Swin-T đạt.
+- P2 (tỉ lệ năng lượng dải thấp của δ): +0.40 / +0.25 / +0.53 / +0.43 / **−0.29** → chỉ YOLOX đạt.
+- P3 (năng lượng trong box / diện tích): không có phương sai (1.004–1.007 ở mọi ô) → vô thông tin.
+- P4 (F_R50(LP2)): **+0.80 / +0.67** / +0.41 / +0.50 / +0.66 → ĐẠT (ConvNeXt, Swin-T), nhưng Swin-T chỉ hơn R101 0.01.
+**Mô tả thêm (KHÔNG thuộc quy tắc, khai báo là phân tích sau):** bỏ 2 ô C2 (khác loss) → 15 ô cùng loss OSFD: P2 +0.65 / +0.61 / +0.61 / **+0.67** / **−0.10**; P4 +0.74 / +0.52 / +0.58 / +0.41 / +0.50; P1 +0.00 / +0.55 / +0.41 / +0.54 / −0.46. Bỏ thêm NOISE / FLIP (13 ô có hình học): P2 +0.47 / +0.40 / +0.43 / +0.50 / −0.26; P4 +0.62 / +0.29 / +0.36 / +0.17 / +0.53.
+**Đọc:** (1) P4 đạt nhưng KHÔNG đặc thù khác họ (đi theo cả R101) và bị kéo bởi 2 ô C2 (P4 0.25 / 0.21 vs 0.10–0.16) → P4 ≈ "độ mạnh chung của δ trên R50". (2) Tín hiệu ĐẶC THÙ khác họ duy nhất là P2 trong các ô cùng loss: tần thấp hơn ↔ transfer khác họ tốt hơn ở cả 4 target, KHÔNG ở R101 — khớp ablation cũ (RRB làm δ tần thấp hơn, D₄ R50 giảm). Kết hợp E10a (δ WB-Swin-L có ÍT tần thấp hơn mà vẫn đánh mạnh): tần thấp KHÔNG phải thứ target cần, mà là DẤU HIỆU δ R50 bớt phần tần cao đặc thù surrogate. (3) Caveat: CI chỉ tính nhiễu ảnh trên đặc tính, không tính nhiễu drop dev30 (±5) → quá hẹp; chênh P2 giữa ô nhỏ (0.34–0.42). Không phải claim.
+
+---
+
+## 2026-10-07 — E12 (Q2, hướng mới sau E10a): NỘI DUNG δ R50 có chung với δ WB-Swin-L không, và đa dạng hình học có kéo gần không? — khóa TRƯỚC khi chạy (CPU, PNG có sẵn, dev30)
+**Lý do:** E10a — khác biệt δ WB vs δ R50 không ở quy mô / phổ / không gian → nằm ở hướng / nội dung. E12 đo trực tiếp: tương đồng giữa δ của 17 ô (R50) và δ WB-OSFD (Swin-L) trên cùng ảnh.
+**Đo (theo ảnh, rồi trung bình ô):** cos(δ_ô, δ_WB) trên toàn ảnh (3 kênh) cho 2 phần: **HP** = δ − G₂ * δ (phần mịn, mang tác dụng theo E10a — CHÍNH) và LP = G₂ * δ (mô tả). Mốc 0: cos(δ_ô(ảnh i), δ_WB(ảnh j ≠ i)) sau resize về cùng kích thước (ước nhiễu nền), mô tả.
+**Quy tắc (khai báo trước):**
+- (a) **"Đa dạng hình học kéo nội dung δ R50 về phía δ WB-Swin-L"** — ỦNG HỘ nếu cos_HP(OSFD) − cos_HP(NOISE) > 0 với CI (bootstrap ảnh, paired) > 0, VÀ cos_HP(OSFD) > cos_HP mốc 0 + 3 lần sd bootstrap của mốc.
+- (b) **"Mức chung nội dung với δ WB giải thích transfer Swin-L giữa ô"** — ỦNG HỘ nếu Spearman(cos_HP ô, drop Swin-L) ≥ 0.5 với cận dưới CI > 0 trên 17 ô, VÀ ρ(Swin-L) > trung bình ρ(ConvNeXt, Swin-T, YOLOX) (điểm) — tức đặc thù Swin-L, không chỉ "δ mạnh chung".
+- (a) ∧ (b) → cơ chế Q2 = đa dạng tăng phần nội dung chung với hướng tấn công của Swin-L; nút thắt = phần chung còn nhỏ. (a) ∧ ¬(b) → đa dạng có kéo gần nhưng không phải thứ quyết định giữa ô. ¬(a) → nội dung δ R50 và δ WB gần trực giao bất kể đa dạng (khớp E1) → Q2 phải tìm ở phía target (cách Swin-L / DINO xử lý δ), không ở phía δ.
+Chi phí: CPU vài phút. Không tune attack nào theo E12.
+
+### Kết quả E12 (`results/mechanism/e12_content_align.json`, log `results/e10/e12.log`, script `scripts/e12_content_align.py`) — theo quy tắc: **(a) ∧ (b)** (b sát ngưỡng)
+cos_HP(δ_ô, δ_WB) trung bình ảnh: OSFD **+0.0256**, PIA-noT +0.0234, PIA +0.0230, các phép cơ bản +0.0206 … +0.0221, C2 +0.0192, C2-PIA +0.0204, FLIP +0.0193, **NOISE +0.0172**; mốc 0 (ảnh lệch) −0.0001 … −0.0007 (sd bootstrap 0.0003). LP: OSFD +0.0399 … NOISE +0.0280.
+- (a) cos_HP(OSFD) − cos_HP(NOISE) = **+0.0084 [0.0066, 0.0101]**; OSFD ≫ mốc 0 + 3 sd → ĐẠT.
+- (b) Spearman(cos_HP ô, drop) ConvNeXt / Swin-T / YOLOX / **Swin-L** / R101: +0.36 / +0.16 / +0.53 / **+0.50 [0.44, 0.70]** / −0.28; Swin-L > TB ba target khác (0.35) → ĐẠT (đúng ngưỡng 0.50). LP (mô tả): +0.66 / +0.46 / +0.51 / **+0.77** / +0.29.
+**Kiểm confound (phân tích sau, mô tả):** cả δ R50 lẫn δ WB đều tương quan ÂM với high-pass của chính ảnh (cos(δ_HP, x_HP): WB −0.026; ô R50 −0.047 … −0.094 — attack làm giảm tương phản cục bộ). Chiếu bỏ thành phần theo ảnh khỏi cả hai δ rồi tính lại: phần chung còn **+0.015 (NOISE) … +0.024 (OSFD)**, Spearman với drop Swin-L **+0.59**, R101 −0.21 → phần chung KHÔNG chỉ là cấu trúc ảnh.
+**Đọc (dev30, mô tả):** δ R50 và δ WB-Swin-L có một thành phần nội dung CHUNG nhỏ nhưng thật (cos ~0.02, ≈ 0.05% năng lượng); đa dạng hình học tăng nó ~50% (NOISE → OSFD) đúng lúc drop Swin-L 14.9 → 27.2; giữa ô, phần chung đi theo transfer khác họ (đặc biệt Swin-L, LP mạnh hơn HP) và KHÔNG theo R101. Câu cơ chế ứng viên (Q1 + Q2): **đa dạng hình học hoạt động bằng cách triệt phần δ đặc thù surrogate (tần cao, không bền qua view) và giữ phần "chung giữa các model"; Swin-L kẹt ~30% vì phần chung này chỉ chiếm phần rất nhỏ của δ** — chứ không phải do Swin-L cần quy mô lớn (E10a). Caveat: n = 30, CI không tính nhiễu drop, (b) đúng ngưỡng; claim cần ≥ dev100 và một can thiệp nhân quả (tăng phần chung → tăng transfer).
+
+---
+
+## 2026-10-07 — User: hoãn E12 @ dev100, làm method luôn (method = phép can thiệp nhân quả cho E12); rà literature + pilot VC @ dev30 — khóa TRƯỚC khi chạy
+**Vì sao PIA / MORGD ≈ OSFD (mô tả, suy từ E12, chưa kiểm riêng):** mọi ô có hình học có phần chung với δ WB trong cụm hẹp cos_HP 0.021–0.026 (NOISE 0.017) → loại biến đổi nào cũng triệt phần đặc thù surrogate gần ngang nhau → đổi loại không tăng phần chung; khớp kết luận cũ "có đa dạng >> loại". MORGD không có PNG → chưa đo.
+**Literature (rà 2026-10-07):** GRA (ICCV 2023) — phạt dao động dấu gradient giữa 2 bước liền kề (≈ mask "ngược momentum" → KHÔNG dùng, trùng); VT (CVPR 2021) — bù phương sai gradient lân cận; PGN / GNP — vùng phẳng; Centralized Perturbation (AAAI 2024) — tối ưu trên hệ số tần số trội; FRA-Attack (2026, MLLM) — lọc thông thấp gradient để bỏ thành phần đặc thù surrogate (≈ S1 của ta, đã ÂM trên detection); LPM (mask patch học được); COGO (ensemble); detection: ICICS 2025 (ensemble feature + giảm phương sai gradient, ensemble + patch — khác threat model). Chưa thấy: đồng thuận dấu giữa các view hình học ĐỘC LẬP tại CÙNG iterate cho detection single-surrogate. Novelty của toán tử đơn lẻ mỏng → đóng góp phải nằm ở cơ chế (E10–E12) + bằng chứng can thiệp.
+**Code:** `core.run_iterative_attack(combine="consensus")` — gộp backward_per_step gradient, chỉ giữ pixel mọi gradient cùng dấu (mặc định "sum" = như cũ); `osfd_attack(vc_k=K)` — K backward / bước, mỗi backward 1 lần rút RRB độc lập, steps = B // K. Ô: `OSFD-K2` / `VC-OSFD` (K = 2, 25 bước, B = 50), `OSFD-K4` / `VC4-OSFD` (K = 4, 12 bước, B = 48). **Unit test (2 ảnh dev30):** OSFD mặc định tái tạo PNG cũ (0% / 1.2% pixel khác — GPU không tất định); backward = 50; tỉ lệ pixel đồng thuận dấu giữa 2 view RRB độc lập **≈ 0.54** (mức ngẫu nhiên 0.5) → gradient từng view gần như toàn đặc thù view (khớp E1); với K = 2 mask giữ nhiều đồng thuận ngẫu nhiên → thêm K = 4 (mức ngẫu nhiên 0.125).
+**Pilot dev30 (mô tả; chỉ quyết định mở rộng dev100):** 4 ô mới + OSFD (PNG có sẵn), eval 6 model, đo cos_HP(δ, δ_WB) như E12.
+**Quy tắc (cho từng K):** GO dev100 nếu ĐỒNG THỜI (1) kiểm tra thao tác: cos_HP(VC_K) > cos_HP(OSFD-K_K) (điểm); (2) VC_K − OSFD-K_K ≥ +2 CrossAvg₃ VÀ ≥ +2 DINO-Swin-L (điểm); (3) CrossAvg₃(VC_K) ≥ OSFD − 1. (1) đạt mà (2) không → bằng chứng CHỐNG "tăng phần chung → tăng transfer" (ghi nhận). Không K nào đạt → NO-GO đồng thuận cứng; không thêm biến thể ngưỡng / K khác mà không khóa entry mới.
+
+### Kết quả pilot VC @ dev30 (`results/mechanism/vc_pilot_dev30.json`, `metrics_vc_dev30.json`, `generalization_vc_dev30.json`, log `results/e10/vc_dev30.log`) — theo quy tắc: **NO-GO cả K = 2 và K = 4** (trượt cả 3 điều kiện)
+Relative AP drop %, R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CrossAvg₃ | cos_HP:
+- OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | +0.0256
+- OSFD-K2 97.3 / 92.7 / 79.8 / 79.1 / 71.1 / 29.6 | 76.6 | +0.0277
+- VC-OSFD 97.1 / 90.3 / 75.8 / 77.3 / 68.7 / 23.0 | 73.9 | +0.0272
+- OSFD-K4 95.9 / 88.2 / 71.9 / 74.9 / 63.6 / 25.7 | 70.2 | +0.0311
+- VC4-OSFD 93.1 / 72.6 / 64.0 / 62.1 / 46.1 / 20.4 | 57.4 | +0.0284
+K = 2: cos 0.0272 < 0.0277 (thao tác trượt); ΔCA3 −2.7, ΔSwin-L −6.5. K = 4: cos 0.0284 < 0.0311; ΔCA3 −12.7, ΔSwin-L −5.3.
+**Đọc:** (1) Đồng thuận dấu cứng KHÔNG tăng phần chung (kiểm tra thao tác trượt) → pilot KHÔNG kiểm được giả thuyết E12, chỉ bác toán tử này. Lý do khả dĩ: gradient 2 view chỉ cùng dấu ~54% pixel → mask xóa ~½ (K = 2) đến phần lớn (K = 4) cập nhật; với bước sign, pixel bị xóa không được cập nhật → δ yếu đi (VC4 white-box R50 chỉ 93.1, R101 tụt 88 → 73) — toán tử phá ngân sách hiệu dụng, không lọc "phần chung". (2) Ít bước hơn (OSFD-K2 / K4: 25 / 12 bước, nhiều view độc lập hơn mỗi bước) làm cos_HP TĂNG (0.0256 → 0.0277 → 0.0311) trong khi CrossAvg₃ GIẢM (78.9 → 76.6 → 70.2) → cos_HP và transfer TÁCH nhau khi đổi số bước (lẫn độ mạnh δ: R50 97.8 → 95.9) — caveat cho E12: cos_HP có thể đo một phần "δ chưa bão hòa", không chỉ "phần chung". Swin-L OSFD-K2 29.6 > OSFD 27.2 (trong nhiễu ±5).
+**Hệ quả:** phần chung KHÔNG có sẵn ở gradient từng bước (khớp E1, đồng thuận ~0.54), nó hình thành qua TÍCH LŨY (momentum × nhiều view × nhiều bước). Không thêm biến thể đồng thuận (mềm / ngưỡng) mà không khóa entry mới; hướng tiếp: user quyết.
+
+---
+
+## 2026-10-07 — E12c (user chọn A): cos_HP của E12 đo "phần chung" hay chỉ độ mạnh / bão hòa của δ? — khóa TRƯỚC khi chạy (dev30)
+**Lý do:** pilot VC — ít bước hơn (OSFD-K2 / K4) làm cos_HP tăng mà transfer giảm. Nếu cos_HP lẫn với mức bão hòa / số bước, kết luận E12 (a)(b) không đứng.
+**(i) Giữa ô (CPU, PNG có sẵn, 21 ô = 17 ô E12 + OSFD-K2 / VC-OSFD / OSFD-K4 / VC4-OSFD):** sat = tỉ lệ pixel |δ| = ε (= 5 trên PNG uint8); cos_HP như E12; **cos_sgn** = cos(HP(sign δ_ô), HP(δ_WB)) — bỏ thông tin biên độ của δ_ô. Báo cáo Spearman(sat, cos_HP) trên 21 ô. **Tương quan riêng** trên 17 ô E12: phần dư của cos_HP sau hồi quy tuyến tính theo sat (giữa ô) ↔ drop Swin-L và CrossAvg₃ (Spearman).
+**(ii) Quỹ đạo OSFD (GPU ~10 min):** 1 lần chạy OSFD B = 50 trên dev30 (seed như run_baselines), lưu snapshot δ sau b ∈ {10, 20, 30, 40, 50} backward (`on_step`, noise sau k step = kết quả chạy steps = k); mỗi snapshot: cos_HP, sat, AP drop 6 model (inference_detector).
+**Quy tắc:** cos_HP được GIỮ làm thước đo phần chung nếu ĐỒNG THỜI (a) tương quan riêng (| sat) với drop Swin-L ≥ 0.4 trên 17 ô, VÀ (b) trên quỹ đạo, cos_HP không giảm khi CrossAvg₃ tăng (Spearman(cos_HP, CA3) theo 5 snapshot ≥ 0). cos_HP bị LOẠI nếu (a) < 0.2 VÀ (b) < 0 → kết luận E12 (a)(b) vô hiệu, ghi lại. Còn lại → xám. Mô tả: cos_sgn cùng các phân tích.
+
+### Kết quả E12c (`results/mechanism/e12c_measure_check.json`, log `results/e10/e12c.log`, snapshot `artifacts/e12c/b{10..50}/`, script `scripts/e12c_measure_check.py`) — theo quy tắc: **GIỮ cos_HP** ((b) đúng biên 0)
+**(i) Giữa ô:** ρ(sat, cos_HP) 21 ô = −0.43 (ô ít bão hòa — K2 / K4 / VC — có cos cao hơn: có lẫn). Tương quan riêng cos_HP | sat trên 17 ô E12: Swin-L **+0.53**, CA3 +0.54, R101 −0.27 → giữ nguyên sau khi trừ bão hòa. cos_sgn (bỏ biên độ δ_ô) cho cùng kết quả (Swin-L +0.51, CA3 +0.54, R101 −0.26) và gần trùng cos_HP ở mọi ô (0.0169–0.0289).
+**(ii) Quỹ đạo OSFD (dev30), b | sat | cos_HP | drop R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3:**
+10 | 0.68 | 0.0247 | 88.5 / 73.2 / 53.3 / 49.0 / 35.1 / 18.5 | 45.8; 20 | 0.81 | 0.0260 | 95.0 / 88.9 / 71.2 / 72.3 / 62.1 / **27.6** | 68.5; 30 | 0.86 | 0.0260 | … / 27.8 | 75.7; 40 | 0.89 | 0.0258 | … / 24.1 | 77.2; 50 | 0.90 | 0.0255 | 97.8 / 93.6 / 83.1 / 77.6 / 75.7 / 26.2 | 78.8. ρ(cos_HP, CA3) = 0.00.
+**Đọc:** (1) cos_HP KHÔNG chỉ là bão hòa: giữa method, phần chung (đã trừ bão hòa) vẫn đi theo transfer khác họ, không theo R101. (2) TRONG một method, phần chung được xác lập SỚM (b = 10 đã 0.0247) rồi phẳng; transfer CNN tăng tiếp theo b nhờ biên độ / bão hòa (sat 0.68 → 0.90). (3) **Swin-L bão hòa sớm ~b = 20 (27.6) rồi đứng / dao động (24–28)** trong khi CNN target còn tăng → mô hình làm việc: transfer ≈ (độ mạnh δ) × (tỉ lệ phần chung); CNN khác họ còn hưởng thêm độ mạnh, Swin-L bị chặn bởi tỉ lệ phần chung (~0.026) → giải thích "kẹt ~30%". (4) Hệ quả cho VC: K2 / K4 có tỉ lệ chung cao hơn nhưng yếu (sat 0.74–0.86) → transfer thấp; method phải tăng tỉ lệ phần chung MÀ KHÔNG giảm độ mạnh (giữ đủ bước / bão hòa). Caveat: dev30, (b) đúng biên, CI chưa tính.
+
+---
+
+## 2026-10-07 — User: hướng 1 (method mới, mục tiêu SOTA). Pilot V @ dev30: tăng số view độc lập / backward, GIỮ 50 bước — khóa TRƯỚC khi chạy
+**Lý do (từ E12c + VC):** tỉ lệ phần chung tăng khi gộp nhiều view độc lập mỗi bước (K2 / K4) nhưng K2 / K4 mất bước → δ yếu. Protocol: B = số backward, gộp view trong 1 backward = 1 (protocol_lock.md) → tăng view / backward giữ B = 50 và giữ 50 bước. Kỳ vọng (hồi quy giữa ô E12c, ngoại suy): +1.5 Swin-L / +1.4 CA3 mỗi +0.001 cos_HP. **Đây là phép thử giả thuyết + mức trần, CHƯA phải method có novelty** (nhiều bản sao augmentation ≈ SIA / BSR / PIA-N); nếu đạt → thiết kế cách đạt cùng hiệu ứng có novelty / rẻ hơn (khóa entry mới). Báo kèm view forward / runtime.
+**Ô:** `OSFD-V4` (2 lần rút RRB độc lập = 4 view / backward), `OSFD-V8` (4 lần = 8 view), 50 bước, còn lại = OSFD. Mặc định rrb_draws = 1 trùng OSFD.
+**Quy tắc (từng ô, dev30, mô tả; chỉ quyết định mở rộng dev100):** GO dev100 nếu ĐỒNG THỜI (1) thao tác: cos_HP > OSFD (0.0256) VÀ sat ≥ 0.88; (2) CA3 ≥ OSFD + 2 VÀ Swin-L ≥ OSFD + 2 (điểm). (1) đạt mà (2) không → bằng chứng CHỐNG "tăng phần chung khi giữ độ mạnh → tăng transfer". (1) không đạt → thao tác thất bại, không kết luận cơ chế.
+
+### Kết quả pilot V @ dev30 (`results/mechanism/v_pilot_dev30.json`, `metrics_v_dev30.json`, `generalization_v_dev30.json`, log `results/e10/v_dev30.log`) — theo quy tắc: **không GO** (cả hai: (1) đạt, (2) trượt ở Swin-L)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | cos_HP | sat | runtime: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 0.0256 | 0.901 | ~3.1 s; **V4 98.6 / 92.9 / 85.9 / 81.3 / 78.6 / 28.9 | 81.9** | 0.0260 | 0.911 | ~6 s; **V8 98.2 / 94.6 / 85.2 / 81.6 / 79.4 / 24.2 | 82.1** | 0.0262 | 0.917 | 12.6 s.
+**Đọc:** (1) Giữ 50 bước, gộp thêm view: phần chung tăng RẤT ÍT (+0.0004 / +0.0006, hồi quy dự đoán +0.6 / +0.9 Swin-L) → phần cos cao của K2 / K4 chủ yếu đến từ ÍT BƯỚC (δ chưa bão hòa), không từ nhiều view — caveat E12c xác nhận lại; momentum qua 50 bước đã trung bình view gần đủ. (2) CNN khác họ tăng ~+3 CA3 (ConvNeXt +2.6, Swin-T +3.5, YOLOX +3.0 … +3.8; trong nhiễu dev30 ±5), Swin-L không đổi (+1.7 / −3.1). (3) Hệ quả: với surrogate R50, tỉ lệ phần chung với Swin-L dường như có TRẦN ~0.026 mà đa dạng / số view không vượt được → Swin-L có thể là giới hạn của single-surrogate R50 ở ε = 5. V4 là ứng viên plug-in rẻ cho CA3 (novelty yếu: nhiều bản sao augmentation).
+
+---
+
+## 2026-10-07 — Kiểm "PHA LƯỚI" (user: mục 1 — vì sao RRB / PIA / MORGD ≈ nhau): chỉ tịnh tiến, bội stride vs lẻ — khóa TRƯỚC khi chạy (dev30)
+**User:** tạm dừng mục 2 (dùng cos_HP / E12 để dự đoán transfer Swin-L — thấy không hợp lý).
+**Giả thuyết:** phần δ đặc thù surrogate gắn với LƯỚI lấy mẫu của R50 (stride / aliasing / vị trí pixel); view hình học làm lệch pha lưới khác nhau mỗi view → gradient (warp ngược về khung gốc) của phần gắn lưới triệt tiêu qua momentum, phần gắn nội dung cộng dồn. Mọi phép làm lệch pha lưới đều triệt ngang nhau → loại / biên độ ít quan trọng (khớp: ablation "có >> loại", PIA-noT, ROT30 ≯ ROT15, FLIP — giữ lưới — nằm giữa NOISE và hình học, E10a mẫu 1–2 px).
+**Ô (khung `geo_osfd_attack(geo="elem")`, như NOISE / ROT: loss feature OSFD k = 3, MI, 2 view / backward, σ = 6, feature sạch co-transform, B = 50, ε = 5):** chỉ tịnh tiến (tx, ty) rút độc lập mỗi trục, khung model, lấp 0:
+- `SH32`: tx, ty ∈ {−64, −32, 0, 32, 64} — GIỮ pha lưới mọi stride ≤ 32 (|t| TB 38.4 px);
+- `SHODD`: số nguyên trong [−64, 64] KHÔNG chia hết 32 — lệch pha (|t| TB ~33 px);
+- `SHSUB`: U(−1, 1) px, bilinear — lệch pha dưới 1 px (mô tả; lẫn: nội suy bilinear làm mờ nhẹ).
+Mốc: NOISE (không hình học), OSFD, ROT15 (PNG dev30 có sẵn, eval lại cùng lần). Unit test: warp dịch nguyên == dịch chính xác (sai số ≤ 0.002).
+**Quy tắc (dev30, CA3 = TB ConvNeXt / Swin-T / YOLOX):** giả thuyết pha lưới ỦNG HỘ nếu ĐỒNG THỜI (1) CA3(SHODD) − CA3(SH32) ≥ 5; (2) SH32 gần NOISE hơn: CA3(SH32) − CA3(NOISE) ≤ ½·[CA3(SHODD) − CA3(NOISE)]; (3) CA3(SHODD) ≥ CA3(ROT15) − 3. BÁC nếu CA3(SH32) ≥ CA3(SHODD) − 2 (dịch bội stride hiệu quả ngang dịch lẻ → pha lưới không phải cơ chế). Còn lại → xám. Swin-L, R101, SHSUB: mô tả.
+
+### Kết quả kiểm "pha lưới" @ dev30 (`metrics_grid_dev30.json`, `generalization_grid_dev30.json`, log `results/e10/grid_dev30.log`) — theo quy tắc: **ỦNG HỘ** (cả 3 điều kiện)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: NOISE 98.7 / 89.8 / 67.2 / 68.4 / 57.4 / 14.9 | 64.3; **SH32 98.7 / 92.3 / 69.2 / 71.8 / 65.7 / 16.4 | 68.9**; **SHODD 97.5 / 91.8 / 80.0 / 81.5 / 76.0 / 22.3 | 79.2**; SHSUB 98.7 / 91.2 / 74.5 / 72.7 / 64.1 / 17.3 | 70.4; ROT15 97.0 / 91.2 / 79.6 / 81.7 / 76.9 / 23.7 | 79.4; OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9.
+(1) SHODD − SH32 = **+10.3** ≥ 5; (2) SH32 − NOISE = +4.6 ≤ ½ · 14.9; (3) SHODD 79.2 ≥ ROT15 − 3. Swin-L cùng chiều (SHODD 22.3 vs SH32 16.4 vs NOISE 14.9).
+**Đọc (dev30, mô tả):** (1) CHỈ tịnh tiến nguyên pixel lệch pha lưới (SHODD) đạt TRỌN lợi ích đa dạng hình học (CA3 ≈ ROT15 ≈ OSFD) — không cần xoay / co giãn / phối cảnh. (2) Cùng biên độ nhưng giữ pha lưới (bội 32) gần như mất hết (68.9 ≈ NOISE 64.3) → lợi ích KHÔNG đến từ "nội dung dời chỗ" mà từ LỆCH PHA LƯỚI lấy mẫu của surrogate. Phần dư +4.6 của SH32 khả dĩ do stride 64 (P6 của RPN) vẫn bị lệch pha khi dịch 32. (3) Lệch dưới 1 px (SHSUB) chỉ giúp ít (70.4) → lưới quyết định là lưới THÔ (stride vài px trở lên), không phải lưới pixel. (4) R101 (cùng lưới stride với R50) ~không đổi giữa các ô (89.8–92.3) → phần δ gắn lưới vẫn chuyển sang model CÙNG họ / cùng lưới; khớp gap cùng họ > khác họ (RQ1). **Giải thích RRB ≈ PIA ≈ MORGD ≈ phép cơ bản:** mọi phép hình học liên tục đều làm lệch pha lưới gần như ngẫu nhiên ở mọi stride → triệt phần đặc thù lưới ngang nhau; loại và biên độ (sau ngưỡng) không quan trọng.
+**Việc mở:** (a) tìm stride quyết định: dịch bội 4 / 8 / 16 (giữ pha cho stride ≤ k); (b) xác nhận dev100; (c) hệ quả method: lấy mẫu pha có chủ đích (vd phủ đều các pha mod 32) thay cho augmentation ngẫu nhiên — khóa entry riêng.
+
+---
+
+## 2026-10-07 — TẠM DỪNG (user, mai tiếp): tổng kết phiên + việc mở
+
+**Câu hỏi user chốt (entry "Định hướng lại" 2026-10-07):** Q1 đa dạng hình học giúp transfer nhờ đặc tính nào; Q2 vì sao DINO-Swin-L kẹt ~30% dù white-box 84.6%; Q3 method SOTA + novelty.
+**Kết quả phiên (chi tiết ở các entry phía trên, đều dev30, mô tả):**
+1. **E10a:** δ white-box Swin-L cũng là mẫu TẦN CAO khớp nội dung (còn tần cao hơn δ R50) → giả thuyết "Swin-L cần δ quy mô lớn / hình dạng" BỊ BÁC. E10b (ô lưới thô) bỏ.
+2. **E11:** đặc tính phía δ: P4 đạt hình thức nhưng không đặc thù khác họ; P2 (tần thấp) chỉ là dấu hiệu, không phải thứ target cần.
+3. **E12 / E12c:** δ R50 và δ WB-Swin-L có phần chung nhỏ (cos ~0.02); đa dạng tăng nó NOISE → OSFD; phần chung xác lập sớm (b = 10), Swin-L bão hòa ~b = 20. **User tạm dừng hướng dùng cos_HP để nhận định / dự đoán transfer Swin-L (không hợp lý)** — chỉ giữ như mô tả.
+4. **Pilot VC (đồng thuận dấu giữa view):** NO-GO — làm δ yếu; gradient 2 view RRB độc lập chỉ cùng dấu ~54% pixel.
+5. **Pilot V (V4 / V8: nhiều lần rút RRB / backward, 50 bước):** CA3 +3.1 / +3.2, Swin-L không đổi → không GO; = nhiều bản sao augmentation, KHÔNG novelty, tăng compute thật (2× / 4×) → nếu dùng phải có đối chứng cùng compute.
+6. **Kiểm "PHA LƯỚI" — ỦNG HỘ (trả lời Q1):** chỉ tịnh tiến lẻ pixel (SHODD) đạt trọn lợi ích đa dạng (CA3 79.2 ≈ ROT15 79.4 ≈ OSFD 78.9); tịnh tiến bội 32 cùng biên độ (SH32) ≈ NOISE (68.9 vs 64.3); dưới 1 px chỉ 70.4; R101 không đổi. → Đa dạng hình học hoạt động bằng LỆCH PHA LƯỚI STRIDE của surrogate, triệt phần δ gắn lưới R50; mọi phép hình học liên tục đều lệch pha ngẫu nhiên → RRB ≈ PIA ≈ MORGD ≈ phép cơ bản.
+
+**Việc mở cho phiên sau (user chọn thứ tự):**
+- (a) **Stride quyết định:** ô dịch bội 4 / 8 / 16 px (giữ pha cho stride ≤ k), cùng khung `geo="elem"` (`shift_offset` trong `attack/methods/elem.py` — thêm mode). ~15 phút dev30. Khóa quy tắc trước.
+- (b) **Xác nhận SH32 vs SHODD @ dev100** (+ NOISE, OSFD, ROT15). Sinh 70 ảnh / ô dev100 \ dev30 (~4.8 s/ảnh/ô) + eval. OSFD dev100 đã có ~27 ảnh từ lần đo bộ nhớ (resume được).
+- (c) **Method từ cơ chế pha lưới** (hướng novelty cho Q3): lấy mẫu pha có chủ đích (vd phủ đều residue mod 32 / stratified) thay augmentation ngẫu nhiên; ghép với C2 (loss cls). Rà literature "grid / aliasing / stride phase" trong transfer attack TRƯỚC khi khóa.
+- Nợ cũ: GO @ n300 cho C2 (110 / 300); Q2 (Swin-L) chưa có cơ chế đứng được sau khi dừng hướng cos_HP.
+
+**Code mới phiên này (mặc định giữ nguyên hành vi cũ — OSFD tái tạo PNG cũ, đã kiểm):** `core.run_iterative_attack(combine=)`; `osfd_attack(vc_k=, combine=, rrb_draws=)`; `elem.shift_offset` + spec `{"shift": s32|odd|sub}`; ô `OSFD-K2/K4`, `VC-OSFD`, `VC4-OSFD`, `OSFD-V4/V8`, `SH32/SHODD/SHSUB` trong `scripts/run_baselines.py`. Script: `scripts/e10a_wb_dissect.py`, `e11_cell_props.py`, `e12_content_align.py`, `e12c_measure_check.py`, `vc_pilot_check.py` (`--pilot vc|v`).
+**Kết quả:** `results/mechanism/{e10a_wb_dissect, e11_cell_props, e2_*_dev30, e12_content_align, e12c_measure_check, vc_pilot_dev30, v_pilot_dev30}.json`; `results/runs/dev300_B50_eps5/{metrics,generalization}_{vc,v,grid}_dev30.json`; log `results/e10/`.
+**Artifact:** HF `runs/dev300_B50_eps5.tar` ĐÃ upload 2026-10-07 (576 MB, sha256 cada93d5…18ba49; GHI ĐÈ bản 08f5e429… — tập cha: PNG dev30 của mọi ô cũ + 10 ô mới OSFD-K2/K4, VC-OSFD, VC4-OSFD, OSFD-V4/V8, SH32/SHODD/SHSUB + ~27 ảnh OSFD dev100 + dets_{vc,v,grid}_dev30). KHÔNG upload (sinh lại được vài phút bằng script): `artifacts/e10/` (dets E10a), `artifacts/e11/`, `artifacts/e12c/` (snapshot quỹ đạo). Máy mới: `sync_artifacts.py download dev300_B50_eps5` + `download e8_wbosfd_dev30`.
+**Git:** repo ở `transfer-attack-final/` (lúc đầu phiên kiểm nhầm `/workspace` → tưởng không có git); commit + push cuối phiên.
+**Không có tiến trình nào đang chạy.**

@@ -52,6 +52,15 @@ METHODS = {
     "MI-FGSM": (mi_fgsm_attack, 1),
     "M-DI2-FGSM": (di_fgsm_attack, 1),
     "OSFD": (osfd_attack, 2),  # RRB: 2 view / 1 backward (protocol_lock.md, đơn vị B)
+    # Pilot VC (progress_log 2026-10-07): 2 backward / step (RRB độc lập), 25 bước, B = 50 giữ nguyên.
+    "OSFD-K2": (functools.partial(osfd_attack, vc_k=2, combine="sum"), 2),
+    "VC-OSFD": (functools.partial(osfd_attack, vc_k=2, combine="consensus"), 2),
+    # K = 4: 12 bước × 4 backward = 48 (≤ B, bất lợi nhẹ cho ô mới).
+    # Pilot V (progress_log 2026-10-07): r lần rút RRB độc lập gộp trong 1 backward, 50 bước (B = 50), view forward = 2r/bước.
+    "OSFD-V4": (functools.partial(osfd_attack, rrb_draws=2), 4),
+    "OSFD-V8": (functools.partial(osfd_attack, rrb_draws=4), 8),
+    "OSFD-K4": (functools.partial(osfd_attack, vc_k=4, combine="sum"), 2),
+    "VC4-OSFD": (functools.partial(osfd_attack, vc_k=4, combine="consensus"), 2),
     # Pilot A′1 (progress_log 2026-09-24) — không thuộc baseline table, chỉ chạy khi chỉ định.
     "OSFD-W1": (functools.partial(osfd_attack, spatial_weight="box"), 2),
     "OSFD-W2": (functools.partial(osfd_attack, spatial_weight="box_ring"), 2),
@@ -144,7 +153,9 @@ METHODS.update({
 # Quét liều phép biến đổi cơ bản quanh tâm (progress_log 2026-10-05): xoay (độ), trượt k, ln k lệch tỉ lệ, ln s co giãn.
 ELEM_CELLS = {"ROT7": {"rot": 7.0}, "ROT15": {"rot": 15.0}, "ROT30": {"rot": 30.0},
               "SHR15": {"shear": 0.15}, "SHR30": {"shear": 0.30},
-              "ANI10": {"aniso": 0.10}, "ANI25": {"aniso": 0.25}, "SCL25": {"scale": 0.25}}
+              "ANI10": {"aniso": 0.10}, "ANI25": {"aniso": 0.25}, "SCL25": {"scale": 0.25},
+              # Kiểm "pha lưới" (progress_log 2026-10-07): chỉ tịnh tiến, bội 32 | lẻ | dưới 1 px.
+              "SH32": {"shift": "s32"}, "SHODD": {"shift": "odd"}, "SHSUB": {"shift": "sub"}}
 METHODS.update({c: (functools.partial(geo_osfd_attack, geo="elem", elem=s), 2) for c, s in ELEM_CELLS.items()})
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
