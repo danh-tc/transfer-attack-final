@@ -2594,3 +2594,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.
 - RaPA01 − CLS-OCT: CA3 +2.2 (≥ 2), YOLOX +2.7, Swin-L +1.7 → "RaPA giúp" (sát ngưỡng, dev30 nhiễu ±5). RaPA05: CA3 −3.9 (ConvNeXt / Swin-T −9) → p = 0.05 quá mạnh, như lần trước.
 - SOTA: RaPA01 81.6 < max(OCT, C2-OCT-fast) + 2 = 85.6 → không GO. Swin-L 32.5 cao nhất các ô OCT (trong nhiễu).
 **Đọc:** đặt RaPA đúng setting (loss phân loại) đổi dấu hiệu quả so với lần ghép loss feature (−25 → +2.2 ở p nhỏ); nhưng loss cls thuần vẫn thiếu YOLOX nên tổng thể chưa vượt OCT / C2-OCT. Ứng viên tiếp: C2-OCT (feature + cls) + RaPA01 chỉ trên đường phân loại — khóa entry mới nếu user muốn.
+
+---
+
+## 2026-10-08 — Định vị lợi ích RaPA: chỉ backbone vs chỉ RoI head (p = 0.01, loss cls + OCT) @ dev30 — khóa TRƯỚC khi chạy
+**Lý do (user, hướng novelty CLS-OCT-RaPA):** nếu lợi nằm ở RoI head → câu chuyện "loss cls làm δ overfit head phân loại surrogate" (khớp YOLOX tụt khi thêm cls) → ngẫu nhiên hóa có chủ đích đúng chỗ overfit, thay RaPA đồng đều.
+**Ô:** `CLS-OCT-RaPA01-BB` (chỉ 53 BN backbone, 53 120 tham số) | `CLS-OCT-RaPA01-HEAD` (chỉ shared_fcs + fc_cls, 13.98 M) — còn lại = CLS-OCT-RaPA01 (`rapa_scope`). Smoke: L∞ = 3, mask 0.0099 / 0.0100.
+**Mốc (PNG dev30 có sẵn):** CLS-OCT-fast (không RaPA, 79.4), CLS-OCT-RaPA01 (cả hai, 81.6), OCT, C2-OCT-fast.
+**Quy tắc (dev30, CA3; lực thấp — hiệu ứng gốc chỉ +2.2):** chỗ X "mang lợi" nếu CA3(X) ≥ CA3(RaPA01 cả hai) − 1; "không mang" nếu CA3(X) ≤ CA3(CLS-OCT-fast) + 1. **HEAD** nếu HEAD mang VÀ BB không; **BACKBONE** nếu ngược lại; còn lại xám (cả hai / không rõ). Mô tả YOLOX, Swin-L.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods CLS-OCT-fast CLS-OCT-RaPA01 CLS-OCT-RaPA01-BB CLS-OCT-RaPA01-HEAD --out metrics_rapaloc_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods CLS-OCT-fast CLS-OCT-RaPA01 CLS-OCT-RaPA01-BB CLS-OCT-RaPA01-HEAD --dets dets_rapaloc_dev30.json --out generalization_rapaloc_dev30.json
+```
