@@ -2239,3 +2239,23 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: NOISE 98.7 / 89.8 / 67.2 
 **Artifact:** HF `runs/dev300_B50_eps5.tar` ĐÃ upload 2026-10-07 (576 MB, sha256 cada93d5…18ba49; GHI ĐÈ bản 08f5e429… — tập cha: PNG dev30 của mọi ô cũ + 10 ô mới OSFD-K2/K4, VC-OSFD, VC4-OSFD, OSFD-V4/V8, SH32/SHODD/SHSUB + ~27 ảnh OSFD dev100 + dets_{vc,v,grid}_dev30). KHÔNG upload (sinh lại được vài phút bằng script): `artifacts/e10/` (dets E10a), `artifacts/e11/`, `artifacts/e12c/` (snapshot quỹ đạo). Máy mới: `sync_artifacts.py download dev300_B50_eps5` + `download e8_wbosfd_dev30`.
 **Git:** repo ở `transfer-attack-final/` (lúc đầu phiên kiểm nhầm `/workspace` → tưởng không có git); commit + push cuối phiên.
 **Không có tiến trình nào đang chạy.**
+
+---
+
+## 2026-10-08 — (a) Stride quyết định của "pha lưới": tịnh tiến bội 4 / 8 / 16 px — khóa TRƯỚC khi chạy (dev30)
+**Lý do:** kiểm pha lưới (2026-10-07) ỦNG HỘ: SHODD (79.2) ≫ SH32 (68.9) ≈ NOISE (64.3). Chưa biết phần δ gắn lưới thuộc stride nào của R50 (C2–C5: 4 / 8 / 16 / 32; P6 của RPN: 64) → quyết định thiết kế method lấy mẫu pha (việc mở c).
+**Ô (khung y hệt SH32 / SHODD: `geo="elem"`, loss feature OSFD k = 3, MI, 2 view / backward, σ = 6, feature sạch co-transform, B = 50, ε = 5):** `SHk`, k ∈ {4, 8, 16}: tx, ty rút độc lập, đều trên các bội của k trong [−64, 64] (gồm 0) — GIỮ pha mọi stride là ước của k, LỆCH pha stride > k. |t| TB (đo 200k mẫu): SH4 32.9, SH8 33.8, SH16 35.5 (SH32 38.3, SHODD 32.1) — biên độ ngang nhau. Code: `elem.shift_offset` mode `s4 / s8 / s16` (tổng quát `s32`; `s32` trùng tuyệt đối bản cũ kể cả RNG — đã kiểm 1000 mẫu).
+**Mốc:** SINH LẠI SH32 và SHODD cùng lần (PNG cũ không có trên máy này, rẻ ~2.5 min / ô) → so cặp cùng lần. Sanity: CA3 sinh lại lệch số đã commit (SH32 68.9, SHODD 79.2) > 3 → ghi chú (GPU không tất định); quy tắc vẫn dùng bản sinh lại.
+**Chỉ số:** CA3 = TB drop ConvNeXt-T / Swin-T / YOLOX-S. f(k) = [CA3(SHk) − CA3(SH32)] / [CA3(SHODD) − CA3(SH32)] = phần lợi ích còn giữ khi CHỈ lệch pha các stride > k.
+**Quy tắc (mô tả, dev30; chỉ để chọn thiết kế cho (b) / (c), không claim):**
+- Hợp lệ: CA3(SHODD) − CA3(SH32) ≥ 5 (tái lập kết quả 2026-10-07). Không đạt → không đọc stride, ghi nhận "không tái lập".
+- **Stride quyết định k\*** = k nhỏ nhất ∈ {4, 8, 16} có f(k) < 0.5; không có → k\* = 32 (riêng lệch pha stride 32 / 64 gánh phần lớn lợi ích — C5 / P6). Diễn giải: giữ pha tới stride k\* làm mất phần lớn lợi ích → lệch pha ở stride k\* là cần. k\* = 4 → gắn lưới nông (stem / C2).
+- **Xám** nếu không đơn điệu rõ: có k < k′ với f(k′) − f(k) > 0.3 → báo "không đơn điệu, trong nhiễu", không chốt k\*.
+- Mô tả kèm: Swin-L, R101, CI bootstrap cặp (SHk − SH32) trên CA3 thành phần.
+**Caveat khai báo trước:** khoảng SHODD − SH32 chỉ ~10 điểm CA3, nhiễu dev30 → f có sai số lớn (cỡ ±0.3).
+**Chi phí:** 5 ô × 30 ảnh × ~4.9 s ≈ 12 min + eval Controlled + YOLOX-S / DINO-Swin-L ~10 min. Không cần HF (mốc sinh lại).
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods SH32 SHODD SH4 SH8 SH16 --out metrics_stride_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods SH32 SHODD SH4 SH8 SH16 --dets dets_stride_dev30.json --out generalization_stride_dev30.json
+```
