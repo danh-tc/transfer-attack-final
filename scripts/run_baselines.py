@@ -187,7 +187,12 @@ METHODS["RPN-OCT-fast"] = (functools.partial(geo_osfd_attack, geo="elem", elem={
 # Đa dạng VƯỢT MỨC FPN theo object (progress_log 2026-10-08), cùng tối ưu fast.
 METHODS["C2-LVX-fast"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"lvx": 1.0, "shift": "ph8"}, cls_weight=4.0,
                                             skip_mask=True, amp=True), 2)
-ELEM_CELLS_C2 = {"C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
+# Dịch + xoay; OCT thuần loss feature (progress_log 2026-10-08).
+METHODS["PH8R"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"rot": 15.0, "shift": "ph8"}), 2)
+METHODS["OCT"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}), 2)
+METHODS["C2-OCTR-fast"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"rot": 15.0, "scale": _OCT, "shift": "ph8"},
+                                             cls_weight=4.0, skip_mask=True, amp=True), 2)
+ELEM_CELLS_C2 = {"PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
                "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS",
@@ -374,7 +379,7 @@ def stage_eval(args, dataset, models, adv_dir, stats, run_dir, art_dir, device):
 
     out = {
         "run": os.path.basename(run_dir), "split": args.split, "n_images": n,
-        "budget_B": args.budget, "epsilon_255": args.epsilon, "surrogate": SURROGATE_KEY,
+        "budget_B": args.budget, "epsilon_255": args.epsilon, "surrogate": args.surrogate,
         "targets": {"same_family": SAME_FAMILY, "cross_cnn": CROSS_CNN, "cnn_to_transformer": CROSS_TR},
         "eval": "PNG uint8 cỡ gốc -> Resize test pipeline; bbox, area=all, maxDets=100",
         "bootstrap": {"n_boot": args.n_boot, "seed": BOOT_SEED, "unit": "image, paired across conditions/models",
@@ -419,9 +424,12 @@ def main():
     p.add_argument("--subset", default=None,
                    help="chỉ chạy các ảnh của data/image_lists/<subset>.csv bên trong split (vd dev100 trong "
                         "dev300); seed vẫn theo chỉ số trong split -> nối thêm ảnh sau không phải chạy lại")
+    p.add_argument("--surrogate", default=SURROGATE_KEY, choices=list(CONTROLLED_PANEL),
+                   help="kiểm tổng quát surrogate (progress_log 2026-10-08); khác r50 -> run riêng *_sur-<key>")
     args = p.parse_args()
 
-    run = f"{args.split}_B{args.budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
+    run = (f"{args.split}_B{args.budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
+           + (f"_sur-{args.surrogate}" if args.surrogate != SURROGATE_KEY else ""))
     run_dir = os.path.join(REPO_ROOT, "results/runs", run)
     art_dir = os.path.join(REPO_ROOT, "artifacts/runs", run)
     adv_dir = os.path.join(art_dir, "adv")
@@ -445,12 +453,12 @@ def main():
     print(f"[run] {run}: {len(dataset)} ảnh{' (subset ' + args.subset + ')' if args.subset else ''}, "
           f"methods={args.methods}", flush=True)
 
-    surrogate = load_model(SURROGATE_KEY, device)
+    surrogate = load_model(args.surrogate, device)
     stats = load_stats(stats_path)
     if args.stage in ("all", "attack"):
         stats = stage_attack(args, dataset, surrogate, adv_dir, stats_path, device)
     if args.stage in ("all", "eval"):
-        models = {k: surrogate if k == SURROGATE_KEY else load_model(k, device) for k in CONTROLLED_PANEL}
+        models = {k: surrogate if k == args.surrogate else load_model(k, device) for k in CONTROLLED_PANEL}
         stage_eval(args, dataset, models, adv_dir, stats, run_dir, art_dir, device)
 
 

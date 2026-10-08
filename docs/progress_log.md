@@ -2553,3 +2553,18 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3; C2-PIA 99.4 / 94.8 / 83.1 / 88.0 / 80.4 / 29.3 | 83.8; **C2-LVX-fast 92.1 / 88.0 / 80.8 / 79.3 / 81.6 / 24.5 | 80.5**.
 ΔCA3 −2.7 so C2-OCT-fast. White-box R50 tụt 99.5 → 92.1, R101 94.7 → 88.0 → δ YẾU đi (co giãn lớn TB 0.71 octave làm loãng gradient); riêng YOLOX +4.2.
 **Đọc:** đẩy object qua ranh giới mức FPN có chủ đích không giúp; OCT chỉ đổi mức 13% view mà đã đủ → thành phần khóa kích thước KHÔNG phải "khóa theo mức FPN của RoI" (hoặc lợi ích bị lấn bởi δ yếu đi). Bỏ hướng LVX.
+
+---
+
+## 2026-10-08 — Dịch + XOAY (PH8R, C2-OCTR-fast) và OCT thuần loss feature vs OSFD @ dev30 — khóa TRƯỚC khi chạy
+**Câu hỏi (user):** (1) xoay có thêm gì khi đã có dịch phủ pha? (2) OCT (co giãn 1 octave + dịch 0–7 px) với loss feature thuần có ngang OSFD?
+**Ô (khung `geo="elem"`):** `PH8R` = loss feature, xoay U(±15°) quanh tâm ∘ dịch PH8; `OCT` = loss feature, co giãn ln s ~ U(±ln2/2) ∘ PH8; `C2-OCTR-fast` = C2-OCT-fast + xoay U(±15°). Hợp thành H = Lin(rot · scale) · Shift (unit test đạt); smoke 3 bước L∞ = 3. Kèm tùy chọn `--surrogate` của run_baselines (chưa dùng; mặc định r50, không đổi hành vi).
+**Mốc (PNG dev30 có sẵn, eval lại):** OSFD, PH8, ROT15, C2-OCT-fast.
+**Quy tắc (dev30, chỉ số gộp CA3; YOLOX / Swin-L không tụt quá 2):**
+- Xoay thêm vào dịch (loss feature): PH8R − PH8 ≥ 2 → "xoay có thêm"; ≤ 0.5 → "không thêm"; giữa xám. Tương tự C2-OCTR-fast − C2-OCT-fast.
+- OCT vs OSFD: |ΔCA3| ≤ 2 → "ngang"; OCT − OSFD ≥ 2 → "hơn"; ≤ −2 → "kém".
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD PH8 ROT15 C2-OCT-fast PH8R OCT C2-OCTR-fast --out metrics_rot_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD PH8 ROT15 C2-OCT-fast PH8R OCT C2-OCTR-fast --dets dets_rot_dev30.json --out generalization_rot_dev30.json
+```
