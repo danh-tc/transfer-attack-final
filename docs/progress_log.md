@@ -2533,3 +2533,5 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 ### Kết quả RPN-OCT @ dev30 (`metrics_rpnoct_dev30.json`, `generalization_rpnoct_dev30.json`, log `results/stride/rpnoct_dev30.log`) — theo quy tắc: **RoI cls CẦN**
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0; **RPN-OCT-fast 97.8 / 93.7 / 78.3 / 78.2 / 75.6 / 28.0 | 77.4** | 7.1.
 CA3 −5.9 so C2-OCT-fast, ≈ OSFD (−1.5): objectness RPN gần như không thêm gì so loss feature; lợi của loss cls nằm ở phân loại RoI (80 lớp). Tốc độ chỉ ×0.89. → Giữ C2 (rpn_cls + RoI cls).
+
+**Chốt (user, 2026-10-08):** YOLOX-L + Mask R-CNN Swin-S là target HELD-OUT — không eval / không nhìn khi ra quyết định method; chỉ dùng ở bảng cuối (n300 / n1000).
