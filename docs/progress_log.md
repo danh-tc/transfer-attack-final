@@ -2259,3 +2259,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: NOISE 98.7 / 89.8 / 67.2 
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods SH32 SHODD SH4 SH8 SH16 --out metrics_stride_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods SH32 SHODD SH4 SH8 SH16 --dets dets_stride_dev30.json --out generalization_stride_dev30.json
 ```
+
+### Kết quả (a) stride quyết định @ dev30 (`metrics_stride_dev30.json`, `generalization_stride_dev30.json`, log `results/stride/stride_dev30.log`) — theo quy tắc: **k\* = 4** (đơn điệu, không xám)
+**Sanity:** sinh lại SH32 CA3 68.9 (cũ 68.9), SHODD 79.5 (cũ 79.2) — tái lập. Hợp lệ: SHODD − SH32 = 10.6 ≥ 5.
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | f:
+- SH32 98.7 / 92.5 / 69.2 / 72.0 / 65.5 / 16.0 | 68.9 | 0
+- **SH4** 98.6 / 91.9 / 75.6 / 77.0 / 66.8 / 17.5 | 73.1 | **0.40**
+- SH8 98.6 / 92.8 / 71.1 / 73.6 / 64.3 / 18.2 | 69.7 | 0.07
+- SH16 98.5 / 91.7 / 67.6 / 71.0 / 61.1 / 13.8 | 66.6 | −0.22
+- SHODD 97.5 / 92.0 / 81.0 / 81.6 / 75.9 / 21.9 | 79.5 | 1
+CI cặp so SH32 [(ConvNeXt + Swin-T)/2 | YOLOX | Swin-L]: SH4 +5.7 [3.1, 9.7] | +1.3 [−4.8, 7.0] | +1.4 [−1.1, 5.5]; SH8 +1.8 [−1.8, 5.7] | −1.2 | +2.1; SH16 −1.3 | −4.4 [−12.1, −0.3] | −2.3; SHODD +10.7 [7.3, 16.6] | +10.4 [5.4, 16.7] | +5.8 [0.9, 11.1].
+**Đọc (dev30, mô tả):** (1) f(4) = 0.40 < 0.5 → k\* = 4: chỉ cần GIỮ pha stride 2 / 4 đã mất ~60% lợi ích; lệch pha stride 8 góp phần còn lại nhỏ (SH4 > SH8, CI cặp CNN > 0), stride 16 / 32 / 64 ≈ 0 (SH8 ≈ SH16 ≈ SH32). → Phần δ đặc thù surrogate gắn với lưới NÔNG của R50 (conv1 stride 2 + maxpool → C2 stride 4, phần nào C3 stride 8), KHÔNG phải lưới sâu C5 / P6 như giả định khi chọn SH32. (2) Phần dư +4.6 của SH32 so NOISE (2026-10-07) không do P6 mà khả dĩ do biên / lấp 0 — chưa kiểm. (3) R101 không đổi (91.7–92.8) — khớp: cùng lưới nông. (4) YOLOX / Swin-L cùng chiều nhưng CI chứa 0 ở SH4.
+**Hệ quả cho (b) / (c):** lấy mẫu pha có chủ đích chỉ cần phủ residue mod 4 (có thể mod 8), không cần mod 32; câu hỏi tách tiếp: stride 2 hay 4 (ô SH2 = dịch chẵn ±64). SHSUB (< 1 px, 70.4) yếu → lệch pha phải là nguyên pixel (hoặc nội suy làm mờ triệt tác dụng) — caveat.
+**Ghi chú kỹ thuật:** máy mới locale ASCII → `eval_generalization.py` lỗi khi ghi JSON tiếng Việt; sửa `open(..., encoding="utf-8")`, chạy lại phần ghi (dets đã lưu, resume). Artifact chưa upload HF: PNG 5 ô + `dets_stride_dev30.json` + `gen_dets/` trong `artifacts/runs/dev300_B50_eps5/` — KHÔNG upload đè `runs/dev300_B50_eps5.tar` trước khi tải bản HF về và gộp (bản HF là tập cha).

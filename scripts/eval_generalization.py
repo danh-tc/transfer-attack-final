@@ -163,7 +163,7 @@ def main():
            "model_diff": {m: {f"{a} - {b}": S(drop[a][m] - drop[b][m]) for a in gen_keys for b in gen_keys if a < b}
                           for m in methods},
            "created": time.strftime("%Y-%m-%d %H:%M:%S")}
-    with open(os.path.join(run_dir, args.out), "w") as f:
+    with open(os.path.join(run_dir, args.out), "w", encoding="utf-8") as f:  # máy mới có thể locale ASCII
         json.dump(out, f, indent=2, ensure_ascii=False)
 
     fmt = lambda s: f"{s['point']:5.1f} [{s['ci95'][0]:5.1f},{s['ci95'][1]:5.1f}]"
