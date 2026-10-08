@@ -2482,3 +2482,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2 99.9 / 94.8 
 - GO: C2-OCT CA3 83.6 ≥ 82.8 ✓, Swin-L 31.9 ≥ 26.3 ✓. Vượt (≥ +2): không (−0.2). C2-OCT − C2-PIA: CNN +0.4 [−2.4, 3.1], YOLOX −1.5 [−5.6, 4.1], Swin-L +2.6 [−2.1, 7.4].
 - Liều SCL50 − SCL25 +0.2 (bão hòa từ ±0.25). Phân tầng OCTS − OCT −0.1 → không giúp.
 **Đọc (dev30):** đa dạng tách cơ chế (chỉ co giãn 1 octave + dịch pha) TÁI TẠO trọn lợi ích C2-PIA (không cần phối cảnh / homography), nhưng không vượt. Runtime ~ C2-PIA (đều bị chi phối bởi loss cls + forward feature sạch co-transform).
+
+---
+
+## 2026-10-08 — Tối ưu tốc độ C2-OCT: skip_mask (tương đương) + AMP fp16 → ô `C2-OCT-fast` @ dev30 — khóa TRƯỚC khi chạy
+**Đo (3 ảnh dev30, 50 bước, RTX 3090):** C2-OCT ~0.23 s / bước; forward: backbone 26%, RPN 18%, mask head 6%, FPN 4%, bbox head 3%, chép GT + mask 2%; còn lại phần lớn là backward. Thời gian chủ yếu do loss cls (`model.loss` đầy đủ: RPN proposals + RoI + mask) và forward feature sạch co-transform, không do phép biến đổi.
+**skip_mask** (`geo_osfd_attack(skip_mask=True)`): loss C2 chỉ dùng loss_rpn_cls + loss_cls → tắt mask head + bỏ co-transform mask GT; RoI sampling / RNG không đổi. Kiểm tương đương (3 ảnh): % pixel δ khác gốc-vs-skip 18.3 / 24.8 / 17.5 ≈ gốc-vs-gốc (GPU không tất định) 17.7 / 24.9 / 16.3 → TƯƠNG ĐƯƠNG. Nhanh hơn chỉ 0–10%.
+**AMP fp16** (`amp=True`, autocast forward / backward; δ, momentum, bước sign fp32; bf16 không dùng được — RoIAlign mmcv không hỗ trợ): nhanh thêm ×1.30–1.36 trên skip_mask, hữu hạn, độ bão hòa δ trùng fp32 (0.92–0.93). Gộp: ~7.5 s / ảnh vs ~11 s (×~1.45). ĐỔI số học → phải kiểm bằng eval.
+**Quy tắc (dev30; mốc: PNG C2-OCT có sẵn, eval lại cùng lần):** `C2-OCT-fast` THAY THẾ ĐƯỢC C2-OCT nếu ĐỒNG THỜI |CA3(fast) − CA3(C2-OCT)| ≤ 2, YOLOX ≥ C2-OCT − 3, Swin-L ≥ C2-OCT − 3 (điểm), và runtime ≤ 0.8 × C2-OCT. Không đạt → giữ fp32 (skip_mask vẫn dùng được vì tương đương).
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods C2-OCT C2-OCT-fast --out metrics_octfast_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods C2-OCT C2-OCT-fast --dets dets_octfast_dev30.json --out generalization_octfast_dev30.json
+```

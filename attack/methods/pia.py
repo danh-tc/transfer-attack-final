@@ -252,7 +252,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     pi=PI_PAPER, sigma: float = 6.0, info=None, on_step=None,
                     co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None, pia_drop=None,
                     cam_theta: float = 15.0, cam_kappa: float = 0.0, elem=None,
-                    rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1):
+                    rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1,
+                    skip_mask: bool = False, amp: bool = False):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -265,13 +266,23 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     ξ từ random.Random(torch.initial_seed() + 1), tâm ngẫu nhiên từ random.Random(torch.initial_seed() + 2).
     geo="elem": phép biến đổi cơ bản quanh tâm (attack/methods/elem.py), elem = {loại: liều}.
     cls_weight > 0 (C2-PIA / C2-MORGD / C2-SMOOTH, không cho geo="rrb"): + cls_weight·(loss_rpn_cls + loss_cls) với GT co-transform,
-    1 forward/view (repair.make_view_loss, không sửa = loss của C2)."""
+    1 forward/view (repair.make_view_loss, không sửa = loss của C2).
+    skip_mask (tối ưu tốc độ, progress_log 2026-10-08): loss C2 chỉ dùng loss_rpn_cls + loss_cls -> tắt mask head
+    (forward + backward) và bỏ co-transform mask GT; RoI sampling / RNG không đổi -> cùng gradient.
+    amp: autocast fp16 cho forward / backward surrogate (δ, momentum, bước sign giữ fp32) — đổi số học, phải kiểm bằng eval."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
+    mask_head = None
+    if skip_mask:
+        assert cls_weight > 0
+        data_sample = copy.deepcopy(data_sample)
+        if "masks" in data_sample.gt_instances:
+            del data_sample.gt_instances.masks
+        mask_head, model.roi_head.mask_head = model.roi_head.mask_head, None
     log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": [], "morgd2": [], "pia_factors": []}
     if geo.startswith("grgd") or geo.endswith("2"):
         rng_xi = random.Random(torch.initial_seed() + 1)
@@ -339,9 +350,14 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 out.append((v, ds, _view_loss(fc, k)))
         return out
 
-    noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
-                                 epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
-                                 on_step=on_step, backward_per_step=backward_per_step)
+    try:
+        with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
+            noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
+                                         epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
+                                         on_step=on_step, backward_per_step=backward_per_step)
+    finally:
+        if mask_head is not None:
+            model.roi_head.mask_head = mask_head
     if rapa is not None:
         log["rapa_masked_frac"] = rapa[1]["masked"] / max(1, rapa[1]["total"])
     if info is not None:
