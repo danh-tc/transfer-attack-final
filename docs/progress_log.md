@@ -2548,3 +2548,8 @@ CA3 −5.9 so C2-OCT-fast, ≈ OSFD (−1.5): objectness RPN gần như không t
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD C2-OCT-fast C2-PIA C2-LVX-fast --out metrics_lvx_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD C2-OCT-fast C2-PIA C2-LVX-fast --dets dets_lvx_dev30.json --out generalization_lvx_dev30.json
 ```
+
+### Kết quả C2-LVX @ dev30 (`metrics_lvx_dev30.json`, `generalization_lvx_dev30.json`, log `results/stride/lvx_dev30.log`) — theo quy tắc: **KHÔNG GO; vượt mức FPN KHÔNG phải yếu tố thêm**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3; C2-PIA 99.4 / 94.8 / 83.1 / 88.0 / 80.4 / 29.3 | 83.8; **C2-LVX-fast 92.1 / 88.0 / 80.8 / 79.3 / 81.6 / 24.5 | 80.5**.
+ΔCA3 −2.7 so C2-OCT-fast. White-box R50 tụt 99.5 → 92.1, R101 94.7 → 88.0 → δ YẾU đi (co giãn lớn TB 0.71 octave làm loãng gradient); riêng YOLOX +4.2.
+**Đọc:** đẩy object qua ranh giới mức FPN có chủ đích không giúp; OCT chỉ đổi mức 13% view mà đã đủ → thành phần khóa kích thước KHÔNG phải "khóa theo mức FPN của RoI" (hoặc lợi ích bị lấn bởi δ yếu đi). Bỏ hướng LVX.
