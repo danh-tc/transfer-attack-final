@@ -2419,3 +2419,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 98.1 / 93.
 - **ΔCA3 (C2-PIA − OSFD) = +11.2 [8.1, 12.7]** (paired bootstrap 1000, BOOT_SEED 2026, tính lại từ dets vì file chỉ lưu CI thành phần) ≥ 3, CI > 0 ✓; ConvNeXt +11.1, Swin-T +12.1, YOLOX +10.5 > 0 ✓; R101 +3.2 ≥ −3 ✓.
 - Mô tả: C2-PIA − C2: (ConvNeXt + Swin-T)/2 +5.3 [3.3, 7.3], YOLOX +8.6 [6.0, 11.3], Swin-L +6.2 [3.8, 8.4]; Swin-L − OSFD +12.8 [8.8, 14.8]. Runtime 3.3× OSFD (B = 50 như nhau; PIA thêm forward no_grad cho feature sạch co-transform).
 **Bước tiếp theo theo plan_sota:** GO @ n300 (khóa riêng, chạy 1 lần). Caveat novelty: C2-PIA = OSFD + loss cls + PIA (PIA là công trình 2026) — chưa có thành phần mới; user quyết hướng novelty.
+
+---
+
+## 2026-10-08 — C2-PH8 @ dev30: loss cls cần biến đổi MẠNH hay chỉ cần triệt khóa lưới? — khóa TRƯỚC khi chạy
+**Lý do (user: hướng novelty từ C2-PIA):** số dev100 có sẵn (`metrics_pia_dev100`) cho thấy TƯƠNG TÁC loss × đa dạng: với loss feature PIA − RRB = −0.6 CA3 (74.3 → 73.7), với loss feature + cls C2-PIA − C2 = +6.0 (76.6 → 82.6). Câu hỏi: lợi của PIA khi có loss cls là do triệt khóa lưới (như loss feature) hay do biến đổi mạnh triệt một thành phần đặc thù surrogate KHÁC của loss cls.
+**Ô:** `C2-PH8` = khung C2-PIA (feature OSFD co-transform + 4·(loss_rpn_cls + loss_cls), GT co-transform, 1 forward / view, MI, σ = 6, B = 50) nhưng phép biến đổi = PH8 (dịch nguyên 0–7 px). Code: `elem_views(data_sample=)` co-transform GT qua `warp_boxes` / `gt_with_keep` như `pia_views`. Unit test: box / mask / ảnh dịch đúng t; 3 bước L∞ = 3, hữu hạn.
+**Mốc (PNG dev30 có sẵn, eval lại cùng lần):** C2 (`PROBE-osfd+cls`, RRB), C2-PIA, PH8, OSFD.
+**Quy tắc (dev30, CA3):** r = [CA3(C2-PH8) − CA3(C2)] / [CA3(C2-PIA) − CA3(C2)]. Hợp lệ nếu mẫu số ≥ 3 (dev30). r ≥ 0.75 → **"chỉ cần triệt khóa lưới"** (method gọn: C2 + PH8); r ≤ 0.25 → **"loss cls cần biến đổi mạnh"** (thành phần đặc thù surrogate thứ hai — hướng đào tiếp); giữa → xám. Mô tả: Swin-L (tỉ số tương tự), R101, runtime.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD PROBE-osfd+cls C2-PIA PH8 C2-PH8 --out metrics_c2ph8_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD PROBE-osfd+cls C2-PIA PH8 C2-PH8 --dets dets_c2ph8_dev30.json --out generalization_c2ph8_dev30.json
+```

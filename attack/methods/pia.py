@@ -300,9 +300,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             else:
                 triples = flip_views(img, n_views, 0.5 if geo == "flip" else 0.0, sigma, companion=comp)
         elif geo == "elem":
-            assert cls_weight == 0.0
             from attack.methods.elem import elem_views  # tránh import vòng
-            triples = elem_views(img, n_views, elem, sigma, companion=comp, log=log["disp"])
+            triples = elem_views(img, n_views, elem, sigma, companion=comp, log=log["disp"],
+                                 data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"])
         elif geo == "cam":
             from attack.methods.camgeo import cam_views  # tránh import vòng
             triples = cam_views(img, n_views, cam_theta, cam_kappa, sigma, companion=comp,

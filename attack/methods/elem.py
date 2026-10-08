@@ -14,7 +14,8 @@ import random
 import torch
 
 from attack.methods.camgeo import mean_disp
-from attack.methods.pia import warp, warp_grid
+from attack.methods.box_transforms import get_gt
+from attack.methods.pia import gt_with_keep, warp, warp_boxes, warp_grid
 from attack.methods.rrb import gaussian_blur
 
 ELEM_ORDER = ("rot", "shear", "aniso", "scale")
@@ -82,9 +83,12 @@ def sample_elem_h(spec: dict, h: int, w: int) -> torch.Tensor:
     return linear_homography(A, h, w)
 
 
-def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0, companion=None, log=None):
-    """n view; companion (ảnh sạch) nhận CÙNG lưới, không nhiễu. Trả về [(view_nhiễu, companion_warp, None)]."""
+def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0, companion=None, log=None,
+               data_sample=None, gt_log=None):
+    """n view; companion (ảnh sạch) nhận CÙNG lưới, không nhiễu. Trả về [(view_nhiễu, companion_warp, ds_view)];
+    ds_view = None nếu không truyền data_sample, ngược lại GT co-transform như pia_views (C2-PH8, progress_log 2026-10-08)."""
     h, w = adv_pixels.shape[-2:]
+    gt = get_gt(data_sample, adv_pixels.device) if data_sample is not None else None
     out = []
     prev = None
     for k in range(n):
@@ -100,6 +104,13 @@ def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0,
         if log is not None:
             log.append(mean_disp(grid, h, w))
         view = warp(adv_pixels, grid)
+        dsv = None
+        if gt is not None:
+            boxes, masks = gt
+            nb, keep = warp_boxes(boxes, H, h, w)
+            dsv = gt_with_keep(data_sample, nb, warp(masks, grid) if masks is not None and len(masks) else masks, keep)
+            if gt_log is not None:
+                gt_log.append((int(keep.sum()), len(keep)))
         out.append((gaussian_blur(view, sigma=sigma) if sigma > 0 else view,
-                    warp(companion, grid) if companion is not None else None, None))
+                    warp(companion, grid) if companion is not None else None, dsv))
     return out
