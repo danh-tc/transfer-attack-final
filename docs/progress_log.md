@@ -2588,3 +2588,9 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD OCT C2-OCT-fast CLS-OCT-fast CLS-OCT-RaPA05 CLS-OCT-RaPA01 --out metrics_rapacls_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD OCT C2-OCT-fast CLS-OCT-fast CLS-OCT-RaPA05 CLS-OCT-RaPA01 --dets dets_rapacls_dev30.json --out generalization_rapacls_dev30.json
 ```
+
+### Kết quả RaPA đường phân loại @ dev30 (`metrics_rapacls_dev30.json`, `generalization_rapacls_dev30.json`, log `results/stride/rapacls_dev30.log`) — theo quy tắc: **RaPA giúp (p = 0.01, sát ngưỡng)**; KHÔNG có tín hiệu SOTA
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; OCT 96.6 / 91.9 / 85.0 / 83.9 / 82.1 / 27.7 | 83.6 | 5.5; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0; CLS-OCT-fast 98.4 / 93.5 / 85.4 / 82.9 / 70.0 / 30.8 | 79.4 | 6.4; CLS-OCT-RaPA05 98.5 / 95.0 / 76.8 / 73.2 / 76.5 / 27.4 | 75.5 | 7.2; **CLS-OCT-RaPA01 98.9 / 95.1 / 87.5 / 84.7 / 72.7 / 32.5 | 81.6** | 7.0.
+- RaPA01 − CLS-OCT: CA3 +2.2 (≥ 2), YOLOX +2.7, Swin-L +1.7 → "RaPA giúp" (sát ngưỡng, dev30 nhiễu ±5). RaPA05: CA3 −3.9 (ConvNeXt / Swin-T −9) → p = 0.05 quá mạnh, như lần trước.
+- SOTA: RaPA01 81.6 < max(OCT, C2-OCT-fast) + 2 = 85.6 → không GO. Swin-L 32.5 cao nhất các ô OCT (trong nhiễu).
+**Đọc:** đặt RaPA đúng setting (loss phân loại) đổi dấu hiệu quả so với lần ghép loss feature (−25 → +2.2 ở p nhỏ); nhưng loss cls thuần vẫn thiếu YOLOX nên tổng thể chưa vượt OCT / C2-OCT. Ứng viên tiếp: C2-OCT (feature + cls) + RaPA01 chỉ trên đường phân loại — khóa entry mới nếu user muốn.
