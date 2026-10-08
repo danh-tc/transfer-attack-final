@@ -2511,3 +2511,7 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT 99.9 / 9
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD C2-OCT-fast CLS-OCT-fast --out metrics_clsoct_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD C2-OCT-fast CLS-OCT-fast --dets dets_clsoct_dev30.json --out generalization_clsoct_dev30.json
 ```
+
+### Kết quả CLS-OCT @ dev30 (`metrics_clsoct_dev30.json`, `generalization_clsoct_dev30.json`, log `results/stride/clsoct_dev30.log`) — theo quy tắc: **loss feature CẦN**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0; **CLS-OCT-fast 98.4 / 93.5 / 85.4 / 82.9 / 70.0 / 30.8 | 79.4 | 6.4**.
+CA3 −3.9 so C2-OCT-fast (≤ −3 → cần); YOLOX −7.4 (giống dev100 RRB: chỉ cls yếu ở YOLOX); Swin-L +1.6 (trong nhiễu). OCT có kéo cls-only lên (YOLOX 70 vs 59 ở RRB dev100, khác tập ảnh) nhưng không thay được loss feature. Bổ trợ feature + cls được giữ.
