@@ -166,7 +166,10 @@ ELEM_CELLS = {"ROT7": {"rot": 7.0}, "ROT15": {"rot": 15.0}, "ROT30": {"rot": 30.
 METHODS.update({c: (functools.partial(geo_osfd_attack, geo="elem", elem=s), 2) for c, s in ELEM_CELLS.items()})
 # C2-PH8 (progress_log 2026-10-08): loss C2 (feature + 4·cls, GT co-transform) với đa dạng tối thiểu PH8.
 METHODS["C2-PH8"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"shift": "ph8"}, cls_weight=4.0), 2)
-ELEM_CELLS_C2 = {"C2-PH8"}
+# Thành phần thứ hai của loss cls = khóa anchor / RoI? (progress_log 2026-10-08): đổi kích thước | tỉ lệ box.
+METHODS["C2-SCL25"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": 0.25}, cls_weight=4.0), 2)
+METHODS["C2-ANI25"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"aniso": 0.25}, cls_weight=4.0), 2)
+ELEM_CELLS_C2 = {"C2-PH8", "C2-SCL25", "C2-ANI25"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
                "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS",

@@ -2437,3 +2437,16 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.7 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; PH8 98.3 / 92.8 / 81.6 / 80.7 / 74.2 / 21.2 | 78.8; C2 99.9 / 94.8 / 82.9 / 84.9 / 66.2 / 25.6 | 78.0 | 7.4; **C2-PH8 99.9 / 94.4 / 82.4 / 81.7 / 64.2 / 26.6 | 76.1** | 12.2; C2-PIA 99.4 / 94.7 / 83.1 / 88.0 / 80.4 / 29.3 | 83.8 | 9.5.
 C2-PIA − C2-PH8: (ConvNeXt + Swin-T)/2 +3.5 [1.5, 10.1], **YOLOX +16.2 [6.4, 23.4]**, Swin-L +2.7 [−1.9, 7.3]. C2-PH8 − C2: −1.8 / −2.0 / +1.0 (trong nhiễu). Swin-L r = 0.26.
 **Đọc (dev30):** (1) Triệt khóa lưới (PH8) đủ cho loss feature (PH8 ≈ OSFD) nhưng KHÔNG đủ khi có loss cls: C2-PH8 ≈ C2 (RRB). → Loss cls tạo một thành phần đặc thù surrogate THỨ HAI, khác khóa lưới, chỉ biến đổi mạnh kiểu PIA mới triệt. (2) Dấu vết rõ nhất ở YOLOX: thêm loss cls với đa dạng yếu (RRB / PH8) làm YOLOX TỤT dưới OSFD (64–66 vs 75.6); PIA kéo lên 80.4. Tức thành phần thứ hai "overfit" head / phân loại của Mask R-CNN (RPN + RoI) — không chuyển sang head một tầng YOLOX. (3) Hướng novelty: định danh thành phần đặc thù của loss mức object (cls) và cách triệt có chủ đích thay PIA. Caveat: dev30.
+
+---
+
+## 2026-10-08 — Thành phần thứ hai của loss cls = KHÓA ANCHOR / RoI? C2-SCL25 / C2-ANI25 @ dev30 — khóa TRƯỚC khi chạy
+**Giả thuyết:** loss cls (RPN + RoI) tính trên anchor / RoI có kích thước, tỉ lệ cố định → δ khớp đặc thù với kích thước / tỉ lệ box so với anchor của Mask R-CNN; PIA đổi kích thước + tỉ lệ box mỗi view nên triệt; PH8 chỉ dịch nên không.
+**Ô (khung C2-PH8, GT co-transform qua `warp_boxes`):** `C2-SCL25` (co giãn đẳng hướng quanh tâm, ln s ~ U(±0.25)), `C2-ANI25` (lệch tỉ lệ, ln k ~ U(±0.25)) — cùng liều ô elem SCL25 / ANI25. Smoke test: box biến đổi theo view, 3 bước L∞ = 3, hữu hạn.
+**Mốc (PNG dev30 có sẵn, eval lại cùng lần):** C2, C2-PH8, C2-PIA.
+**Quy tắc (dev30, CA3):** r_X = [CA3(C2-X) − CA3(C2)] / [CA3(C2-PIA) − CA3(C2)]. **ĐỊNH DANH (khóa anchor / RoI ủng hộ)** nếu max(r_SCL, r_ANI) ≥ 0.75 — thành phần = kích thước (SCL) hoặc tỉ lệ (ANI) tùy ô đạt. **BÁC** nếu cả hai r ≤ 0.25 (đổi kích thước / tỉ lệ đơn lẻ không đủ). Còn lại xám. Mô tả: YOLOX (dấu vết chính ở C2-PH8), Swin-L.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods PROBE-osfd+cls C2-PH8 C2-PIA C2-SCL25 C2-ANI25 --out metrics_c2anchor_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods PROBE-osfd+cls C2-PH8 C2-PIA C2-SCL25 C2-ANI25 --dets dets_c2anchor_dev30.json --out generalization_c2anchor_dev30.json
+```
