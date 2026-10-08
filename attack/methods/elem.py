@@ -56,14 +56,21 @@ def shift_offset(mode: str) -> float:
         return float(random.choice([t for t in range(-64, 65) if t % 32 != 0]))
     if mode == "sub":
         return random.uniform(-1.0, 1.0)
+    if mode == "ph4":  # pilot pha (progress_log 2026-10-08): chỉ pha mod 4, gần như không dời nội dung
+        return float(random.randrange(4))
     raise ValueError(mode)
+
+
+def shift_h(tx: float, ty: float) -> torch.Tensor:
+    """H (pixel ra -> nguồn) của phép tịnh tiến: pixel ra q lấy mẫu ở q − t (nội dung dời +t)."""
+    H = torch.eye(3, dtype=torch.float64)
+    H[0, 2], H[1, 2] = -tx, -ty
+    return H
 
 
 def sample_elem_h(spec: dict, h: int, w: int) -> torch.Tensor:
     if "shift" in spec:  # chỉ tịnh tiến: pixel ra q lấy mẫu ở q − t (nội dung dời +t)
-        H = torch.eye(3, dtype=torch.float64)
-        H[0, 2], H[1, 2] = -shift_offset(spec["shift"]), -shift_offset(spec["shift"])
-        return H
+        return shift_h(shift_offset(spec["shift"]), shift_offset(spec["shift"]))
     A = torch.eye(2, dtype=torch.float64)
     for kind in ELEM_ORDER:
         if kind in spec:
@@ -75,8 +82,17 @@ def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0,
     """n view; companion (ảnh sạch) nhận CÙNG lưới, không nhiễu. Trả về [(view_nhiễu, companion_warp, None)]."""
     h, w = adv_pixels.shape[-2:]
     out = []
-    for _ in range(n):
-        grid = warp_grid(sample_elem_h(spec, h, w), h, w, adv_pixels.device)
+    prev = None
+    for k in range(n):
+        if spec.get("shift") == "ph4a":  # đối pha: view lẻ = view chẵn trước nó + (2, 2) mod 4 (nửa chu kỳ lưới 4)
+            if k % 2 == 0:
+                prev = (random.randrange(4), random.randrange(4))
+                H = shift_h(*prev)
+            else:
+                H = shift_h((prev[0] + 2) % 4, (prev[1] + 2) % 4)
+        else:
+            H = sample_elem_h(spec, h, w)
+        grid = warp_grid(H, h, w, adv_pixels.device)
         if log is not None:
             log.append(mean_disp(grid, h, w))
         view = warp(adv_pixels, grid)

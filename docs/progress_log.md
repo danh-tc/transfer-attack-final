@@ -2327,3 +2327,26 @@ Script: `scripts/e13_grid_template.py`. Không tune attack nào theo E13.
 | C2 | 26.0 | 0.41 | 0.86 | 0.06 | 78.0 / 25.6 |
 Theo P4n: (i) ĐẠT (NOISE 4.4, SH32 3.6 ≥ 3); (ii) ĐẠT (Z4: SH4 = 0.95·SH32, SH2 = SHODD = 0.19·SH32); (iii) KHÔNG (WB 0.69) → (iv) không đọc. Spearman(Z4 ô, CA3) −0.78, (Z4, Swin-L) −0.88 trên 9 ô.
 **Đọc (dev30, mô tả):** (1) **Thấy TRỰC TIẾP thành phần khóa lưới chu kỳ 4 trong δ R50** ở các ô giữ pha stride 4 (NOISE / SH32 / SH4: Z4 ~170, gấp ~6–7 lần), và nó biến mất ở MỌI ô lệch pha (SH2, SHODD, OSFD, ROT15, PIA, C2: Z4 25–33, ngang δ WB). Z3 / Z5 / Z7 gần như không đổi giữa hai nhóm → hiệu ứng đặc thù chu kỳ 4. Khớp hoàn toàn suy luận từ transfer (SH4 ≈ SH32, SH2 ≈ SHODD) → cơ chế Q1 có bằng chứng phía δ, độc lập với phía target. (2) **δ WB-Swin-L KHÔNG có khóa lưới 4** dù Swin-L có patch 4×4 cùng pha → "phần khóa lưới" là đặc thù R50 (maxpool / C2), không phải tính chất chung của model stride 4; điểm chung kiểu "cùng mẫu lưới" giữa R50 và Swin-L không tồn tại. (3) Sau khi triệt khóa lưới, mọi ô có Z4 ngang δ WB nhưng Swin-L vẫn chỉ 22–29 → khóa lưới giải thích phần NOISE → OSFD, KHÔNG giải thích khoảng 27 → 85 của Swin-L (Q2 vẫn mở). Caveat: dev30; chuẩn hóa đính chính sau kết quả.
+
+---
+
+## 2026-10-08 — Pilot method "pha lưới" @ dev30: PH4 (dịch 0–3 px) + PH4A (đối pha) — khóa TRƯỚC khi chạy
+**Lý do:** cơ chế Q1 (SH2 / SH4 + E13): lợi ích đa dạng hình học = triệt thành phần δ khóa lưới stride 4 của R50. Mọi ô có hình học đều dịch xa (|t| ~33 px) → chưa tách "chỉ pha" với "pha + dời nội dung". Ứng viên method tối giản = đa dạng CHỈ ở pha mod 4.
+**Literature (rà 2026-10-08):** chưa thấy công trình nối aliasing / pha lưới downsampling của surrogate với transferability (gần nhất: ASAP — aliasing ↔ độ bền; TIPS — shift-invariance kiến trúc). **Trùng ý một phần: TI-FGSM (Dong et al., CVPR 2019)** — tối ưu trên ảnh dịch ≤ 10 px, cài bằng làm mượt gradient (≈ S1, đã ÂM trên detection). → Novelty không nằm ở "dịch ảnh" mà ở cơ chế (pha stride 4, thấy trực tiếp E13) + tập pha tối thiểu / đối pha.
+**Ô (khung `geo="elem"` y hệt SH*: loss feature OSFD k = 3, MI, 2 view / backward, σ = 6, feature sạch co-transform, B = 50, ε = 5):**
+- `PH4`: tx, ty rút độc lập đều trong {0, 1, 2, 3} mỗi view (phủ 16 pha mod 4, dời ≤ 3 px).
+- `PH4A` (đối pha): view 1 (a, b) đều trong {0..3}², view 2 = ((a + 2) mod 4, (b + 2) mod 4) — nửa chu kỳ lưới 4 → thành phần tần 1/4 khóa lưới của 2 view ngược dấu trong CÙNG 1 backward.
+Unit test: warp dịch nguyên == dịch chính xác (≤ 2e-3), đối pha đúng (+2, +2), `s32` không đổi.
+**Mốc (PNG HF `dev300_B50_eps5`, eval lại cùng lần):** OSFD, NOISE, SHODD (bản 2026-10-07), ROT15. `--out metrics_ph_dev30.json`.
+**Quy tắc (dev30, mô tả; CA3 = TB ConvNeXt / Swin-T / YOLOX):**
+- Kiểm thao tác (E13, `--extra PH4 PH4A`): Z4(ô) ≤ 0.5·Z4(NOISE). Trượt → ô đó không kiểm được cơ chế.
+- **"Chỉ pha là đủ"** — ỦNG HỘ nếu CA3(PH4) ≥ CA3(SHODD) − 3; BÁC (cần cả dời nội dung) nếu CA3(PH4) ≤ CA3(NOISE) + ½·[CA3(SHODD) − CA3(NOISE)]; giữa → xám.
+- **"Đối pha có chủ đích giúp"** — nếu CA3(PH4A) − CA3(PH4) ≥ 2.
+- **GO sàng lọc dev300 (ứng viên method)** — ô tốt hơn trong PH4 / PH4A đạt ĐỒNG THỜI CA3 ≥ CA3(OSFD) + 2, Swin-L ≥ Swin-L(OSFD) − 3, R101 ≥ R101(OSFD) − 3 (điểm). Không đạt → không GO đứng riêng; nếu "chỉ pha là đủ" ủng hộ thì ghi nhận là RÚT GỌN tương đương (đơn giản hơn RRB), bước tiếp (vd ghép loss cls C2) khóa entry mới, user quyết.
+Kỳ vọng khai báo trước: mọi đa dạng hình học hội tụ ~79 CA3 → khả năng cao PH ≈ OSFD, không vượt; giá trị chính là kiểm "chỉ pha".
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD NOISE SHODD ROT15 PH4 PH4A --out metrics_ph_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD NOISE SHODD ROT15 PH4 PH4A --dets dets_ph_dev30.json --out generalization_ph_dev30.json
+python scripts/e13_grid_template.py --extra PH4 PH4A --out results/mechanism/e13_ph_dev30.json
+```

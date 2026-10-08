@@ -23,7 +23,7 @@ ANN_FILE = os.path.join(REPO_ROOT, "data/coco/annotations/instances_val2017.json
 IMG_DIR = os.path.join(REPO_ROOT, "data/coco/val2017")
 RUNS = os.path.join(REPO_ROOT, "results/runs/dev300_B50_eps5")
 HF_ADV = os.path.join(REPO_ROOT, "artifacts/runs/dev300_B50_eps5/adv")
-LOCAL_ADV = os.path.join(REPO_ROOT, "artifacts/local_dev300_20261008/adv")
+LOCAL_ADV = os.path.join(REPO_ROOT, "artifacts/runs/dev300_stride_20261008/adv")
 SRC = {"WB-OSFD": os.path.join(REPO_ROOT, "artifacts/runs/e8_wbosfd_dev30/WB-OSFD"),
        **{c: os.path.join(HF_ADV, c) for c in ("NOISE", "OSFD", "ROT15", "PIA", "PROBE-osfd+cls")},
        **{c: os.path.join(LOCAL_ADV, c) for c in ("SH32", "SH4", "SH2", "SHODD")}}
@@ -61,6 +61,14 @@ def ca3(cell):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--extra", nargs="*", default=[], help="ô thêm trong run HF (vd PH4 PH4A) — chỉ đo Z, mô tả")
+    ap.add_argument("--out", default=OUT)
+    args = ap.parse_args()
+    for c in args.extra:
+        SRC[c] = os.path.join(HF_ADV, c)
+        CELLS.append(c)
     coco = COCO(ANN_FILE)
     ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev30.csv"))
     Z = {s: {p: np.zeros(len(ids)) for p in PERIODS} for s in SRC}
@@ -107,7 +115,7 @@ def main():
     out["rules"] = {"i": i_ok, "ii": ii_ok, "iii": iii_ok, "iv": iv,
                     "spearman_Z4_CA3": float(rho_ca3), "spearman_Z4_SwinL": float(rho_swl), "cells_with_CA3": have}
     out["ca3_swinl"] = cas
-    with open(OUT, "w", encoding="utf-8") as f:
+    with open(args.out, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
 
     fmt = lambda s: f"{s['point']:7.2f} [{s['ci95'][0]:6.2f}, {s['ci95'][1]:6.2f}]"
@@ -118,7 +126,7 @@ def main():
         print(f"{s:16}" + "".join(f"{out['Z'][s][p]['point']:10.2f}" for p in PERIODS) + f"{fmt(out['P4'][s]):>26}{fmt(out['P4_norm'][s]):>26}{r:>26}   {ca}")
     print("rules (nguyên văn):", out["rules"])
     print("rules (chuẩn hóa p²):", out["rules_norm"])
-    print("saved:", OUT)
+    print("saved:", args.out)
 
 
 if __name__ == "__main__":
