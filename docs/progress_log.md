@@ -2310,3 +2310,20 @@ Nguồn: WB-OSFD (HF `e8_wbosfd_dev30`); ô R50 từ HF `dev300_B50_eps5` (NOISE
 - (iv) **Điểm chung mẫu khóa lưới** (chỉ đọc nếu (i) và (iii) ủng hộ): r = corr(T4_ô, T4_WB) theo ảnh (48 giá trị), trung bình ảnh; "mẫu khóa lưới R50 và Swin-L GIỐNG nhau" nếu r(SH32) ≥ 0.3 với cận dưới CI > 0; ≤ 0.1 → khác nhau (phần khóa lưới R50 không trúng lưới Swin-L dù cùng pha → giải thích một phần Swin-L thấp ở ô giữ pha). Ở giữa → xám.
 Caveat: PNG uint8 (lượng tử 1 mức) + resize bilinear 1.6–1.9× làm mờ; nếu (i) không đạt có thể do đo không đủ nhạy, không bác cơ chế.
 Script: `scripts/e13_grid_template.py`. Không tune attack nào theo E13.
+
+### Kết quả E13 (`results/mechanism/e13_grid_template.json`, log `results/stride/e13.log`) — nguyên văn quy tắc: (i) / (ii) / (iii) KHÔNG đạt; **có lỗi chuẩn hóa trong entry khóa (phát hiện SAU khi thấy số)**
+**Đính chính đo lường (khai báo rõ là sau kết quả):** entry khóa ghi Z_p "≈ 1 nếu không có cấu trúc"; thực tế với nhiễu trắng Z_p ≈ p² (mỗi ô dư có phương sai σ²p²/N, p² ô, chia p²) — khớp số đo (Z3 ≈ 9 ở mọi nguồn). Vì Z7 ≈ 49 × (tương quan) bị thổi phồng, P4 nguyên văn có mốc sai. Bản đúng ý định: Zn_p = Z_p / p², P4n = Zn4 / mean(Zn3, Zn5, Zn7). Báo cả hai; điều kiện (ii) dùng tỉ số Z4 giữa ô nên KHÔNG phụ thuộc chuẩn hóa. Quyết định dùng bản nào: user.
+| nguồn | Z4 | P4 (nguyên văn) | **P4n** | r(T4, WB) | CA3 / Swin-L |
+|---|---|---|---|---|---|
+| WB-OSFD (Swin-L) | 23.9 | 0.32 | **0.69** [0.58, 0.80] | — | — |
+| NOISE | 183.5 | 2.10 | **4.44** [3.12, 6.08] | 0.04 | 64.3 / 14.9 |
+| SH32 | 175.0 | 1.71 | **3.60** [2.63, 4.74] | 0.00 | 68.9 / 16.0 |
+| SH4 | 165.9 | 1.66 | **3.31** [2.50, 4.31] | 0.03 | 73.1 / 17.5 |
+| SH2 | 32.6 | 0.40 | 0.82 | 0.07 | 78.0 / 24.0 |
+| SHODD | 32.6 | 0.38 | 0.79 | 0.09 [0.02, 0.16] | 79.5 / 21.9 |
+| OSFD | 26.9 | 0.36 | 0.77 | 0.01 | 78.9 / 27.2 |
+| ROT15 | 25.9 | 0.31 | 0.66 | 0.10 [0.01, 0.18] | 79.4 / 23.7 |
+| PIA | 25.1 | 0.30 | 0.63 | 0.02 | 79.6 / 28.6 |
+| C2 | 26.0 | 0.41 | 0.86 | 0.06 | 78.0 / 25.6 |
+Theo P4n: (i) ĐẠT (NOISE 4.4, SH32 3.6 ≥ 3); (ii) ĐẠT (Z4: SH4 = 0.95·SH32, SH2 = SHODD = 0.19·SH32); (iii) KHÔNG (WB 0.69) → (iv) không đọc. Spearman(Z4 ô, CA3) −0.78, (Z4, Swin-L) −0.88 trên 9 ô.
+**Đọc (dev30, mô tả):** (1) **Thấy TRỰC TIẾP thành phần khóa lưới chu kỳ 4 trong δ R50** ở các ô giữ pha stride 4 (NOISE / SH32 / SH4: Z4 ~170, gấp ~6–7 lần), và nó biến mất ở MỌI ô lệch pha (SH2, SHODD, OSFD, ROT15, PIA, C2: Z4 25–33, ngang δ WB). Z3 / Z5 / Z7 gần như không đổi giữa hai nhóm → hiệu ứng đặc thù chu kỳ 4. Khớp hoàn toàn suy luận từ transfer (SH4 ≈ SH32, SH2 ≈ SHODD) → cơ chế Q1 có bằng chứng phía δ, độc lập với phía target. (2) **δ WB-Swin-L KHÔNG có khóa lưới 4** dù Swin-L có patch 4×4 cùng pha → "phần khóa lưới" là đặc thù R50 (maxpool / C2), không phải tính chất chung của model stride 4; điểm chung kiểu "cùng mẫu lưới" giữa R50 và Swin-L không tồn tại. (3) Sau khi triệt khóa lưới, mọi ô có Z4 ngang δ WB nhưng Swin-L vẫn chỉ 22–29 → khóa lưới giải thích phần NOISE → OSFD, KHÔNG giải thích khoảng 27 → 85 của Swin-L (Q2 vẫn mở). Caveat: dev30; chuẩn hóa đính chính sau kết quả.
