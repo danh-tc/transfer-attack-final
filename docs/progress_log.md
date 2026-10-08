@@ -2350,3 +2350,12 @@ python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD NOI
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD NOISE SHODD ROT15 PH4 PH4A --dets dets_ph_dev30.json --out generalization_ph_dev30.json
 python scripts/e13_grid_template.py --extra PH4 PH4A --out results/mechanism/e13_ph_dev30.json
 ```
+
+### Kết quả pilot pha @ dev30 (`metrics_ph_dev30.json`, `generalization_ph_dev30.json`, `results/mechanism/e13_ph_dev30.json`, log `results/stride/ph_dev30.log`) — theo quy tắc: thao tác ĐẠT; "chỉ pha là đủ" **XÁM** (sát ngưỡng bác); đối pha KHÔNG giúp; **KHÔNG GO**
+Mốc eval lại trùng tuyệt đối số cũ (OSFD 78.9, NOISE 64.3, SHODD 79.2, ROT15 79.4).
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | Z4 | s/ảnh: NOISE 98.7 / 89.8 / 67.2 / 68.4 / 57.4 / 14.9 | 64.3 | 183.5 | 4.3; OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 26.9 | 3.0; SHODD 97.5 / 91.8 / 80.0 / 81.5 / 76.0 / 22.3 | 79.2 | 32.6; **PH4 98.3 / 92.1 / 76.7 / 73.2 / 67.3 / 20.2 | 72.4 | 33.0**; **PH4A 97.6 / 91.1 / 74.8 / 76.8 / 67.9 / 19.3 | 73.1 | 24.5**.
+- Thao tác: Z4 PH4 33.0, PH4A 24.5 ≤ 91.8 → ĐẠT (khóa lưới bị triệt ngang SHODD / OSFD).
+- Chỉ pha: CA3(PH4) 72.4 < SHODD − 3 (76.2) và > ngưỡng bác 71.8 → XÁM (sát bác). PH4 − SHODD: (ConvNeXt + Swin-T)/2 −5.8 [−8.4, −3.1], YOLOX −8.7 [−15.8, −1.4]; PH4 − NOISE +7.1 / +9.9 / Swin-L +5.2 (CI > 0).
+- Đối pha: PH4A − PH4 +0.7 < 2 → không giúp.
+- GO: KHÔNG (PH4A − OSFD: CNN −4.7 [−7.7, −0.4], Swin-L −7.9 [−10.8, −1.7]).
+**Đọc (dev30):** (1) **Triệt khóa lưới stride 4 là CẦN nhưng KHÔNG ĐỦ.** PH4 / PH4A có Z4 thấp ngang SHODD / OSFD mà chỉ lấy ~54% lợi ích (NOISE → SHODD). Phân rã thô: dời xa giữ pha (SH32) +4.6, chỉ pha (PH4) +8.1, cả hai (SHODD) +14.9 → hai phần gần cộng tính, có chút cộng hưởng. Câu cơ chế "chỉ pha lưới stride 4" ở các entry trước bị NÓI QUÁ: phần còn lại đến từ dịch chuyển lớn. (2) Ứng viên giải thích phần còn lại (chưa kiểm): PH4 (0–3 px) chỉ phủ một nửa residue mod 8 và 1/8 residue mod 32 → pha các stride THÔ hơn (8 — đã thấy góp phần ở (a) — 16, 32) bị phủ thiếu; hoặc dời nội dung / biên thật sự có vai trò. Kiểm rẻ: PH8 (0–7) và PH32 (0–31) — nếu CA3 tăng dần về SHODD → "độ phủ pha nhiều stride" (vẫn là câu chuyện lưới); nếu PH32 vẫn thấp → dời nội dung. (3) Z4 không còn là chỉ báo đủ cho transfer (PH4 vs SHODD cùng Z4, khác 6.8 CA3) — đính chính cách đọc Spearman E13. (4) Method "chỉ dịch 0–3 px" thua OSFD → loại.
