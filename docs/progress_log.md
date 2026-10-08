@@ -2572,3 +2572,19 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 ### Kết quả dịch + xoay / OCT thuần feature @ dev30 (`metrics_rot_dev30.json`, `generalization_rot_dev30.json`, log `results/stride/rot_dev30.log`) — theo quy tắc: PH8R − PH8 **xám** (+1.2); C2-OCTR − C2-OCT **không thêm** (−0.9); **OCT − OSFD = +4.8 → HƠN**
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; ROT15 … | 79.4; PH8 98.3 / 92.8 / 81.5 / 80.7 / 74.2 / 21.2 | 78.8; PH8R 97.3 / 90.7 / 82.3 / 80.6 / 77.3 / 26.7 | 80.0 | 5.8; **OCT 96.6 / 91.9 / 85.0 / 83.9 / 82.1 / 27.7 | 83.6 | 5.5**; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0; C2-OCTR-fast 99.0 / 93.8 / 86.3 / 87.9 / 72.8 / 32.1 | 82.3 | 8.3.
 **Đọc (dev30):** (1) Xoay thêm vào dịch: không / ít (trong nhiễu). (2) **Đính chính:** entry C2-SCL25 ghi "co giãn không có tác dụng với loss feature" là SAI — ô elem SCL25 (feature thuần, chỉ co giãn) đã là ô cao nhất (81.0, +2.1 vs OSFD), và co giãn 1 octave + dịch pha với loss feature thuần (OCT) đạt 83.6 = C2-OCT-fast, YOLOX 82.1 (cao nhất mọi ô). → Đa dạng KÍCH THƯỚC + PHA giúp cả loss feature; với đa dạng này, loss cls gần như không thêm CA3 (−0.3), chỉ Swin-L +1.5 (nhiễu). Chi phí OCT 5.5 s vs C2-OCT-fast 8.0 s. Hệ quả: câu "thành phần khóa kích thước đặc thù loss cls" cần xem lại — co giãn có ích chung; C2 chỉ hơn OSFD vì RRB thiếu đa dạng kích thước (resize ≤ 1.1). Cần xác nhận dev100 (OCT vs C2-OCT-fast vs OSFD) trước khi chốt.
+
+---
+
+## 2026-10-08 — RaPA trên ĐƯỜNG PHÂN LOẠI + loss cls thuần + OCT @ dev30 (ý user) — khóa TRƯỚC khi chạy
+**Lý do (user):** lần trước RaPA ghép với loss FEATURE (MORGD-RaPA: CA3 −25) — sai setting gốc của RaPA (loss phân loại trên logit). Lần này coi bài toán là PHÂN LOẠI: loss chỉ cls (rpn_cls + RoI cls), RaPA chỉ trên đường đi của nó, + đa dạng OCT. Hợp nguyên tắc "target chưa thấy" (RaPA chống dựa vào ít tham số surrogate).
+**Ô:** `CLS-OCT-RaPA05` / `CLS-OCT-RaPA01` = CLS-OCT-fast (loss 4·(rpn_cls + cls), OCT, skip_mask, AMP, không forward sạch) + RaPA p = 0.05 / 0.01 trên BN backbone (53 lớp) + Linear RoI head nhánh phân loại (shared_fcs.0/1, fc_cls) — 14.0 M tham số; DropConnect weight + bias, không nhân bù, mask MỚI mỗi view, nhất quán forward + backward (`pia.rapa_cls_sampler`), S = 1.
+**Unit test:** p = 0 → loss trùng tuyệt đối (0.966161); tỉ lệ mask 0.0500 / 0.0100; p = 0.05 loss cls 0.97 → 1.72; gradient hữu hạn; tham số model không đổi; 3 bước L∞ = 3; mask head khôi phục.
+**Mốc (PNG dev30 có sẵn):** CLS-OCT-fast (cùng loss, không RaPA), C2-OCT-fast, OCT, OSFD.
+**Quy tắc (dev30, chỉ số gộp):**
+- "RaPA giúp (đường phân loại)" nếu ô tốt hơn đạt CA3 ≥ CA3(CLS-OCT-fast) + 2 VÀ YOLOX, Swin-L ≥ CLS-OCT-fast − 2. CA3 ≤ CLS-OCT-fast − 2 → "RaPA hại".
+- Tín hiệu SOTA (GO dev100) nếu CA3 ≥ max(OCT, C2-OCT-fast) + 2 VÀ Swin-L ≥ max(...)  − 2.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD OCT C2-OCT-fast CLS-OCT-fast CLS-OCT-RaPA05 CLS-OCT-RaPA01 --out metrics_rapacls_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD OCT C2-OCT-fast CLS-OCT-fast CLS-OCT-RaPA05 CLS-OCT-RaPA01 --dets dets_rapacls_dev30.json --out generalization_rapacls_dev30.json
+```
