@@ -2535,3 +2535,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.
 CA3 −5.9 so C2-OCT-fast, ≈ OSFD (−1.5): objectness RPN gần như không thêm gì so loss feature; lợi của loss cls nằm ở phân loại RoI (80 lớp). Tốc độ chỉ ×0.89. → Giữ C2 (rpn_cls + RoI cls).
 
 **Chốt (user, 2026-10-08):** YOLOX-L + Mask R-CNN Swin-S là target HELD-OUT — không eval / không nhìn khi ra quyết định method; chỉ dùng ở bảng cuối (n300 / n1000).
+
+---
+
+## 2026-10-08 — C2-LVX @ dev30: đa dạng VƯỢT MỨC FPN theo object (ứng viên novelty) — khóa TRƯỚC khi chạy
+**Giả thuyết:** thành phần khóa kích thước của loss cls = khóa theo MỨC FPN mà RoI được gán (SingleRoIExtractor: mức l khi 56·2^l ≤ √(wh) < 56·2^(l+1), ranh giới √(wh) = 112 / 224 / 448). Đa dạng có chủ đích: mỗi view chọn 1 object GT ngẫu nhiên, chọn scale đẳng hướng để object SANG phía kia ranh giới mức gần nhất, cách ranh giới U(0, 0.5) octave, |Δ| ≤ 1 octave (`elem.lvx_log_scale`), ∘ dịch pha PH8.
+**Thao tác (dev30, đo trước, 200 view / ảnh):** object chọn đổi mức FPN 72% view (OCT: 13%); |Δ| TB 0.71 octave (OCT ~0.25). Lẫn biên độ đã biết: liều SCL50 ≈ SCL25 (bão hòa) → biên độ ít khả năng là yếu tố. Smoke: L∞ = 3 sau 3 bước, hữu hạn.
+**Ô:** `C2-LVX-fast` (khung C2-OCT-fast: skip_mask + AMP). **Mốc (PNG dev30 có sẵn):** OSFD, C2-OCT-fast, C2-PIA.
+**Quy tắc (dev30, chỉ số GỘP — nguyên tắc target chưa thấy):** GO dev100 (method) nếu CA3(LVX) ≥ CA3(C2-OCT-fast) + 2 VÀ YOLOX ≥ C2-OCT-fast − 2 VÀ Swin-L ≥ C2-OCT-fast − 2. "Vượt mức FPN KHÔNG phải yếu tố thêm" nếu CA3(LVX) ≤ CA3(C2-OCT-fast) + 0.5. Giữa → xám. Mô tả: so C2-PIA, runtime.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD C2-OCT-fast C2-PIA C2-LVX-fast --out metrics_lvx_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD C2-OCT-fast C2-PIA C2-LVX-fast --dets dets_lvx_dev30.json --out generalization_lvx_dev30.json
+```

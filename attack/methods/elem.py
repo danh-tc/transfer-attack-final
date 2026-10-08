@@ -86,6 +86,24 @@ def sample_elem_h(spec: dict, h: int, w: int) -> torch.Tensor:
     return linear_homography(A, h, w)
 
 
+FINEST_SCALE = 56.0  # Mask R-CNN SingleRoIExtractor: mức l khi 56·2^l ≤ √(wh) < 56·2^(l+1), clamp 0..3
+
+
+def lvx_log_scale(boxes: torch.Tensor, max_oct: float = 1.0) -> float:
+    """C2-LVX (progress_log 2026-10-08): ln s để 1 object GT ngẫu nhiên SANG phía kia ranh giới mức FPN gần nhất
+    (x = log2(√(wh)/56), ranh giới x ∈ {1, 2, 3}), cách ranh giới U(0, 0.5) octave; |Δ| ≤ max_oct (clip -> có thể không qua).
+    Không có box -> ln s ~ U(±max_oct/2) (như OCT)."""
+    if len(boxes) == 0:
+        return random.uniform(-max_oct / 2, max_oct / 2) * math.log(2)
+    b = boxes[random.randrange(len(boxes))]
+    sc = math.sqrt(max(float((b[2] - b[0]) * (b[3] - b[1])), 1e-6))
+    x = math.log2(sc / FINEST_SCALE)
+    bd = min(max(round(x), 1), 3)
+    side = (1.0 if x < bd else -1.0) if x != bd else random.choice([-1.0, 1.0])
+    target = bd + side * random.uniform(0.0, 0.5)
+    return max(-max_oct, min(max_oct, target - x)) * math.log(2)
+
+
 def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0, companion=None, log=None,
                data_sample=None, gt_log=None):
     """n view; companion (ảnh sạch) nhận CÙNG lưới, không nhiễu. Trả về [(view_nhiễu, companion_warp, ds_view)];
@@ -95,7 +113,12 @@ def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0,
     out = []
     prev = None
     for k in range(n):
-        if "scale_strat" in spec:  # co giãn phân tầng: view lẻ lệch nửa khoảng (a) so với view chẵn trước, + dịch pha
+        if "lvx" in spec:  # co giãn vượt mức FPN theo 1 object ∘ dịch pha
+            sc = math.exp(lvx_log_scale(gt[0] if gt is not None else torch.zeros(0, 4), spec["lvx"]))
+            H = linear_homography(torch.tensor([[sc, 0.0], [0.0, sc]], dtype=torch.float64), h, w)
+            if "shift" in spec:
+                H = H @ shift_h(shift_offset(spec["shift"]), shift_offset(spec["shift"]))
+        elif "scale_strat" in spec:  # co giãn phân tầng: view lẻ lệch nửa khoảng (a) so với view chẵn trước, + dịch pha
             a = spec["scale_strat"]
             if k % 2 == 0:
                 u = random.uniform(-a, a)
