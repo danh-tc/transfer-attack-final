@@ -2627,3 +2627,22 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: CLS-OCT-fast 98.4 / 93.5 
 ## 2026-10-08 — OCT-cache: cache feature sạch trên 64 phép biến đổi cố định (đo tốc độ 1 ảnh, user)
 **Code:** `geo_osfd_attack(cache_views=64)` (loss feature thuần, OCT): tập cố định 64 phép = đủ 8×8 pha dịch, mỗi pha 1 mức co giãn phân tầng trong ±ln2/2 (RNG = initial_seed + 3); feature sạch 64 view tính 1 lần / ảnh (fp16), mỗi view rút chỉ số đều. Ô `OCT-cache`. ĐỔI method (rời rạc vs liên tục) → cần eval.
 **Tốc độ (ảnh 7088, RTX 3090):** B50: OCT 6.8 s → OCT-cache 5.0 s (−26%); B200: 20.1 → 14.1 s (−30%). Bão hòa δ như nhau (0.95 / 0.98). Hình: `results/figs/oct_cache_7088.png` (ảnh sạch / adv OCT / adv OCT-cache + box Swin-T score ≥ 0.3: 7 → 29 / 27 box; δ ×25). Chưa eval transfer.
+
+---
+
+## 2026-10-08 — TẠM DỪNG (user, mai tiếp): tổng kết findings + việc mở
+**Nguyên tắc đã chốt hôm nay:** mục tiêu = transfer sang target CHƯA THẤY (quyết định chỉ dựa chỉ số gộp, không tune theo 1 target / mẹo riêng surrogate); held-out = YOLOX-L + Mask R-CNN Swin-S. Mục tiêu cuối: SOTA + novelty.
+**Findings (dev30 trừ khi ghi khác):**
+1. **Đa dạng hình học = triệt thành phần δ khóa lưới downsample stride 4 / 8 của R50** (SH4 / SH2 / PH4 / PH8 / PH4L; thấy trực tiếp trên δ — E13 Z4). Dịch nguyên 0–7 px (PH8) ≈ OSFD; loại biến đổi (xoay, phối cảnh, warp) và dời xa không quan trọng; xoay không thêm khi đã có dịch.
+2. **Đa dạng KÍCH THƯỚC (co giãn 1 octave) giúp thêm** — với cả loss feature: OCT (co giãn + dịch, loss feature thuần) CA3 83.6 vs OSFD 78.9 (+4.8), YOLOX 82.1. (Đính chính: không đặc thù loss cls.) Vượt mức FPN có chủ đích (LVX) KHÔNG giúp (δ yếu đi).
+3. **Loss:** feature + RoI cls bổ trợ (feature giữ YOLOX, cls giúp Swin-L); objectness RPN không thay được RoI cls; với đa dạng OCT, cls gần như không thêm CA3.
+4. **C2-PIA QUA sàng lọc dev300:** CA3 − OSFD +11.2 [8.1, 12.7], Swin-L 37.6 vs 24.9. C2-OCT ≈ C2-PIA (dev30).
+5. **RaPA:** ghép loss feature hại (−25); trên ĐƯỜNG PHÂN LOẠI (loss cls thuần, p = 0.01) +2.2 CA3, lợi nằm ở BN backbone (không ở RoI head); bão hòa từ B50 (5 ảnh).
+6. **Tốc độ:** skip_mask (tương đương) + AMP fp16 → C2-OCT −31%; OCT-cache (64 phép cố định) −26–30% (chưa eval transfer). OCT 1.8× OSFD; C2-OCT-fast 2.7×.
+7. **Novelty:** OCT như thao tác KHÔNG mới (≈ DI resize + TI + OSFD loss; AugTrans 2026 có resize theo box). Novelty khả dĩ = cơ chế (2 thành phần đặc thù surrogate + chọn tham số có cơ sở).
+8. **Phân rã lỗi (dev30):** CNN / Swin-T: ~60% object bị xóa + box sai ×3; **DINO-Swin-L: chỉ ~23% object bị xóa, không thêm box sai** → biểu diễn Swin-L vẫn không bị phá — nút thắt chính chưa giải.
+**Việc mở cho phiên sau:**
+- (a) Xác nhận dev100: OCT vs C2-OCT-fast vs OSFD (+ đối chứng cùng thời gian OSFD ~B90).
+- (b) Đường bão hòa theo B (50 / 100 / 150 / 200) cho OCT vs OSFD; eval OCT-cache.
+- (c) Swin-L: vì sao object không bị xóa — hướng phân tích chính cho novelty.
+- Code mới: `elem` (s2..s32, ph4 / ph4a / ph8 / ph32 / ph4l, scale_strat, lvx, GT co-transform), `geo_osfd_attack(skip_mask, amp, feature, cls_mode, rapa_cls_p, rapa_scope, cache_views)`, `run_baselines --surrogate` (chưa dùng), `scripts/e13_grid_template.py`. Kết quả: `results/runs/dev300_B50_eps5/*_{stride,ph,ph2,c2pia,c2ph8,c2anchor,oct,octfast,clsoct,rpnoct,lvx,rot,rapacls,rapaloc,...}*`, `results/runs/dev300_B200_eps5/`, log `results/stride/`.
