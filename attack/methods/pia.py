@@ -279,7 +279,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     cam_theta: float = 15.0, cam_kappa: float = 0.0, elem=None,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1,
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
-                    cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all"):
+                    cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -296,6 +296,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     skip_mask (tối ưu tốc độ, progress_log 2026-10-08): loss C2 chỉ dùng loss_rpn_cls + loss_cls -> tắt mask head
     (forward + backward) và bỏ co-transform mask GT; RoI sampling / RNG không đổi -> cùng gradient.
     rapa_cls_p (chỉ với feature=False): RaPA trên backbone BN + RoI head phân loại, mask mới mỗi view (rapa_cls_sampler).
+    cache_views=N (geo="elem", loss feature thuần; progress_log 2026-10-08): tập CỐ ĐỊNH N phép biến đổi (N = 64: đủ 8×8 pha
+    dịch, mỗi pha 1 mức co giãn phân tầng trong elem["scale"]); feature sạch của N view tính 1 lần / ảnh (fp16), mỗi view
+    rút chỉ số đều -> không forward sạch trong vòng lặp.
     cls_mode="rpn": số hạng cls chỉ là loss_rpn_cls (bỏ sinh proposal + RoI head), repair.cls_term.
     feature=False (CLS-OCT): bỏ loss feature OSFD, chỉ cls_weight·cls (không forward feature sạch co-transform).
     amp: autocast fp16 cho forward / backward surrogate (δ, momentum, bước sign giữ fp32) — đổi số học, phải kiểm bằng eval."""
@@ -326,7 +329,36 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert rapa_cls_p is None or not feature
     rapa_cls = rapa_cls_sampler(model, rapa_cls_p, clean_pixels.device, rapa_scope) if rapa_cls_p is not None else None
 
+    cache = None
+    if cache_views:
+        assert geo == "elem" and cls_weight == 0.0 and co_transform and set(elem) == {"scale", "shift"} and elem["shift"] == "ph8"
+        assert cache_views == 64
+        import math
+        from attack.methods.elem import linear_homography, shift_h
+        rng = random.Random(torch.initial_seed() + 3)
+        a = elem["scale"]
+        us = [-a + (j + rng.random()) * 2 * a / cache_views for j in range(cache_views)]
+        rng.shuffle(us)
+        h, w = clean_pixels.shape[-2:]
+        cache = []
+        with torch.no_grad():
+            for j, (tx, ty) in enumerate([(x, y) for x in range(8) for y in range(8)]):
+                sc = math.exp(us[j])
+                H = linear_homography(torch.tensor([[sc, 0.0], [0.0, sc]], dtype=torch.float64), h, w) @ shift_h(tx, ty)
+                grid = warp_grid(H, h, w, clean_pixels.device)
+                fc = tuple(f.detach().half() for f in extract_features(model, warp(clean_pixels, grid), data_sample))
+                cache.append((grid, fc))
+        log["forward_no_grad"] += cache_views
+
     def views_fn(img, ds, step_idx, total):
+        if cache is not None:
+            out = []
+            for _ in range(n_views):
+                grid, fc = cache[random.randrange(len(cache))]
+                v = warp(img, grid)
+                out.append((gaussian_blur(v, sigma=sigma) if sigma > 0 else v, ds,
+                            _view_loss(tuple(f.float() for f in fc), k)))
+            return out
         comp = clean_pixels if co_transform else None
         if geo == "rrb":
             triples = [(v, c, ds) for v, _, c in rrb_views(img, ds, with_gt=True, companion=comp, **rrb_kw)]
