@@ -2515,3 +2515,17 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 ### Kết quả CLS-OCT @ dev30 (`metrics_clsoct_dev30.json`, `generalization_clsoct_dev30.json`, log `results/stride/clsoct_dev30.log`) — theo quy tắc: **loss feature CẦN**
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0; **CLS-OCT-fast 98.4 / 93.5 / 85.4 / 82.9 / 70.0 / 30.8 | 79.4 | 6.4**.
 CA3 −3.9 so C2-OCT-fast (≤ −3 → cần); YOLOX −7.4 (giống dev100 RRB: chỉ cls yếu ở YOLOX); Swin-L +1.6 (trong nhiễu). OCT có kéo cls-only lên (YOLOX 70 vs 59 ở RRB dev100, khác tập ảnh) nhưng không thay được loss feature. Bổ trợ feature + cls được giữ.
+
+---
+
+## 2026-10-08 — RPN-OCT @ dev30: số hạng cls chỉ là loss_rpn_cls (objectness) — khóa TRƯỚC khi chạy
+**Nguyên tắc (user, từ đây áp dụng):** mục tiêu = transfer sang target CHƯA THẤY; không tune theo 1 target / mẹo riêng surrogate. Quyết định chỉ dựa chỉ số GỘP (CA3 + Swin-L + YOLOX cùng lúc, không tối ưu riêng model nào). Đề xuất (chờ user chốt): giữ YOLOX-L + Mask R-CNN Swin-S làm target HELD-OUT, không nhìn khi ra quyết định, chỉ dùng bảng cuối.
+**Lý do ô:** (a) hiểu cơ chế — lợi của loss cls đến từ objectness (RPN) hay phân loại 80 lớp (RoI); objectness là khái niệm chung mọi detector → ít gắn surrogate hơn; (b) giảm thời gian. Đo: `loss_rpn_cls` rpn-only = model.loss (0.1299 = 0.1299); thời gian 50 bước chỉ ×0.85–0.94 so C2-OCT-fast (gán anchor RPN vẫn tốn).
+**Ô:** `RPN-OCT-fast` = C2-OCT-fast với số hạng cls = 4·loss_rpn_cls (`cls_mode="rpn"`, `repair.cls_term`).
+**Mốc (PNG dev30 có sẵn):** C2-OCT-fast, OSFD.
+**Quy tắc (dev30):** "objectness đủ (thay thế được)" nếu ĐỒNG THỜI CA3 ≥ C2-OCT-fast − 1, YOLOX ≥ −3, Swin-L ≥ −3 (điểm, so C2-OCT-fast). "RoI cls cần" nếu CA3 ≤ C2-OCT-fast − 3 HOẶC Swin-L ≤ C2-OCT-fast − 5. Còn lại xám.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD C2-OCT-fast RPN-OCT-fast --out metrics_rpnoct_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD C2-OCT-fast RPN-OCT-fast --dets dets_rpnoct_dev30.json --out generalization_rpnoct_dev30.json
+```

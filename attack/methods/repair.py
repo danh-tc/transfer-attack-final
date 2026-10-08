@@ -16,6 +16,8 @@ loại sống sót qua phép sửa.
 L = L_OSFD + λ·L_cls(head(FPN(R(C_adv)))), L_cls ∈ {C2: loss_rpn_cls + loss_cls, V: L_V}.
 Với p = 0 và cls="c2" trùng tuyệt đối loss của C2 (`preprocess.make_feature_plus_gt_loss`).
 """
+import copy
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -87,6 +89,11 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
     if cls == "c2":
         losses = model.loss(batch_inputs, batch_data_samples)
         return sum_loss_dict({t: losses[t] for t in C2_TERMS})
+    if cls == "rpn":  # chỉ loss_rpn_cls (progress_log 2026-10-08): bỏ sinh proposal + RoI head; nhãn GT -> 0 như two_stage.loss
+        rpn_ds = copy.deepcopy(batch_data_samples)
+        for d in rpn_ds:
+            d.gt_instances.labels = torch.zeros_like(d.gt_instances.labels)
+        return sum_loss_dict({"loss_rpn_cls": model.rpn_head.loss(model.extract_feat(batch_inputs), rpn_ds)["loss_rpn_cls"]})
     assert cls == "vanish"
     return vanish_loss(model, model.extract_feat(batch_inputs), batch_data_samples)
 

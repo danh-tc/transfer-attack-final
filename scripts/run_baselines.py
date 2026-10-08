@@ -181,7 +181,10 @@ METHODS["C2-OCT-fast"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"
 # Chỉ loss cls (bỏ loss feature) + đa dạng OCT, cùng tối ưu fast (progress_log 2026-10-08).
 METHODS["CLS-OCT-fast"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}, cls_weight=4.0,
                                              skip_mask=True, amp=True, feature=False), 2)
-ELEM_CELLS_C2 = {"C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast"}
+# Số hạng cls chỉ loss_rpn_cls (objectness), bỏ proposal + RoI head (progress_log 2026-10-08).
+METHODS["RPN-OCT-fast"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}, cls_weight=4.0,
+                                             skip_mask=True, amp=True, cls_mode="rpn"), 2)
+ELEM_CELLS_C2 = {"C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
                "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS",
