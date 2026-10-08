@@ -2498,3 +2498,16 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 
 ### Kết quả C2-OCT-fast @ dev30 (`metrics_octfast_dev30.json`, `generalization_octfast_dev30.json`, log `results/stride/octfast_dev30.log`) — theo quy tắc: **THAY THẾ ĐƯỢC**
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT 99.9 / 95.7 / 85.3 / 86.6 / 78.9 / 31.9 | 83.6 | 11.6; **C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0**. ΔCA3 −0.3, YOLOX −1.5, Swin-L −2.7 (trong ngưỡng), runtime ×0.69 (2.5× OSFD thay vì 3.7×). Từ đây dùng C2-OCT-fast cho các lần chạy C2-OCT tiếp (ghi rõ trong bảng: skip_mask + AMP fp16).
+
+---
+
+## 2026-10-08 — CLS-OCT @ dev30: bỏ loss feature, chỉ loss cls + đa dạng OCT — khóa TRƯỚC khi chạy
+**Lý do:** dev100 (RRB): chỉ cls YOLOX 59.1 / Swin-L 32.5 / CA3 71.2 vs OSFD 70.2 / 25.3 / 74.5 — nhưng RRB chưa triệt thành phần khóa kích thước của loss cls (C2-PH8 / C2-SCL25). Với OCT, loss cls đứng riêng có thể đủ (bỏ loss feature → đơn giản + nhanh hơn).
+**Ô:** `CLS-OCT-fast` = C2-OCT-fast bỏ loss feature (`feature=False`: loss = 4·(loss_rpn_cls + loss_cls), không forward feature sạch co-transform). Smoke: 3 bước L∞ = 3, forward_no_grad = 0, mask head khôi phục.
+**Mốc (PNG dev30 có sẵn, eval lại):** C2-OCT-fast, OSFD.
+**Quy tắc (dev30):** "loss feature THỪA (bỏ được)" nếu CA3(CLS-OCT) ≥ CA3(C2-OCT-fast) − 1 VÀ YOLOX ≥ YOLOX(C2-OCT-fast) − 3; "loss feature CẦN" nếu CA3(CLS-OCT) ≤ CA3(C2-OCT-fast) − 3; còn lại xám. Mô tả: Swin-L, runtime.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD C2-OCT-fast CLS-OCT-fast --out metrics_clsoct_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD C2-OCT-fast CLS-OCT-fast --dets dets_clsoct_dev30.json --out generalization_clsoct_dev30.json
+```

@@ -253,7 +253,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     co_transform: bool = True, cls_weight: float = 0.0, rapa_p=None, pia_drop=None,
                     cam_theta: float = 15.0, cam_kappa: float = 0.0, elem=None,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1,
-                    skip_mask: bool = False, amp: bool = False):
+                    skip_mask: bool = False, amp: bool = False, feature: bool = True):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -269,6 +269,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     1 forward/view (repair.make_view_loss, không sửa = loss của C2).
     skip_mask (tối ưu tốc độ, progress_log 2026-10-08): loss C2 chỉ dùng loss_rpn_cls + loss_cls -> tắt mask head
     (forward + backward) và bỏ co-transform mask GT; RoI sampling / RNG không đổi -> cùng gradient.
+    feature=False (CLS-OCT): bỏ loss feature OSFD, chỉ cls_weight·cls (không forward feature sạch co-transform).
     amp: autocast fp16 cho forward / backward surrogate (δ, momentum, bước sign giữ fp32) — đổi số học, phải kiểm bằng eval."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
@@ -336,6 +337,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         out = []
         for v, c, dsv in triples:
             ctx = rapa[0]() if rapa is not None else contextlib.nullcontext  # CÙNG mask cho sạch và adv của view
+            if not feature:
+                assert cls_weight > 0
+                out.append((v, dsv, make_view_loss(None, k, "c2", cls_weight, feat_weight=0.0)))
+                continue
             if co_transform:
                 with torch.no_grad(), ctx():
                     fc = tuple(f.detach() for f in extract_features(model, c, ds))

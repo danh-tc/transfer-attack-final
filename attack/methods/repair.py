@@ -91,7 +91,7 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
     return vanish_loss(model, model.extract_feat(batch_inputs), batch_data_samples)
 
 
-def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None):
+def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa."""
     def loss_fn(model, pixel_tensor, data_sample):
@@ -108,8 +108,10 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
             c = cls_term(model, batch_inputs, bds, cls)
         finally:
             h.remove()
+        if feat_weight == 0:  # CLS-OCT (progress_log 2026-10-08): chỉ loss cls
+            return weight * c
         feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
-        return feat + weight * c
+        return feat_weight * feat + weight * c
     return loss_fn
 
 
