@@ -2495,3 +2495,6 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2 99.9 / 94.8 
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods C2-OCT C2-OCT-fast --out metrics_octfast_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods C2-OCT C2-OCT-fast --dets dets_octfast_dev30.json --out generalization_octfast_dev30.json
 ```
+
+### Kết quả C2-OCT-fast @ dev30 (`metrics_octfast_dev30.json`, `generalization_octfast_dev30.json`, log `results/stride/octfast_dev30.log`) — theo quy tắc: **THAY THẾ ĐƯỢC**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT 99.9 / 95.7 / 85.3 / 86.6 / 78.9 / 31.9 | 83.6 | 11.6; **C2-OCT-fast 99.5 / 94.7 / 86.4 / 86.1 / 77.4 / 29.2 | 83.3 | 8.0**. ΔCA3 −0.3, YOLOX −1.5, Swin-L −2.7 (trong ngưỡng), runtime ×0.69 (2.5× OSFD thay vì 3.7×). Từ đây dùng C2-OCT-fast cho các lần chạy C2-OCT tiếp (ghi rõ trong bảng: skip_mask + AMP fp16).
