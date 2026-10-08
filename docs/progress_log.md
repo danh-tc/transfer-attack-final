@@ -2476,3 +2476,9 @@ Unit test: hợp thành H = Lin · Shift đúng; phân tầng |u₁ − u₂| = 
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods PROBE-osfd+cls C2-SCL25 C2-PIA C2-SCL50 C2-OCT C2-OCTS --out metrics_oct_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods PROBE-osfd+cls C2-SCL25 C2-PIA C2-SCL50 C2-OCT C2-OCTS --dets dets_oct_dev30.json --out generalization_oct_dev30.json
 ```
+
+### Kết quả method tách cơ chế @ dev30 (`metrics_oct_dev30.json`, `generalization_oct_dev30.json`, log `results/stride/oct_dev30.log`) — theo quy tắc: **GO dev100 (C2-OCT)**; KHÔNG có tín hiệu vượt C2-PIA; phân tầng không giúp
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2 99.9 / 94.8 / 82.9 / 84.9 / 66.2 / 25.6 | 78.0 | 7.4; C2-SCL25 … | 82.7; C2-SCL50 99.0 / 93.8 / 85.9 / 84.6 / 78.2 / 29.2 | 82.9 | 11.5; **C2-OCT 99.9 / 95.7 / 85.3 / 86.6 / 78.9 / 31.9 | 83.6** | 11.6; C2-OCTS 99.6 / 95.3 / 88.9 / 85.3 / 76.3 / 27.9 | 83.5 | 11.5; C2-PIA 99.4 / 94.8 / 83.1 / 88.0 / 80.4 / 29.3 | 83.8 | 9.5.
+- GO: C2-OCT CA3 83.6 ≥ 82.8 ✓, Swin-L 31.9 ≥ 26.3 ✓. Vượt (≥ +2): không (−0.2). C2-OCT − C2-PIA: CNN +0.4 [−2.4, 3.1], YOLOX −1.5 [−5.6, 4.1], Swin-L +2.6 [−2.1, 7.4].
+- Liều SCL50 − SCL25 +0.2 (bão hòa từ ±0.25). Phân tầng OCTS − OCT −0.1 → không giúp.
+**Đọc (dev30):** đa dạng tách cơ chế (chỉ co giãn 1 octave + dịch pha) TÁI TẠO trọn lợi ích C2-PIA (không cần phối cảnh / homography), nhưng không vượt. Runtime ~ C2-PIA (đều bị chi phối bởi loss cls + forward feature sạch co-transform).
