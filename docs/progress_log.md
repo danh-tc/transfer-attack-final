@@ -2289,3 +2289,10 @@ Caveat: sai số f cỡ ±0.3 (dev30). Mô tả: Swin-L, R101, CI cặp SH2 − 
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods SH32 SHODD SH4 SH2 --out metrics_stride2_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods SH32 SHODD SH4 SH2 --dets dets_stride2_dev30.json --out generalization_stride2_dev30.json
 ```
+
+### Kết quả SH2 @ dev30 (`metrics_stride2_dev30.json`, `generalization_stride2_dev30.json`, log `results/stride/stride2_dev30.log`) — theo quy tắc: **stride 4 quyết định** (f(2) = 0.86 ≥ 0.75)
+Mốc eval lại cùng lần trùng tuyệt đối (a) (SH32 68.9, SH4 73.1, SHODD 79.5; span 10.6).
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: SH32 98.7 / 92.5 / 69.2 / 72.0 / 65.5 / 16.0 | 68.9; SH4 98.6 / 91.9 / 75.6 / 77.0 / 66.8 / 17.5 | 73.1; **SH2 98.3 / 91.4 / 81.3 / 78.9 / 74.0 / 24.0 | 78.0**; SHODD 97.5 / 92.0 / 81.0 / 81.6 / 75.9 / 21.9 | 79.5.
+CI cặp [(ConvNeXt + Swin-T)/2 | YOLOX | Swin-L]: SH2 − SH32 +9.5 [6.1, 13.8] | +8.5 [−0.1, 15.8] | +8.0 [2.6, 13.2]; SHODD − SH2 +1.3 [−0.5, 4.1] | +2.0 [−2.5, 9.0] | −2.2 [−5.0, 1.9]; SH2 − SH4 +3.8 [0.9, 6.2] | +7.2 [0.3, 12.6] | +6.5 [0.8, 10.6].
+**Đọc (dev30, mô tả):** (1) Giữ pha stride 2 (chỉ dịch chẵn) vẫn được ~86% lợi ích, SHODD − SH2 trong nhiễu → pha stride 2 (conv1) KHÔNG cần; phần δ gắn lưới nằm ở **stride 4 (maxpool → C2)**, cộng phần nhỏ stride 8 (từ (a)). (2) SH2 − SH4 dương ở cả 3 nhóm target, CI > 0 — chỉ khác nhau ở việc có residue 2 mod 4 hay không → bằng chứng trực tiếp nhất cho pha stride 4. (3) **Swin-L: SH2 24.0** — cao nhất trong các ô chỉ-tịnh-tiến, gần OSFD (27.2) — lệch pha stride 4 cũng là phần lợi ích hình học trên Swin-L (dev30, CI rộng). (4) R101 không đổi (91.4–92.5).
+**Hệ quả method (c):** đa dạng cần thiết tối thiểu = phủ residue mod 4 của tịnh tiến nguyên (4 × 4 = 16 pha) — ứng viên "lấy mẫu pha stride 4 có chủ đích" thay augmentation ngẫu nhiên. Phải xác nhận dev100 (SH32 / SH4 / SH2 / SHODD) trước khi khóa method; rà literature "aliasing / downsampling phase / shift-invariance" trong transfer attack.
