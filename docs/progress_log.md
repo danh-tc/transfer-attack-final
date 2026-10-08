@@ -2383,3 +2383,15 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 (mốc eval lại trùng s
 **Mô tả (KHÔNG thuộc quy tắc):** (1) **PH8 (dời TB 3.5 px, phủ đủ 8 pha mod 8) = 78.8 ≈ SHODD 79.2 ≈ OSFD 78.9** (PH8 − PH4: CNN +6.2 [2.6, 7.9], YOLOX +7.0 [1.1, 11.7]). (2) Dời xa thêm vào PH4 (PH4L) KHÔNG bù được: dời nội dung không phải phần thiếu. (3) Chu kỳ 8 trong δ (Zn8 = Z8 / 64, mô tả sau kết quả): PH4 5.8, PH4L 6.3 (còn khóa lưới 8) vs PH8 3.6, PH32 3.5, SHODD 3.5, OSFD 3.1, WB-Swin-L 3.5 — thành phần khóa lưới 8 còn đúng ở 2 ô transfer kém, khớp (a) (stride 8 góp ~40%: f(4) = 0.40).
 **Đọc (dev30):** đính chính entry pilot pha — "cần dịch xa" SAI; PH4 thiếu vì chỉ phủ nửa pha stride 8. Câu cơ chế sửa: **lợi ích đa dạng hình học ≈ triệt thành phần δ khóa lưới stride 4 VÀ 8 của R50 (C2, C3); dịch nguyên 0–7 px phủ đủ 8 × 8 pha là đủ đạt mức OSFD**, không cần xoay / co giãn / dời xa. PH32 (76.2) hơi thấp hơn PH8 — trong nhiễu. Swin-L: mọi ô dịch 20–23 < OSFD 27 (RRB / xoay còn thêm gì đó cho Swin-L, hoặc nhiễu ±5).
 **Hệ quả method:** PH8 = recipe đa dạng tối giản ngang OSFD trên CNN (không vượt). Ứng viên vượt OSFD phải thêm thành phần trực giao (vd loss cls C2: C2-PH8) — khóa entry mới, user quyết.
+
+---
+
+## 2026-10-08 — Đòn bẩy Swin-L của PIA có phải PHỐI CẢNH? PIA vs PIA-noP @ dev100 — khóa TRƯỚC khi chạy
+**Bối cảnh (user, mục tiêu duy nhất: SOTA + novelty):** đa dạng hình học bão hòa trên CNN (~79 CA3); riêng Swin-L loại biến đổi còn tạo khác biệt (dev100: PIA − GEO-C0 +6.0 [2.3, 9.8], C2-PIA − C2 +5.8 [1.7, 9.1]). Giả thuyết "lệch pha lưới window Swin-L (12 patch = 48 px)" đề xuất trước đó bị BỎ trước khi chạy: lưới window của target cố định trên ảnh, augmentation phía surrogate không thể lệch pha nó. Thay bằng xác nhận thành phần: Giai đoạn A (dev30) cho phối cảnh là thành phần duy nhất dương trên Swin-L (+2.8, trong nhiễu).
+**Ô:** `PIA` (sinh lại 70 ảnh dev100 \ dev30 cùng seed; 30 ảnh dev30 có PNG HF) và `PIA-noP` (PIA bỏ thành phần phối cảnh, như Giai đoạn A), dev100, B = 50, ε = 5. Sanity: Swin-L PIA sinh lại vs số commit dev100 28.5 — lệch > 3 → ghi chú.
+**Quy tắc (chính: DINO-Swin-L, paired bootstrap dev100):** "phối cảnh là đòn bẩy Swin-L" — ỦNG HỘ nếu PIA − PIA-noP ≥ 3 VÀ cận dưới CI > 0; BÁC nếu điểm ≤ 0; còn lại xám. Mô tả: CA3, R101.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --methods PIA PIA-noP --out metrics_piap_dev100.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev100 --models yolox_s dino_swin_l --methods PIA PIA-noP --dets dets_piap_dev100.json --out generalization_piap_dev100.json
+```
