@@ -2412,3 +2412,10 @@ PIA − PIA-noP: Swin-L **+2.8 [−0.3, 4.6]** (< 3, CI chứa 0); YOLOX +0.3; (
 python scripts/run_baselines.py --split dev300 --methods OSFD PROBE-osfd+cls C2-PIA --out metrics_c2pia_dev300.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --models yolox_s dino_swin_l --methods OSFD PROBE-osfd+cls C2-PIA --dets dets_c2pia_dev300.json --out generalization_c2pia_dev300.json
 ```
+
+### Kết quả sàng lọc C2-PIA @ dev300 (`metrics_c2pia_dev300.json`, `generalization_c2pia_dev300.json`, log `results/stride/c2pia_dev300.log`) — theo quy tắc: **QUA**
+Sanity: OSFD CA3 73.5 (commit 73.6), C2 78.4 (78.3) — khớp.
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 98.1 / 93.1 / 77.5 / 74.6 / 68.4 / 24.9 | 73.5 | 3.2; C2 99.5 / 96.6 / 85.2 / 79.6 / 70.3 / 31.4 | 78.4 | 8.0; **C2-PIA 99.1 / 96.3 / 88.6 / 86.8 / 78.9 / 37.6 | 84.8 | 10.6**.
+- **ΔCA3 (C2-PIA − OSFD) = +11.2 [8.1, 12.7]** (paired bootstrap 1000, BOOT_SEED 2026, tính lại từ dets vì file chỉ lưu CI thành phần) ≥ 3, CI > 0 ✓; ConvNeXt +11.1, Swin-T +12.1, YOLOX +10.5 > 0 ✓; R101 +3.2 ≥ −3 ✓.
+- Mô tả: C2-PIA − C2: (ConvNeXt + Swin-T)/2 +5.3 [3.3, 7.3], YOLOX +8.6 [6.0, 11.3], Swin-L +6.2 [3.8, 8.4]; Swin-L − OSFD +12.8 [8.8, 14.8]. Runtime 3.3× OSFD (B = 50 như nhau; PIA thêm forward no_grad cho feature sạch co-transform).
+**Bước tiếp theo theo plan_sota:** GO @ n300 (khóa riêng, chạy 1 lần). Caveat novelty: C2-PIA = OSFD + loss cls + PIA (PIA là công trình 2026) — chưa có thành phần mới; user quyết hướng novelty.

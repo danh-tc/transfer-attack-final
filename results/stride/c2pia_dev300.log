@@ -1,0 +1,279 @@
+loading annotations into memory...
+Done (t=0.51s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 300 ảnh, methods=['OSFD', 'PROBE-osfd+cls', 'C2-PIA']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD] 16/300  3.3s/ảnh  còn ~16 phút
+[attack OSFD] 31/300  3.3s/ảnh  còn ~15 phút
+[attack OSFD] 44/300  3.3s/ảnh  còn ~14 phút
+[attack OSFD] 57/300  3.3s/ảnh  còn ~13 phút
+[attack OSFD] 70/300  3.3s/ảnh  còn ~13 phút
+[attack OSFD] 88/300  3.3s/ảnh  còn ~12 phút
+[attack OSFD] 102/300  3.3s/ảnh  còn ~11 phút
+[attack OSFD] 116/300  3.3s/ảnh  còn ~10 phút
+[attack OSFD] 131/300  3.3s/ảnh  còn ~9 phút
+[attack OSFD] 151/300  3.3s/ảnh  còn ~8 phút
+[attack OSFD] 165/300  3.3s/ảnh  còn ~7 phút
+[attack OSFD] 177/300  3.3s/ảnh  còn ~7 phút
+[attack OSFD] 187/300  3.3s/ảnh  còn ~6 phút
+[attack OSFD] 197/300  3.3s/ảnh  còn ~6 phút
+[attack OSFD] 207/300  3.3s/ảnh  còn ~5 phút
+[attack OSFD] 217/300  3.3s/ảnh  còn ~5 phút
+[attack OSFD] 227/300  3.3s/ảnh  còn ~4 phút
+[attack OSFD] 237/300  3.2s/ảnh  còn ~3 phút
+[attack OSFD] 247/300  3.2s/ảnh  còn ~3 phút
+[attack OSFD] 257/300  3.2s/ảnh  còn ~2 phút
+[attack OSFD] 267/300  3.2s/ảnh  còn ~2 phút
+[attack OSFD] 277/300  3.2s/ảnh  còn ~1 phút
+[attack OSFD] 287/300  3.2s/ảnh  còn ~1 phút
+[attack OSFD] 297/300  3.2s/ảnh  còn ~0 phút
+[attack OSFD] 300/300  3.2s/ảnh  còn ~0 phút
+[attack PROBE-osfd+cls] 16/300  8.4s/ảnh  còn ~40 phút
+[attack PROBE-osfd+cls] 31/300  8.0s/ảnh  còn ~36 phút
+[attack PROBE-osfd+cls] 44/300  8.0s/ảnh  còn ~34 phút
+[attack PROBE-osfd+cls] 57/300  8.0s/ảnh  còn ~32 phút
+[attack PROBE-osfd+cls] 70/300  8.0s/ảnh  còn ~31 phút
+[attack PROBE-osfd+cls] 88/300  8.2s/ảnh  còn ~29 phút
+[attack PROBE-osfd+cls] 100/300  8.2s/ảnh  còn ~27 phút
+[attack PROBE-osfd+cls] 110/300  8.2s/ảnh  còn ~26 phút
+[attack PROBE-osfd+cls] 120/300  8.2s/ảnh  còn ~25 phút
+[attack PROBE-osfd+cls] 130/300  8.2s/ảnh  còn ~23 phút
+[attack PROBE-osfd+cls] 140/300  8.2s/ảnh  còn ~22 phút
+[attack PROBE-osfd+cls] 150/300  8.2s/ảnh  còn ~21 phút
+[attack PROBE-osfd+cls] 160/300  8.3s/ảnh  còn ~19 phút
+[attack PROBE-osfd+cls] 170/300  8.3s/ảnh  còn ~18 phút
+[attack PROBE-osfd+cls] 180/300  8.3s/ảnh  còn ~17 phút
+[attack PROBE-osfd+cls] 190/300  8.3s/ảnh  còn ~15 phút
+[attack PROBE-osfd+cls] 200/300  8.2s/ảnh  còn ~14 phút
+[attack PROBE-osfd+cls] 210/300  8.2s/ảnh  còn ~12 phút
+[attack PROBE-osfd+cls] 220/300  8.2s/ảnh  còn ~11 phút
+[attack PROBE-osfd+cls] 230/300  8.2s/ảnh  còn ~10 phút
+[attack PROBE-osfd+cls] 240/300  8.2s/ảnh  còn ~8 phút
+[attack PROBE-osfd+cls] 250/300  8.2s/ảnh  còn ~7 phút
+[attack PROBE-osfd+cls] 260/300  8.2s/ảnh  còn ~5 phút
+[attack PROBE-osfd+cls] 270/300  8.1s/ảnh  còn ~4 phút
+[attack PROBE-osfd+cls] 280/300  8.1s/ảnh  còn ~3 phút
+[attack PROBE-osfd+cls] 290/300  8.1s/ảnh  còn ~1 phút
+[attack PROBE-osfd+cls] 300/300  8.1s/ảnh  còn ~0 phút
+[attack C2-PIA] 16/300  10.9s/ảnh  còn ~52 phút
+[attack C2-PIA] 31/300  10.6s/ảnh  còn ~47 phút
+[attack C2-PIA] 44/300  10.4s/ảnh  còn ~45 phút
+[attack C2-PIA] 57/300  10.4s/ảnh  còn ~42 phút
+[attack C2-PIA] 70/300  10.5s/ảnh  còn ~40 phút
+[attack C2-PIA] 88/300  10.6s/ảnh  còn ~38 phút
+[attack C2-PIA] 100/300  10.7s/ảnh  còn ~36 phút
+[attack C2-PIA] 110/300  10.7s/ảnh  còn ~34 phút
+[attack C2-PIA] 120/300  10.7s/ảnh  còn ~32 phút
+[attack C2-PIA] 130/300  10.7s/ảnh  còn ~30 phút
+[attack C2-PIA] 140/300  10.7s/ảnh  còn ~29 phút
+[attack C2-PIA] 150/300  10.8s/ảnh  còn ~27 phút
+[attack C2-PIA] 160/300  10.9s/ảnh  còn ~25 phút
+[attack C2-PIA] 170/300  10.9s/ảnh  còn ~24 phút
+[attack C2-PIA] 180/300  10.9s/ảnh  còn ~22 phút
+[attack C2-PIA] 190/300  10.9s/ảnh  còn ~20 phút
+[attack C2-PIA] 200/300  10.9s/ảnh  còn ~18 phút
+[attack C2-PIA] 210/300  10.8s/ảnh  còn ~16 phút
+[attack C2-PIA] 220/300  10.8s/ảnh  còn ~14 phút
+[attack C2-PIA] 230/300  10.8s/ảnh  còn ~13 phút
+[attack C2-PIA] 240/300  10.8s/ảnh  còn ~11 phút
+[attack C2-PIA] 250/300  10.8s/ảnh  còn ~9 phút
+[attack C2-PIA] 260/300  10.8s/ảnh  còn ~7 phút
+[attack C2-PIA] 270/300  10.8s/ảnh  còn ~5 phút
+[attack C2-PIA] 280/300  10.8s/ảnh  còn ~4 phút
+[attack C2-PIA] 290/300  10.8s/ảnh  còn ~2 phút
+[attack C2-PIA] 300/300  10.8s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/300 (39s)
+[eval] predict 100/300 (77s)
+[eval] predict 150/300 (115s)
+[eval] predict 200/300 (153s)
+[eval] predict 250/300 (191s)
+[eval] predict 300/300 (228s)
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.39s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (396s)
+
+=== bbox AP (n=300, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          43.4 [ 42.3, 48.1]   45.2 [ 44.1, 49.9]   48.5 [ 47.7, 53.3]   48.5 [ 47.7, 53.5]
+OSFD            0.8 [  0.2,  2.0]    3.1 [  2.5,  4.6]   10.9 [  9.5, 13.4]   12.3 [ 11.1, 15.1]
+PROBE-osfd+cls    0.2 [  0.1,  0.7]    1.6 [  1.3,  2.4]    7.2 [  6.6,  9.7]    9.9 [  9.1, 12.7]
+C2-PIA          0.4 [  0.2,  0.9]    1.7 [  1.4,  2.9]    5.5 [  5.0,  7.7]    6.4 [  5.9,  9.2]
+
+=== relative AP drop % [95% CI] ===
+OSFD           98.1 [ 95.5, 99.5]   93.1 [ 90.4, 94.7]   77.5 [ 73.4, 81.2]   74.6 [ 70.5, 77.8]
+PROBE-osfd+cls   99.5 [ 98.5, 99.8]   96.6 [ 94.8, 97.3]   85.2 [ 80.8, 86.9]   79.6 [ 75.0, 81.6]
+C2-PIA         99.1 [ 97.9, 99.6]   96.3 [ 93.8, 97.1]   88.6 [ 84.7, 90.0]   86.8 [ 82.0, 88.2]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  76.1 [ 72.2, 79.1]  gap→ConvNeXt  15.5 [ 12.0, 18.6]  gap→Swin  18.4 [ 15.4, 21.4]  gap→avg  17.0 [ 13.9, 19.7]
+PROBE-osfd+cls CrossAvg  82.4 [ 78.0, 84.0]  gap→ConvNeXt  11.3 [  9.6, 14.8]  gap→Swin  17.0 [ 15.0, 20.7]  gap→avg  14.2 [ 12.5, 17.6]
+C2-PIA       CrossAvg  87.7 [ 83.5, 89.0]  gap→ConvNeXt   7.6 [  5.7, 10.6]  gap→Swin   9.5 [  7.8, 13.2]  gap→avg   8.6 [  7.0, 11.7]
+
+=== runtime === {'OSFD': 3.2, 'PROBE-osfd+cls': 8.0, 'C2-PIA': 10.6}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/metrics_c2pia_dev300.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.48s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/300 (3s)
+[gen yolox_s] 100/300 (5s)
+[gen yolox_s] 150/300 (9s)
+[gen yolox_s] 200/300 (12s)
+[gen yolox_s] 250/300 (16s)
+[gen yolox_s] 300/300 (19s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/300 (39s)
+[gen dino_swin_l] 100/300 (80s)
+[gen dino_swin_l] 150/300 (132s)
+[gen dino_swin_l] 200/300 (184s)
+[gen dino_swin_l] 250/300 (237s)
+[gen dino_swin_l] 300/300 (289s)
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.05s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.60s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.07s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.07s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.78s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.07s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=300) ===
+r101: 45.2  yolox_s: 42.6  dino_swin_l: 62.5
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+OSFD           93.1 [ 90.4, 94.7]   68.4 [ 62.9, 72.9]   24.9 [ 20.9, 27.4]
+PROBE-osfd+cls   96.6 [ 94.8, 97.3]   70.3 [ 65.0, 73.4]   31.4 [ 26.2, 33.0]
+C2-PIA         96.3 [ 93.8, 97.1]   78.9 [ 73.8, 81.6]   37.6 [ 31.9, 39.6]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           24.7 [ 20.9, 28.9]   68.2 [ 64.8, 71.9]
+PROBE-osfd+cls   26.3 [ 23.0, 31.0]   65.1 [ 62.9, 70.1]
+C2-PIA         17.4 [ 14.4, 21.4]   58.6 [ 55.7, 63.9]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+PROBE-osfd+cls - OSFD     1.9 [ -1.9,  4.9]    6.6 [  2.6,  8.6]
+C2-PIA - OSFD            10.5 [  6.7, 13.8]   12.8 [  8.8, 14.8]
+C2-PIA - PROBE-osfd+cls    8.6 [  6.0, 11.3]    6.2 [  3.8,  8.4]
+
+=== model_diff (OSFD) ===
+  dino_swin_l - yolox_s        -43.5 [-48.6,-39.1]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/generalization_c2pia_dev300.json
