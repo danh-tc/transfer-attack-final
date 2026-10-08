@@ -2450,3 +2450,9 @@ C2-PIA − C2-PH8: (ConvNeXt + Swin-T)/2 +3.5 [1.5, 10.1], **YOLOX +16.2 [6.4, 2
 python scripts/run_baselines.py --split dev300 --subset dev30 --methods PROBE-osfd+cls C2-PH8 C2-PIA C2-SCL25 C2-ANI25 --out metrics_c2anchor_dev30.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods PROBE-osfd+cls C2-PH8 C2-PIA C2-SCL25 C2-ANI25 --dets dets_c2anchor_dev30.json --out generalization_c2anchor_dev30.json
 ```
+
+### Kết quả C2-SCL25 / C2-ANI25 @ dev30 (`metrics_c2anchor_dev30.json`, `generalization_c2anchor_dev30.json`, log `results/stride/c2anchor_dev30.log`) — theo quy tắc: **ĐỊNH DANH — KÍCH THƯỚC** (r_SCL = 0.81 ≥ 0.75)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2 99.9 / 94.8 / 82.9 / 84.9 / 66.2 / 25.6 | 78.0; C2-PH8 … / 64.2 / 26.6 | 76.1; **C2-SCL25 99.9 / 95.5 / 89.0 / 84.1 / 75.1 / 28.0 | 82.7**; C2-ANI25 99.9 / 95.8 / 82.7 / 81.9 / 73.3 / 26.8 | 79.3; C2-PIA 99.4 / 94.8 / 83.1 / 88.0 / 80.4 / 29.3 | 83.8. Mẫu số 5.8.
+r: SCL 0.81, ANI 0.22, PH8 −0.32; riêng YOLOX: SCL 0.63, ANI 0.50, PH8 −0.14.
+**Đọc (dev30):** đổi KÍCH THƯỚC box (co giãn đẳng hướng) lấy lại ~80% lợi ích PIA khi có loss cls; đổi tỉ lệ đơn lẻ ít hơn nhiều; dịch không có tác dụng. Ủng hộ: thành phần đặc thù thứ hai của loss cls khóa theo THANG KÍCH THƯỚC (anchor scale / mức FPN / RoI) của Mask R-CNN. Lưu ý: không có tác dụng với loss feature (SCL25 ô elem cũ ≈ các ô khác) → đặc thù cho loss mức object. Caveat: dev30, chưa CI; co giãn quanh tâm còn kèm cắt biên / lấp 0.
+**Hướng method (chưa khóa):** đa dạng KÍCH THƯỚC có chủ đích theo object (vd lấy mẫu scale phủ đều qua ranh giới mức FPN / anchor) thay PIA; kiểm liều–đáp ứng + xác nhận dev100 trước.
