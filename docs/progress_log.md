@@ -2616,3 +2616,4 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: CLS-OCT-fast 98.4 / 93.5 
 
 ## 2026-10-08 — CLS-OCT-RaPA01 (B = 50) vs OSFD B = 200 trên 5 ảnh (user) — CHỈ MÔ TẢ, không quyết định
 5 ảnh đầu của dev30 theo thứ tự dev300 (`data/image_lists/dev5.csv`). AP trên 5 ảnh rất nhiễu → chỉ xem xu hướng + runtime; KHÔNG dùng ra quyết định. OSFD B = 200 run riêng `dev300_B200_eps5` (seed như mọi run).
+**Kết quả (5 ảnh, mô tả; log `results/stride/vs200_dev5.log`):** R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD B50 100 / 94.9 / 87.4 / 58.3 / 46.0 / 35.8 | 63.9 | 3.0; **OSFD B200 100 / 100 / 90.1 / 69.4 / 84.4 / 38.0 | 81.3 | 12.4**; **CLS-OCT-RaPA01 B50 100 / 99.3 / 85.8 / 76.3 / 80.8 / 30.8 | 81.0 | 6.8**. Trên 5 ảnh: CLS-OCT-RaPA01 ≈ OSFD B200 về CA3 với ~½ thời gian; Swin-L thấp hơn. Lưu ý OSFD B50 ở 5 ảnh này (63.9) thấp bất thường so dev30 (78.9) → nhiễu 5 ảnh rất lớn.

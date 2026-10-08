@@ -1,0 +1,5 @@
+{"method": "OSFD", "img_id": 7088, "linf_255": 5.0, "l2": 18.238475799560547, "l2_per_pixel_rms": 0.019038114696741104, "runtime_s": 12.055999517440796, "backward": 200, "forward_views": 400}
+{"method": "OSFD", "img_id": 7795, "linf_255": 5.0, "l2": 17.50604248046875, "l2_per_pixel_rms": 0.01933407597243786, "runtime_s": 12.786649227142334, "backward": 200, "forward_views": 400}
+{"method": "OSFD", "img_id": 11615, "linf_255": 5.0, "l2": 18.37641143798828, "l2_per_pixel_rms": 0.019142094999551773, "runtime_s": 12.022427082061768, "backward": 200, "forward_views": 400}
+{"method": "OSFD", "img_id": 12667, "linf_255": 5.0, "l2": 18.554061889648438, "l2_per_pixel_rms": 0.01932714879512787, "runtime_s": 12.00627589225769, "backward": 200, "forward_views": 400}
+{"method": "OSFD", "img_id": 17959, "linf_255": 5.0, "l2": 17.500579833984375, "l2_per_pixel_rms": 0.0193280428647995, "runtime_s": 12.909211158752441, "backward": 200, "forward_views": 400}
