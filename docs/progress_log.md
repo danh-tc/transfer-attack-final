@@ -2620,3 +2620,4 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: CLS-OCT-fast 98.4 / 93.5 
 **Bổ sung (user):** CLS-OCT-RaPA01 B = 200 trên cùng 5 ảnh (run `dev300_B200_eps5`) — so cùng B với OSFD B200; mô tả.
 **Kết quả (5 ảnh, mô tả; log `results/stride/b200_dev5.log`):** CLS-OCT-RaPA01 B200 100 / 100 / 84.1 / 76.3 / 82.5 / 31.0 | CA3 81.0 | 27.4 s — y hệt B50 (81.0, 6.8 s) → RaPA01 bão hòa từ B50; OSFD B200 81.3 / Swin-L 38.0 (12.4 s). Cùng B = 200 OSFD ≥ RaPA01 trên 5 ảnh này (nhiễu rất lớn).
 **Bổ sung (user):** CLS-OCT-fast (không RaPA) B50 vs B200 trên cùng 5 ảnh — mô tả.
+**Kết quả (5 ảnh, mô tả; log `results/stride/clsoct_b200_dev5.log`):** CLS-OCT-fast B50 99.5 / 83.6 / 85.6 / 74.8 / 74.9 / 27.2 | CA3 78.4 | 6.8 s; B200 100 / 95.8 / 88.5 / 76.9 / 80.5 / 27.5 | 82.0 | 24.5 s. → không RaPA: B50 → B200 +3.6 CA3; RaPA01: B50 = B200 = 81.0 (RaPA đạt sớm mức mà không-RaPA cần B lớn). Swin-L ~27–31 mọi ô loss cls; OSFD B200 38.0.
