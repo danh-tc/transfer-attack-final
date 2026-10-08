@@ -2359,3 +2359,19 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | Z4 | s/ảnh: NOISE 98.7
 - Đối pha: PH4A − PH4 +0.7 < 2 → không giúp.
 - GO: KHÔNG (PH4A − OSFD: CNN −4.7 [−7.7, −0.4], Swin-L −7.9 [−10.8, −1.7]).
 **Đọc (dev30):** (1) **Triệt khóa lưới stride 4 là CẦN nhưng KHÔNG ĐỦ.** PH4 / PH4A có Z4 thấp ngang SHODD / OSFD mà chỉ lấy ~54% lợi ích (NOISE → SHODD). Phân rã thô: dời xa giữ pha (SH32) +4.6, chỉ pha (PH4) +8.1, cả hai (SHODD) +14.9 → hai phần gần cộng tính, có chút cộng hưởng. Câu cơ chế "chỉ pha lưới stride 4" ở các entry trước bị NÓI QUÁ: phần còn lại đến từ dịch chuyển lớn. (2) Ứng viên giải thích phần còn lại (chưa kiểm): PH4 (0–3 px) chỉ phủ một nửa residue mod 8 và 1/8 residue mod 32 → pha các stride THÔ hơn (8 — đã thấy góp phần ở (a) — 16, 32) bị phủ thiếu; hoặc dời nội dung / biên thật sự có vai trò. Kiểm rẻ: PH8 (0–7) và PH32 (0–31) — nếu CA3 tăng dần về SHODD → "độ phủ pha nhiều stride" (vẫn là câu chuyện lưới); nếu PH32 vẫn thấp → dời nội dung. (3) Z4 không còn là chỉ báo đủ cho transfer (PH4 vs SHODD cùng Z4, khác 6.8 CA3) — đính chính cách đọc Spearman E13. (4) Method "chỉ dịch 0–3 px" thua OSFD → loại.
+
+---
+
+## 2026-10-08 — Phần còn thiếu của PH4: phủ pha stride THÔ hay DỜI NỘI DUNG? Ô PH8 / PH32 / PH4L — khóa TRƯỚC khi chạy (dev30)
+**Ô (khung y hệt PH4):** `PH8` t ∈ {0..7}; `PH32` t ∈ {0..31}; `PH4L` t = 32·k + r, k ∈ {−2..2}, r ∈ {0..3} (mỗi trục độc lập). Độ phủ (200k mẫu) | |t| TB: PH4 4 pha mod 8, 4 pha mod 32 | 1.5; PH8 8 | 8 | 3.5; PH32 8 | 32 | 15.5; **PH4L 4 | 4 | 38.7** (= độ phủ PH4, dời ngang SH32); SHODD 8 | 31 | 32.1. `s32` không đổi (đã kiểm).
+**Mốc (eval lại cùng lần):** NOISE, OSFD, SHODD, PH4 (PNG có sẵn trong run HF + pilot pha).
+**Quy tắc (dev30; CA3 như trước):**
+- **"Phần còn thiếu = DỜI NỘI DUNG"** — ỦNG HỘ nếu CA3(PH4L) ≥ CA3(SHODD) − 3 VÀ CA3(PH4L) − CA3(PH4) ≥ 3.
+- **"Phần còn thiếu = PHỦ PHA stride thô"** — ỦNG HỘ nếu CA3(PH4L) ≤ CA3(PH4) + 2 VÀ CA3(PH32) ≥ CA3(SHODD) − 3.
+- Còn lại → xám (cả hai góp phần / không cái nào). PH8: mô tả (đường liều theo độ phủ). Z4 (E13 `--extra`): mô tả.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods NOISE OSFD SHODD PH4 PH8 PH32 PH4L --out metrics_ph2_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods NOISE OSFD SHODD PH4 PH8 PH32 PH4L --dets dets_ph2_dev30.json --out generalization_ph2_dev30.json
+python scripts/e13_grid_template.py --extra PH4 PH8 PH32 PH4L --out results/mechanism/e13_ph2_dev30.json
+```

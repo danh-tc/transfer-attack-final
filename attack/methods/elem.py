@@ -58,6 +58,10 @@ def shift_offset(mode: str) -> float:
         return random.uniform(-1.0, 1.0)
     if mode == "ph4":  # pilot pha (progress_log 2026-10-08): chỉ pha mod 4, gần như không dời nội dung
         return float(random.randrange(4))
+    if mode in ("ph8", "ph32"):  # độ phủ pha mod 8 / mod 32, dời ≤ 7 / 31 px
+        return float(random.randrange(int(mode[2:])))
+    if mode == "ph4l":  # đủ pha mod 4 + dời xa bội 32 (±64): tách "dời nội dung" khỏi "phủ pha stride thô"
+        return float(32 * random.choice([-2, -1, 0, 1, 2]) + random.randrange(4))
     raise ValueError(mode)
 
 
