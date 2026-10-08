@@ -74,8 +74,11 @@ def shift_h(tx: float, ty: float) -> torch.Tensor:
 
 
 def sample_elem_h(spec: dict, h: int, w: int) -> torch.Tensor:
-    if "shift" in spec:  # chỉ tịnh tiến: pixel ra q lấy mẫu ở q − t (nội dung dời +t)
+    if "shift" in spec and len(spec) == 1:  # chỉ tịnh tiến: pixel ra q lấy mẫu ở q − t (nội dung dời +t)
         return shift_h(shift_offset(spec["shift"]), shift_offset(spec["shift"]))
+    if "shift" in spec:  # đa dạng tách cơ chế (progress_log 2026-10-08): tuyến tính quanh tâm ∘ dịch pha
+        lin = sample_elem_h({k: v for k, v in spec.items() if k != "shift"}, h, w)
+        return lin @ shift_h(shift_offset(spec["shift"]), shift_offset(spec["shift"]))
     A = torch.eye(2, dtype=torch.float64)
     for kind in ELEM_ORDER:
         if kind in spec:
@@ -92,7 +95,17 @@ def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0,
     out = []
     prev = None
     for k in range(n):
-        if spec.get("shift") == "ph4a":  # đối pha: view lẻ = view chẵn trước nó + (2, 2) mod 4 (nửa chu kỳ lưới 4)
+        if "scale_strat" in spec:  # co giãn phân tầng: view lẻ lệch nửa khoảng (a) so với view chẵn trước, + dịch pha
+            a = spec["scale_strat"]
+            if k % 2 == 0:
+                u = random.uniform(-a, a)
+            else:
+                u = u + a if u < 0 else u - a
+            sc = math.exp(u)
+            H = linear_homography(torch.tensor([[sc, 0.0], [0.0, sc]], dtype=torch.float64), h, w)
+            if "shift" in spec:
+                H = H @ shift_h(shift_offset(spec["shift"]), shift_offset(spec["shift"]))
+        elif spec.get("shift") == "ph4a":  # đối pha: view lẻ = view chẵn trước nó + (2, 2) mod 4 (nửa chu kỳ lưới 4)
             if k % 2 == 0:
                 prev = (random.randrange(4), random.randrange(4))
                 H = shift_h(*prev)

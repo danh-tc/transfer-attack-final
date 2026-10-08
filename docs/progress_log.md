@@ -2456,3 +2456,23 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2 99.9 / 94.8 / 82.9 / 8
 r: SCL 0.81, ANI 0.22, PH8 −0.32; riêng YOLOX: SCL 0.63, ANI 0.50, PH8 −0.14.
 **Đọc (dev30):** đổi KÍCH THƯỚC box (co giãn đẳng hướng) lấy lại ~80% lợi ích PIA khi có loss cls; đổi tỉ lệ đơn lẻ ít hơn nhiều; dịch không có tác dụng. Ủng hộ: thành phần đặc thù thứ hai của loss cls khóa theo THANG KÍCH THƯỚC (anchor scale / mức FPN / RoI) của Mask R-CNN. Lưu ý: không có tác dụng với loss feature (SCL25 ô elem cũ ≈ các ô khác) → đặc thù cho loss mức object. Caveat: dev30, chưa CI; co giãn quanh tâm còn kèm cắt biên / lấp 0.
 **Hướng method (chưa khóa):** đa dạng KÍCH THƯỚC có chủ đích theo object (vd lấy mẫu scale phủ đều qua ranh giới mức FPN / anchor) thay PIA; kiểm liều–đáp ứng + xác nhận dev100 trước.
+
+---
+
+## 2026-10-08 — Method "đa dạng TÁCH CƠ CHẾ" (kích thước octave + pha PH8) @ dev30 — khóa TRƯỚC khi chạy
+**Cơ sở:** hai thành phần δ đặc thù surrogate đã định danh (dev30): (1) khóa lưới stride 4 / 8 (loss feature) — triệt bằng dịch phủ pha 0–7 px; (2) khóa thang KÍCH THƯỚC (loss cls) — triệt bằng co giãn (C2-SCL25 r = 0.81). Ranh giới mức FPN / anchor Mask R-CNN cách nhau hệ số 2 → liều có cơ sở: phủ đúng 1 octave, ln s ∈ [−ln2/2, ln2/2].
+**Ứng viên (≤ 3, khung C2: feature OSFD co-transform + 4·cls, GT co-transform, MI, σ = 6, 2 view / backward, B = 50):**
+- `C2-SCL50`: chỉ co giãn, ln s ~ U(±0.5) (liều–đáp ứng so C2-SCL25).
+- `C2-OCT`: co giãn ln s ~ U(±ln2/2) ∘ dịch pha PH8 (mỗi view độc lập).
+- `C2-OCTS`: như OCT nhưng phân tầng: view 2 lệch nửa khoảng (ln2/2) so với view 1 trong cùng backward.
+Unit test: hợp thành H = Lin · Shift đúng; phân tầng |u₁ − u₂| = a, trong khoảng; `s32` không đổi; 3 bước L∞ = 3, hữu hạn.
+**Mốc (PNG dev30 có sẵn, eval lại):** C2, C2-SCL25, C2-PIA.
+**Quy tắc (dev30, CA3):**
+- **GO dev100** nếu ô tốt hơn trong {C2-OCT, C2-OCTS} đạt CA3 ≥ CA3(C2-PIA) − 1 VÀ Swin-L ≥ Swin-L(C2-PIA) − 3. Tín hiệu "vượt C2-PIA" nếu CA3 ≥ C2-PIA + 2.
+- Liều: C2-SCL50 − C2-SCL25 (mô tả). Phân tầng có chủ đích giúp nếu OCTS − OCT ≥ 2.
+- Không GO → ghi log, user quyết. Báo runtime.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods PROBE-osfd+cls C2-SCL25 C2-PIA C2-SCL50 C2-OCT C2-OCTS --out metrics_oct_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods PROBE-osfd+cls C2-SCL25 C2-PIA C2-SCL50 C2-OCT C2-OCTS --dets dets_oct_dev30.json --out generalization_oct_dev30.json
+```
