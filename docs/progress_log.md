@@ -2611,3 +2611,8 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --mod
 ### Kết quả định vị RaPA @ dev30 (`metrics_rapaloc_dev30.json`, `generalization_rapaloc_dev30.json`, log `results/stride/rapaloc_dev30.log`) — theo quy tắc: **BACKBONE**
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: CLS-OCT-fast 98.4 / 93.5 / 85.4 / 82.9 / 70.0 / 30.8 | 79.4; CLS-OCT-RaPA01 (cả hai) 98.9 / 95.1 / 87.5 / 84.7 / 72.7 / 32.5 | 81.6; **RaPA01-BB 99.2 / 95.8 / 86.8 / 84.7 / 72.7 / 29.9 | 81.4**; RaPA01-HEAD 98.2 / 94.1 / 84.7 / 82.0 / 68.2 / 30.9 | 78.3.
 **Đọc (dev30, lực thấp):** toàn bộ lợi CA3 của RaPA đến từ DropConnect 53 k tham số BN backbone; ngẫu nhiên hóa 14 M tham số RoI head không giúp (−1.1). → Giả thuyết "δ overfit head phân loại surrogate" KHÔNG được ủng hộ; nếu có overfit thì ở biểu diễn backbone (BN affine). Swin-L: lợi +1.7 của RaPA cả hai không nằm ở BB (29.9) — trong nhiễu.
+
+---
+
+## 2026-10-08 — CLS-OCT-RaPA01 (B = 50) vs OSFD B = 200 trên 5 ảnh (user) — CHỈ MÔ TẢ, không quyết định
+5 ảnh đầu của dev30 theo thứ tự dev300 (`data/image_lists/dev5.csv`). AP trên 5 ảnh rất nhiễu → chỉ xem xu hướng + runtime; KHÔNG dùng ra quyết định. OSFD B = 200 run riêng `dev300_B200_eps5` (seed như mọi run).
