@@ -1,0 +1,167 @@
+loading annotations into memory...
+Done (t=0.53s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 100 ảnh (subset dev100), methods=['PIA', 'PIA-noP']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack PIA] 40/100  5.8s/ảnh  còn ~6 phút
+[attack PIA] 50/100  5.9s/ảnh  còn ~5 phút
+[attack PIA] 60/100  6.0s/ảnh  còn ~4 phút
+[attack PIA] 70/100  6.0s/ảnh  còn ~3 phút
+[attack PIA] 80/100  5.9s/ảnh  còn ~2 phút
+[attack PIA] 90/100  5.9s/ảnh  còn ~1 phút
+[attack PIA] 100/100  5.9s/ảnh  còn ~0 phút
+[attack PIA-noP] 10/100  6.0s/ảnh  còn ~9 phút
+[attack PIA-noP] 20/100  6.0s/ảnh  còn ~8 phút
+[attack PIA-noP] 30/100  6.0s/ảnh  còn ~7 phút
+[attack PIA-noP] 40/100  6.0s/ảnh  còn ~6 phút
+[attack PIA-noP] 50/100  5.9s/ảnh  còn ~5 phút
+[attack PIA-noP] 60/100  5.9s/ảnh  còn ~4 phút
+[attack PIA-noP] 70/100  5.9s/ảnh  còn ~3 phút
+[attack PIA-noP] 80/100  5.9s/ảnh  còn ~2 phút
+[attack PIA-noP] 90/100  5.9s/ảnh  còn ~1 phút
+[attack PIA-noP] 100/100  5.8s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/100 (30s)
+[eval] predict 100/100 (57s)
+loading annotations into memory...
+Done (t=0.55s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (135s)
+
+=== bbox AP (n=100, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          45.3 [ 42.9, 51.0]   46.6 [ 44.6, 52.6]   50.0 [ 48.2, 55.7]   50.0 [ 48.1, 55.7]
+PIA             2.3 [  0.7,  3.3]    5.4 [  3.9,  8.1]   11.6 [  9.3, 15.5]   13.1 [ 10.6, 17.6]
+PIA-noP         2.5 [  0.9,  3.8]    6.0 [  4.2,  8.8]   12.7 [ 10.4, 17.2]   13.1 [ 10.7, 17.6]
+
+=== relative AP drop % [95% CI] ===
+PIA            94.9 [ 92.9, 98.6]   88.4 [ 83.5, 92.0]   76.7 [ 70.1, 81.6]   73.8 [ 66.0, 79.3]
+PIA-noP        94.4 [ 92.1, 98.0]   87.2 [ 82.1, 91.4]   74.6 [ 66.9, 80.0]   73.8 [ 66.0, 79.1]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+PIA          CrossAvg  75.3 [ 68.5, 80.2]  gap→ConvNeXt  11.7 [  7.3, 16.5]  gap→Swin  14.6 [  9.8, 19.9]  gap→avg  13.1 [  9.0, 17.9]
+PIA-noP      CrossAvg  74.2 [ 66.9, 79.1]  gap→ConvNeXt  12.6 [  8.5, 18.2]  gap→Swin  13.3 [  9.5, 18.9]  gap→avg  13.0 [  9.4, 18.2]
+
+=== runtime === {'PIA': 5.5, 'PIA-noP': 5.8}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/metrics_piap_dev100.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.48s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/100 (2s)
+[gen yolox_s] 100/100 (5s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/100 (26s)
+[gen dino_swin_l] 100/100 (68s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.44s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=100) ===
+r101: 46.6  yolox_s: 46.5  dino_swin_l: 64.0
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+PIA            88.4 [ 83.5, 92.0]   70.4 [ 62.1, 76.0]   28.9 [ 22.0, 32.6]
+PIA-noP        87.2 [ 82.1, 91.4]   70.1 [ 61.0, 75.6]   26.1 [ 20.5, 30.3]
+
+=== headroom = drop(R101) − drop(model) ===
+PIA            17.9 [ 12.7, 24.1]   59.4 [ 54.1, 66.3]
+PIA-noP        17.1 [ 12.7, 23.6]   61.0 [ 55.8, 67.8]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+PIA-noP - PIA            -0.3 [ -3.0,  1.6]   -2.8 [ -4.6,  0.3]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5/generalization_piap_dev100.json

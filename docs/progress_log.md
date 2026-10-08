@@ -2395,3 +2395,8 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 (mốc eval lại trùng s
 python scripts/run_baselines.py --split dev300 --subset dev100 --methods PIA PIA-noP --out metrics_piap_dev100.json
 python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev100 --models yolox_s dino_swin_l --methods PIA PIA-noP --dets dets_piap_dev100.json --out generalization_piap_dev100.json
 ```
+
+### Kết quả PIA vs PIA-noP @ dev100 (`metrics_piap_dev100.json`, `generalization_piap_dev100.json`, log `results/stride/piap_dev100.log`) — theo quy tắc: **XÁM**
+Sanity: PIA sinh lại Swin-L 28.9 (commit 28.5) — khớp. R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: PIA 94.9 / 88.4 / 76.7 / 73.8 / 70.4 / 28.9 | 73.7; PIA-noP 94.4 / 87.2 / 74.6 / 73.8 / 70.1 / 26.1 | 72.8.
+PIA − PIA-noP: Swin-L **+2.8 [−0.3, 4.6]** (< 3, CI chứa 0); YOLOX +0.3; (ConvNeXt + Swin-T)/2 +1.1 [−0.5, 3.1].
+**Đọc:** phối cảnh đóng góp nhỏ cho Swin-L (cùng chiều dev30 +2.8, lặp lại đúng độ lớn) nhưng KHÔNG giải thích được PIA − RRB +6.0 trên Swin-L; bỏ phối cảnh PIA vẫn hơn GEO-C0 (22.4 @ dev100, số commit, khác lần sinh) ~+3.7. → Đòn bẩy Swin-L của PIA phân tán, không quy về một thành phần.
