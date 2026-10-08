@@ -2400,3 +2400,15 @@ python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev100 --mo
 Sanity: PIA sinh lại Swin-L 28.9 (commit 28.5) — khớp. R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: PIA 94.9 / 88.4 / 76.7 / 73.8 / 70.4 / 28.9 | 73.7; PIA-noP 94.4 / 87.2 / 74.6 / 73.8 / 70.1 / 26.1 | 72.8.
 PIA − PIA-noP: Swin-L **+2.8 [−0.3, 4.6]** (< 3, CI chứa 0); YOLOX +0.3; (ConvNeXt + Swin-T)/2 +1.1 [−0.5, 3.1].
 **Đọc:** phối cảnh đóng góp nhỏ cho Swin-L (cùng chiều dev30 +2.8, lặp lại đúng độ lớn) nhưng KHÔNG giải thích được PIA − RRB +6.0 trên Swin-L; bỏ phối cảnh PIA vẫn hơn GEO-C0 (22.4 @ dev100, số commit, khác lần sinh) ~+3.7. → Đòn bẩy Swin-L của PIA phân tán, không quy về một thành phần.
+
+---
+
+## 2026-10-08 — Sàng lọc C2-PIA @ dev300 (bước 3 plan_sota) — khóa TRƯỚC khi chạy
+**Lý do (user: mục tiêu SOTA + novelty):** đa dạng hình học bão hòa trên CNN; ứng viên mạnh nhất đang có là C2-PIA (dev100: CA3 − OSFD +8.2 [5.4, 11.3]; Swin-L 37.2 vs 24.0), chưa từng sàng lọc dev300. Mục đích: QUYẾT ĐỊNH (có vượt OSFD chắc không), không giải thích; PNG / dets dev300 để phân tích sau nếu qua.
+**Ô:** OSFD, C2 (`PROBE-osfd+cls`), C2-PIA — dev300 (PNG dev300 cũ đã mất → sinh lại cùng seed; dev30 / dev100 có sẵn được giữ). B = 50, ε = 5. Sanity: số sinh lại vs commit `metrics_step3_dev300` (OSFD R101 93.0 / CA3 73.6 / Swin-L 24.9; C2 96.6 / 78.3 / 31.8) — lệch CA3 > 3 → ghi chú.
+**Quy tắc (giữ nguyên bước 3 plan_sota, CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S):** C2-PIA QUA nếu ĐỒNG THỜI ΔCA3 (C2-PIA − OSFD) ≥ 3 VÀ cận dưới CI > 0; Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S; R101 ≥ R101(OSFD) − 3. Mô tả: C2-PIA − C2, Swin-L, runtime. QUA → GO @ n300 (khóa riêng, 1 lần). Không qua → ghi log, user quyết.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --methods OSFD PROBE-osfd+cls C2-PIA --out metrics_c2pia_dev300.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --models yolox_s dino_swin_l --methods OSFD PROBE-osfd+cls C2-PIA --dets dets_c2pia_dev300.json --out generalization_c2pia_dev300.json
+```
