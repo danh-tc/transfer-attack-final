@@ -157,7 +157,8 @@ ELEM_CELLS = {"ROT7": {"rot": 7.0}, "ROT15": {"rot": 15.0}, "ROT30": {"rot": 30.
               # Kiểm "pha lưới" (progress_log 2026-10-07): chỉ tịnh tiến, bội 32 | lẻ | dưới 1 px.
               "SH32": {"shift": "s32"}, "SHODD": {"shift": "odd"}, "SHSUB": {"shift": "sub"},
               # Stride quyết định (progress_log 2026-10-08): bội 4 / 8 / 16 trong ±64.
-              "SH4": {"shift": "s4"}, "SH8": {"shift": "s8"}, "SH16": {"shift": "s16"}}
+              "SH4": {"shift": "s4"}, "SH8": {"shift": "s8"}, "SH16": {"shift": "s16"},
+              "SH2": {"shift": "s2"}}  # tách stride 2 vs 4 (progress_log 2026-10-08)
 METHODS.update({c: (functools.partial(geo_osfd_attack, geo="elem", elem=s), 2) for c, s in ELEM_CELLS.items()})
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",

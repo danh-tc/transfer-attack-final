@@ -2272,3 +2272,20 @@ CI cặp so SH32 [(ConvNeXt + Swin-T)/2 | YOLOX | Swin-L]: SH4 +5.7 [3.1, 9.7] |
 **Đọc (dev30, mô tả):** (1) f(4) = 0.40 < 0.5 → k\* = 4: chỉ cần GIỮ pha stride 2 / 4 đã mất ~60% lợi ích; lệch pha stride 8 góp phần còn lại nhỏ (SH4 > SH8, CI cặp CNN > 0), stride 16 / 32 / 64 ≈ 0 (SH8 ≈ SH16 ≈ SH32). → Phần δ đặc thù surrogate gắn với lưới NÔNG của R50 (conv1 stride 2 + maxpool → C2 stride 4, phần nào C3 stride 8), KHÔNG phải lưới sâu C5 / P6 như giả định khi chọn SH32. (2) Phần dư +4.6 của SH32 so NOISE (2026-10-07) không do P6 mà khả dĩ do biên / lấp 0 — chưa kiểm. (3) R101 không đổi (91.7–92.8) — khớp: cùng lưới nông. (4) YOLOX / Swin-L cùng chiều nhưng CI chứa 0 ở SH4.
 **Hệ quả cho (b) / (c):** lấy mẫu pha có chủ đích chỉ cần phủ residue mod 4 (có thể mod 8), không cần mod 32; câu hỏi tách tiếp: stride 2 hay 4 (ô SH2 = dịch chẵn ±64). SHSUB (< 1 px, 70.4) yếu → lệch pha phải là nguyên pixel (hoặc nội suy làm mờ triệt tác dụng) — caveat.
 **Ghi chú kỹ thuật:** máy mới locale ASCII → `eval_generalization.py` lỗi khi ghi JSON tiếng Việt; sửa `open(..., encoding="utf-8")`, chạy lại phần ghi (dets đã lưu, resume). Artifact chưa upload HF: PNG 5 ô + `dets_stride_dev30.json` + `gen_dets/` trong `artifacts/runs/dev300_B50_eps5/` — KHÔNG upload đè `runs/dev300_B50_eps5.tar` trước khi tải bản HF về và gộp (bản HF là tập cha).
+
+---
+
+## 2026-10-08 — Tách stride 2 vs 4: ô SH2 (dịch chẵn) — khóa TRƯỚC khi chạy (dev30)
+**Lý do:** (a) cho k\* = 4 (f(4) = 0.40) nhưng chưa tách được pha stride 2 (conv1) với stride 4 (maxpool → C2).
+**Ô:** `SH2`: tx, ty rút độc lập, đều trên số CHẴN trong [−64, 64] (65 giá trị, |t| TB 32.5) — giữ pha stride 2, lệch pha stride ≥ 4. Khung y hệt SH4 / SHODD. Code: mode `s2` của `elem.shift_offset` (`s32` vẫn trùng bản cũ — đã kiểm).
+**Mốc:** PNG SH32 / SHODD / SH4 của lần (a) hôm nay (cùng máy), eval lại CÙNG lần với SH2 (`--out metrics_stride2_dev30.json`); f(k) như (a), span = CA3(SHODD) − CA3(SH32) của lần eval này.
+**Quy tắc (mô tả, dev30):**
+- f(2) ≥ 0.75 → **stride 4 quyết định**: giữ pha stride 2 vẫn được gần trọn lợi ích; phần gắn lưới nằm ở maxpool / C2.
+- f(2) ≤ f(4) + 0.2 → **stride 2 quyết định**: lệch pha stride 4 không thêm gì; cần lệch pha lẻ pixel (conv1 stride 2).
+- Ở giữa → **cả hai góp phần**, không chốt một stride.
+Caveat: sai số f cỡ ±0.3 (dev30). Mô tả: Swin-L, R101, CI cặp SH2 − SH32 / SHODD − SH2.
+**Lệnh:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods SH32 SHODD SH4 SH2 --out metrics_stride2_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods SH32 SHODD SH4 SH2 --dets dets_stride2_dev30.json --out generalization_stride2_dev30.json
+```

@@ -47,10 +47,10 @@ def linear_homography(A: torch.Tensor, h: int, w: int) -> torch.Tensor:
 
 def shift_offset(mode: str) -> float:
     """Kiểm "pha lưới" (progress_log 2026-10-07): 1 trục tịnh tiến (px, khung model).
-    s<k> (k ∈ {4, 8, 16, 32}): bội số k trong ±64, gồm 0 (giữ pha lưới mọi stride ≤ k; "Stride quyết định",
+    s<k> (k ∈ {2, 4, 8, 16, 32}): bội số k trong ±64, gồm 0 (giữ pha lưới mọi stride ≤ k; "Stride quyết định",
     progress_log 2026-10-08 — s32 trùng tuyệt đối bản cũ, cả RNG); odd: số nguyên ±64 KHÔNG chia hết 32;
     sub: dưới 1 px, U(−1, 1) (lệch pha ở mọi stride, nội suy bilinear)."""
-    if mode in ("s4", "s8", "s16", "s32"):
+    if mode in ("s2", "s4", "s8", "s16", "s32"):
         return float(random.choice(list(range(-64, 65, int(mode[1:])))))
     if mode == "odd":
         return float(random.choice([t for t in range(-64, 65) if t % 32 != 0]))
