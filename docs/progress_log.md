@@ -2704,3 +2704,18 @@ Mô tả, e_in (tỉ lệ năng lượng Δ₃ trong box; tỉ lệ token trong 
 2. **Không gian con trội không tách được:** P32 và Q32 mỗi phần chỉ ~36% thiệt hại WB, tổng (0.32) < nguyên (0.44) → thiệt hại cần hướng ĐẦY ĐỦ (cộng hưởng, không low-rank); không phải "R50 đẩy lệch không gian con".
 3. **Phần chung cos ~0.42 với WB chủ yếu là phản ứng CHUNG của Swin-L với mọi nhiễu:** NOISE đã 0.40; OSFD chỉ hơn +0.04, đa dạng hình học (OCT) / loss cls (C2-PIA) không hơn OSFD. Cái thừa riêng của attack R50 so nhiễu ngẫu nhiên rất mỏng — khớp: D(in) OSFD 0.147 chỉ ~2× NOISE 0.079, WB ~5×.
 **Hệ quả:** khác biệt WB vs R50 nằm ở HƯỚNG TRONG TỪNG TOKEN object ở stride 16 (768 chiều), không ở vị trí, không ở không gian con thô. Theo quy tắc khóa: bước sau là hướng trong-token. Câu cơ chế ứng viên (chưa claim): "δ R50 tạo ở Swin-L chủ yếu phản ứng chung kiểu nhiễu; phần đặc thù đúng hướng tại token object stride 16 rất nhỏ và đa dạng hình học / loss cls không tăng được nó".
+
+---
+
+## 2026-10-10 — E14c (user duyệt): hướng hiệu quả của WB ở token object bb3 = ĐẨY VỀ PHÍA NỀN ("xóa ngữ nghĩa object")? — khóa TRƯỚC khi chạy (dev30, forward-only)
+**Lý do:** E14b — phần nhạy là distortion bb3 tại token object; khác biệt WB vs R50 nằm ở hướng trong-token. Giả thuyết cụ thể, kiểm được, có hệ quả method: WB đẩy token object về thống kê token nền; R50 thì không (hoặc có trên R50 nhưng không chuyển sang Swin-L).
+**Hướng nền theo object:** token bb3 (stride 16) gán cho GT box nhỏ nhất chứa tâm ô; với mỗi GT g: u_g = μ_nền − μ_g (trung bình token SẠCH ngoài mọi box / trong box g). Ảnh không có token nền → bỏ khỏi thống kê hướng, thao tác = 0.
+**Mô tả (mỗi nguồn WB / OSFD / OCT / C2-PIA / NOISE):** s = trung bình theo token object của (Δ_t · u_g) / ‖u_g‖² (tỉ lệ "khoảng cách object → nền" đã đi); e_u = Σ(Δ_t · û_g)² / Σ‖Δ_t‖² (tỉ lệ năng lượng dọc hướng nền; mức ngẫu nhiên ~1/768).
+**Thao tác nhân quả (khung `noise_3`, chỉ token object, ngoài box = 0):** `U` = chỉ thành phần dọc û_g của Δ; `Uperp` = Δ − thành phần đó; `synthWB` / `synthT` = c₃ + β·u_g tại token object, β theo ảnh sao cho ‖·‖ = ‖Δ_in‖ của WB / của OSFD (đẩy thuần về nền ở độ lớn WB / R50). Mốc: `in` (= E14b).
+**Mô tả phía surrogate:** cùng s, e_u trên C4 của R50 (stride 16) cho OSFD, OCT, C2-PIA, NOISE — δ R50 có đẩy object về nền TRÊN CHÍNH R50 không.
+**Quy tắc (điểm, xu hướng):**
+- **(B1) khác biệt hướng:** ỦNG HỘ nếu s_WB > 0 VÀ s_WB ≥ 2·s_NOISE VÀ s_WB ≥ 2·s_OSFD (trên Swin-L).
+- **(B2) hướng nền mang thiệt hại WB:** ỦNG HỘ nếu D(WB, U) ≥ 0.5 · D(WB, in).
+- **(B3) hướng nền là hướng tấn công HIỆU QUẢ:** ỦNG HỘ nếu D(synthT) ≥ 0.7 · D(WB, in) (đẩy thuần về nền ở độ lớn R50 đạt ≥ 70% WB).
+- B1 ∧ B2 → cơ chế "WB xóa ngữ nghĩa object về phía nền, R50 không". B3 → mục tiêu method khả dĩ (loss đẩy token object về nền trên surrogate — kiểm riêng, khóa entry mới). ¬B2 ∧ ¬B3 → hướng nền hạng 1 không phải cơ chế; ghi nhận.
+**Caveat:** n = 30; u_g dùng GT (phân tích); hạng 1 là kiểm chặt (nền đa dạng). Script `scripts/e14c_bgshift.py` → `results/mechanism/e14c_bgshift.json`, log `results/e14/e14c.log`.
