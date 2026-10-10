@@ -2758,3 +2758,17 @@ Thao tác, s: R50 C4 — OSFD 0.317, OCT 0.361, BG-OCT 0.439 (+0.079), OCT+BG 0.
 2. Kéo được object về nền trên R50 (s 0.44–0.46, tăng nhẹ so OCT) nhưng trên Swin-L object lại BỚT về nền (0.15 → 0.06–0.08): "về nền" trên R50 đạt bằng một đường đặc thù R50 không chuyển giao; hướng nền ở Swin-L không thể với tới bằng cách tối ưu hướng nền của R50.
 3. Củng cố E14 (nút thắt là HƯỚNG): hướng nhạy của Swin-L định nghĩa trong không gian feature của Swin-L; "μ_nền − μ_object" tuy định nghĩa không cần target nhưng KHÔNG đồng nghĩa giữa R50 và Swin-L ở mức δ. B3 (E14c) vẫn đúng về Swin-L, nhưng chưa có đường từ surrogate tới nó.
 **Hệ quả:** dừng họ "kéo object về nền trên surrogate" (không thêm biến thể stage / λ mà không khóa entry mới). Câu hỏi còn mở cho (c): thành phần nào của δ R50 có ánh xạ nhất quán sang hướng Swin-L — gợi ý: thứ chuyển được là distortion năng lượng cao kiểu OSFD, không phải mục tiêu ngữ nghĩa trên surrogate.
+
+---
+
+## 2026-10-10 — Cải tiến OCT @ dev30 (user duyệt): OCT-fast, OCT-fast-V4, OCT-C4, OCT-C34 — khóa TRƯỚC khi chạy
+**Lý do:** OCT chậm (5.5 s vs OSFD 3.0) và chưa SOTA rõ (CA3 +4.8 vs OSFD @ dev30, Swin-L không tăng, chưa dev100 / held-out). Hai trục: tốc độ, và độ mạnh có cơ sở từ E14 (thiệt hại Swin-L đi qua stride 16). Đo trước (scratch, 5 ảnh dev100, δ ~ U(±3)): tỉ lệ mean|∇ₓ| của L_OSFD theo stage C2 / C3 / C4 / C5 = 0.003 / 0.19 / 0.39 / 0.41 → C5 (stride 32) đang ngang C4.
+**Ô (khung OCT: MI, co giãn ±ln2/2 + PH8, σ = 6, k = 3, B = 50, ε = 5):**
+- `OCT-fast` = OCT + `cache_views=64` + AMP fp16 (đổi method: 64 phép cố định rời rạc; đổi số học).
+- `OCT-fast-V4` = OCT-fast với 4 view / backward (≈ thời gian OCT; so cùng thời gian chạy).
+- `OCT-C4` = L_OSFD chỉ trên C4 (stride 16); `OCT-C34` = C3 + C4. Code: `geo_osfd_attack(feat_stages=)`; kiểm: `feat_stages=(0,1,2,3)` trùng tuyệt đối OCT mặc định (0% pixel khác sau 5 bước), C4 khác 41%.
+**Chạy:** `run_baselines.py --split dev300 --subset dev30 --methods OSFD OCT OCT-fast OCT-fast-V4 OCT-C4 OCT-C34 --out metrics_octimp_dev30.json` → `eval_generalization.py ... --models yolox_s dino_swin_l --methods <cùng> --dets dets_octimp_dev30.json --out generalization_octimp_dev30.json`. Log `results/octimp/run.log`.
+**Quy tắc (dev30, điểm; mốc OCT tái lập cùng lần):**
+- `OCT-fast` THAY OCT nếu ΔCA3 (− OCT) ≥ −1 VÀ runtime ≤ 0.7 × OCT.
+- `OCT-fast-V4`, `OCT-C4`, `OCT-C34`: GO dev100 nếu CA3 ≥ OCT + 2, HOẶC (Swin-L ≥ OCT + 3 VÀ CA3 ≥ OCT − 1). Báo runtime; V4 phải ≤ 1.1 × runtime OCT mới tính là "cùng thời gian".
+- Nhiều ô GO → dev100 tất cả (cùng mốc), không ghép trước dev100. Không ô nào → ghi nhận, không thêm biến thể mà không khóa entry mới. Held-out (YOLOX-L, Swin-S) KHÔNG dùng ở bước này.
