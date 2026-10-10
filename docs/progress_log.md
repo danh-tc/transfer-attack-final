@@ -2676,3 +2676,21 @@ D (1 − tỉ lệ GT còn ≥ 0.3), WB / OSFD / OCT / C2-PIA:
 3. **Hướng R50 không vô dụng, chỉ kém hiệu quả:** ×2 → 0.50, ×4 → 0.74 (≈ WB) — nhưng ×4 là rel bb4 ~3.6, xa phân phối; trong ε = 5 không đạt được bằng độ lớn.
 4. OSFD / OCT / C2-PIA gần như trùng mọi điều kiện → đa dạng hình học / loss cls không đổi KÊNH (vẫn bb3) mà chỉ nhích nhẹ; khớp "Swin-L kẹt ~30%".
 **Hệ quả (chưa khóa):** mục tiêu đúng = làm distortion bb3 (stride 16) của target transformer lớn ĐÚNG HƯỚNG hơn, không phải mạnh hơn. Câu hỏi kế: hướng WB ở bb3 khác hướng R50 thế nào (theo kênh / không gian / trong-ngoài object; phần chung cos(Δ_T, Δ_WB) ở bb3) và có thuộc tính nào đo được phía surrogate (không dùng Swin-L) dự đoán được nó. Claim cần ≥ dev100 (phải sinh 70 ảnh WB-OSFD, ~35 phút).
+
+---
+
+## 2026-10-10 — E14b (user): hướng distortion stage 3 của WB khác R50 Ở ĐÂU — không gian (object / nền) hay không gian con kênh (trội / phụ)? — khóa TRƯỚC khi chạy (dev30, forward-only)
+**Lý do:** E14 — thiệt hại Swin-L đi qua bb3 (stride 16), nút thắt là HƯỚNG (cùng độ lớn, hướng WB ~2.4× hướng R50). Cần biết phần nào của hướng WB mang thiệt hại, rồi xem δ R50 đặt năng lượng ở đó ít hơn không.
+**Thao tác (khung `noise_3` của E14: sạch mọi stage, riêng bb3 = c₃ + T(Δ₃), Δ₃ = a₃ − c₃):**
+- **Không gian:** `in` = Δ₃ chỉ giữ ở ô lưới stride 16 có tâm nằm trong ≥ 1 GT box (khung model, không ignore); `out` = phần còn lại.
+- **Không gian con kênh:** PCA theo ảnh trên token sạch c₃ (HW × 768, trừ trung bình); `P32` = Δ₃ chiếu lên 32 thành phần chính đầu (theo token), `Q32` = Δ₃ − P32.
+- `n3` = Δ₃ nguyên (= `noise_3` E14, kiểm tái lập).
+Nguồn: WB-OSFD, OSFD (chính), OCT, C2-PIA; NOISE chỉ mô tả.
+**Mô tả mỗi nguồn:** cos(Δ₃ˣ, Δ₃^WB) toàn ảnh / trong box / ngoài box; tỉ lệ năng lượng ‖Δ₃‖² trong box (kèm tỉ lệ token trong box); tỉ lệ năng lượng trong P32.
+**Chỉ số:** D như E14 (266 GT, bootstrap ảnh 1000, BOOT_SEED 2026).
+**Quy tắc (WB định danh phần nhạy; OSFD so sánh; điểm, xu hướng):**
+- **(H-S) không gian:** phần nhạy = `in` nếu D(WB, in) ≥ 0.7 · D(WB, n3) VÀ D(WB, out) ≤ 0.3 · D(WB, n3); = `out` nếu ngược lại; khác → không định danh được bằng không gian. Nếu định danh được: **"R50 đặt ít năng lượng vào phần nhạy"** ỦNG HỘ nếu tỉ lệ năng lượng của OSFD ở phần đó ≤ tỉ lệ của WB − 0.10.
+- **(H-P) không gian con:** tương tự với `P32` / `Q32`; ỦNG HỘ nếu tỉ lệ năng lượng OSFD ở phần nhạy ≤ 0.6 × tỉ lệ của WB.
+- Cả hai không định danh / không ủng hộ → khác biệt hướng KHÔNG nằm ở phân bổ không gian thô hay không gian con trội — ghi nhận, bước sau là hướng trong-token (cos theo vị trí).
+- Mô tả: D(OSFD, in / out / P32 / Q32) và cos.
+**Caveat:** n = 30; mask box dùng GT (chỉ phân tích); PCA theo ảnh trên ~4–5k token. Script `scripts/e14b_direction.py` → `results/mechanism/e14b_direction.json`, log `results/e14/e14b.log`.
