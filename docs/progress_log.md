@@ -2772,3 +2772,24 @@ Thao tác, s: R50 C4 — OSFD 0.317, OCT 0.361, BG-OCT 0.439 (+0.079), OCT+BG 0.
 - `OCT-fast` THAY OCT nếu ΔCA3 (− OCT) ≥ −1 VÀ runtime ≤ 0.7 × OCT.
 - `OCT-fast-V4`, `OCT-C4`, `OCT-C34`: GO dev100 nếu CA3 ≥ OCT + 2, HOẶC (Swin-L ≥ OCT + 3 VÀ CA3 ≥ OCT − 1). Báo runtime; V4 phải ≤ 1.1 × runtime OCT mới tính là "cùng thời gian".
 - Nhiều ô GO → dev100 tất cả (cùng mốc), không ghép trước dev100. Không ô nào → ghi nhận, không thêm biến thể mà không khóa entry mới. Held-out (YOLOX-L, Swin-S) KHÔNG dùng ở bước này.
+
+**TRẠNG THÁI (dừng giữa chừng theo user, 2026-10-10):** pilot cải tiến OCT CHƯA có kết quả. Đã sinh PNG: OCT-fast 30 / 30, OCT-fast-V4 16 / 30, OCT-C4 0, OCT-C34 0 (PNG nằm trên máy cũ, KHÔNG upload — sinh lại được). **Runtime đo được: OCT-fast 4.4 s/ảnh (= 0.80 × OCT 5.5) → nhiều khả năng TRƯỢT điều kiện tốc độ ≤ 0.7 × OCT** (quyết định chính thức vẫn chờ eval); OCT-fast-V4 6.3 s/ảnh (1.15 × OCT → vượt ngưỡng "cùng thời gian" ≤ 1.1). Lý do ước sai (~2.8 s): cache 64 phép ở B = 50 chỉ bớt ròng ~36 forward sạch (bỏ 100, trả trước 64); lợi AMP ×1.45 đo trên C2-OCT (có RPN + RoI head), loss feature thuần chỉ qua backbone nên lợi nhỏ hơn. Ý tưởng tăng tốc thật (CHƯA khóa): (1) gộp 2 view vào 1 batch forward / backward (toán y hệt — BN eval; B không đổi; kiểm δ trùng trong sai số GPU); (2) cache lười (chỉ tính phép được rút) + 16–32 phép; (3) 1 view / bước (đổi method). Công bằng: nếu so tốc độ, OSFD cũng bật được AMP.
+
+---
+
+## 2026-10-10 — TẠM DỪNG (user trả máy, tối chạy tiếp): tổng kết phiên + việc mở
+**Xong trong phiên (dev30, mô tả — claim cần ≥ dev100):**
+1. **E14 (ghép feature backbone DINO-Swin-L):** thiệt hại trên Swin-L đi qua **stage 3 (stride 16)** cho cả WB lẫn transfer; stage 1–2 = 0 (bb1 bất biến = sàn mọi nhiễu ε = 5, kiểm bằng nhiễu đều). **Nút thắt là HƯỚNG (DIR)**: khuếch đại δ R50 tới độ lớn WB 0.23 → 0.29; hướng WB ở độ lớn R50 vẫn 0.56 (83% WB).
+2. **E14b:** phần nhạy = distortion bb3 TẠI token object (87% thiệt hại WB); R50 KHÔNG thiếu năng lượng ở đó (e_in 0.30 vs WB 0.33); không tách được bằng không gian con 32 PC; cos với WB ~0.42 phần lớn là phản ứng chung với nhiễu (NOISE 0.40).
+3. **E14c:** WB kéo object về phía nền nhiều hơn (s 0.35 vs OSFD 0.155) nhưng đó không phải đường chính của WB (B2 ✗); **kéo thuần token object về μ_nền ở độ lớn R50 → D 0.575 (≈ 4× δ R50, > WB)** (B3 ✓).
+4. **Pilot BG-OCT / OCT+BG (loss "object → nền" trên R50): KHÔNG GO, âm mạnh** (CA3 38.1 / 68.6 vs OCT 83.7; Swin-L 10.1 / 15.7); s trên Swin-L NGƯỢC chiều (0.15 → 0.06–0.08) → kéo về nền trên surrogate không chuyển giao. Dừng họ method này.
+5. Literature (rà nhanh): OSFD (AAAI'24), Lu et al. 2026 (ensemble, nén feature trội + tăng nền), Lian et al. 2026 / Attack Anything (attack nền).
+6. Đo gradient L_OSFD theo stage R50: C2 / C3 / C4 / C5 = 0.003 / 0.19 / 0.39 / 0.41.
+**Việc mở (theo thứ tự đề xuất):**
+- (1) **Chạy tiếp pilot cải tiến OCT** (quy tắc đã khóa ở entry trên — không đổi): lệnh resume y hệt (`run_baselines.py ... --methods OSFD OCT OCT-fast OCT-fast-V4 OCT-C4 OCT-C34 --out metrics_octimp_dev30.json` rồi `eval_generalization.py ... --dets dets_octimp_dev30.json --out generalization_octimp_dev30.json`), ~25 phút trên máy mới (OCT-fast / V4 phải sinh lại vì PNG không upload; OSFD / OCT dev30 có trong HF `runs/dev300_B50_eps5.tar`).
+- (2) Nếu cần tốc độ: khóa entry "gộp view vào batch" (+ cache lười), kiểm tương đương trước.
+- (3) Xác nhận E14 / E14b / E14c @ dev100 (cần sinh 70 ảnh WB-OSFD ~35 phút; `scripts/e8_whitebox_lowfreq.py --osfd`).
+- Nợ cũ: (a) dev100 OCT vs C2-OCT-fast vs OSFD; (b) đường bão hòa theo B; GO @ n300 cho C2 (110 / 300).
+**Code mới phiên này:** `scripts/e14_patching.py`, `e14b_direction.py`, `e14c_bgshift.py`, `bg_unit_test.py`, `bg_pilot_check.py`; `attack/methods/pia.py`: `_obj_mask`, `_bg_loss`, `_view_loss_bg`, `geo_osfd_attack(bg_weight, bg_only, feat_stages)`, `_view_loss(stages)`; ô `BG-OCT`, `OCT+BG`, `OCT-fast`, `OCT-fast-V4`, `OCT-C4`, `OCT-C34` trong `run_baselines.py`. Mặc định giữ nguyên hành vi cũ (kiểm: `feat_stages=(0..3)` trùng OCT 0% pixel).
+**Artifact:** KHÔNG upload HF phiên này. Không cần cho việc mở (1). E14* dets (`artifacts/e14/`) sinh lại ~12 / 5 / 8 phút; WB-OSFD dev30 có trong HF `runs/e8_wbosfd_dev30.tar`.
+**Không có tiến trình nào đang chạy.**

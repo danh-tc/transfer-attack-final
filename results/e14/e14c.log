@@ -1,0 +1,51 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.53s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.70s)
+creating index...
+index created!
+[E14c] 5/30 (18s)
+[E14c] 10/30 (35s)
+[E14c] 15/30 (53s)
+[E14c] 20/30 (71s)
+[E14c] 25/30 (90s)
+[E14c] 30/30 (107s)
+GT phát hiện ở sạch: 266
+WB-OSFD|in            0.383 [0.298, 0.472]
+WB-OSFD|U             0.071 [0.035, 0.123]
+WB-OSFD|Uperp         0.259 [0.187, 0.352]
+WB-OSFD|synthWB       0.808 [0.739, 0.862]
+WB-OSFD|synthT        0.575 [0.473, 0.671]
+OSFD|in               0.147 [0.092, 0.216]
+OSFD|U                0.034 [0.010, 0.070]
+OSFD|Uperp            0.098 [0.056, 0.150]
+OCT|in                0.117 [0.078, 0.164]
+OCT|U                 0.030 [0.007, 0.063]
+OCT|Uperp             0.094 [0.058, 0.137]
+C2-PIA|in             0.143 [0.097, 0.199]
+C2-PIA|U              0.030 [0.009, 0.060]
+C2-PIA|Uperp          0.120 [0.082, 0.168]
+NOISE|in              0.079 [0.047, 0.114]
+NOISE|U               0.019 [0.006, 0.037]
+NOISE|Uperp           0.064 [0.033, 0.101]
+
+=== hướng nền trên swinl: s (tỉ lệ khoảng cách object→nền) | e_u (×768 = bội so ngẫu nhiên) ===
+WB-OSFD   s +0.3533   e_u 0.07587 (×58.3)   n_img 30
+OSFD      s +0.1554   e_u 0.05765 (×44.3)   n_img 30
+OCT       s +0.1537   e_u 0.05753 (×44.2)   n_img 30
+C2-PIA    s +0.1295   e_u 0.05332 (×41.0)   n_img 30
+NOISE     s +0.0996   e_u 0.05480 (×42.1)   n_img 30
+
+=== hướng nền trên r50: s (tỉ lệ khoảng cách object→nền) | e_u (×1024 = bội so ngẫu nhiên) ===
+OSFD      s +0.3172   e_u 0.03491 (×35.8)   n_img 30
+OCT       s +0.3605   e_u 0.04050 (×41.5)   n_img 30
+C2-PIA    s +0.2949   e_u 0.03470 (×35.5)   n_img 30
+NOISE     s +0.3955   e_u 0.04461 (×45.7)   n_img 30
+
+VERDICT {'B1': True, 'B2': False, 'B3': True}

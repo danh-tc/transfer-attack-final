@@ -1,0 +1,11 @@
+loading annotations into memory...
+Done (t=0.55s)
+creating index...
+index created!
+[run] dev300_B50_eps5: 30 ảnh (subset dev30), methods=['OSFD', 'OCT', 'OCT-fast', 'OCT-fast-V4', 'OCT-C4', 'OCT-C34']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OCT-fast] 10/30  4.3s/ảnh  còn ~1 phút
+[attack OCT-fast] 20/30  4.4s/ảnh  còn ~1 phút
+[attack OCT-fast] 30/30  4.4s/ảnh  còn ~0 phút
+[attack OCT-fast-V4] 10/30  6.3s/ảnh  còn ~2 phút
+Terminated
