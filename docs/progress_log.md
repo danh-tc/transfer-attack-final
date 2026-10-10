@@ -2694,3 +2694,13 @@ Nguồn: WB-OSFD, OSFD (chính), OCT, C2-PIA; NOISE chỉ mô tả.
 - Cả hai không định danh / không ủng hộ → khác biệt hướng KHÔNG nằm ở phân bổ không gian thô hay không gian con trội — ghi nhận, bước sau là hướng trong-token (cos theo vị trí).
 - Mô tả: D(OSFD, in / out / P32 / Q32) và cos.
 **Caveat:** n = 30; mask box dùng GT (chỉ phân tích); PCA theo ảnh trên ~4–5k token. Script `scripts/e14b_direction.py` → `results/mechanism/e14b_direction.json`, log `results/e14/e14b.log`.
+
+### Kết quả E14b @ dev30 (`results/mechanism/e14b_direction.json`, log `results/e14/e14b.log`, dets `artifacts/e14/dets_b.json`) — theo quy tắc: **H-S định danh phần nhạy = TRONG object nhưng KHÔNG ủng hộ "R50 đặt ít năng lượng ở đó"; H-P không định danh** → khác biệt hướng nằm TRONG-TOKEN ở vùng object
+**Tái lập:** D(n3) WB 0.440 / OSFD 0.165 / OCT 0.135 / C2-PIA 0.158 — trùng `noise_3` E14 tuyệt đối.
+D, n3 / in / out / P32 / Q32: WB 0.440 / **0.383** / 0.034 / 0.162 / 0.158; OSFD 0.165 / 0.147 / 0.015 / 0.086 / 0.060; OCT 0.135 / 0.117 / 0.019 / 0.083 / 0.060; C2-PIA 0.158 / 0.143 / 0.019 / 0.071 / 0.068; NOISE 0.086 / 0.079 / 0.004 / 0.045 / 0.034.
+Mô tả, e_in (tỉ lệ năng lượng Δ₃ trong box; tỉ lệ token trong box 0.336) / e_P32 / cos(Δ, Δ_WB) toàn / trong / ngoài: WB 0.327 / 0.338 / 1 / 1 / 1; OSFD 0.296 / 0.344 / 0.438 / 0.422 / 0.441; OCT 0.301 / 0.352 / 0.418 / 0.413 / 0.418; C2-PIA 0.295 / 0.354 / 0.420 / 0.416 / 0.423; **NOISE 0.287 / 0.361 / 0.397 / 0.373 / 0.404**.
+**Đọc (dev30, xu hướng):**
+1. **Phần nhạy = distortion bb3 TẠI object:** riêng phần trong box mang 87% thiệt hại bb3 của WB (0.383 / 0.440), ngoài box ≈ 0 — cùng mẫu ở mọi nguồn. Nhưng KHÔNG nguồn nào tập trung năng lượng vào object (e_in ≈ tỉ lệ token 0.33, cả WB) → WB thắng KHÔNG nhờ dồn năng lượng vào object; R50 đặt năng lượng trong box gần bằng WB (0.296 vs 0.327).
+2. **Không gian con trội không tách được:** P32 và Q32 mỗi phần chỉ ~36% thiệt hại WB, tổng (0.32) < nguyên (0.44) → thiệt hại cần hướng ĐẦY ĐỦ (cộng hưởng, không low-rank); không phải "R50 đẩy lệch không gian con".
+3. **Phần chung cos ~0.42 với WB chủ yếu là phản ứng CHUNG của Swin-L với mọi nhiễu:** NOISE đã 0.40; OSFD chỉ hơn +0.04, đa dạng hình học (OCT) / loss cls (C2-PIA) không hơn OSFD. Cái thừa riêng của attack R50 so nhiễu ngẫu nhiên rất mỏng — khớp: D(in) OSFD 0.147 chỉ ~2× NOISE 0.079, WB ~5×.
+**Hệ quả:** khác biệt WB vs R50 nằm ở HƯỚNG TRONG TỪNG TOKEN object ở stride 16 (768 chiều), không ở vị trí, không ở không gian con thô. Theo quy tắc khóa: bước sau là hướng trong-token. Câu cơ chế ứng viên (chưa claim): "δ R50 tạo ở Swin-L chủ yếu phản ứng chung kiểu nhiễu; phần đặc thù đúng hướng tại token object stride 16 rất nhỏ và đa dạng hình học / loss cls không tăng được nó".
