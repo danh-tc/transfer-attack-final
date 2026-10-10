@@ -2749,3 +2749,12 @@ python scripts/bg_pilot_check.py   # s trên Swin-L bb3 + R50 C4 (hàm E14c)
 - Thao tác: (M1) s_R50(ô) ≥ s_R50(OCT) + 0.10; (M2) s_Swin-L(ô) ≥ s_Swin-L(OCT) + 0.05.
 - **GO dev100:** OCT+BG nếu Swin-L ≥ OCT + 3 VÀ CA3 ≥ OCT − 1; BG-OCT nếu Swin-L ≥ OCT + 3 VÀ CA3 ≥ OSFD.
 - M1 ∧ ¬M2 → kéo về nền trên surrogate KHÔNG chuyển sang Swin-L (bằng chứng chống họ method này; khớp E14 "hướng"). M2 mà Swin-L không tăng → dịch về nền tới được Swin-L nhưng chưa đủ — mô tả. ¬M1 → thao tác thất bại trên surrogate, không kết luận.
+
+### Kết quả pilot "object → nền" @ dev30 (`metrics_bg_dev30.json`, `generalization_bg_dev30.json`, `results/bg/pilot_check_dev30.json`, log `results/bg/pilot_dev30.log`) — theo quy tắc: **KHÔNG GO cả hai ô; thao tác M1 trượt sát (¬M1 → không kết luận nhân quả chính thức)**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 97.8 / 93.8 / 83.3 / 77.8 / 75.6 / 27.2 | 78.9 | 3.0; OCT 96.6 / 91.9 / 85.0 / 83.9 / 82.1 / 27.7 | 83.7 | 5.5; **BG-OCT 86.0 / 58.3 / 37.4 / 42.8 / 34.2 / 10.1 | 38.1** | 7.8; **OCT+BG 96.0 / 86.7 / 67.5 / 75.3 / 63.1 / 15.7 | 68.6** | 7.9. (OSFD / OCT tái lập đúng số đã commit.)
+Thao tác, s: R50 C4 — OSFD 0.317, OCT 0.361, BG-OCT 0.439 (+0.079), OCT+BG 0.460 (+0.099) → M1 trượt cả hai (ngưỡng +0.10; OCT+BG sát biên). **Swin-L bb3 — OSFD 0.155, OCT 0.154, BG-OCT 0.056, OCT+BG 0.083 → M2 trượt, NGƯỢC chiều.**
+**Đọc (mô tả, dev30):**
+1. Thêm loss kéo về nền trên R50 làm attack YẾU ĐI ở MỌI model (kể cả R50 white-box 86.0, R101 58.3) và Swin-L tụt 27.7 → 10.1 / 15.7 — âm rất mạnh, không phải nhiễu.
+2. Kéo được object về nền trên R50 (s 0.44–0.46, tăng nhẹ so OCT) nhưng trên Swin-L object lại BỚT về nền (0.15 → 0.06–0.08): "về nền" trên R50 đạt bằng một đường đặc thù R50 không chuyển giao; hướng nền ở Swin-L không thể với tới bằng cách tối ưu hướng nền của R50.
+3. Củng cố E14 (nút thắt là HƯỚNG): hướng nhạy của Swin-L định nghĩa trong không gian feature của Swin-L; "μ_nền − μ_object" tuy định nghĩa không cần target nhưng KHÔNG đồng nghĩa giữa R50 và Swin-L ở mức δ. B3 (E14c) vẫn đúng về Swin-L, nhưng chưa có đường từ surrogate tới nó.
+**Hệ quả:** dừng họ "kéo object về nền trên surrogate" (không thêm biến thể stage / λ mà không khóa entry mới). Câu hỏi còn mở cho (c): thành phần nào của δ R50 có ánh xạ nhất quán sang hướng Swin-L — gợi ý: thứ chuyển được là distortion năng lượng cao kiểu OSFD, không phải mục tiêu ngữ nghĩa trên surrogate.
