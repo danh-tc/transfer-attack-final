@@ -2719,3 +2719,14 @@ Mô tả, e_in (tỉ lệ năng lượng Δ₃ trong box; tỉ lệ token trong 
 - **(B3) hướng nền là hướng tấn công HIỆU QUẢ:** ỦNG HỘ nếu D(synthT) ≥ 0.7 · D(WB, in) (đẩy thuần về nền ở độ lớn R50 đạt ≥ 70% WB).
 - B1 ∧ B2 → cơ chế "WB xóa ngữ nghĩa object về phía nền, R50 không". B3 → mục tiêu method khả dĩ (loss đẩy token object về nền trên surrogate — kiểm riêng, khóa entry mới). ¬B2 ∧ ¬B3 → hướng nền hạng 1 không phải cơ chế; ghi nhận.
 **Caveat:** n = 30; u_g dùng GT (phân tích); hạng 1 là kiểm chặt (nền đa dạng). Script `scripts/e14c_bgshift.py` → `results/mechanism/e14c_bgshift.json`, log `results/e14/e14c.log`.
+
+### Kết quả E14c @ dev30 (`results/mechanism/e14c_bgshift.json`, log `results/e14/e14c.log`, dets `artifacts/e14/dets_c.json`) — theo quy tắc: **B1 ỦNG HỘ, B2 KHÔNG, B3 ỦNG HỘ (mạnh)**
+Tái lập: D(in) WB 0.383 / OSFD 0.147 / OCT 0.117 / C2-PIA 0.143 / NOISE 0.079 — trùng E14b.
+- **Swin-L, s (tỉ lệ khoảng cách object → nền đã đi) | e_u (bội so ngẫu nhiên):** WB **+0.353** | ×58; OSFD +0.155 | ×44; OCT +0.154 | ×44; C2-PIA +0.130 | ×41; NOISE +0.100 | ×42. → B1: s_WB = 2.3× OSFD, 3.5× NOISE.
+- **Nhân quả (khung noise_3, chỉ token object):** WB U (riêng thành phần hạng 1 dọc hướng nền) 0.071 (19% của `in`), Uperp 0.259 → B2 KHÔNG (thành phần dọc nền không mang phần lớn thiệt hại của chính WB; tổng không cộng tính). **synthT (đẩy THUẦN về nền ở độ lớn của OSFD) 0.575 = 1.5 × D(WB, in), 3.9 × D(OSFD, in); synthWB 0.808** → B3 ỦNG HỘ.
+- **Phía surrogate (R50 C4):** s OSFD +0.317, OCT +0.361, C2-PIA +0.295, **NOISE +0.396** → attack R50 hiện tại KHÔNG đẩy object về nền trên chính R50 hơn nhiễu ngẫu nhiên (phần s > 0 là hiệu ứng chung của nhiễu — giảm tương phản object / nền).
+**Đọc (dev30, xu hướng):**
+1. WB có đi về phía nền nhiều hơn R50 (B1), nhưng đó KHÔNG phải cách chính WB gây thiệt hại (B2): WB dùng một hướng giàu hơn, hạng 1 chỉ là một phần.
+2. **Phát hiện chính (B3): trên Swin-L, dịch token object bb3 đồng loạt về trung bình nền là hướng tấn công CỰC hiệu quả** — ở đúng độ lớn distortion mà δ R50 đang tạo, nó gây thiệt hại gấp ~4× δ R50, vượt cả WB. Tức nút thắt KHÔNG phải ngân sách distortion mà là hướng; và tồn tại một hướng đơn giản, định nghĩa không cần target (μ_nền − μ_object), rất hiệu quả.
+3. Loss OSFD (MSE khuếch đại feature) / loss cls trên R50 không nhắm hướng này (s trên R50 ≤ NOISE).
+**Hệ quả method (chưa khóa):** loss "object → nền" trên surrogate: kéo feature token object (stride 16, có thể thêm 8 / 32) của R50 về μ_nền của chính R50 (GT box đã có trong threat model GT-assisted). Câu hỏi then chốt: dịch về nền trên R50 có kéo theo dịch về nền trên Swin-L (s_Swin-L tăng) không. Caveat: synth là dịch nhất quán theo object trong không gian feature — chưa biết đạt được qua pixel với ε = 5; rà literature (feature-level object vanishing / background-feature attack) trước khi khóa method.
