@@ -2646,3 +2646,18 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: CLS-OCT-fast 98.4 / 93.5 
 - (b) Đường bão hòa theo B (50 / 100 / 150 / 200) cho OCT vs OSFD; eval OCT-cache.
 - (c) Swin-L: vì sao object không bị xóa — hướng phân tích chính cho novelty.
 - Code mới: `elem` (s2..s32, ph4 / ph4a / ph8 / ph32 / ph4l, scale_strat, lvx, GT co-transform), `geo_osfd_attack(skip_mask, amp, feature, cls_mode, rapa_cls_p, rapa_scope, cache_views)`, `run_baselines --surrogate` (chưa dùng), `scripts/e13_grid_template.py`. Kết quả: `results/runs/dev300_B50_eps5/*_{stride,ph,ph2,c2pia,c2ph8,c2anchor,oct,octfast,clsoct,rpnoct,lvx,rot,rapacls,rapaloc,...}*`, `results/runs/dev300_B200_eps5/`, log `results/stride/`.
+
+---
+
+## 2026-10-10 — E14 (hướng c, user): DINO-Swin-L trung hòa δ transfer Ở ĐÂU — ghép feature backbone (activation patching), độ lớn hay hướng? — khóa TRƯỚC khi chạy (dev30, forward-only, chỉ xem xu hướng)
+**Lý do:** đã biết Swin-L không bền cơ bản (E8 WB-OSFD 84.6 vs transfer 27.2); không phải quy mô / phổ (E10a); độ lớn distortion KHÔNG theo drop giữa ô (swinl_geo); lỗi = hạ confidence, định vị đúng, chọn query không vỡ. Mọi phân tích cũ là TƯƠNG QUAN với độ lớn distortion, chưa can thiệp nhân quả, chưa cho δ WB đi qua cùng phép đo. E14 hỏi: thiệt hại nằm ở stage backbone nào, và δ R50 thua δ WB vì đẩy feature Swin-L QUÁ ÍT (độ lớn) hay SAI HƯỚNG.
+**Nguồn δ (PNG dev30 có sẵn):** WB-OSFD (`artifacts/runs/e8_wbosfd_dev30/WB-OSFD`, mốc trần); transfer **OSFD (chính)**, OCT, C2-PIA (mô tả / kiểm nhất quán).
+**Thao tác (DINO-Swin-L, test pipeline như `mech_swinl_geo.py`):** tính backbone 4 stage (stride 4/8/16/32) cho ảnh sạch c_s và adv a_s; feature ghép → neck → transformer → `bbox_head.predict` (rescale). Điều kiện mỗi nguồn: `full` (= adv thường); `noise_s` (sạch, chỉ stage s ← adv), s = 1..4; `denoise_s` (adv, chỉ stage s ← sạch); `noise_12`, `noise_34`. Riêng nguồn transfer T: `up` = c_s + α_s (a_s^T − c_s), α_s = ‖a^WB_s − c_s‖ / ‖a^T_s − c_s‖ theo ảnh, MỌI stage (khớp độ lớn WB, giữ hướng T); `x2`, `x4` (α cố định, mô tả). Riêng WB: `down_T` = c_s + (‖a^T_s − c_s‖ / ‖a^WB_s − c_s‖)(a^WB_s − c_s) (hướng WB, độ lớn T), cho từng T. Kèm cosd / rel từng stage mỗi nguồn.
+**Chỉ số:** GT (COCO, không crowd) được phát hiện ở ảnh sạch (cùng lớp, IoU ≥ 0.5, score ≥ 0.3, `e4_target_side.matched`); **D = 1 − tỉ lệ GT còn score ≥ 0.3** (gộp GT, bootstrap theo ảnh 1000, BOOT_SEED 2026). AP drop: mô tả. r_X = D(X) / D(WB full).
+**Sanity (trước khi đọc):** AP drop `full` WB-OSFD / OSFD khớp E8 (84.6 / 27.2) trong ±3; `noise_s` với a = c ⇒ trùng sạch (ghép không làm lệch).
+**Quy tắc (nguồn OSFD; dev30 ⇒ quyết định theo điểm, chỉ là xu hướng; OCT / C2-PIA cùng nhãn = củng cố):**
+- **(R1) stage gánh thiệt hại WB:** s nếu D(WB, noise_s) ≥ 0.5 · D(WB, full). Báo cả transfer (mô tả).
+- **(R2) "nút thắt ở stage NÔNG"** ỦNG HỘ nếu D(WB, noise_12) ≥ 0.5 · D(WB, full) VÀ rel trung bình bb1, bb2 của WB ≥ 2 × của OSFD.
+- **(R3) độ lớn vs hướng** (r_T = D(OSFD full) / D(WB full)): **MAG** nếu r_up ≥ 0.7 VÀ r_down ≤ r_T + 0.2 (δ R50 đúng hướng, chỉ đẩy quá ít); **DIR** nếu r_up ≤ r_T + 0.2 VÀ r_down ≥ 0.6 (khuếch đại vô ích, hướng WB ở độ lớn T vẫn mạnh → Swin-L/DINO bất nhạy với HƯỚNG của δ R50); còn lại → **XÁM (cả hai)**, mô tả.
+**Caveat khai báo trước:** n = 30; `up` / `x2` / `x4` đẩy feature ra khỏi phân phối tự nhiên (chẩn đoán, không phải attack); ghép ở backbone giả định neck + DINO là nơi trung hòa — không tách neck / encoder / decoder (làm sau nếu R3 rõ). Không tune attack nào theo E14.
+**Chi phí:** ~60 lượt head / ảnh × 30 ảnh, ước 10–15 phút RTX 3090. Script `scripts/e14_patching.py` → `results/mechanism/e14_patching.json`, log `results/e14/run.log`.
