@@ -2730,3 +2730,22 @@ Tái lập: D(in) WB 0.383 / OSFD 0.147 / OCT 0.117 / C2-PIA 0.143 / NOISE 0.079
 2. **Phát hiện chính (B3): trên Swin-L, dịch token object bb3 đồng loạt về trung bình nền là hướng tấn công CỰC hiệu quả** — ở đúng độ lớn distortion mà δ R50 đang tạo, nó gây thiệt hại gấp ~4× δ R50, vượt cả WB. Tức nút thắt KHÔNG phải ngân sách distortion mà là hướng; và tồn tại một hướng đơn giản, định nghĩa không cần target (μ_nền − μ_object), rất hiệu quả.
 3. Loss OSFD (MSE khuếch đại feature) / loss cls trên R50 không nhắm hướng này (s trên R50 ≤ NOISE).
 **Hệ quả method (chưa khóa):** loss "object → nền" trên surrogate: kéo feature token object (stride 16, có thể thêm 8 / 32) của R50 về μ_nền của chính R50 (GT box đã có trong threat model GT-assisted). Câu hỏi then chốt: dịch về nền trên R50 có kéo theo dịch về nền trên Swin-L (s_Swin-L tăng) không. Caveat: synth là dịch nhất quán theo object trong không gian feature — chưa biết đạt được qua pixel với ε = 5; rà literature (feature-level object vanishing / background-feature attack) trước khi khóa method.
+
+---
+
+## 2026-10-10 — Pilot loss "object → nền" (BG-OCT, OCT+BG) @ dev30 (user duyệt) — khóa TRƯỚC khi chạy
+**Lý do:** E14c B3 — trên Swin-L, kéo token object bb3 về μ_nền là hướng cực hiệu quả (ở độ lớn δ R50 gây D 0.575 vs 0.147). Thử tối ưu hướng tương tự TRÊN SURROGATE.
+**Literature (rà nhanh 2026-10-10):** OSFD gốc (Ding et al., AAAI'24) nén feature trội của object + khuếch đại vùng lân cận; Lu et al. 2026 (Springer, ensemble) nén feature trội + tăng feature nền; Lian et al. 2026 / "Attack Anything" — attack CHỈ trên nền. Chưa thấy: kéo token object về TRUNG BÌNH NỀN SẠCH ở stride 16, single-surrogate, có bằng chứng cơ chế cross-backbone (E14–E14c). Novelty của toán tử mỏng → nếu dùng, đóng góp phải là cơ chế.
+**Loss:** L_bg = −mean_obj ‖f_t − μ_nền‖² / mean_obj ‖f^sạch_t − μ_nền‖², f = C4 R50 (stride 16) của view, μ_nền = trung bình token SẠCH (co-transform) ngoài mọi GT box (box co-transform theo view), bỏ token pad; ascent. `attack/methods/pia.py` (`_obj_mask`, `_bg_loss`, `geo_osfd_attack(bg_weight, bg_only)`).
+**Ô (khung OCT: MI, 2 view / backward, co giãn ±ln2/2 + dịch PH8, σ = 6, B = 50, ε = 5):** `BG-OCT` = chỉ L_bg; `OCT+BG` = L_OSFD + λ·L_bg, **λ = 6** (luật C2: median mean|∇L_OSFD| / mean|∇L_bg| tại δ = 0, 5 ảnh đầu dev100 = 5.98, làm tròn 1 chữ số có nghĩa như λ_V; `results/bg/lambda_calibration.json`). Mốc: OSFD, OCT (PNG có sẵn, eval lại cùng lần).
+**Unit test (`scripts/bg_unit_test.py`) ĐẠT:** L_bg(δ = 0) = −1 cả 5 ảnh, gradient hữu hạn ≠ 0; thiếu nền / object → 0. **Ghi nhận trước khi chạy:** sau 10 bước trên ảnh 7088, s_R50 (như E14c) BG-OCT 0.44, **OCT 0.48**, nhiễu đều ±5 0.01 → loss feature OCT ĐÃ kéo object về nền trên R50 ngang (hơn) BG-OCT; tức trên surrogate hướng này không thiếu — câu hỏi thực là có CHUYỂN sang Swin-L không.
+**Chạy:**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --methods OSFD OCT BG-OCT OCT+BG --out metrics_bg_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5 --subset dev30 --models yolox_s dino_swin_l --methods OSFD OCT BG-OCT OCT+BG --dets dets_bg_dev30.json --out generalization_bg_dev30.json
+python scripts/bg_pilot_check.py   # s trên Swin-L bb3 + R50 C4 (hàm E14c)
+```
+**Quy tắc (dev30, điểm; chỉ quyết định mở rộng dev100):**
+- Thao tác: (M1) s_R50(ô) ≥ s_R50(OCT) + 0.10; (M2) s_Swin-L(ô) ≥ s_Swin-L(OCT) + 0.05.
+- **GO dev100:** OCT+BG nếu Swin-L ≥ OCT + 3 VÀ CA3 ≥ OCT − 1; BG-OCT nếu Swin-L ≥ OCT + 3 VÀ CA3 ≥ OSFD.
+- M1 ∧ ¬M2 → kéo về nền trên surrogate KHÔNG chuyển sang Swin-L (bằng chứng chống họ method này; khớp E14 "hướng"). M2 mà Swin-L không tăng → dịch về nền tới được Swin-L nhưng chưa đủ — mô tả. ¬M1 → thao tác thất bại trên surrogate, không kết luận.

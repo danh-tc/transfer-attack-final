@@ -225,6 +225,44 @@ def _view_loss(feats_clean, k: float):
     return loss_fn
 
 
+def _obj_mask(f, boxes, level: int = 2, stride: int = 16):
+    """Mặt nạ token object [h, w] ở stage `level`: ô stride `stride` có tâm nằm trong ≥ 1 GT box (khung view)."""
+    a = f[level][0]
+    h, w = a.shape[-2:]
+    yy = (torch.arange(h, device=a.device).float() + 0.5) * stride
+    xx = (torch.arange(w, device=a.device).float() + 0.5) * stride
+    obj = torch.zeros(h, w, dtype=torch.bool, device=a.device)
+    for x1, y1, x2, y2 in boxes:
+        obj |= ((yy >= y1) & (yy < y2))[:, None] & ((xx >= x1) & (xx < x2))[None]
+    return obj, (yy, xx)
+
+
+def _bg_loss(a, c, obj, valid):
+    """Loss "object → nền" (E14c, progress_log 2026-10-10): −mean_obj ‖a_t − μ_nền‖² / mean_obj ‖c_t − μ_nền‖², μ_nền =
+    trung bình token SẠCH ngoài mọi box (chỉ token có tâm trong ảnh view, bỏ pad). Ascent -> kéo token object về
+    μ_nền. 0 nếu thiếu object / nền."""
+    bg = valid & ~obj
+    ob = valid & obj
+    if not bg.any() or not ob.any():
+        return a.sum() * 0.0
+    mu = c[:, bg].mean(1, keepdim=True)
+    return -((a[:, ob] - mu) ** 2).sum(0).mean() / ((c[:, ob] - mu) ** 2).sum(0).mean().clamp_min(1e-12)
+
+
+def _view_loss_bg(feats_clean, k: float, boxes, bg_weight: float, feat_weight: float, level: int = 2, stride: int = 16):
+    """feat_weight·L_OSFD + bg_weight·L_bg (OCT+BG / BG-OCT, progress_log 2026-10-10)."""
+    def loss_fn(model, pixel_tensor, data_sample):
+        feats_adv = extract_features(model, pixel_tensor, data_sample)
+        ph, pw = pixel_tensor.shape[-2:]
+        obj, (yy, xx) = _obj_mask(feats_adv, boxes, level, stride)
+        valid = (yy < ph)[:, None] & (xx < pw)[None]
+        lb = _bg_loss(feats_adv[level][0].float(), feats_clean[level][0].float(), obj, valid)
+        if feat_weight == 0.0:
+            return bg_weight * lb
+        return feat_weight * sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, feats_adv)) + bg_weight * lb
+    return loss_fn
+
+
 def rapa_sampler(model, p: float, device):
     """RaPA (Su et al., CVPR 2026; progress_log 2026-10-04 MORGD-RaPA): DropConnect lên weight + bias của mọi
     BatchNorm2d trong backbone, M ~ Bernoulli(1 − p), không nhân bù. Trả về hàm () -> context manager thay TẠM
@@ -279,7 +317,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     cam_theta: float = 15.0, cam_kappa: float = 0.0, elem=None,
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1,
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
-                    cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0):
+                    cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
+                    bg_weight: float = 0.0, bg_only: bool = False):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -301,12 +340,16 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     rút chỉ số đều -> không forward sạch trong vòng lặp.
     cls_mode="rpn": số hạng cls chỉ là loss_rpn_cls (bỏ sinh proposal + RoI head), repair.cls_term.
     feature=False (CLS-OCT): bỏ loss feature OSFD, chỉ cls_weight·cls (không forward feature sạch co-transform).
-    amp: autocast fp16 cho forward / backward surrogate (δ, momentum, bước sign giữ fp32) — đổi số học, phải kiểm bằng eval."""
+    amp: autocast fp16 cho forward / backward surrogate (δ, momentum, bước sign giữ fp32) — đổi số học, phải kiểm bằng eval.
+    bg_weight > 0 (geo="elem", loss feature, progress_log 2026-10-10): + bg_weight·L_bg (kéo token object C4 / stride 16 về
+    μ_nền sạch của view, box co-transform); bg_only: bỏ L_OSFD (BG-OCT)."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
     assert co_transform or geo == "pia"
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
+    assert bg_weight == 0.0 or (geo == "elem" and cls_weight == 0.0 and co_transform and not cache_views and rapa_p is None)
+    assert not bg_only or bg_weight > 0
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
     mask_head = None
     if skip_mask:
@@ -376,7 +419,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         elif geo == "elem":
             from attack.methods.elem import elem_views  # tránh import vòng
             triples = elem_views(img, n_views, elem, sigma, companion=comp, log=log["disp"],
-                                 data_sample=ds if cls_weight > 0 else None, gt_log=log["gt_kept"])
+                                 data_sample=ds if cls_weight > 0 or bg_weight > 0 else None, gt_log=log["gt_kept"])
         elif geo == "cam":
             from attack.methods.camgeo import cam_views  # tránh import vòng
             triples = cam_views(img, n_views, cam_theta, cam_kappa, sigma, companion=comp,
@@ -410,7 +453,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 log["forward_no_grad"] += 1
             else:
                 fc = feats_fixed
-            if cls_weight > 0:
+            if bg_weight > 0:
+                gtb = dsv.gt_instances.bboxes
+                gtb = gtb.tensor if hasattr(gtb, "tensor") else gtb
+                out.append((v, ds, _view_loss_bg(fc, k, gtb.float(), bg_weight, 0.0 if bg_only else 1.0)))
+            elif cls_weight > 0:
                 out.append((v, dsv, make_view_loss(fc, k, cls_mode, cls_weight)))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
