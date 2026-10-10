@@ -2661,3 +2661,18 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: CLS-OCT-fast 98.4 / 93.5 
 - **(R3) độ lớn vs hướng** (r_T = D(OSFD full) / D(WB full)): **MAG** nếu r_up ≥ 0.7 VÀ r_down ≤ r_T + 0.2 (δ R50 đúng hướng, chỉ đẩy quá ít); **DIR** nếu r_up ≤ r_T + 0.2 VÀ r_down ≥ 0.6 (khuếch đại vô ích, hướng WB ở độ lớn T vẫn mạnh → Swin-L/DINO bất nhạy với HƯỚNG của δ R50); còn lại → **XÁM (cả hai)**, mô tả.
 **Caveat khai báo trước:** n = 30; `up` / `x2` / `x4` đẩy feature ra khỏi phân phối tự nhiên (chẩn đoán, không phải attack); ghép ở backbone giả định neck + DINO là nơi trung hòa — không tách neck / encoder / decoder (làm sau nếu R3 rõ). Không tune attack nào theo E14.
 **Chi phí:** ~60 lượt head / ảnh × 30 ảnh, ước 10–15 phút RTX 3090. Script `scripts/e14_patching.py` → `results/mechanism/e14_patching.json`, log `results/e14/run.log`.
+
+### Kết quả E14 @ dev30 (`results/mechanism/e14_patching.json`, log `results/e14/run.log`, dets `artifacts/e14/dets.json` — sinh lại ~12 phút) — theo quy tắc: **R1 = stage 3; R2 KHÔNG; R3 = DIR ở cả OSFD / OCT / C2-PIA**
+**Sanity:** đường ghép trên sạch trùng `model.predict` (lệch 0.0); AP drop `full` WB-OSFD 84.6 / OSFD 27.2 — khớp tuyệt đối E8. 266 GT phát hiện ở sạch. Kiểm thêm (scratch, 3 ảnh): load lại JPG sạch qua `pipeline_resize` trùng tuyệt đối dataset → không có sàn do pipeline; **nhiễu đều ±5 ngẫu nhiên cho cosd bb1 ≈ OSFD** (0.046 vs 0.047; 0.090 vs 0.092) → bb1 bất biến giữa ô (swinl_geo) là SÀN của mọi nhiễu ε = 5, không mang thông tin δ.
+D (1 − tỉ lệ GT còn ≥ 0.3), WB / OSFD / OCT / C2-PIA:
+- full 0.677 / 0.233 / 0.237 / 0.263; noise_1 0.02 / 0.01 / 0.01 / 0.02; noise_2 0.02 / 0.01 / 0.01 / 0.02; **noise_3 0.440 / 0.165 / 0.135 / 0.158**; noise_4 0.263 / 0.045 / 0.056 / 0.045; noise_12 0.03 / 0.04 / 0.05 / 0.06; noise_34 0.658 / 0.199 / 0.184 / 0.218.
+- denoise_3 0.282 / **0.079** / 0.102 / 0.102; denoise_4 0.470 / 0.199 / 0.195 / 0.218; denoise_1, _2 ≈ full.
+- Độ lớn vs hướng: OSFD up 0.286 (α trung vị bb1–4 1.00 / 0.91 / 1.17 / 1.39), x2 0.500, x4 0.744; WB down_OSFD 0.560, down_OCT 0.583, down_C2-PIA 0.545.
+- Distortion rel bb1–4: WB 0.37 / 0.43 / 0.87 / 1.24; OSFD 0.37 / 0.48 / 0.74 / 0.91.
+- R3: OSFD r_T 0.34, r_up 0.42, r_down 0.83 → DIR; OCT 0.35 / 0.43 / 0.86 → DIR; C2-PIA 0.39 / 0.51 / 0.81 → DIR.
+**Đọc (dev30, xu hướng):**
+1. **Thiệt hại trên Swin-L đi qua stage 3 (stride 16)** — cho cả WB lẫn transfer: riêng bb3 adv mang 65% thiệt hại WB và 71% thiệt hại OSFD; trả bb3 về sạch xóa 2/3 thiệt hại OSFD (0.233 → 0.079). Stage 4 phụ (WB 0.26, transfer ≈ 0.05). Stage 1–2 = 0 (kể cả WB) → tiền đề "stage nông / độ phân giải cao" bị bác dứt khoát; DINO không cần "mỏ neo sạch" ở mức nông để chống lại.
+2. **Nút thắt là HƯỚNG, không phải độ lớn:** khuếch đại δ R50 tới đúng độ lớn WB từng stage chỉ 0.23 → 0.29; hướng WB thu về độ lớn của R50 vẫn 0.56 (83% WB). Cùng độ lớn, hướng WB hiệu quả ~2.4× hướng R50. Ở bb3, distortion WB chỉ lớn hơn OSFD 17% (rel 0.87 vs 0.74) mà thiệt hại riêng bb3 gấp 2.7×.
+3. **Hướng R50 không vô dụng, chỉ kém hiệu quả:** ×2 → 0.50, ×4 → 0.74 (≈ WB) — nhưng ×4 là rel bb4 ~3.6, xa phân phối; trong ε = 5 không đạt được bằng độ lớn.
+4. OSFD / OCT / C2-PIA gần như trùng mọi điều kiện → đa dạng hình học / loss cls không đổi KÊNH (vẫn bb3) mà chỉ nhích nhẹ; khớp "Swin-L kẹt ~30%".
+**Hệ quả (chưa khóa):** mục tiêu đúng = làm distortion bb3 (stride 16) của target transformer lớn ĐÚNG HƯỚNG hơn, không phải mạnh hơn. Câu hỏi kế: hướng WB ở bb3 khác hướng R50 thế nào (theo kênh / không gian / trong-ngoài object; phần chung cos(Δ_T, Δ_WB) ở bb3) và có thuộc tính nào đo được phía surrogate (không dùng Swin-L) dự đoán được nó. Claim cần ≥ dev100 (phải sinh 70 ảnh WB-OSFD, ~35 phút).
