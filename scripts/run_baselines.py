@@ -221,11 +221,16 @@ METHODS["OCT-1V-S"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"sca
 # OCT-1V + cập nhật kiểu Season (2 dòng tần thấp / cao, momentum riêng, trực giao; σ = 3 px ảnh gốc) (progress_log 2026-10-17).
 METHODS["OCT-1V-SEA"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}, n_views=1,
                                            season_sigma=3.0), 1)
+# Loss C2 (feature + 4·cls) 1 view / bước, skip_mask + AMP (progress_log 2026-10-17): đa dạng OCT | PIA.
+METHODS["C2-OCT-1V"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}, n_views=1,
+                                          cls_weight=4.0, skip_mask=True, amp=True), 1)
+METHODS["C2-PIA-1V"] = (functools.partial(geo_osfd_attack, geo="pia", n_views=1, cls_weight=4.0, skip_mask=True, amp=True), 1)
+GEO_METHODS_1V = {"C2-OCT-1V", "C2-PIA-1V"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
                "PIA-noT", "PIA-noR", "PIA-noS", "PIA-noK", "PIA-noP", "CAM-R15", "CAM-R30", "LENS", "CAM-R15+LENS",
-               "NOISE", "FLIP", "POOL"} | set(ELEM_CELLS) | ELEM_CELLS_C2
+               "NOISE", "FLIP", "POOL"} | set(ELEM_CELLS) | ELEM_CELLS_C2 | GEO_METHODS_1V
 BACKWARD_PER_STEP = {"PIA-N20": 4}
 BASELINES = ["MI-FGSM", "M-DI2-FGSM", "OSFD"]
 

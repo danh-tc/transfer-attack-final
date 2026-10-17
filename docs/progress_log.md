@@ -2915,3 +2915,29 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: **SEA 66.7 / 43
 - K1: MOVE D 0.499 < 0.5 (trượt 0.001, không làm tròn) dù F 0.48 ≥ 0.3; DUP / SPLIT D ~0.30 → ¬K1. K2: MOVE_T 0.223 < 2 × 0.124 = 0.248 → ¬K2.
 **Đọc (mô tả):** (1) DINO CÓ đi theo nội dung token: dời đầy đủ thì ~½ GT mất box đúng và 48% GT có box ở chỗ mới (object được "dời", không biến mất) — nhưng đó là thao tác feature cỡ lớn. (2) Ở độ lớn mà δ R50 thật tạo ra, dời chỉ 1.8× OSFD; kéo về nền (bg_T) ở CÙNG độ lớn 4.7× OSFD — tái lập E14c (dev30 0.575) trên dev100. → Trên Swin-L, hướng "xóa ngữ nghĩa object về nền" hiệu quả hơn hẳn "dời object" ở cùng ngân sách distortion; vấn đề vẫn là KHÔNG với tới hướng đó từ R50 (pilot BG âm). (3) DUP: DINO khử trùng lặp một phần (D 0.30, n_det không tăng) — không mở kênh box thừa.
 **Hệ quả:** họ "đổi kênh đầu ra bằng dời token" không đủ mạnh ở ngân sách R50 → không viết loss dời object. Tổng kết chuỗi phiên 10-17: mọi can thiệp mới (OCT-1V / -S / -SEA, E15) đều không vượt OSFD hoặc không đạt tiêu chí ở dev100; đòn bẩy Swin-L duy nhất đã xác nhận vẫn là loss cls + PIA (C2-PIA, dev300).
+
+---
+
+## 2026-10-17 — C2-OCT-1V / C2-PIA-1V trên 5 ảnh (mô tả, đo thời gian) + TẠM DỪNG (user, mai chạy tiếp)
+**Ô mới (`run_baselines.py`):** `C2-OCT-1V` = loss C2 (L_OSFD + 4·(loss_rpn_cls + loss_cls), GT co-transform) + OCT, 1 view / bước, skip_mask + AMP; `C2-PIA-1V` = như trên với PIA (tham số paper). Chi phí view forward = B.
+**dev5 (V100, B50; `results/runs/dev300_B50_eps5_limit5/{metrics,generalization}_c2_1v_dev5.json`, log `results/octdev5/c2_1v_dev5.log`) — mô tả, KHÔNG quyết định:** R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 89.8 / 85.7 / 71.3 / 64.5 / 19.8 | 73.8 | 3.9; C2-OCT-1V 96.1 / 83.9 / 72.6 / 68.7 / 37.1 | 75.1 | **4.7 (1.2×)**; C2-PIA-1V 97.1 / 83.8 / 72.8 / 67.7 / 23.5 | 74.8 | **4.3 (1.1×)**. n = 5 → chỉ dùng thời gian (OCT không cls cũng từng 38.0 Swin-L trên dev5 rồi ≈ OSFD ở dev100).
+**Việc chạy tiếp (ĐỀ XUẤT — user xác nhận / khóa entry trước khi chạy):** dev100, cùng thời gian OSFD B50: `C2-OCT-1V` B41 (= 50 × 3.9 / 4.7), `C2-PIA-1V` B45 (= 50 × 3.9 / 4.3); OSFD B50 dev100 có trong `results/runs/dev300_B50_eps5_limit100/` (PNG ở `artifacts/` — mất nếu đổi máy → sinh lại ~7 phút). Lệnh dự kiến:
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --methods C2-OCT-1V --out metrics_c2_1v_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 45 --methods C2-PIA-1V --out metrics_c2_1v_dev100.json
+# eval_generalization cho 2 run B41 / B45 (--subset dev100 --models yolox_s dino_swin_l), rồi
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev100 --dets <dets OSFD> --tag c2_1v_dev100 --pairs C2-OCT-1V@dev300_B41_eps5_limit100:OSFD C2-PIA-1V@dev300_B45_eps5_limit100:OSFD
+```
+Lưu ý `pair_screen.py` đọc CÙNG tên `--dets` ở mọi run → đặt cùng `--out` / `--dets` cho cả 3 run, hoặc sửa script nhận dets theo run. Quy tắc đề xuất: GO dev300 nếu ΔCA3 (− OSFD) ≥ 2 VÀ cận dưới CI > 0, HOẶC ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ 0; ΔR101 ≥ −3; runtime ≤ 1.1 × OSFD.
+
+### TẠM DỪNG 2026-10-17 — tổng kết phiên (V100 16GB)
+**Xong (theo quy tắc khóa, dev100 trừ khi ghi khác):**
+1. Máy V100: tái lập giữa GPU KHÔNG đạt (OSFD dev5 lệch tới 16 điểm Swin-L so số 3090); GPU không tất định cả trên cùng máy (OCT-1V 2 lần cùng seed lệch 20.8% pixel). → luôn sinh lại mốc cùng máy, đọc theo CI, không ra quyết định ở dev30.
+2. **OCT-1V B65 (cùng thời gian OSFD) ≈ OSFD:** CA3 +0.4 [−1.6, 2.9]; chỉ YOLOX +3.0 [0.3, 6.0]. Lợi +3.6 ở dev30 không lặp lại trên 70 ảnh mới. OCT 2 view chưa chạy dev100 → lợi "+4.8" của OCT (dev30, 3090) chưa từng xác nhận.
+3. OCT-1V-S (phủ có hệ thống): không giúp (−1.0). OCT-1V-SEA (Season): HẠI (CA3 −43.6, Swin-L −17.1) — ép tần thấp vào δ yếu mọi target (lần 2 sau S1).
+4. E15 (dời / tách token object bb3 Swin-L): ¬K1 (D 0.499 sát ngưỡng), ¬K2 → bỏ. Mô tả: ở cùng độ lớn distortion R50, kéo về nền 0.586 vs dời 0.223 vs δ OSFD 0.124 (tái lập E14c ở dev100).
+5. Hình box (dev5, `scripts/viz_dets.py`): DINO-Swin-L giữ ~2/3 box sạch, gần như không thêm box; OCT tăng box giả (hallucination) trên CNN so OSFD, không tăng xóa object.
+6. Literature (web): AugTrans (10 view × 160 bước, không so OSFD, thua BFDA trên DETR / DINO), BFDA (baseline chưa xét, không code), Season, Corrupting Attention (encoder DINO là nút thắt, white-box). OCT như toán tử: không novelty.
+**Code mới:** ô `OCT-1V`, `OCT-1V-S` (`elem.strat_schedule`, `geo_osfd_attack(strat)`), `OCT-1V-SEA` (`core.run_iterative_attack(season_sigma)`), `C2-OCT-1V`, `C2-PIA-1V`; `pair_screen.py` nhận `TÊN@RUN`; `scripts/viz_dets.py`, `scripts/e15_shift_object.py`; `data/image_lists/dev10.csv`. Run riêng V100: `results/runs/dev300_B{50,65}_eps5_limit{5,10,30,100}/`.
+**Việc mở:** (1) C2-OCT-1V / C2-PIA-1V @ dev100 cùng thời gian (trên). (2) Đối chứng OSFD-1V cùng thời gian nếu một ô 1V vượt OSFD. (3) Cân nhắc định vị analysis paper (cơ chế: khóa lưới / thang kích thước; Swin-L: stride 16, hướng, kéo về nền vs dời). (4) Rà BFDA. (5) Nợ cũ: GO @ n300 cho C2 (110 / 300).
+**Artifact:** KHÔNG upload HF. PNG V100 ở `artifacts/runs/dev300_B*_limit*` (mất khi trả máy; sinh lại được). **Commit local, CHƯA push.** Không có tiến trình nào đang chạy.

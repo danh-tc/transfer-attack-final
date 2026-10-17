@@ -1,0 +1,33 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.80s)
+creating index...
+index created!
+[E15] 10/100 (19s)
+[E15] 20/100 (38s)
+[E15] 30/100 (57s)
+[E15] 40/100 (76s)
+[E15] 50/100 (95s)
+[E15] 60/100 (114s)
+[E15] 70/100 (132s)
+[E15] 80/100 (151s)
+[E15] 90/100 (168s)
+[E15] 100/100 (186s)
+GT phát hiện ở sạch: 734   n_det sạch / ảnh: 10.6
+điều kiện        D              CI95   D−OSFD_in  theo dời  n_det/ảnh
+MOVE         0.499  [0.451, 0.547]      +0.375      0.48        9.4
+DUP          0.298  [0.251, 0.345]      +0.174      0.43       10.5
+SPLIT        0.305  [0.265, 0.348]      +0.181      0.16        9.2
+MOVE_T       0.223  [0.176, 0.282]      +0.099      0.25        9.4
+DUP_T        0.193  [0.149, 0.246]      +0.069      0.27        9.9
+SPLIT_T      0.155  [0.121, 0.196]      +0.031      0.11        9.7
+OSFD_in      0.124  [0.093, 0.157]                              9.6
+bg_T         0.586  [0.518, 0.648]      +0.462                  5.1
+
+VERDICT {'K1_channel_exists': {'MOVE': False, 'DUP': False, 'SPLIT': False}, 'best_T': 'MOVE', 'K2_reachable': False}
