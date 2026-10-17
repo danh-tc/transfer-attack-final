@@ -64,13 +64,19 @@ def main():
     keep = set(load_image_ids(os.path.join(REPO_ROOT, "data/image_lists", f"{args.subset}.csv")))
     img_ids = [i for i in ids if i in keep]
     coco = COCO(ANN_FILE)
-    with open(os.path.join(ART, args.dets)) as f:
-        ctrl = json.load(f)
-    dets = {k: {c: ctrl[c][k] for c in conds} for k in CTRL}
-    for k in GEN:
-        with open(os.path.join(ART, "gen_dets", f"{k}.json")) as f:
-            g = json.load(f)
-        dets[k] = {c: g[c] for c in conds}
+    # Điều kiện "TÊN@RUN" (progress_log 2026-10-17): lấy dets của TÊN từ run khác (vd B65 vs B50), cùng --dets; clean từ --run.
+    dets = {k: {} for k in CTRL + GEN}
+    for run in {args.run} | {c.split("@")[1] for c in conds if "@" in c}:
+        art = os.path.join(REPO_ROOT, "artifacts/runs", run)
+        mine = [c for c in conds if (c.split("@")[1] if "@" in c else args.run) == run]
+        with open(os.path.join(art, args.dets)) as f:
+            ctrl = json.load(f)
+        for k in CTRL:
+            dets[k].update({c: ctrl[c.split("@")[0]][k] for c in mine})
+        for k in GEN:
+            with open(os.path.join(art, "gen_dets", f"{k}.json")) as f:
+                g = json.load(f)
+            dets[k].update({c: g[c.split("@")[0]] for c in mine})
 
     out = {"subset": args.subset, "pairs": args.pairs, "n_boot": N_BOOT, "boot_seed": BOOT_SEED,
            "delta_definition": "drop(A) − drop(B); dương = A mạnh hơn",

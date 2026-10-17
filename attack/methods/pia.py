@@ -320,7 +320,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1,
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
-                    bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None):
+                    bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -345,7 +345,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     amp: autocast fp16 cho forward / backward surrogate (δ, momentum, bước sign giữ fp32) — đổi số học, phải kiểm bằng eval.
     bg_weight > 0 (geo="elem", loss feature, progress_log 2026-10-10): + bg_weight·L_bg (kéo token object C4 / stride 16 về
     μ_nền sạch của view, box co-transform); bg_only: bỏ L_OSFD (BG-OCT).
-    feat_stages (loss feature thuần, có / không cache): chỉ các stage backbone này trong L_OSFD (OCT-C4 = (2,), OCT-C34 = (1, 2))."""
+    feat_stages (loss feature thuần, có / không cache): chỉ các stage backbone này trong L_OSFD (OCT-C4 = (2,), OCT-C34 = (1, 2)).
+    strat (geo="elem", elem = {scale, shift: ph8}; progress_log 2026-10-17): co giãn ∘ pha theo lịch phủ có hệ thống
+    (elem.strat_schedule, steps × n_views view) thay cho rút độc lập."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
@@ -375,6 +377,13 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     rapa = rapa_sampler(model, rapa_p, clean_pixels.device) if rapa_p is not None else None
     assert rapa_cls_p is None or not feature
     rapa_cls = rapa_cls_sampler(model, rapa_cls_p, clean_pixels.device, rapa_scope) if rapa_cls_p is not None else None
+
+    sched = None
+    if strat:
+        assert geo == "elem" and set(elem) == {"scale", "shift"} and elem["shift"] == "ph8"
+        assert backward_per_step == 1 and not cache_views
+        from attack.methods.elem import strat_schedule
+        sched = strat_schedule(steps * n_views, elem["scale"])
 
     cache = None
     if cache_views:
@@ -423,7 +432,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         elif geo == "elem":
             from attack.methods.elem import elem_views  # tránh import vòng
             triples = elem_views(img, n_views, elem, sigma, companion=comp, log=log["disp"],
-                                 data_sample=ds if cls_weight > 0 or bg_weight > 0 else None, gt_log=log["gt_kept"])
+                                 data_sample=ds if cls_weight > 0 or bg_weight > 0 else None, gt_log=log["gt_kept"],
+                                 fixed=sched[step_idx * n_views:(step_idx + 1) * n_views] if sched is not None else None)
         elif geo == "cam":
             from attack.methods.camgeo import cam_views  # tránh import vòng
             triples = cam_views(img, n_views, cam_theta, cam_kappa, sigma, companion=comp,

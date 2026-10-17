@@ -104,16 +104,37 @@ def lvx_log_scale(boxes: torch.Tensor, max_oct: float = 1.0) -> float:
     return max(-max_oct, min(max_oct, target - x)) * math.log(2)
 
 
+def strat_schedule(total: int, a: float) -> list:
+    """OCT-1V-S (progress_log 2026-10-17): lịch PHỦ CÓ HỆ THỐNG thay cho rút độc lập, cho `total` view.
+    Pha dịch (dx, dy) ∈ {0..7}²: nối các hoán vị ngẫu nhiên của đủ 64 tổ hợp (total ≥ 64 -> mỗi pha ≥ 1 lần).
+    ln s: Latin hypercube trên [−a, a] — total ô đều, mỗi view 1 ô (vị trí ngẫu nhiên trong ô), thứ tự xáo.
+    Dùng `random` (seed theo ảnh như mọi ô). Trả [(ln s, dx, dy)]."""
+    grid = [(x, y) for x in range(8) for y in range(8)]
+    phases = []
+    while len(phases) < total:
+        blk = grid[:]
+        random.shuffle(blk)
+        phases += blk
+    cells = list(range(total))
+    random.shuffle(cells)
+    return [(-a + (c + random.random()) * 2 * a / total, *phases[t]) for t, c in enumerate(cells)]
+
+
 def elem_views(adv_pixels: torch.Tensor, n: int, spec: dict, sigma: float = 6.0, companion=None, log=None,
-               data_sample=None, gt_log=None):
+               data_sample=None, gt_log=None, fixed=None):
     """n view; companion (ảnh sạch) nhận CÙNG lưới, không nhiễu. Trả về [(view_nhiễu, companion_warp, ds_view)];
-    ds_view = None nếu không truyền data_sample, ngược lại GT co-transform như pia_views (C2-PH8, progress_log 2026-10-08)."""
+    ds_view = None nếu không truyền data_sample, ngược lại GT co-transform như pia_views (C2-PH8, progress_log 2026-10-08).
+    fixed = [(ln s, dx, dy)] × n (strat_schedule): dùng thay cho rút ngẫu nhiên co giãn ∘ dịch pha."""
     h, w = adv_pixels.shape[-2:]
     gt = get_gt(data_sample, adv_pixels.device) if data_sample is not None else None
     out = []
     prev = None
     for k in range(n):
-        if "lvx" in spec:  # co giãn vượt mức FPN theo 1 object ∘ dịch pha
+        if fixed is not None:  # cùng thứ tự hợp thành như sample_elem_h: tuyến tính quanh tâm ∘ dịch pha
+            u, dx, dy = fixed[k]
+            sc = math.exp(u)
+            H = linear_homography(torch.tensor([[sc, 0.0], [0.0, sc]], dtype=torch.float64), h, w) @ shift_h(dx, dy)
+        elif "lvx" in spec:  # co giãn vượt mức FPN theo 1 object ∘ dịch pha
             sc = math.exp(lvx_log_scale(gt[0] if gt is not None else torch.zeros(0, 4), spec["lvx"]))
             H = linear_homography(torch.tensor([[sc, 0.0], [0.0, sc]], dtype=torch.float64), h, w)
             if "shift" in spec:

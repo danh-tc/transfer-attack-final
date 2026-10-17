@@ -2827,3 +2827,26 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 - Phụ: OCT-1V B50 CA3 80.8 ≥ 81.3 − 1 ✓, Swin-L 28.0 ≥ 26.4 ✓ → thay được OCT (cùng B, 0.47× thời gian OCT, 0.79× OSFD).
 **Đọc (mô tả):** (1) OCT − OSFD trên V100 chỉ +2.6 CA3 (dev30 cũ 3090: +4.8) — lợi OCT nhỏ hơn đã thấy; YOLOX gánh phần lớn. (2) Bỏ trung bình trong-bước gần như không mất gì (OCT-1V B50 − OCT −0.5 CA3); tụt ~5 ở ConvNeXt / Swin-T của dev10 KHÔNG lặp lại ở dev30 (−1.4 / −1.6) → nhiễu n = 10. R101 tụt ở B50 (86.3) nhưng hồi đủ ở B65. (3) Lợi của OCT-1V B65 so OSFD tập trung ở YOLOX (+7.5); ConvNeXt / Swin-T / Swin-L chỉ +1.5–2 — trong nhiễu dev30.
 **Bước tiếp (đề xuất, chưa khóa):** dev100 OCT-1V B65 vs OSFD B50 (sinh lại cùng máy), paired bootstrap; quy tắc khóa entry mới.
+
+---
+
+## 2026-10-17 — Xác nhận OCT-1V B65 vs OSFD @ dev100 + OCT-1V-S (phủ có hệ thống thay rút ngẫu nhiên) — khóa TRƯỚC khi chạy
+**Lý do:** OCT-1V B65 GO dev100 (entry trên). User hỏi: thay rút độc lập (co giãn U(±ln2/2), pha 0–7 px mỗi trục) bằng cách phủ tối ưu hơn. Với 1 view × 65 bước, rút độc lập không phủ đều 64 tổ hợp pha (trùng / sót).
+**Ô mới `OCT-1V-S`** = OCT-1V + `strat=True` (`elem.strat_schedule`): pha (dx, dy) đi theo nối các hoán vị ngẫu nhiên của đủ 64 tổ hợp (B65 → mỗi pha ≥ 1 lần, tối đa 2); ln s = Latin hypercube 65 ô đều trên [−ln2/2, ln2/2], thứ tự xáo; seed theo ảnh. Kiểm: 64 / 64 pha, 65 / 65 ô co giãn; Linf 5.0; `strat=False` đi đúng nhánh cũ.
+**Không tất định (ghi nhận):** OCT-1V cùng code, cùng seed, chạy 2 lần liên tiếp trên V100 lệch 20.8% pixel (ảnh 7088) — khả dĩ backward `grid_sample` CUDA (atomicAdd). → chênh nhỏ giữa ô ở n nhỏ càng phải đọc theo CI.
+**Công cụ:** `pair_screen.py` nhận điều kiện `TÊN@RUN` (so cặp giữa 2 run khác B, cùng ảnh). Kiểm dev30: OCT-1V B65 − OSFD CA3 +3.6 [−0.2, 7.4], YOLOX +7.5 [1.7, 13.0], Swin-L +2.0 [−4.7, 7.6] (khớp điểm đã ghi).
+**Chạy (V100; dev30 của OSFD B50 / OCT-1V B65 tái dùng từ run `_limit30` — chép PNG + stats, cùng seed, cùng máy):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --methods OSFD --out metrics_oct1v_dev100.json
+python scripts/eval_generalization.py --run dev300_B50_eps5_limit100 --subset dev100 --models yolox_s dino_swin_l --methods OSFD --dets dets_oct1v_dev100.json --out generalization_oct1v_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 65 --methods OCT-1V OCT-1V-S --out metrics_oct1v_dev100.json
+python scripts/eval_generalization.py --run dev300_B65_eps5_limit100 --subset dev100 --models yolox_s dino_swin_l --methods OCT-1V OCT-1V-S --dets dets_oct1v_dev100.json --out generalization_oct1v_dev100.json
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev100 --dets dets_oct1v_dev100.json --tag oct1v_dev100 --exclude dev30 \
+  --pairs OCT-1V@dev300_B65_eps5_limit100:OSFD OCT-1V-S@dev300_B65_eps5_limit100:OSFD OCT-1V-S@dev300_B65_eps5_limit100:OCT-1V@dev300_B65_eps5_limit100
+```
+Log `results/octdev5/oct1v_dev100.log`.
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; Δ = drop(A) − drop(B)):**
+- **(Q1) OCT-1V B65 vs OSFD B50 — XÁC NHẬN** nếu ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −2 (điểm) VÀ ΔR101 ≥ −3 VÀ runtime ≤ 1.1 × OSFD (đo cùng lần). **BÁC** nếu ΔCA3 ≤ 0 (điểm). Còn lại → XÁM.
+- **(Q2) OCT-1V-S vs OCT-1V (cùng B65) — "phủ có hệ thống GIÚP"** nếu ΔCA3 ≥ 2 VÀ cận dưới CI > 0; "HẠI" nếu ΔCA3 ≤ −2; còn lại "ngang". Chọn ô đại diện: OCT-1V-S chỉ khi GIÚP; ngược lại giữ OCT-1V.
+- Mô tả: Q1 cho OCT-1V-S; tách dev100 \ dev30 (70 ảnh mới — kiểm dev30 có thiên lệch chọn không); YOLOX / ConvNeXt / Swin-T riêng.
+- Q1 XÁC NHẬN → bước sau (khóa entry mới): sàng lọc dev300 theo plan_sota bước 3, cùng thời gian OSFD. Held-out không dùng.
