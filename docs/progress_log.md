@@ -2850,3 +2850,11 @@ Log `results/octdev5/oct1v_dev100.log`.
 - **(Q2) OCT-1V-S vs OCT-1V (cùng B65) — "phủ có hệ thống GIÚP"** nếu ΔCA3 ≥ 2 VÀ cận dưới CI > 0; "HẠI" nếu ΔCA3 ≤ −2; còn lại "ngang". Chọn ô đại diện: OCT-1V-S chỉ khi GIÚP; ngược lại giữ OCT-1V.
 - Mô tả: Q1 cho OCT-1V-S; tách dev100 \ dev30 (70 ảnh mới — kiểm dev30 có thiên lệch chọn không); YOLOX / ConvNeXt / Swin-T riêng.
 - Q1 XÁC NHẬN → bước sau (khóa entry mới): sàng lọc dev300 theo plan_sota bước 3, cùng thời gian OSFD. Held-out không dùng.
+
+### Kết quả dev100 (V100; `results/ablation/oct1v_dev100/screen.json`, `results/runs/dev300_B{50,65}_eps5_limit100/`, log `results/octdev5/oct1v_dev100.log`) — theo quy tắc: **Q1 XÁM (≈ 0); Q2 "ngang" → giữ OCT-1V**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD B50 96.6 / 91.5 / 78.9 / 75.5 / 70.8 / 24.9 | 75.0 | 3.89; OCT-1V B65 95.7 / 90.8 / 79.0 / 73.4 / 73.8 / 24.4 | 75.4 | 4.04; OCT-1V-S B65 96.4 / 91.5 / 78.4 / 74.2 / 70.5 / 23.2 | 74.4 | 4.04.
+- **Q1 OCT-1V − OSFD: ΔCA3 +0.4 [−1.6, 2.9]** (< 2, điểm > 0 → XÁM); YOLOX +3.0 [0.3, 6.0], ConvNeXt +0.1, Swin-T −2.1, Swin-L −0.6, R101 −0.7. Runtime 1.04× ✓.
+- **Q2 OCT-1V-S − OCT-1V: ΔCA3 −1.0 [−2.6, 1.2]** → ngang (YOLOX −3.3 [−5.9, −0.8]). Phủ có hệ thống KHÔNG giúp.
+- 70 ảnh mới (dev100 \ dev30): OCT-1V − OSFD CA3 −0.6 [−2.1, 2.6] → lợi +3.6 ở dev30 KHÔNG lặp lại ngoài dev30 (nhiễu / thiên lệch tập nhỏ).
+**Đọc:** cùng thời gian, trên V100, OCT-1V ≈ OSFD; phần lợi duy nhất ổn định là YOLOX (+2–3). Hệ quả rộng hơn: lợi "+4.8 CA3" của OCT (dev30, 3090) chưa từng được xác nhận ở dev100 — có thể phần lớn cũng là nhiễu dev30. Chưa có số OCT 2 view @ dev100 trên V100.
+**User (2026-10-17):** nếu phát triển tiếp, đi theo hướng 1 view.
