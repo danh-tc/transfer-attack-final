@@ -2889,3 +2889,20 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: **SEA 66.7 / 43
 - SEA − OCT-1V: CA3 **−43.6 [−48.7, −38.2]**, Swin-L **−17.1 [−20.3, −13.0]**, R101 −47.2; mọi model âm, kể cả white-box R50 (66.7).
 - Chẩn đoán (ảnh 7088, loss OSFD white-box trên ảnh adv không biến đổi; δ = 0: 11.41): OCT-1V 15.5 / 18.2 / 19.1 / 19.6 tại bước 5 / 20 / 40 / 65; SEA 15.5 / 16.3 / 16.5 / 16.7 → SEA CÓ tối ưu (loss tăng đơn điệu) nhưng bão hòa sớm, thấp hơn → yếu do thiết kế, không phải hỏng đường gradient (chưa loại trừ hoàn toàn lỗi tinh vi).
 **Đọc:** ở ε = 5 (Season dùng ε = 16, 10 bước), dòng tần thấp có momentum mượt → bước sign +α nhất quán mỗi bước → δ_L bão hòa ±ε thành khối lớn rất sớm; phép co theo pixel min(1, ε / |δ_L + δ_H|) nén δ_H ở mọi chỗ cùng dấu → ngân sách bị khóa vào khối tần thấp, phần tần cao (thứ phá được R50 / CNN) gần như không còn chỗ. Củng cố S1: ÉP thêm tần thấp vào δ (lọc gradient S1 hay dòng riêng SEA) làm yếu MỌI target, KỂ CẢ Swin-L — giả thuyết "Swin-L cần thành phần quy mô lớn trong δ" bị bác thêm một lần ở dạng này. Không thêm biến thể σ / chia ngân sách mà không khóa entry mới.
+
+---
+
+## 2026-10-17 — E15: kênh "DỜI / TÁCH object" trên DINO-Swin-L — ghép feature bb3 (forward-only, dev100) — khóa TRƯỚC khi chạy
+**Lý do:** mọi hướng "đổi tính chất δ trên surrogate" ≈ OSFD hoặc hại ở dev100 (OCT-1V, OCT-1V-S, OCT-1V-SEA, trước đó S1, BG). DINO chặn box giả (FP nền 1.1 → 1.8) và chỉ để lọt kênh hạ confidence. Giả thuyết kênh khác: nếu nội dung token object bị DỜI, matching một-một của DINO đặt box ở chỗ mới → 1 lần vừa mất GT vừa có box lệch, không cần "đúng hướng" feature Swin-L theo nghĩa E14. Kiểm khả thi trên Swin-L trước khi viết loss cho R50.
+**Thao tác (khung `noise_3`: mọi stage sạch, riêng bb3 = c₃ sửa; `scripts/e15_shift_object.py`):** object = chữ nhật token của GT box; dời ρ = 0.5 × bề rộng (token, ≥ 1, về phía còn chỗ; IoU box dời / gốc ≈ 1/3).
+- `MOVE`: token object (gán như E14c) ← μ_nền sạch; dán nội dung chữ nhật sạch của từng GT ở vị trí dời (lớn → nhỏ).
+- `DUP`: giữ nguyên + dán thêm bản dời. `SPLIT`: token object ← μ_nền; nửa trái dời trái ρ/2·w, nửa phải dời phải ρ/2·w.
+- `X_T` = c₃ + Δ_X · ‖Δ_in^OSFD‖ / ‖Δ_X‖ (cùng độ lớn phần trong-object của δ OSFD thật). Mốc: `OSFD_in` = c₃ + Δ_in^OSFD (PNG OSFD B50 dev100, V100), `bg_T` = kéo object về μ_nền ở độ lớn OSFD (synthT E14c).
+**Chỉ số:** D như E14 (GT phát hiện ở sạch, score ≥ 0.3; bootstrap ảnh 1000, BOOT_SEED 2026); F = tỉ lệ GT đó có detection cùng lớp, score ≥ 0.3, IoU ≥ 0.5 với box ĐÃ DỜI (SPLIT: 1 trong 2 nửa); n_det / ảnh.
+**Sanity:** thao tác trên tensor giả đúng (MOVE dời 1 token, DUP 2 chỗ, SPLIT 2 mảnh tách; sát biên → dời ngược; chiếm hết bề rộng → 0); chạy 3 ảnh không lỗi. Đường `head` trên c₃ sạch = `model.predict` (kiểm ở E14, lệch 0.0).
+**Quy tắc (dev100, điểm + CI):**
+- **(K1) kênh tồn tại** với X ∈ {MOVE, DUP, SPLIT}: D(X) ≥ 0.5 VÀ F(X) ≥ 0.3 (DINO đi theo nội dung token, đặt box ở chỗ mới).
+- **(K2) với tới được ở ngân sách R50:** với X* = argmax D(X_T): D(X*_T) ≥ 2 × D(OSFD_in) VÀ cận dưới CI của D(X*_T) − D(OSFD_in) > 0.
+- K1 ∧ K2 → khóa entry mới: loss "dời object" trên R50 (bản feature: đích = feature sạch R50 với token object dời — chi phí ≈ OCT-1V) + kiểm thao tác phía Swin-L (như M2 của pilot BG). K1 ∧ ¬K2 → kênh có nhưng cần độ lớn ngoài tầm R50 — mô tả. ¬K1 → DINO không đi theo nội dung token dời ở bb3 — bỏ hướng.
+- Mô tả: so `bg_T` (E14c dev30 synthT 0.575 vs OSFD 0.147 — kiểm lại ở dev100); n_det (DUP có tạo box thừa không).
+**Caveat khai báo trước:** cũng như E14c, hiệu quả trong không gian feature Swin-L KHÔNG đảm bảo với tới được từ R50 (BG-OCT là phản ví dụ); chỉ bb3 (stage 4 sạch); dời ngang. Log `results/e15/run.log`.
