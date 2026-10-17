@@ -2883,3 +2883,9 @@ Log `results/octdev5/sea_dev100.log`.
 - **GIÚP** nếu (ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1) HOẶC (ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −2). **HẠI** nếu ΔCA3 ≤ −3 HOẶC ΔSwin-L ≤ −3 (điểm). Còn lại → NGANG. Runtime phải ≤ 1.1 × OCT-1V.
 - Mô tả: SEA − OSFD (cùng thời gian); ConvNeXt / Swin-T / YOLOX / R101 riêng.
 - GIÚP → ứng viên (khóa entry mới: sàng lọc dev300 so OSFD cùng thời gian + đối chứng OSFD-1V). NGANG / HẠI → ghi nhận, không thêm biến thể σ mà không khóa entry mới.
+
+### Kết quả OCT-1V-SEA @ dev100 (V100; `results/ablation/sea_dev100/screen.json`, log `results/octdev5/sea_dev100.log`) — theo quy tắc: **M ✓ (thao tác đạt), HẠI (âm rất mạnh)**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: **SEA 66.7 / 43.6 / 28.2 / 28.7 / 38.5 / 7.3 | 31.8 | 4.01**; OCT-1V 95.7 / 90.8 / 79.0 / 73.4 / 73.8 / 24.4 | 75.4 | 4.04; OSFD B50 96.6 / 91.5 / 78.9 / 75.5 / 70.8 / 24.9 | 75.0.
+- SEA − OCT-1V: CA3 **−43.6 [−48.7, −38.2]**, Swin-L **−17.1 [−20.3, −13.0]**, R101 −47.2; mọi model âm, kể cả white-box R50 (66.7).
+- Chẩn đoán (ảnh 7088, loss OSFD white-box trên ảnh adv không biến đổi; δ = 0: 11.41): OCT-1V 15.5 / 18.2 / 19.1 / 19.6 tại bước 5 / 20 / 40 / 65; SEA 15.5 / 16.3 / 16.5 / 16.7 → SEA CÓ tối ưu (loss tăng đơn điệu) nhưng bão hòa sớm, thấp hơn → yếu do thiết kế, không phải hỏng đường gradient (chưa loại trừ hoàn toàn lỗi tinh vi).
+**Đọc:** ở ε = 5 (Season dùng ε = 16, 10 bước), dòng tần thấp có momentum mượt → bước sign +α nhất quán mỗi bước → δ_L bão hòa ±ε thành khối lớn rất sớm; phép co theo pixel min(1, ε / |δ_L + δ_H|) nén δ_H ở mọi chỗ cùng dấu → ngân sách bị khóa vào khối tần thấp, phần tần cao (thứ phá được R50 / CNN) gần như không còn chỗ. Củng cố S1: ÉP thêm tần thấp vào δ (lọc gradient S1 hay dòng riêng SEA) làm yếu MỌI target, KỂ CẢ Swin-L — giả thuyết "Swin-L cần thành phần quy mô lớn trong δ" bị bác thêm một lần ở dạng này. Không thêm biến thể σ / chia ngân sách mà không khóa entry mới.
