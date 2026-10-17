@@ -61,6 +61,7 @@ def run_iterative_attack(
     grad_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     backward_per_step: int = 1,
     combine: str = "sum",
+    season_sigma: Optional[float] = None,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -87,11 +88,33 @@ def run_iterative_attack(
 
     combine (pilot VC, progress_log 2026-10-07) — cách gộp gradient của backward_per_step lần backward:
     "sum" (mặc định, như cũ); "consensus" = trung bình, chỉ giữ pixel mà MỌI gradient cùng dấu (0 ở chỗ còn lại).
+
+    season_sigma (progress_log 2026-10-17, theo Season arXiv 2608.04441, bỏ mask saliency): thay cập nhật MI bằng
+    2 dòng — g_L = Gauss_σ(g) (bán kính 2σ, reflect), g_H = g − g_L; mỗi dòng momentum riêng (chuẩn hoá mean|·|) và δ
+    riêng (+α·sign); δ_H chiếu trực giao với δ_L (tích vô hướng toàn ảnh); δ = δ_L + δ_H, mỗi pixel co cả hai theo
+    cùng hệ số min(1, ε / |δ_L + δ_H|) để δ ∈ [−ε, ε]. Cần momentum > 0. None = trùng tuyệt đối bản cũ.
     """
     assert combine in ("sum", "consensus")
     model_size = tuple(data_sample.img_shape)
     noise = torch.zeros_like(orig_pixels)
     accumulated_grad = torch.zeros_like(orig_pixels)
+    if season_sigma is not None:
+        assert momentum > 0.0
+        r = int(round(2 * season_sigma))
+        x = torch.arange(-r, r + 1, dtype=orig_pixels.dtype, device=orig_pixels.device)
+        k1 = torch.exp(-x ** 2 / (2 * season_sigma ** 2))
+        k1 = k1 / k1.sum()
+        c = orig_pixels.shape[0]
+        kx, ky = k1.view(1, 1, 1, -1).repeat(c, 1, 1, 1), k1.view(1, 1, -1, 1).repeat(c, 1, 1, 1)
+
+        def lowpass(t):
+            t = torch.nn.functional.pad(t[None], (r, r, 0, 0), mode="reflect")
+            t = torch.nn.functional.conv2d(t, kx, groups=c)
+            t = torch.nn.functional.pad(t, (0, 0, r, r), mode="reflect")
+            return torch.nn.functional.conv2d(t, ky, groups=c)[0]
+
+        m_lo, m_hi = torch.zeros_like(orig_pixels), torch.zeros_like(orig_pixels)
+        d_lo, d_hi = torch.zeros_like(orig_pixels), torch.zeros_like(orig_pixels)
 
     for step_idx in range(steps):
         noise = noise.detach().requires_grad_(True)
@@ -121,6 +144,22 @@ def run_iterative_attack(
             grad = grad / len(gs) * agree
         if grad_transform is not None:  # vd lọc thông thấp gradient (nhánh S1, progress_log 2026-10-03)
             grad = grad_transform(grad)
+
+        if season_sigma is not None:
+            with torch.no_grad():
+                g_lo = lowpass(grad.float())
+                g_hi = grad.float() - g_lo
+                m_lo = momentum * m_lo + g_lo / (g_lo.abs().mean() + 1e-12)
+                m_hi = momentum * m_hi + g_hi / (g_hi.abs().mean() + 1e-12)
+                d_lo = d_lo + alpha * torch.sign(m_lo)
+                d_hi = d_hi + alpha * torch.sign(m_hi)
+                d_hi = d_hi - (d_hi * d_lo).sum() / ((d_lo * d_lo).sum() + 1e-12) * d_lo
+                s = torch.clamp(epsilon / ((d_lo + d_hi).abs() + 1e-12), max=1.0)
+                d_lo, d_hi = d_lo * s, d_hi * s
+                noise = torch.clamp(d_lo + d_hi, min=-epsilon, max=epsilon)
+            if on_step is not None:
+                on_step(step_idx + 1, noise.detach())
+            continue
 
         if momentum > 0.0:
             grad = grad / (grad.abs().mean() + 1e-12)

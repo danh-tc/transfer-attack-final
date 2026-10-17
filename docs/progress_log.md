@@ -2858,3 +2858,28 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD B50 96.6 /
 - 70 ảnh mới (dev100 \ dev30): OCT-1V − OSFD CA3 −0.6 [−2.1, 2.6] → lợi +3.6 ở dev30 KHÔNG lặp lại ngoài dev30 (nhiễu / thiên lệch tập nhỏ).
 **Đọc:** cùng thời gian, trên V100, OCT-1V ≈ OSFD; phần lợi duy nhất ổn định là YOLOX (+2–3). Hệ quả rộng hơn: lợi "+4.8 CA3" của OCT (dev30, 3090) chưa từng được xác nhận ở dev100 — có thể phần lớn cũng là nhiễu dev30. Chưa có số OCT 2 view @ dev100 trên V100.
 **User (2026-10-17):** nếu phát triển tiếp, đi theo hướng 1 view.
+
+---
+
+## 2026-10-17 — Rà literature (web) + OCT-1V-SEA (OCT-1V + cập nhật kiểu Season) @ dev100 — khóa TRƯỚC khi chạy
+**Literature (web, 2026-10-17):**
+- **AugTrans** (CMC v87n3, bản HTML): N_EOT = 10 view / bước × K_max = 160 (≈ 1600 lượt gradient), ε = 5/255, η = 0.0004, Faster R-CNN R50; 16.7 s / ảnh (3090). **KHÔNG so OSFD**; so DAG / RAP / CAP / TOG / Shi et al. / UAP; tự nhận **BFDA thắng trên DETR / DINO**; không so cùng compute; 1 seed. Target transformer của họ đều backbone R50 (DETR-R50, DINO-R50 — với ta OSFD đã 96–97%).
+- **BFDA** (Ding et al. 2024, "Bidirectional Feature Distortion", cùng nhóm OSFD): nén phần tử feature quan trọng + tăng phần tử gắn box ứng viên. Không tìm thấy code. → rủi ro baseline cho claim SOTA, rà lại ở bước 4.
+- **Corrupting Attention** (arXiv 2608.06674): white-box nhắm logit attention (trước softmax) của encoder tại token object → DINO-Swin-L 56.8 → 1.4 mAP; luận điểm "phá memory encoder là đủ" khớp E14 (thiệt hại qua token object stride 16 = đầu vào encoder). Không đo transfer từ CNN; surrogate R50 không có encoder → không dùng trực tiếp.
+- **AFOG** (ICCV 2025): white-box attention, không transfer. JAD / NAMEA / OmniPatch / IKD / TGR / ATT: cần surrogate ViT hoặc ensemble → ngoài threat model.
+- **Season** (arXiv 2608.04441, CNN→ViT classification): tách gradient g_L = Gauss_σ(g), g_H = g − g_L; momentum + δ riêng từng dòng; δ_H chiếu trực giao δ_L; tổng clip + co theo pixel. R50 → ViT-B/16: MI +5.5, TI +11; ablation: phần lợi ViT chủ yếu từ tách 2 dòng (+4) + trực giao; mask saliency hơi hại ViT. Không thêm gradient. KHÁC S1 (S1 bỏ tần cao — đã âm): Season GIỮ tần cao.
+**Ô mới `OCT-1V-SEA`** = OCT-1V, cập nhật MI thay bằng Season (`core.run_iterative_attack(season_sigma=3.0)`, bỏ mask): σ = 3 px ở không gian ảnh gốc (δ tối ưu ở ảnh gốc ~640 px; quy đổi σ = 1 @ 224 px theo tỉ lệ ≈ 2.9; bán kính 2σ như Season), α = 1 mỗi dòng, B = 65 (cùng OCT-1V). Giả thuyết: sign của 1 dòng MI để tần cao (độ lớn áp đảo) quyết định δ → δ là mẫu tần cao khớp nội dung (E7), ít chạm kênh hình dạng của Swin-L (E6); dòng tần thấp có bước sign riêng → luôn được phần ngân sách.
+**Kiểm trước khi chạy (3 ảnh đầu dev100, B65):** L∞ 5.00; tỉ lệ năng lượng δ qua Gauss σ = 3 (thao tác): OCT-1V 0.146 / 0.097 / 0.108 → **SEA 0.450 / 0.406 / 0.417**; runtime ≈ như nhau (3.7–4.1 s). `season_sigma=None` = đường code cũ (nhánh riêng, `continue`).
+**Chạy (V100; OSFD B50 + OCT-1V / OCT-1V-S B65 dev100 có sẵn):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 65 --methods OCT-1V OCT-1V-S OCT-1V-SEA --out metrics_oct1v_dev100.json
+python scripts/eval_generalization.py --run dev300_B65_eps5_limit100 --subset dev100 --models yolox_s dino_swin_l --methods OCT-1V OCT-1V-S OCT-1V-SEA --dets dets_oct1v_dev100.json --out generalization_oct1v_dev100.json
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev100 --dets dets_oct1v_dev100.json --tag sea_dev100 \
+  --pairs OCT-1V-SEA@dev300_B65_eps5_limit100:OCT-1V@dev300_B65_eps5_limit100 OCT-1V-SEA@dev300_B65_eps5_limit100:OSFD
+```
+Log `results/octdev5/sea_dev100.log`.
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; Δ = drop(SEA) − drop(OCT-1V), cùng mọi thứ trừ quy tắc cập nhật):**
+- Thao tác (M): tỉ lệ năng lượng tần thấp của δ (σ = 3), trung bình 100 ảnh, SEA ≥ OCT-1V + 0.10. ¬M → không kết luận.
+- **GIÚP** nếu (ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1) HOẶC (ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −2). **HẠI** nếu ΔCA3 ≤ −3 HOẶC ΔSwin-L ≤ −3 (điểm). Còn lại → NGANG. Runtime phải ≤ 1.1 × OCT-1V.
+- Mô tả: SEA − OSFD (cùng thời gian); ConvNeXt / Swin-T / YOLOX / R101 riêng.
+- GIÚP → ứng viên (khóa entry mới: sàng lọc dev300 so OSFD cùng thời gian + đối chứng OSFD-1V). NGANG / HẠI → ghi nhận, không thêm biến thể σ mà không khóa entry mới.

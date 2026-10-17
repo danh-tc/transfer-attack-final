@@ -320,7 +320,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     rrb_theta: float = 7.0, rrb_l_s: int = 10, rrb_rho: float = 0.8, rrb_s_max: float = 1.1,
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
-                    bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False):
+                    bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
+                    season_sigma=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -483,7 +484,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
             noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
-                                         on_step=on_step, backward_per_step=backward_per_step)
+                                         on_step=on_step, backward_per_step=backward_per_step,
+                                         season_sigma=season_sigma)
     finally:
         if mask_head is not None:
             model.roi_head.mask_head = mask_head
