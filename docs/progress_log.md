@@ -2793,3 +2793,26 @@ Thao tác, s: R50 C4 — OSFD 0.317, OCT 0.361, BG-OCT 0.439 (+0.079), OCT+BG 0.
 **Code mới phiên này:** `scripts/e14_patching.py`, `e14b_direction.py`, `e14c_bgshift.py`, `bg_unit_test.py`, `bg_pilot_check.py`; `attack/methods/pia.py`: `_obj_mask`, `_bg_loss`, `_view_loss_bg`, `geo_osfd_attack(bg_weight, bg_only, feat_stages)`, `_view_loss(stages)`; ô `BG-OCT`, `OCT+BG`, `OCT-fast`, `OCT-fast-V4`, `OCT-C4`, `OCT-C34` trong `run_baselines.py`. Mặc định giữ nguyên hành vi cũ (kiểm: `feat_stages=(0..3)` trùng OCT 0% pixel).
 **Artifact:** KHÔNG upload HF phiên này. Không cần cho việc mở (1). E14* dets (`artifacts/e14/`) sinh lại ~12 / 5 / 8 phút; WB-OSFD dev30 có trong HF `runs/e8_wbosfd_dev30.tar`.
 **Không có tiến trình nào đang chạy.**
+
+---
+
+## 2026-10-17 — Máy mới V100 16GB; OCT 5 / 10 ảnh (mô tả) + OCT-1V (1 view / backward) @ dev30 — khóa TRƯỚC khi chạy dev30
+**Máy:** Tesla V100-SXM2-16GB (KHÔNG phải 3090 / 4000 Ada), bootstrap đủ checkpoint + COCO; KHÔNG có `.env` → không kéo PNG HF. **Tái lập giữa GPU KHÔNG đạt:** OSFD dev5 cùng seed, V100 vs số commit (3090): R101 89.8 vs 94.9, Swin-T 71.3 vs 58.3, YOLOX 64.5 vs 46.0, Swin-L 19.8 vs 35.8 (khả dĩ: TF32 trên Ampere + 50 bước sign khuếch đại sai số; cộng nhiễu n = 5). → Từ nay mọi so sánh sinh lại MỐC trên cùng máy; không trộn PNG HF với PNG V100. Run tách riêng bằng `--limit` (`dev300_B50_eps5_limit{5,10,30}`) để không ghi đè stats đã commit.
+**Mô tả (KHÔNG quyết định):**
+- dev5 (`results/runs/dev300_B50_eps5_limit5/`, log `results/octdev5/run.log`): R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: OSFD 100 / 89.8 / 85.7 / 71.3 / 64.5 / 19.8 | 73.8 | 3.9; OCT 100 / 94.6 / 79.6 / 72.6 / 67.8 / 38.0 | 73.3 | 6.5.
+- Hình box (`scripts/viz_dets.py` → `results/figs/viz_oct_dev5/`, so box adv với box SẠCH của chính model): DINO-Swin-L giữ 23 / 34 (OSFD), 21 / 34 (OCT) box sạch, thêm chỉ 5 / 2 box; CNN / Swin-T mất gần hết box sạch + thêm 56–192 box. OCT ≈ OSFD về số box sạch mất (ConvNeXt 36 vs 37, Swin-T 37 vs 37) nhưng THÊM nhiều box giả hơn (98 vs 76, 78 vs 56), box giả nhỏ / dày hơn → lợi CNN của OCT nghiêng về hallucination (kênh không qua DINO). n = 5, chỉ sinh giả thuyết.
+- dev10 (`dev10.csv` = 10 ảnh đầu dev30; `results/runs/dev300_B50_eps5_limit10/`, log `results/octdev5/oct1v_dev10.log`): OSFD 99.1 / 84.3 / 79.4 / 69.9 / 62.8 / 29.8 | 70.7 | 3.9; OCT 100 / 84.1 / 75.1 / 70.9 / 72.1 / 35.5 | 72.7 | 6.3; **OCT-1V** 100 / 82.2 / 69.7 / 65.3 / 71.9 / 34.4 | 69.0 | **3.0** (0.77× OSFD).
+**Ô mới `OCT-1V`** = OCT với `n_views=1` (1 view / backward, 50 view forward thay vì 100; feature sạch co-transform 1 view / bước). Câu hỏi (user): bỏ trung bình trong-bước, giữ trung bình theo thời gian qua MI, có giữ được lợi OCT với thời gian ≤ OSFD không.
+**Chạy (dev30, V100, ε = 5; mốc sinh lại cùng máy):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 30 --methods OSFD OCT OCT-1V --out metrics_oct1v_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5_limit30 --subset dev30 --models yolox_s dino_swin_l --methods OSFD OCT OCT-1V --dets dets_oct1v_dev30.json --out generalization_oct1v_dev30.json
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 30 --budget 65 --methods OCT-1V --out metrics_oct1v_dev30.json
+python scripts/eval_generalization.py --run dev300_B65_eps5_limit30 --subset dev30 --models yolox_s dino_swin_l --methods OCT-1V --dets dets_oct1v_dev30.json --out generalization_oct1v_dev30.json
+```
+B = 65 cho OCT-1V = cùng thời gian OSFD B50 (3.9 / 3.0 × 50 ≈ 65, đo dev10). Log `results/octdev5/oct1v_dev30.log`.
+**Quy tắc (dev30, điểm — chỉ quyết định mở rộng dev100; CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S):**
+- **Chính — OCT-1V B65 (cùng thời gian OSFD):** GO dev100 nếu CA3 ≥ CA3(OSFD) + 2 VÀ Swin-L ≥ Swin-L(OSFD) − 2 VÀ runtime ≤ 1.1 × OSFD. **NO-GO** (1 view không khả thi đứng riêng) nếu CA3 ≤ CA3(OSFD). Giữa → xám, mô tả.
+- **Phụ — OCT-1V B50:** "thay được OCT" nếu CA3 ≥ CA3(OCT) − 1 VÀ Swin-L ≥ Swin-L(OCT) − 3; khác → mô tả.
+- Mô tả: OCT − OSFD (tái lập xu hướng dev30 cũ +4.8 trên V100?), R101, ConvNeXt / Swin-T riêng (dev10 thấy 1 view tụt ~5 ở 2 target này).
+**Caveat:** n = 30; B65 khác B50 nên OCT-1V B65 ở run riêng — so điểm giữa 2 run (cùng ảnh, cùng seed theo chỉ số dev300). Held-out không dùng.
