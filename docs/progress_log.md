@@ -2906,3 +2906,12 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: **SEA 66.7 / 43
 - K1 ∧ K2 → khóa entry mới: loss "dời object" trên R50 (bản feature: đích = feature sạch R50 với token object dời — chi phí ≈ OCT-1V) + kiểm thao tác phía Swin-L (như M2 của pilot BG). K1 ∧ ¬K2 → kênh có nhưng cần độ lớn ngoài tầm R50 — mô tả. ¬K1 → DINO không đi theo nội dung token dời ở bb3 — bỏ hướng.
 - Mô tả: so `bg_T` (E14c dev30 synthT 0.575 vs OSFD 0.147 — kiểm lại ở dev100); n_det (DUP có tạo box thừa không).
 **Caveat khai báo trước:** cũng như E14c, hiệu quả trong không gian feature Swin-L KHÔNG đảm bảo với tới được từ R50 (BG-OCT là phản ví dụ); chỉ bb3 (stage 4 sạch); dời ngang. Log `results/e15/run.log`.
+
+### Kết quả E15 @ dev100 (`results/mechanism/e15_shift_object.json`, log `results/e15/run.log`, dets `artifacts/e15/dets.json` — sinh lại ~3 phút) — theo quy tắc: **¬K1 (sát ngưỡng), ¬K2 → BỎ hướng "dời / tách object"**
+734 GT phát hiện ở sạch (100 ảnh), n_det sạch 10.6 / ảnh. D [CI] | D − OSFD_in | F (box ở chỗ dời) | n_det:
+- MOVE 0.499 [0.451, 0.547] | +0.375 | 0.48 | 9.4; DUP 0.298 | +0.174 | 0.43 | 10.5; SPLIT 0.305 | +0.181 | 0.16 | 9.2.
+- MOVE_T 0.223 [0.176, 0.282] | +0.099 [0.057, 0.145] | 0.25; DUP_T 0.193 | +0.069; SPLIT_T 0.155 | +0.031.
+- OSFD_in 0.124 [0.093, 0.157]; **bg_T 0.586 [0.518, 0.648]** | +0.462 (n_det 5.1).
+- K1: MOVE D 0.499 < 0.5 (trượt 0.001, không làm tròn) dù F 0.48 ≥ 0.3; DUP / SPLIT D ~0.30 → ¬K1. K2: MOVE_T 0.223 < 2 × 0.124 = 0.248 → ¬K2.
+**Đọc (mô tả):** (1) DINO CÓ đi theo nội dung token: dời đầy đủ thì ~½ GT mất box đúng và 48% GT có box ở chỗ mới (object được "dời", không biến mất) — nhưng đó là thao tác feature cỡ lớn. (2) Ở độ lớn mà δ R50 thật tạo ra, dời chỉ 1.8× OSFD; kéo về nền (bg_T) ở CÙNG độ lớn 4.7× OSFD — tái lập E14c (dev30 0.575) trên dev100. → Trên Swin-L, hướng "xóa ngữ nghĩa object về nền" hiệu quả hơn hẳn "dời object" ở cùng ngân sách distortion; vấn đề vẫn là KHÔNG với tới hướng đó từ R50 (pilot BG âm). (3) DUP: DINO khử trùng lặp một phần (D 0.30, n_det không tăng) — không mở kênh box thừa.
+**Hệ quả:** họ "đổi kênh đầu ra bằng dời token" không đủ mạnh ở ngân sách R50 → không viết loss dời object. Tổng kết chuỗi phiên 10-17: mọi can thiệp mới (OCT-1V / -S / -SEA, E15) đều không vượt OSFD hoặc không đạt tiêu chí ở dev100; đòn bẩy Swin-L duy nhất đã xác nhận vẫn là loss cls + PIA (C2-PIA, dev300).
