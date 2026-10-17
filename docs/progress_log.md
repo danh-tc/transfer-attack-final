@@ -2816,3 +2816,14 @@ B = 65 cho OCT-1V = cùng thời gian OSFD B50 (3.9 / 3.0 × 50 ≈ 65, đo dev1
 - **Phụ — OCT-1V B50:** "thay được OCT" nếu CA3 ≥ CA3(OCT) − 1 VÀ Swin-L ≥ Swin-L(OCT) − 3; khác → mô tả.
 - Mô tả: OCT − OSFD (tái lập xu hướng dev30 cũ +4.8 trên V100?), R101, ConvNeXt / Swin-T riêng (dev10 thấy 1 view tụt ~5 ở 2 target này).
 **Caveat:** n = 30; B65 khác B50 nên OCT-1V B65 ở run riêng — so điểm giữa 2 run (cùng ảnh, cùng seed theo chỉ số dev300). Held-out không dùng.
+
+### Kết quả OCT-1V @ dev30 (V100; `results/runs/dev300_B{50,65}_eps5_limit30/{metrics,generalization}_oct1v_dev30.json`, log `results/octdev5/oct1v_dev30.log`) — theo quy tắc: **CHÍNH: GO dev100 (OCT-1V B65); PHỤ: OCT-1V B50 thay được OCT**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
+- OSFD B50: 98.3 / 91.8 / 81.0 / 80.4 / 74.5 / 25.2 | 78.6 | 3.96
+- OCT B50: 96.8 / 91.8 / 83.9 / 82.8 / 77.1 / 29.4 | 81.3 | 6.62
+- OCT-1V B50: 96.6 / 86.3 / 82.5 / 81.2 / 78.6 / 28.0 | 80.8 | 3.12
+- **OCT-1V B65: 97.0 / 91.8 / 82.8 / 81.9 / 82.0 / 27.2 | 82.2 | 4.13**
+- Chính: CA3 82.2 ≥ 78.6 + 2 ✓; Swin-L 27.2 ≥ 23.2 ✓; runtime 4.13 ≤ 1.1 × 3.96 = 4.36 ✓ → **GO dev100**. Δ so OSFD: ConvNeXt +1.8, Swin-T +1.5, YOLOX +7.5, Swin-L +2.0, R101 0.0 (so điểm giữa 2 run, chưa có CI cặp).
+- Phụ: OCT-1V B50 CA3 80.8 ≥ 81.3 − 1 ✓, Swin-L 28.0 ≥ 26.4 ✓ → thay được OCT (cùng B, 0.47× thời gian OCT, 0.79× OSFD).
+**Đọc (mô tả):** (1) OCT − OSFD trên V100 chỉ +2.6 CA3 (dev30 cũ 3090: +4.8) — lợi OCT nhỏ hơn đã thấy; YOLOX gánh phần lớn. (2) Bỏ trung bình trong-bước gần như không mất gì (OCT-1V B50 − OCT −0.5 CA3); tụt ~5 ở ConvNeXt / Swin-T của dev10 KHÔNG lặp lại ở dev30 (−1.4 / −1.6) → nhiễu n = 10. R101 tụt ở B50 (86.3) nhưng hồi đủ ở B65. (3) Lợi của OCT-1V B65 so OSFD tập trung ở YOLOX (+7.5); ConvNeXt / Swin-T / Swin-L chỉ +1.5–2 — trong nhiễu dev30.
+**Bước tiếp (đề xuất, chưa khóa):** dev100 OCT-1V B65 vs OSFD B50 (sinh lại cùng máy), paired bootstrap; quy tắc khóa entry mới.
