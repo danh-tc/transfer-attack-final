@@ -3086,3 +3086,23 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.4 
 Δ so C2-OCT-1V: FIA CA3 +0.7, Swin-L −1.9 (nhiễu); POS CA3 −1.1, Swin-L −2.1 (nhiễu); **POS-CAP CA3 −7.0 [−9.9, −2.3], Swin-L −11.7 [−14.9, −6.0]**, ConvNeXt −5.3, Swin-T −7.9.
 Thống kê RoI (30 ảnh × 41 bước): RoI dương chỉ 11% số RoI lấy mẫu; POS-CAP giữ trung bình 32% RoI dương (68% đã p(đúng) < 0.1 trên R50).
 **Đọc:** (1) FIA (kênh, mềm) ≈ ô gốc — đánh trọng số feature theo head R50 không đổi hướng đánh. (2) POS ≈ ô gốc dù bỏ 89% RoI (nền) → phần loss_cls "đẩy nền thành box giả" KHÔNG phải nguồn lợi cũng không phải lãng phí đáng kể; tín hiệu hữu ích nằm ở RoI dương. (3) **POS-CAP hại mạnh mọi target, nhất là Swin-L**: ngừng đánh object khi R50 đã sai (p < 0.1) làm mất transfer → lợi của L_cls đến từ việc TIẾP TỤC đẩy object đã sai trên R50 đi XA hơn biên quyết định của surrogate (vượt biên / biên độ lớn). Ngược với giả thuyết "dồn sức cho object còn đúng" (DAG). Hệ quả cho hướng sau: thứ đáng thử là ĐẨY XA HƠN (loss không bão hòa / biên lớn), không phải phân bổ lại. Không xác nhận dev100 cho 3 ô này.
+
+---
+
+## 2026-10-18 — C2-OCT-1V vs OSFD @ dev100: phân rã lỗi (mất / thêm / lệch / đổi lớp) + hình 10 ảnh (user) — MÔ TẢ, không GPU
+**Công cụ:** `scripts/viz_dets.py` nhận method `TÊN@RUN` (OSFD từ B50, C2-OCT-1V từ B41), `--draw N` (vẽ N ảnh đầu, thống kê mọi ảnh), thêm score_adv / score_sạch TB của box "giữ". Hình: `results/figs/viz_c2oct1v_vs_osfd_dev100/` (10 ảnh = dev10). Phân rã AP: `scripts/probe_error_types.analyse` → `results/mechanism/error_types_c2oct1v_vs_osfd_dev100.json`.
+**AP + phân rã (dev100; AP_noFP = AP khi bỏ mọi FP → phần còn lại phản ánh mất GT / thứ hạng TP; "mất do FP" = AP_noFP − AP):**
+| model | cond | AP | AP_noFP | mất do FP | recall@0.3 | FP / ảnh (nền / lệch / nhầm lớp) |
+|---|---|---|---|---|---|---|
+| DINO-Swin-L | sạch | 64.0 | 73.1 | 9.0 | 0.75 | 3.0 (1.3 / 1.3 / 0.1) |
+| DINO-Swin-L | OSFD | 49.1 | 59.6 | 10.5 | 0.58 | 3.6 (1.9 / 1.2 / 0.2) |
+| DINO-Swin-L | C2-OCT-1V | 43.5 | 56.9 | 13.4 | 0.55 | 4.7 (2.6 / 1.5 / 0.2) |
+| Swin-T | OSFD / C2-OCT-1V | 12.9 / 10.8 | 21.9 / 19.7 | 9.1 / 8.9 | 0.30 / 0.31 | 23.7 / 27.4 |
+| ConvNeXt-T | OSFD / C2-OCT-1V | 10.1 / 8.8 | 16.3 / 15.8 | 6.2 / 7.0 | 0.27 / 0.28 | 29.4 / 32.6 |
+| YOLOX-S | OSFD / C2-OCT-1V | 14.2 / 13.7 | 23.1 / 23.4 | 8.9 / 9.8 | 0.23 / 0.27 | 11.2 / 13.3 |
+So với box SẠCH của chính model (score ≥ 0.3, 100 ảnh; giữ / mất / thêm / lệch / đổi lớp): DINO-Swin-L OSFD 698 / 362 / 158 / 78 / 15 vs C2-OCT-1V 710 / 350 / 221 / 92 / 15; Swin-T 431 / 1044 / 1961 vs 616 / 859 / 2083; ConvNeXt 405 / 1125 / 2523 vs 601 / 929 / 2534.
+**Đọc:**
+1. **DINO-Swin-L (AP 49.1 → 43.5, −5.6):** ~½ từ FP (mất do FP 10.5 → 13.4, +2.9; FP / ảnh 3.6 → 4.7, chủ yếu nền + lệch), ~½ từ TP yếu đi (AP_noFP 59.6 → 56.9, −2.7; recall@0.3 0.58 → 0.55). Số box sạch bị XÓA gần như như nhau (350 vs 362). → Lợi của C2-OCT-1V trên Swin-L KHÔNG phải xóa thêm object, mà là THÊM box sai (nhỏ, thường sát object thật — hình 31118, 42563, 19109) + hạ thứ hạng / confidence box đúng. Đính chính entry 10-17 ("DINO chặn box giả, chỉ kênh hạ confidence lọt"): box giả CÓ lọt một phần và gánh ~½ lợi.
+2. **CNN / Swin-T:** C2-OCT-1V GIỮ nhiều box sạch hơn OSFD (Swin-T 616 vs 431) nhưng AP vẫn thấp hơn chút nhờ thêm FP (Swin-T 27.4 vs 23.7 / ảnh); recall ≈ nhau. Hình: FP của OSFD là box LỚN phủ nền / bầu trời; FP của C2-OCT-1V nhỏ hơn, dày, mang nhãn object ("chair", "person", "bottle") — dấu của loss cls (đẩy RoI sang lớp object).
+3. YOLOX: C2-OCT-1V recall cao hơn OSFD (0.27 vs 0.23) → xóa object KÉM hơn, bù bằng FP.
+**Hệ quả:** C2-OCT-1V đổi kiểu thiệt hại từ "xóa object" (OSFD) sang "chen box giả cỡ object + làm yếu box đúng". Với DINO (matching 1–1, ít NMS) kênh box giả cỡ object lọt được một phần. n = 100, 1 lần chạy.
