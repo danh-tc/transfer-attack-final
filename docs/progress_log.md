@@ -3183,3 +3183,12 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.4 
 - QUA-CA3 → GO @ n300 theo plan_sota bước 4 (khóa entry riêng). Chỉ QUA-SwinL → "GO có điều kiện": claim chỉ về target Transformer khó (DINO-Swin-L), user quyết có đi n300 không. Không qua nhánh nào → NO-GO cho C2-OCT-1V; ghi log, user quyết.
 - Mô tả: dev300 \ dev100 (200 ảnh mới — kiểm dev100 có lạc quan không); R101, R50; hồ sơ lỗi nếu cần.
 **Kỳ vọng ghi trước (dev100):** ΔCA3 +2.6 [−2.1, 6.8], ΔSwin-L +8.8 [2.0, 11.3] → dự đoán trượt QUA-CA3, có khả năng QUA-SwinL.
+
+### Kết quả sàng lọc dev300 (V100; `results/ablation/screen_c2oct1v_dev300/screen.json`, `results/runs/dev300_B{50,41}_eps5_limit300/`, log `results/screen_dev300/run.log`) — theo quy tắc: **QUA-CA3 (và QUA-SwinL) → GO @ n300 (khóa entry riêng)**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh (TB 300 ảnh): OSFD B50 98.2 / 93.2 / 78.9 / 74.8 / 68.0 / 23.5 | 73.9 | 3.87; **C2-OCT-1V B41 98.7 / 95.7 / 86.9 / 80.6 / 75.2 / 32.4 | 80.9 | 3.80**.
+Δ (C2-OCT-1V − OSFD) [CI 95%]: **CA3 +7.0 [3.4, 8.1]**; ConvNeXt +8.0 [4.2, 9.8], Swin-T +5.8 [2.5, 7.4], YOLOX +7.2 [1.7, 9.2]; **Swin-L +9.0 [4.9, 11.3]**; R101 +2.4 [0.2, 4.0].
+- QUA-CA3: ΔCA3 7.0 ≥ 3 ✓, cận dưới 3.4 > 0 ✓, Δ > 0 cả 3 target ✓, ΔR101 +2.4 ≥ −3 ✓. QUA-SwinL: +9.0 ≥ 3, cận dưới 4.9 > 0 ✓. Runtime 3.80 ≤ 1.1 × 3.87 = 4.26 ✓.
+- 200 ảnh mới (dev300 \ dev100): CA3 +5.9 [2.3, 7.8], Swin-L +7.8 [3.1, 10.4] → lợi lặp lại ngoài dev100; dev100 KHÔNG lạc quan (ngược lại, CA3 dev100 +2.6 thấp hơn).
+- Sanity mốc: OSFD dev300 V100 CA3 73.9 / Swin-L 23.5 vs commit 3090 (`metrics_c2pia_dev300`) 73.5 / 24.9 — khớp.
+**Đọc:** ở cùng thời gian OSFD, C2-OCT-1V vượt OSFD trên MỌI target khác họ với CI > 0, kể cả DINO-Swin-L (+9). Kỳ vọng ghi trước (trượt CA3) SAI — CA3 ở dev100 thấp do nhiễu tập nhỏ. Caveat khai báo: không có đối chứng OSFD-1V → chưa tách lợi "1 view / bước" khỏi "loss cls + OCT"; novelty thấp (OSFD + DI/TI-style + loss cls); GT-assisted.
+**Bước tiếp (plan_sota bước 4):** GO @ n300 — khóa entry riêng (1 lần, tiêu chí GO khóa sẵn: ΔCA3 ≥ 3 VÀ CI > 0; Δ > 0 cả 3 target VÀ ≥ 2/3 target ≥ 3; ΔR101 ≥ −3). Cần mốc OSFD n300 cùng máy (PNG HF là 3090 → sinh lại). n300 ∩ dev300 = ∅ (kiểm trước khi chạy).
