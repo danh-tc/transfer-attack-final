@@ -3052,3 +3052,8 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 8
 **Ô `C2-OCT-1V-ILPD{05,075}`:** như C2-OCT-1V, γ ∈ {0.5, 0.75}. Code `repair.make_view_loss(ilpd_gamma, ilpd_stage=2)`, `geo_osfd_attack(ilpd_gamma)`.
 **Kiểm (ảnh đầu dev300, view cố định):** γ = 1 trùng tuyệt đối loss cũ (13.452575); L_feat không đổi theo γ (13.03902); 4·L_cls 0.4136 → 0.4236 (γ = 0.5); attack 3 bước hữu hạn, L∞ đúng.
 **Chạy:** cùng khung quét p / λ (run `dev300_B41_eps5_limit100`, `--subset dev30`, so CẶP với C2-OCT-1V B41 + OSFD B50), `--out metrics_ilpd_dev30.json`, `--dets dets_ilpd_dev30.json`, tag `ilpd_dev30`, log `results/octdev5/ilpd_dev30.log`. Dấu hiệu "đáng xác nhận": ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ không đổi dấu vô lý giữa 2 mức γ; mô tả runtime.
+
+### Kết quả ILPD @ dev30 (`results/ablation/ilpd_dev30/screen.json`, log `results/octdev5/ilpd_dev30.log`) — MÔ TẢ: **ILPD không giúp, γ nhỏ hại Swin-L → bỏ**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0; **γ = 0.5** 99.6 / 93.8 / 83.6 / 81.0 / 65.2 / 24.5 | 76.6; **γ = 0.75** 99.4 / 93.1 / 81.6 / 79.9 / 70.9 / 30.8 | 77.5.
+Δ so C2-OCT-1V: γ = 0.5 CA3 −1.4 [−3.1, 1.2], **Swin-L −8.1 [−10.5, +0.1]**, YOLOX −4.7; γ = 0.75 CA3 −0.5, Swin-L −1.8 (trong nhiễu).
+**Đọc:** đơn điệu theo γ (γ càng nhỏ → Swin-L càng mất), khớp 2 lần quét trước: mọi thao tác làm nhỏ / làm nhòe tín hiệu cls trên R50 (RaPA, ILPD, λ nhỏ) đều lấy đi đúng phần lợi Swin-L. Giảm nhiễu ở C4 trên đường head buộc phần cls dựa vào thành phần C4 lớn của R50 — không phải thứ lọt qua DINO-Swin-L. Không xác nhận dev100.
