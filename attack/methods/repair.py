@@ -100,11 +100,12 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
 
 
 @contextlib.contextmanager
-def roi_cls_filter(model, cap=None, stats=None):
+def roi_cls_filter(model, cap=None, stats=None, head=None):
     """C2-OCT-1V-POS / POS-CAP (progress_log 2026-10-18, kiểu DAG): loss_cls của RoI head chỉ trên RoI DƯƠNG (bỏ RoI nền
     = nhãn num_classes); cap: bỏ thêm RoI dương có p(lớp đúng) < cap. avg_factor = số RoI còn giữ (giữ độ lớn trung bình
-    / RoI, không vô tình hạ λ). loss_rpn_cls KHÔNG đổi. Thay tạm forward của bbox_head.loss_cls (instance attribute)."""
-    head = model.roi_head.bbox_head
+    / RoI, không vô tình hạ λ). loss_rpn_cls KHÔNG đổi. Thay tạm forward của bbox_head.loss_cls (instance attribute).
+    head: head khác (vd model.rpn_head, num_classes = 1, nền = nhãn 1) — dùng cho loss box mồi chỉ trên mẫu dương."""
+    head = head if head is not None else model.roi_head.bbox_head
     crit, orig = head.loss_cls, head.loss_cls.forward
     nc = head.num_classes
 
@@ -125,8 +126,47 @@ def roi_cls_filter(model, cap=None, stats=None):
         del crit.forward  # về lại forward của lớp (orig là bound method của lớp)
 
 
+FAB_LABEL_OFFSET = 1000  # box mồi đi chung gt_instances (co-transform cùng GT thật), nhãn + offset để tách lại
+FAB_JITTER = 32
+
+
+def split_fab(data_sample):
+    """(ds GT thật, ds box mồi với nhãn thật của mồi) từ gt_instances gộp; mồi có nhãn ≥ FAB_LABEL_OFFSET."""
+    fake = data_sample.gt_instances.labels >= FAB_LABEL_OFFSET
+    real_ds, fab_ds = copy.copy(data_sample), copy.copy(data_sample)
+    real_ds.gt_instances = data_sample.gt_instances[~fake]
+    fi = data_sample.gt_instances[fake]
+    fab_ds.gt_instances = InstanceData(bboxes=fi.bboxes, labels=fi.labels - FAB_LABEL_OFFSET)
+    return real_ds, fab_ds
+
+
+def fab_term(model, x, fab_ds):
+    """C2-OCT-1V-FAB (progress_log 2026-10-18): loss DESCENT để R50 phát hiện TỰ TIN box mồi (cỡ object, nhãn cố định):
+    loss_rpn_cls (objectness tại mồi) + loss_cls RoI head trên proposal = mồi rung FAB_JITTER lần (σ = 0.1 cạnh).
+    Dùng lại feature FPN x của forward đang có (không forward backbone thêm). Không mồi nào còn trong view -> 0."""
+    b = fab_ds.gt_instances.bboxes
+    b = (b.tensor if hasattr(b, "tensor") else b).float()
+    if len(b) == 0:
+        return x[0].sum() * 0.0
+    rds = copy.copy(fab_ds)
+    rds.gt_instances = InstanceData(bboxes=b, labels=torch.zeros_like(fab_ds.gt_instances.labels))
+    # CHỈ mẫu dương (anchor / RoI trúng mồi): không thì descent ép MỌI chỗ khác — kể cả object thật — thành nền.
+    with roi_cls_filter(model, head=model.rpn_head):
+        l_rpn = sum_loss_dict({"loss_rpn_cls": model.rpn_head.loss(x, [rds])["loss_rpn_cls"]})
+    wh = (b[:, 2:] - b[:, :2]).repeat(1, 2)
+    props = b.repeat_interleave(FAB_JITTER, 0)
+    props = props + torch.randn_like(props) * 0.1 * wh.repeat_interleave(FAB_JITTER, 0)
+    h, w = fab_ds.img_shape
+    props = torch.stack([props[:, 0].clamp(0, w), props[:, 1].clamp(0, h), props[:, 2].clamp(0, w), props[:, 3].clamp(0, h)], 1)
+    fds = copy.copy(fab_ds)
+    fds.gt_instances = InstanceData(bboxes=b, labels=fab_ds.gt_instances.labels)
+    with roi_cls_filter(model):
+        l_roi = model.roi_head.loss(x, [InstanceData(bboxes=props.detach())], [fds])["loss_cls"]
+    return l_rpn + l_roi
+
+
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
-                   ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None):
+                   ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -149,12 +189,21 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
                 return tuple(o)
             return None
         h = model.backbone.register_forward_hook(hook)
+        hn = model.neck.register_forward_hook(lambda m, i, o: cap.update(x=o)) if fab_weight > 0 else None
+        fab_ds = None
+        if fab_weight > 0:
+            data_sample, fab_ds = split_fab(data_sample)
         try:
             batch_inputs, bds = to_batch(model, [pixel_tensor], [data_sample])
             with (roi_ctx() if roi_ctx is not None else contextlib.nullcontext()):
                 c = cls_term(model, batch_inputs, bds, cls)
         finally:
             h.remove()
+            if hn is not None:
+                hn.remove()
+        if fab_weight > 0:
+            fab_ds.set_metainfo(bds[0].metainfo)  # batch_input_shape / pad_shape do to_batch đặt
+            c = c - fab_weight / weight * fab_term(model, cap["x"], fab_ds)  # weight·c − fab_weight·L_fab
         if feat_weight == 0:  # CLS-OCT (progress_log 2026-10-08): chỉ loss cls
             return weight * c
         if feat_chw is not None:

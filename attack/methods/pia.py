@@ -338,6 +338,15 @@ def calib_cls_weight(model, orig_pixels, clean_pixels, data_sample, k: float, cl
     return min(max(raw, clip[0]), clip[1]), raw
 
 
+def _iou_xyxy(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    """a [N,4], b [M,4] xyxy -> IoU [N,M]."""
+    lt = torch.max(a[:, None, :2], b[None, :, :2])
+    rb = torch.min(a[:, None, 2:], b[None, :, 2:])
+    inter = (rb - lt).clamp(min=0).prod(-1)
+    area = lambda t: (t[:, 2:] - t[:, :2]).clamp(min=0).prod(-1)
+    return inter / (area(a)[:, None] + area(b)[None] - inter + 1e-9)
+
+
 def fia_channel_weights(model, clean_pixels, data_sample, n: int, elem: dict, sigma: float, mix: float = 0.5):
     """C2-OCT-1V-FIA (progress_log 2026-10-18; kiểu FIA / NAA, dạng mềm): độ quan trọng kênh của từng stage backbone =
     mean_{n view OCT của ảnh SẠCH (nhiễu σ, GT co-transform)} mean_hw |∂L_cls / ∂F_l| (L_cls = rpn_cls + cls, như C2).
@@ -376,7 +385,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
-                    roi_cap=None):
+                    roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -435,6 +444,36 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             lam, raw = calib_cls_weight(model, orig_pixels, clean_pixels, data_sample, k, cls_mode)
         cls_weight = cls_auto * lam
         log.update(cls_lambda=cls_weight, cls_ratio_raw=raw)
+    if fab_k:
+        # Box mồi (progress_log 2026-10-18): fab_k box cố định / ảnh, khung model; cỡ = cỡ 1 GT thật ngẫu nhiên (không GT ->
+        # 0.2 × cạnh ảnh); vị trí đều trong ảnh, tránh IoU ≥ 0.1 với GT thật + mồi trước (thử 50 lần); nhãn đều 80 lớp.
+        # RNG riêng seed + 5 -> chuỗi view trùng ô gốc. Gộp vào gt_instances (nhãn + offset) để co-transform cùng GT.
+        assert skip_mask and cls_weight > 0 and geo == "elem" and fab_weight > 0
+        from mmengine.structures import InstanceData
+        from attack.methods.repair import FAB_LABEL_OFFSET
+        from attack.methods.box_transforms import get_gt
+        rng_f = random.Random(torch.initial_seed() + 5)
+        real, _ = get_gt(data_sample, clean_pixels.device)
+        h, w = data_sample.img_shape
+        sizes = [(float(b[2] - b[0]), float(b[3] - b[1])) for b in real] or [(0.2 * w, 0.2 * h)]
+        taken, fab = [b.tolist() for b in real], []
+        for _ in range(fab_k):
+            bw, bh = rng_f.choice(sizes)
+            bw, bh = min(bw, w - 1), min(bh, h - 1)
+            for _try in range(50):
+                x1, y1 = rng_f.uniform(0, w - bw), rng_f.uniform(0, h - bh)
+                cand = [x1, y1, x1 + bw, y1 + bh]
+                if not taken or float(_iou_xyxy(torch.tensor([cand]), torch.tensor(taken)).max()) < 0.1:
+                    break
+            taken.append(cand); fab.append(cand)
+        labels = torch.tensor([rng_f.randrange(80) + FAB_LABEL_OFFSET for _ in fab], device=clean_pixels.device)
+        gi = data_sample.gt_instances
+        data_sample.gt_instances = InstanceData(
+            bboxes=torch.cat([real, torch.tensor(fab, device=real.device)]),
+            labels=torch.cat([gi.labels.to(clean_pixels.device), labels]))
+        sf = data_sample.scale_factor  # (w, h): khung model -> ảnh gốc chia cho sf
+        log["fab_boxes_orig"] = [[b[0] / sf[0], b[1] / sf[1], b[2] / sf[0], b[3] / sf[1]] for b in fab]
+        log["fab_labels"] = [int(v) - FAB_LABEL_OFFSET for v in labels]
     feat_chw = None
     if fia_views:
         with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
@@ -555,7 +594,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 gtb = gtb.tensor if hasattr(gtb, "tensor") else gtb
                 out.append((v, ds, _view_loss_bg(fc, k, gtb.float(), bg_weight, 0.0 if bg_only else 1.0)))
             elif cls_weight > 0:
-                lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx)
+                lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
+                                    fab_weight=fab_weight)
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
