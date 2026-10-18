@@ -3037,3 +3037,9 @@ python scripts/eval_generalization.py --run dev300_B50_eps5_limit100 --subset de
 python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev30 --dets dets_la_dev30.json --tag la_dev30 --pairs <LA05 / LA1 / LA2 : C2-OCT-1V, C2-OCT-1V : OSFD>
 ```
 Log `results/octdev5/la_dev30.log`. Dấu hiệu "đáng xác nhận" như quét p: ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ xu hướng theo c hợp lý; mô tả thêm phân bố λ_ảnh.
+
+### Kết quả λ theo ảnh @ dev30 (`results/ablation/la_dev30/screen.json`, log `results/octdev5/la_dev30.log`) — MÔ TẢ: **c là núm ĐÁNH ĐỔI CNN ↔ Swin-L, không phải đòn bẩy; λ theo ảnh (c = 1) ≈ λ = 4**
+λ_ảnh thô (30 ảnh): trung vị 3.49, p10 1.90, p90 12.34, min 0.94 / max 20.06 (1 ảnh chạm mỗi biên clip). Runtime 3.85–3.96 s/ảnh (≈ ô gốc 3.94; +2 backward không thấy được).
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0; **LA05** 99.3 / 93.2 / 83.4 / 84.9 / 73.2 / 30.4 | 80.5; **LA1** 99.1 / 93.0 / 81.2 / 79.2 / 74.6 / 32.6 | 78.4; **LA2** 99.2 / 93.8 / 80.2 / 79.8 / 64.5 / 34.3 | 74.8; OSFD | 79.0, Swin-L 22.6.
+Δ so C2-OCT-1V: LA05 CA3 +2.5 [−1.6, 5.3], Swin-L −2.2; LA1 CA3 +0.4, Swin-L 0.0; LA2 CA3 **−3.2 [−6.8, −0.6]**, Swin-L +1.7.
+**Đọc:** (1) Đơn điệu theo c: c nhỏ (nghiêng feature) → CA3 ↑ (YOLOX, Swin-T), Swin-L ↓; c lớn (nghiêng cls) → ngược lại. Khớp cơ chế "2 kênh cạnh tranh ngân sách ε qua sign" (cos ∇ ≈ −0.08). (2) Cân bằng theo TỪNG ảnh (c = 1) không thêm gì so λ = 4 cố định (trung vị λ_ảnh 3.5 ≈ 4) → tính thích nghi theo ảnh không phải đòn bẩy. (3) Không ô nào cải thiện cả hai phía (không dời được đường đánh đổi) → giữ λ = 4. Muốn vượt cần làm hai kênh BỔ TRỢ thay vì chia ngân sách (vd feature loss trọng số theo độ quan trọng của head cls).
