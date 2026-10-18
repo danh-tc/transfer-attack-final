@@ -3138,3 +3138,10 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.4 
 Δ so C2-OCT-1V: FAB4 CA3 −5.9 [−11.4, −3.1], Swin-L −7.9 [−13.4, −0.1], R101 −9.8; FAB8 CA3 −9.8 [−16.3, −6.9], Swin-L −10.1 [−15.6, −2.2].
 Mồi được phát hiện đúng lớp (score ≥ 0.3, IoU ≥ 0.5; mốc sạch / C2-OCT-1V đều 0.00): R50 0.31–0.32 (white-box), R101 0.10, ConvNeXt 0.04–0.07, Swin-T 0.02–0.03, YOLOX 0.01, **DINO-Swin-L 0.00**.
 **Đọc:** (1) Chế tạo object CÓ CHỦ ĐÍCH chỉ thành công một phần trên chính R50 (~⅓ mồi) và gần như KHÔNG chuyển giao — giảm dần theo khoảng cách họ (R101 > ConvNeXt > Swin-T > YOLOX > DINO = 0). (2) Ngân sách δ dành cho mồi lấy từ phần phá vô hướng → mọi target yếu đi, đơn điệu theo μ. (3) Hệ quả cho hồ sơ lỗi: FP score cao của C2-OCT-1V trên Swin-L KHÔNG phải "object giả có hình dạng / lớp ổn định" mà là sản phẩm phụ của việc làm hỏng object thật (sát object, lệch) — muốn tăng kênh đó phải đi qua phá object thật, không qua chế tạo riêng. Không xác nhận dev100.
+
+---
+
+## 2026-10-18 — WB-probe: white-box DINO-Swin-L vs surrogate R50 @ dev10 (user: "tìm thêm manh mối") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Câu hỏi mới so với E8 (E8 chỉ có AP drop + suppression theo cỡ):** (1) attack phá ĐƯỢC DINO-Swin-L (white-box) phá theo kiểu nào — recall theo cỡ, box giả (FP / ảnh, FP score cao), confidence box còn sống — so với C2-OCT-1V / OSFD từ R50; (2) chiều NGƯỢC: δ sinh trên DINO-Swin-L hại R50 / CNN / Swin-T bao nhiêu (bất đối xứng chuyển giao?).
+**Ô (surrogate = DINO-Swin-L, ngoài threat model, chỉ phân tích):** `WB-OSFD` (công thức OSFD k = 3, MI, RRB, B50, **AMP fp16** — E8 fp32 trên 3090 không vừa V100: đo 0.33 s / bước, 11.2 GB); `WB-CLS` (số hạng phân loại DINO như E8 WB-s1, B50, checkpointing: 1.05 s / bước, 9.8 GB). Mốc R50: OSFD B50, C2-OCT-1V B41 (PNG có sẵn, cùng 10 ảnh). Seed theo chỉ số dev300.
+**Script:** `scripts/wb_probe.py` → PNG `artifacts/wb_probe/`, kết quả `results/mechanism/wb_probe_dev10.json`, log `results/e15/wb_probe.log`. n = 10 → chỉ sinh giả thuyết.
