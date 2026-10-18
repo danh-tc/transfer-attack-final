@@ -2974,5 +2974,5 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 - C2-PIA-1V: **Swin-L +8.2 [2.2, 10.9]**, CA3 +2.0 [−2.1, 5.0], R101 0.0, ConvNeXt −0.2, Swin-T +6.1 [0.6, 9.4], YOLOX +0.1; runtime 1.08× ✓ (sát 1.1×) → **GO**.
 - Cả hai GO → ΔCA3 2.60 vs 2.01 (chênh 0.59 ≥ 0.5) → **chọn C2-OCT-1V**.
 - 70 ảnh mới (dev100 \ dev30): C2-OCT-1V Swin-L +8.4 [2.7, 10.8], CA3 +2.4 [−2.6, 6.9]; C2-PIA-1V Swin-L +10.2 [3.3, 13.2], CA3 −0.0 [−3.9, 3.6] → lợi Swin-L lặp lại ngoài dev30 ở cả hai; lợi CA3 của C2-PIA-1V thì không.
-**Đọc:** cùng thời gian OSFD, thêm loss cls + 1 view / bước cho lợi chắc trên DINO-Swin-L (~+8–9, CI > 0), lợi CNN / YOLOX nhỏ, chưa chắc (CA3 CI chứa 0). YOLOX gần như không đổi (khác OCT-1V +3.0) → loss cls không giúp YOLOX.
+**Đọc:** cùng thời gian OSFD, thêm loss cls + 1 view / bước cho lợi chắc trên DINO-Swin-L (~+8–9, CI > 0), lợi CNN / YOLOX nhỏ, chưa chắc (CA3 CI chứa 0). YOLOX gần như không đổi (OCT-1V B65 từng +3.0) — chưa tách được do B thấp hơn (41 vs 65) hay do loss cls.
 **Bước tiếp (theo quy tắc: khóa entry mới trước khi chạy):** sàng lọc dev300 C2-OCT-1V B41 vs OSFD B50 (cùng máy) + đối chứng OSFD-1V cùng thời gian. User quyết.
