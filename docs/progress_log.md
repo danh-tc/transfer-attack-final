@@ -3016,3 +3016,24 @@ python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev30 --de
   C2-OCT-1V-RaPA02@dev300_B41_eps5_limit100:C2-OCT-1V@dev300_B41_eps5_limit100 C2-OCT-1V@dev300_B41_eps5_limit100:OSFD
 ```
 Log `results/octdev5/rapa_dev30.log`. **n = 30 → mô tả**; dấu hiệu "đáng xác nhận" (không phải quyết định): ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ xu hướng theo p hợp lý (không đổi dấu ngẫu nhiên). Ô đáng xác nhận → khóa quy tắc @ dev100.
+
+### Kết quả quét p @ dev30 (`results/ablation/rapa_dev30/screen.json`, log `results/octdev5/rapa_dev30.log`) — MÔ TẢ: **RaPA không giúp → bỏ**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0; p = 0.005: 78.2, Swin-L 31.0; p = 0.01: 76.3, 30.0; p = 0.02: 78.1, 28.6; OSFD 98.2 / 91.4 / 82.5 / 80.8 / 73.7 / 22.6 | 79.0.
+- Δ so C2-OCT-1V: CA3 +0.2 / −1.7 / +0.1 (mọi CI chứa 0); **Swin-L −1.6 / −2.6 / −4.0 — giảm đơn điệu theo p** (p = 0.02 CI [−7.1, +0.5]). Runtime 4.2–4.4 s/ảnh (bản đã sửa đếm GPU).
+- Mô tả: trên 30 ảnh này C2-OCT-1V − OSFD CA3 −1.0 [−5.5, 7.7], Swin-L +10.0 [1.2, 16.8] (dev100: +2.6 / +8.8) → lợi Swin-L ổn định, CA3 dao động theo tập ảnh.
+**Đọc:** RaPA trên BN backbone, khi mask dùng chung cho cả L_feature, không thêm gì cho CNN và hạ dần đúng thứ mà C2-OCT-1V mạnh (Swin-L). Không xác nhận dev100.
+
+---
+
+## 2026-10-18 — λ theo ảnh cho C2-OCT-1V @ dev30 (user: "xong quét p thì quét λ") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lý do:** λ = 4 chọn 1 lần bằng quy tắc "cân bằng gradient" (median mean|∇L_feat| / mean|∇L_cls| tại δ = 0 trên 5 ảnh dev100 = 3.95), nhưng tỉ lệ đổi mạnh theo ảnh (2.2–7.7; hôm nay 2.0–10.6) → λ cố định chỉ cân bằng ảnh trung vị. dev10: λ = 2 / 8 không khác rõ λ = 4.
+**Ô `C2-OCT-1V-LA{05,1,2}`:** như C2-OCT-1V, trừ cls_weight = c · λ_ảnh, λ_ảnh = clip(mean|∇ₓL_feat| / mean|∇ₓL_cls|, 1, 16) đo tại δ = 0 trên ảnh KHÔNG biến đổi (`pia.calib_cls_weight`, AMP như attack), c ∈ {0.5, 1, 2}. Chi phí +2 backward / ảnh (B ghi 43). RNG torch khôi phục sau đo → chuỗi view trùng ô gốc. Stats ghi `cls_lambda`, `cls_ratio_raw`. Clip [1, 16] khai báo trước (bảo vệ ảnh không GT / gradient cls ≈ 0).
+**Chạy** (cùng khung quét p: run `dev300_B41_eps5_limit100`, `--subset dev30`, so CẶP với C2-OCT-1V B41 + OSFD B50 sẵn có):
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 100 --budget 41 --methods C2-OCT-1V C2-OCT-1V-LA05 C2-OCT-1V-LA1 C2-OCT-1V-LA2 --out metrics_la_dev30.json
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 100 --stage eval --methods OSFD --out metrics_la_dev30.json
+python scripts/eval_generalization.py --run dev300_B41_eps5_limit100 --subset dev30 --models yolox_s dino_swin_l --methods C2-OCT-1V C2-OCT-1V-LA05 C2-OCT-1V-LA1 C2-OCT-1V-LA2 --dets dets_la_dev30.json --out generalization_la_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5_limit100 --subset dev30 --models yolox_s dino_swin_l --methods OSFD --dets dets_la_dev30.json --out generalization_la_dev30.json
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev30 --dets dets_la_dev30.json --tag la_dev30 --pairs <LA05 / LA1 / LA2 : C2-OCT-1V, C2-OCT-1V : OSFD>
+```
+Log `results/octdev5/la_dev30.log`. Dấu hiệu "đáng xác nhận" như quét p: ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ xu hướng theo c hợp lý; mô tả thêm phân bố λ_ảnh.
