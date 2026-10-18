@@ -3057,3 +3057,10 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 8
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0; **γ = 0.5** 99.6 / 93.8 / 83.6 / 81.0 / 65.2 / 24.5 | 76.6; **γ = 0.75** 99.4 / 93.1 / 81.6 / 79.9 / 70.9 / 30.8 | 77.5.
 Δ so C2-OCT-1V: γ = 0.5 CA3 −1.4 [−3.1, 1.2], **Swin-L −8.1 [−10.5, +0.1]**, YOLOX −4.7; γ = 0.75 CA3 −0.5, Swin-L −1.8 (trong nhiễu).
 **Đọc:** đơn điệu theo γ (γ càng nhỏ → Swin-L càng mất), khớp 2 lần quét trước: mọi thao tác làm nhỏ / làm nhòe tín hiệu cls trên R50 (RaPA, ILPD, λ nhỏ) đều lấy đi đúng phần lợi Swin-L. Giảm nhiễu ở C4 trên đường head buộc phần cls dựa vào thành phần C4 lớn của R50 — không phải thứ lọt qua DINO-Swin-L. Không xác nhận dev100.
+
+---
+
+## 2026-10-18 — Ablation co-transform feature sạch: C2-OCT-1V-noCT @ dev30 (user) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Câu hỏi:** OCT (co giãn 0.71–1.41×, dịch 0–7 px) có cần so feature adv với feature sạch ĐÃ warp cùng phép không? Tiền lệ: PIA-noCT sụp (dev30: CA3 36.6 vs PIA 79.5, R50 white-box 53.6); RRB biên độ nhỏ thì không cần (OSFD ≈ GEO-C0).
+**Ô `C2-OCT-1V-noCT`:** như C2-OCT-1V, trừ L_feature so với F_sạch của ảnh sạch CHƯA biến đổi (tính 1 lần / ảnh, như OSFD gốc). Box GT cho L_cls VẪN co-transform → chỉ tách co-transform phía feature. Kiểm (ảnh đầu, 3 bước): chuỗi view + box giữ trùng ô gốc, forward_no_grad 0 (ô gốc 3), L∞ đúng. Rẻ hơn ô gốc (bỏ 1 forward sạch / bước) — cùng B41, KHÔNG cùng thời gian (đây là ablation, không phải ứng viên).
+**Chạy:** khung như ILPD (run `dev300_B41_eps5_limit100`, `--subset dev30`, so CẶP với C2-OCT-1V B41 + OSFD B50), out `metrics_noct_dev30.json`, dets `dets_noct_dev30.json`, tag `noct_dev30`, log `results/octdev5/noct_dev30.log`. Mô tả: Δ so C2-OCT-1V trên 6 model + runtime.
