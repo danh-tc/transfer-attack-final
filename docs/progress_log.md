@@ -2989,3 +2989,12 @@ python scripts/run_baselines.py --split dev300 --subset dev10 --limit 10 --budge
 # + eval_generalization (yolox_s dino_swin_l) cho 2 run
 ```
 Log `results/octdev5/tune_dev10.log`. **n = 10 (CI ±10 điểm) → chỉ xem xu hướng**; ô nào đáng đi tiếp phải khóa quy tắc riêng @ dev100 (so C2-OCT-1V B41 đã có).
+
+### Kết quả dev10 (V100; `results/runs/dev300_B{50,41}_eps5_limit10/{metrics,generalization}_tune_dev10.json`, log `results/octdev5/tune_dev10.log`) — MÔ TẢ
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
+- OSFD B50: 99.5 / 84.3 / 77.3 / 70.6 / 62.5 / 29.9 | 70.1 | 4.0
+- C2-OCT-1V B41: 99.7 / 89.0 / 81.5 / 77.0 / 72.9 / 30.6 | 77.1 | 4.1
+- C2-OCT-1V-w2: 99.8 / 88.3 / 79.6 / 74.3 / 76.3 / 39.0 | 76.7 | 3.8
+- C2-OCT-1V-w8: 98.4 / 90.5 / 81.3 / 74.3 / 72.4 / 38.2 | 76.0 | 4.0
+- C2-OCT-1V-RaPA: 99.7 / 92.0 / 82.7 / 77.5 / 75.3 / 36.7 | 78.5 | **4.6 (1.15× OSFD)**
+**Đọc:** CA3 mọi biến thể trong ±1.5 của C2-OCT-1V (nhiễu n = 10 ~±10). Swin-L: cả w2 LẪN w8 đều cao hơn w4 (+8.4 / +7.6) → không đơn điệu theo trọng số → nhiều khả năng ô gốc thấp do nhiễu trên 10 ảnh này (dev100: C2-OCT-1V − OSFD Swin-L +8.8, ở đây chỉ +0.7), không phải w = 4 lệch. RaPA cao nhất CA3 (+1.4) và R101 nhưng chậm 1.15× → so công bằng cần B ≈ 36. Không biến thể nào cho xu hướng rõ.
