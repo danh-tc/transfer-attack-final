@@ -2999,3 +2999,20 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 - C2-OCT-1V-RaPA: 99.7 / 92.0 / 82.7 / 77.5 / 75.3 / 36.7 | 78.5 | **4.6 (1.15× OSFD)**
 **Đọc:** CA3 mọi biến thể trong ±1.5 của C2-OCT-1V (nhiễu n = 10 ~±10). Swin-L: cả w2 LẪN w8 đều cao hơn w4 (+8.4 / +7.6) → không đơn điệu theo trọng số → nhiều khả năng ô gốc thấp do nhiễu trên 10 ảnh này (dev100: C2-OCT-1V − OSFD Swin-L +8.8, ở đây chỉ +0.7), không phải w = 4 lệch. RaPA cao nhất CA3 (+1.4) và R101 nhưng chậm 1.15× → so công bằng cần B ≈ 36. Không biến thể nào cho xu hướng rõ.
 **Sửa tốc độ RaPA (sau dev10):** chậm 1.15× do `int((m == 0).sum())` mỗi tensor (106 lần đồng bộ CPU–GPU / view) chỉ để ghi thống kê `rapa_masked_frac`. Bộ đếm chuyển lên GPU, đọc 1 lần cuối ảnh (`rapa_sampler` + `rapa_cls_sampler`). Kiểm: mask trùng tuyệt đối bản cũ (cùng generator, 3 lượt × 106 tensor), masked 1.00%; end-to-end 3 ảnh B41: C2-OCT-1V 4.10 vs C2-OCT-1V-RaPA 4.11 s/ảnh → RaPA không còn tốn thời gian, so được ở cùng B41. Số dev10 ở trên giữ nguyên giá trị (mask không đổi; chỉ runtime 4.6 là của bản cũ).
+
+---
+
+## 2026-10-18 — Quét p của RaPA trên C2-OCT-1V @ dev30 (user: thử mẫu nhỏ) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Loss C2-OCT-1V(-RaPA) mỗi bước (1 view):** v = nhiễu N(0, 6²) ∘ warp(adv; co giãn s = e^u, u ~ U(±ln2/2) quanh tâm ∘ dịch (dx, dy) ∈ {0..7}²); L = Σ_{4 stage} MSE(3·F_sạch(warp(sạch)), F(v)) + 4·(loss_rpn_cls + loss_cls) (GT co-transform); RaPA: mask Bernoulli(1 − p) trên weight + bias 53 BN backbone, mới mỗi view, chung cho sạch + adv. Cập nhật MI μ = 1, α = 1, ε = 5, B41, AMP, bỏ mask head.
+**Đo nhanh tại δ = 0 (3 ảnh đầu dev300):** L_feat 12–18 vs 4·L_cls 0.3–2.3; tỉ lệ ‖∇L_feat‖₁ / ‖∇4·L_cls‖₁ = 2.66 / 0.68 / 0.49 (đổi theo ảnh); cos(∇L_feat, ∇L_cls) ≈ −0.08 (gần trực giao) → hai số hạng cạnh tranh từng pixel qua sign, trọng số 4 cho cls áp đảo ở ảnh nhiều object.
+**Ô:** `C2-OCT-1V-RaPA005` (p = 0.005), `C2-OCT-1V-RaPA` (0.01), `C2-OCT-1V-RaPA02` (0.02); trước đó CLS-OCT p = 0.05 hại, 0.01 giúp (dev30, 3090). Chạy trong run `dev300_B41_eps5_limit100` với `--subset dev30` → so CẶP với C2-OCT-1V B41 + OSFD B50 sẵn có (cùng máy, cùng seed).
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 100 --budget 41 --methods C2-OCT-1V C2-OCT-1V-RaPA005 C2-OCT-1V-RaPA C2-OCT-1V-RaPA02 --out metrics_rapa_dev30.json
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 100 --stage eval --methods OSFD --out metrics_rapa_dev30.json
+python scripts/eval_generalization.py --run dev300_B41_eps5_limit100 --subset dev30 --models yolox_s dino_swin_l --methods C2-OCT-1V C2-OCT-1V-RaPA005 C2-OCT-1V-RaPA C2-OCT-1V-RaPA02 --dets dets_rapa_dev30.json --out generalization_rapa_dev30.json
+python scripts/eval_generalization.py --run dev300_B50_eps5_limit100 --subset dev30 --models yolox_s dino_swin_l --methods OSFD --dets dets_rapa_dev30.json --out generalization_rapa_dev30.json
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev30 --dets dets_rapa_dev30.json --tag rapa_dev30 --pairs \
+  C2-OCT-1V-RaPA005@dev300_B41_eps5_limit100:C2-OCT-1V@dev300_B41_eps5_limit100 C2-OCT-1V-RaPA@dev300_B41_eps5_limit100:C2-OCT-1V@dev300_B41_eps5_limit100 \
+  C2-OCT-1V-RaPA02@dev300_B41_eps5_limit100:C2-OCT-1V@dev300_B41_eps5_limit100 C2-OCT-1V@dev300_B41_eps5_limit100:OSFD
+```
+Log `results/octdev5/rapa_dev30.log`. **n = 30 → mô tả**; dấu hiệu "đáng xác nhận" (không phải quyết định): ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ xu hướng theo p hợp lý (không đổi dấu ngẫu nhiên). Ô đáng xác nhận → khóa quy tắc @ dev100.

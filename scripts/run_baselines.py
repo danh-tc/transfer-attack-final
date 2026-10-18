@@ -231,7 +231,10 @@ for _w in (2.0, 8.0):
                                                          n_views=1, cls_weight=_w, skip_mask=True, amp=True), 1)
 METHODS["C2-OCT-1V-RaPA"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}, n_views=1,
                                                cls_weight=4.0, skip_mask=True, amp=True, rapa_cls_p=0.01, rapa_scope="backbone"), 1)
-GEO_METHODS_1V = {"C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA"}
+for _p, _tag in ((0.005, "005"), (0.02, "02")):  # quét p RaPA @ dev30 (progress_log 2026-10-18)
+    METHODS[f"C2-OCT-1V-RaPA{_tag}"] = (functools.partial(geo_osfd_attack, geo="elem", elem={"scale": _OCT, "shift": "ph8"}, n_views=1,
+                                                         cls_weight=4.0, skip_mask=True, amp=True, rapa_cls_p=_p, rapa_scope="backbone"), 1)
+GEO_METHODS_1V = {"C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
                "C2-GRGD", "C2-PIA-RESIDUAL", "C2-PIA-MORGD2", "C2-PIA-SMOOTH2", "C2-MORGD2",
