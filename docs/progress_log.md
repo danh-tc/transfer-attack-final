@@ -3043,3 +3043,12 @@ Log `results/octdev5/la_dev30.log`. Dấu hiệu "đáng xác nhận" như quét
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0; **LA05** 99.3 / 93.2 / 83.4 / 84.9 / 73.2 / 30.4 | 80.5; **LA1** 99.1 / 93.0 / 81.2 / 79.2 / 74.6 / 32.6 | 78.4; **LA2** 99.2 / 93.8 / 80.2 / 79.8 / 64.5 / 34.3 | 74.8; OSFD | 79.0, Swin-L 22.6.
 Δ so C2-OCT-1V: LA05 CA3 +2.5 [−1.6, 5.3], Swin-L −2.2; LA1 CA3 +0.4, Swin-L 0.0; LA2 CA3 **−3.2 [−6.8, −0.6]**, Swin-L +1.7.
 **Đọc:** (1) Đơn điệu theo c: c nhỏ (nghiêng feature) → CA3 ↑ (YOLOX, Swin-T), Swin-L ↓; c lớn (nghiêng cls) → ngược lại. Khớp cơ chế "2 kênh cạnh tranh ngân sách ε qua sign" (cos ∇ ≈ −0.08). (2) Cân bằng theo TỪNG ảnh (c = 1) không thêm gì so λ = 4 cố định (trung vị λ_ảnh 3.5 ≈ 4) → tính thích nghi theo ảnh không phải đòn bẩy. (3) Không ô nào cải thiện cả hai phía (không dời được đường đánh đổi) → giữ λ = 4. Muốn vượt cần làm hai kênh BỔ TRỢ thay vì chia ngân sách (vd feature loss trọng số theo độ quan trọng của head cls).
+
+---
+
+## 2026-10-18 — ILPD trên đường cls (stage 3 / stride 16) cho C2-OCT-1V @ dev30 (user: "thử đi") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Nguồn:** ILPD (Li et al., NeurIPS 2023): trong forward, feature trung gian = F_sạch + γ·(F_adv − F_sạch), γ < 1 → buộc nhiễu ở tầng đó đủ lớn / bền để đầu ra vẫn hỏng. Rà literature 10-18: không thấy ILPD cho detector.
+**Lý do chọn chỗ đặt:** E14 — thiệt hại DINO-Swin-L đi qua stage 3 (stride 16); R-a (thay C2 / C3 bằng sạch, γ = 0 ở tầng nông) trượt vì thiệt hại R50 nằm ở C4 / C5. Ở đây: chỉ C4 (stage index 2), chỉ đường head (L_cls); L_OSFD vẫn trên F_adv gốc; F_sạch = feature sạch co-transform của view (đã tính sẵn → 0 forward thêm).
+**Ô `C2-OCT-1V-ILPD{05,075}`:** như C2-OCT-1V, γ ∈ {0.5, 0.75}. Code `repair.make_view_loss(ilpd_gamma, ilpd_stage=2)`, `geo_osfd_attack(ilpd_gamma)`.
+**Kiểm (ảnh đầu dev300, view cố định):** γ = 1 trùng tuyệt đối loss cũ (13.452575); L_feat không đổi theo γ (13.03902); 4·L_cls 0.4136 → 0.4236 (γ = 0.5); attack 3 bước hữu hạn, L∞ đúng.
+**Chạy:** cùng khung quét p / λ (run `dev300_B41_eps5_limit100`, `--subset dev30`, so CẶP với C2-OCT-1V B41 + OSFD B50), `--out metrics_ilpd_dev30.json`, `--dets dets_ilpd_dev30.json`, tag `ilpd_dev30`, log `results/octdev5/ilpd_dev30.log`. Dấu hiệu "đáng xác nhận": ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ không đổi dấu vô lý giữa 2 mức γ; mô tả runtime.

@@ -98,9 +98,14 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
     return vanish_loss(model, model.extract_feat(batch_inputs), batch_data_samples)
 
 
-def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0):
+def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
+                   ilpd_gamma=None, ilpd_stage: int = 2):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
-    nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa."""
+    nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
+    ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
+    F_sạch + γ·(F_adv − F_sạch) (F_sạch = feats_clean co-transform của view); L_OSFD vẫn trên F_adv gốc."""
+    assert ilpd_gamma is None or (repair_feats is None and feats_clean is not None)
+
     def loss_fn(model, pixel_tensor, data_sample):
         cap = {}
 
@@ -108,6 +113,11 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
             cap["f"] = o
             if repair_feats is not None:
                 return tuple(repair_feats) + tuple(o[len(repair_feats):])
+            if ilpd_gamma is not None:
+                o = list(o)
+                fc = feats_clean[ilpd_stage].to(o[ilpd_stage].dtype)
+                o[ilpd_stage] = fc + ilpd_gamma * (o[ilpd_stage] - fc)
+                return tuple(o)
             return None
         h = model.backbone.register_forward_hook(hook)
         try:

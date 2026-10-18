@@ -348,7 +348,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
-                    season_sigma=None, cls_auto=None):
+                    season_sigma=None, cls_auto=None, ilpd_gamma=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -376,7 +376,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     feat_stages (loss feature thuần, có / không cache): chỉ các stage backbone này trong L_OSFD (OCT-C4 = (2,), OCT-C34 = (1, 2)).
     strat (geo="elem", elem = {scale, shift: ph8}; progress_log 2026-10-17): co giãn ∘ pha theo lịch phủ có hệ thống
     (elem.strat_schedule, steps × n_views view) thay cho rút độc lập.
-    cls_auto = c (progress_log 2026-10-18): thay cls_weight bằng c · λ_ảnh (calib_cls_weight, đo tại δ = 0; +2 backward / ảnh)."""
+    cls_auto = c (progress_log 2026-10-18): thay cls_weight bằng c · λ_ảnh (calib_cls_weight, đo tại δ = 0; +2 backward / ảnh).
+    ilpd_gamma = γ (progress_log 2026-10-18): ILPD trên đường head ở stage 3 (stride 16), repair.make_view_loss; cần cls_weight > 0."""
+    assert ilpd_gamma is None or (cls_weight > 0 and feature and co_transform)
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
@@ -510,7 +512,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 gtb = gtb.tensor if hasattr(gtb, "tensor") else gtb
                 out.append((v, ds, _view_loss_bg(fc, k, gtb.float(), bg_weight, 0.0 if bg_only else 1.0)))
             elif cls_weight > 0:
-                lf = make_view_loss(fc, k, cls_mode, cls_weight)
+                lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma)
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
