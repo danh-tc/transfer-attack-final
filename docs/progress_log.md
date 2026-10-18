@@ -3192,3 +3192,21 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh (TB 300 ảnh): 
 - Sanity mốc: OSFD dev300 V100 CA3 73.9 / Swin-L 23.5 vs commit 3090 (`metrics_c2pia_dev300`) 73.5 / 24.9 — khớp.
 **Đọc:** ở cùng thời gian OSFD, C2-OCT-1V vượt OSFD trên MỌI target khác họ với CI > 0, kể cả DINO-Swin-L (+9). Kỳ vọng ghi trước (trượt CA3) SAI — CA3 ở dev100 thấp do nhiễu tập nhỏ. Caveat khai báo: không có đối chứng OSFD-1V → chưa tách lợi "1 view / bước" khỏi "loss cls + OCT"; novelty thấp (OSFD + DI/TI-style + loss cls); GT-assisted.
 **Bước tiếp (plan_sota bước 4):** GO @ n300 — khóa entry riêng (1 lần, tiêu chí GO khóa sẵn: ΔCA3 ≥ 3 VÀ CI > 0; Δ > 0 cả 3 target VÀ ≥ 2/3 target ≥ 3; ΔR101 ≥ −3). Cần mốc OSFD n300 cùng máy (PNG HF là 3090 → sinh lại). n300 ∩ dev300 = ∅ (kiểm trước khi chạy).
+
+---
+
+## 2026-10-18 — TẠM DỪNG (user, mai chạy tiếp): tổng kết phiên + việc mở
+**Máy:** V100 16GB (máy mới hôm nay, bootstrap lại). Mốc OSFD sinh lại cùng máy ở mọi so sánh. Không có tiến trình nào đang chạy (tmux `screen300` đã xong).
+**Kết quả chính (theo quy tắc khóa):**
+1. **C2-OCT-1V B41 (cùng thời gian OSFD B50) — QUA sàng lọc dev300:** CA3 +7.0 [3.4, 8.1], ConvNeXt +8.0, Swin-T +5.8, YOLOX +7.2, **DINO-Swin-L +9.0 [4.9, 11.3]**, R101 +2.4, runtime 0.98×; lặp lại trên 200 ảnh ngoài dev100 (CA3 +5.9, Swin-L +7.8). dev100 (CA3 +2.6 CI chứa 0) là bi quan do nhiễu tập nhỏ. C2-PIA-1V B45 cũng GO dev100 nhưng thua C2-OCT-1V (ΔCA3 2.0 vs 2.6, sát 1.1× thời gian) → không đi tiếp.
+2. **Mọi tinh chỉnh quanh C2-OCT-1V (dev10 / dev30, mô tả) đều không rời đường đánh đổi CNN ↔ Swin-L:** λ = 2 / 8; λ theo ảnh c ∈ {0.5, 1, 2} (đơn điệu: c nhỏ → CA3 ↑ Swin-L ↓); RaPA p ∈ {0.005, 0.01, 0.02} (Swin-L ↓ theo p); ILPD stage 3 γ ∈ {0.5, 0.75} (γ nhỏ hại Swin-L); noCT (không sụp, ≈ ô gốc); FIA kênh (≈); POS (≈, bỏ 89% RoI nền không mất gì); POS-CAP (hại mạnh — lợi cls đến từ việc đẩy tiếp object ĐÃ sai đi xa biên); box mồi FAB (hại, mồi 0% trên DINO); embedding object OBJ (≈ / hại).
+3. **Cơ chế (mô tả):** gap họ backbone là HAI CHIỀU (WB-probe dev10: δ sinh trên DINO-Swin-L sang R50 chỉ 31% / 8%); lợi C2-OCT-1V trên Swin-L ~½ từ FP score cao sát object + ½ từ TP yếu đi, chủ yếu object nhỏ; lỗ hổng còn lại = object vừa / lớn. Loss cls và loss feature gần trực giao (cos ∇ ≈ −0.08), tỉ lệ độ lớn đổi 5× theo ảnh.
+4. Literature (web): không có attack OD mới khớp threat model vượt OSFD; **BFDA (ICASSP'24, cùng nhóm OSFD) là rủi ro baseline lớn nhất** — không code, không có PDF trong repo. ε: OSFD / AugTrans đều 5/255 (OSFD gốc 200 bước, L∞ thực 7 theo benchmark; AugTrans 160 × 10 EOT); setup ta chặt hơn (init 0, assert L∞ ≤ 5).
+5. Sửa code: RaPA đếm mask trên GPU (bỏ 106 lần đồng bộ / view, mask trùng tuyệt đối).
+**Việc mở (thứ tự đề xuất cho phiên sau):**
+- (a) **Đường bão hòa theo B của C2-OCT-1V** @ dev100: 1 lần B100, chụp δ ở B 20 / 41 / 65 / 100 (`on_step`), ~20 phút. Còn dốc ở B41 → cải thiện bằng tăng tốc (bỏ forward sạch / cache) để thêm bước cùng thời gian; bão hòa → biết trần. Khóa quy tắc trước khi chạy.
+- (b) **L_cls dạng margin (kiểu CW) trên RoI dương** (z_đúng − max z_khác, không chặn, 1 lớp sai mạnh nhất) @ dev30 B41, ~10 phút — cơ sở: POS-CAP (đẩy xa biên có lợi), POS (RoI nền không quan trọng). Rủi ro: lại chỉ là núm cường độ.
+- (c) Nếu (a), (b) không ra gì → coi C2-OCT-1V gần trần của nhóm "1 surrogate R50"; **GO @ n300** (khóa entry riêng, chạy 1 lần; sinh lại OSFD n300 trên V100 — PNG HF là 3090; đề xuất kèm eval held-out YOLOX-L + Mask R-CNN Swin-S và đối chứng OSFD-1V). dev300 ∩ n300 = ∅ (đã kiểm).
+- (d) Rà BFDA: cần PDF ICASSP'24 (IEEE Xplore / email tác giả) để quyết cài lại.
+**Code mới phiên này (mặc định giữ hành vi cũ):** ô `C2-OCT-1V-{w2,w8,RaPA,RaPA005,RaPA02,LA05,LA1,LA2,ILPD05,ILPD075,noCT,FIA,POS,POS-CAP}` (+ FAB / OBJ của phiên song song); `pia.calib_cls_weight`, `pia.fia_channel_weights`, `geo_osfd_attack(cls_auto, ilpd_gamma, fia_views, roi_pos, roi_cap)`, `rapa_cls_p` cho phép với loss feature (scope backbone); `repair.roi_cls_filter`, `make_view_loss(ilpd_gamma, feat_chw, roi_ctx)`.
+**Artifact:** PNG V100 ở `artifacts/runs/dev300_B{50,41,45}_eps5_limit{10,100,300}/` — KHÔNG upload HF (mất khi trả máy; sinh lại được cùng seed, ~40 phút cho dev300 2 ô).
