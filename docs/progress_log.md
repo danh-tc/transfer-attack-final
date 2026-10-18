@@ -2963,3 +2963,16 @@ python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev100 --d
 - Cả hai GO → chọn ΔCA3 lớn hơn (chênh < 0.5 → C2-OCT-1V, đơn giản hơn / không phụ thuộc PIA). GO → khóa entry mới: sàng lọc dev300 + đối chứng OSFD-1V cùng thời gian.
 - Mô tả: dev100 \ dev30 (70 ảnh mới); R101 / ConvNeXt / Swin-T / YOLOX riêng; so số OSFD B50 sinh lại với số 10-17 (CA3 75.0, Swin-L 24.9).
 **Caveat:** GPU không tất định (đọc theo CI); held-out (YOLOX-L, Swin-S) không dùng.
+
+### Kết quả @ dev100 (V100; `results/ablation/c2_1v_dev100/screen.json`, `results/runs/dev300_B{50,41,45}_eps5_limit100/{metrics,generalization}_c2_1v_dev100.json`, log `results/octdev5/c2_1v_dev100.log`) — theo quy tắc: **cả hai GO dev300 (qua nhánh Swin-L); chọn C2-OCT-1V**
+Mốc OSFD B50 sinh lại: 96.7 / 91.3 / 79.9 / 74.3 / 69.5 / 23.3 | CA3 74.6 | 3.9 s/ảnh (10-17: CA3 75.0, Swin-L 24.9 — khớp trong nhiễu).
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
+- **C2-OCT-1V B41:** 96.9 / 93.2 / 82.4 / 78.4 / 70.6 / 32.1 | 77.2 | 3.8
+- **C2-PIA-1V B45:** 95.4 / 91.3 / 79.7 / 80.4 / 69.6 / 31.4 | 76.6 | 4.2
+Δ − OSFD [CI]:
+- C2-OCT-1V: **Swin-L +8.8 [2.0, 11.3]**, CA3 +2.6 [−2.1, 6.8], R101 +1.8, ConvNeXt +2.6, Swin-T +4.1, YOLOX +1.1; runtime 0.97× ✓ → nhánh CA3 ✗ (CI chạm 0), nhánh Swin-L ✓ → **GO**.
+- C2-PIA-1V: **Swin-L +8.2 [2.2, 10.9]**, CA3 +2.0 [−2.1, 5.0], R101 0.0, ConvNeXt −0.2, Swin-T +6.1 [0.6, 9.4], YOLOX +0.1; runtime 1.08× ✓ (sát 1.1×) → **GO**.
+- Cả hai GO → ΔCA3 2.60 vs 2.01 (chênh 0.59 ≥ 0.5) → **chọn C2-OCT-1V**.
+- 70 ảnh mới (dev100 \ dev30): C2-OCT-1V Swin-L +8.4 [2.7, 10.8], CA3 +2.4 [−2.6, 6.9]; C2-PIA-1V Swin-L +10.2 [3.3, 13.2], CA3 −0.0 [−3.9, 3.6] → lợi Swin-L lặp lại ngoài dev30 ở cả hai; lợi CA3 của C2-PIA-1V thì không.
+**Đọc:** cùng thời gian OSFD, thêm loss cls + 1 view / bước cho lợi chắc trên DINO-Swin-L (~+8–9, CI > 0), lợi CNN / YOLOX nhỏ, chưa chắc (CA3 CI chứa 0). YOLOX gần như không đổi (khác OCT-1V +3.0) → loss cls không giúp YOLOX.
+**Bước tiếp (theo quy tắc: khóa entry mới trước khi chạy):** sàng lọc dev300 C2-OCT-1V B41 vs OSFD B50 (cùng máy) + đối chứng OSFD-1V cùng thời gian. User quyết.

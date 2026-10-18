@@ -1,0 +1,816 @@
+
+[bootstrap] ===== 1/5 Dựng môi trường Python (venv, torch, mmcv, mmdet) =====
+
+[bootstrap] .venv đã dùng được (torch + CUDA + mmdet) — bỏ qua setup_env.sh.
+
+[bootstrap] ===== 2/5 Tải checkpoint: Controlled + Generalization Panel + model chẩn đoán (--gen) =====
+
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_r50_fpn_mstrain-poly_3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_r50_fpn_mstrain-poly_3x_coco...
+mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_r50_fpn_mstrain-poly_3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_r101_fpn_ms-poly-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_r101_fpn_ms-poly-3x_coco...
+mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_r101_fpn_ms-poly-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco...
+mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco...
+mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco...
+fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: detr_r50_8xb2-150e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing detr_r50_8xb2-150e_coco...
+detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped detr_r50_8xb2-150e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: yolox_s_8x8_300e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing yolox_s_8x8_300e_coco...
+yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped yolox_s_8x8_300e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: yolox_l_8x8_300e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing yolox_l_8x8_300e_coco...
+yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped yolox_l_8x8_300e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: dino-5scale_swin-l_8xb2-36e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing dino-5scale_swin-l_8xb2-36e_coco...
+dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped dino-5scale_swin-l_8xb2-36e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: dino-4scale_r50_8xb2-12e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing dino-4scale_r50_8xb2-12e_coco...
+dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped dino-4scale_r50_8xb2-12e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco...
+mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco_20210903_104808-b92c91f1.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Xong. Checkpoint nằm tại /workspace/transfer-attack-final/checkpoints (không commit — xem .gitignore).
+total 3133668
+drwxr-xr-x  2 root root      4096 Oct 18 06:28 .
+drwxr-xr-x 13 root root      4096 Oct 18 06:24 ..
+-rw-r--r--  1 root root     16430 Oct 18 06:33 detr_r50_8xb2-150e_coco.py
+-rw-r--r--  1 root root 592227862 Oct 18 06:26 detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth
+-rw-r--r--  1 root root     16429 Oct 18 06:33 dino-4scale_r50_8xb2-12e_coco.py
+-rw-r--r--  1 root root 263220833 Oct 18 06:28 dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+-rw-r--r--  1 root root 877492835 Oct 18 06:27 dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+-rw-r--r--  1 root root     17086 Oct 18 06:33 dino-5scale_swin-l_8xb2-36e_coco.py
+-rw-r--r--  1 root root 129472355 Oct 18 06:25 fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+-rw-r--r--  1 root root      7226 Oct 18 06:33 fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py
+-rw-r--r--  1 root root     19694 Oct 18 06:33 mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py
+-rw-r--r--  1 root root     11338 Oct 18 06:33 mask-rcnn_r101_fpn_ms-poly-3x_coco.py
+-rw-r--r--  1 root root     11336 Oct 18 06:33 mask-rcnn_r50_fpn_mstrain-poly_3x_coco.py
+-rw-r--r--  1 root root     19886 Oct 18 06:33 mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py
+-rw-r--r--  1 root root     19883 Oct 18 06:33 mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py
+-rw-r--r--  1 root root 192446607 Oct 18 06:25 mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+-rw-r--r--  1 root root 254096423 Oct 18 06:24 mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+-rw-r--r--  1 root root 177868694 Oct 18 06:24 mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+-rw-r--r--  1 root root 276996842 Oct 18 06:28 mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco_20210903_104808-b92c91f1.pth
+-rw-r--r--  1 root root 191464891 Oct 18 06:25 mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+-rw-r--r--  1 root root     13694 Oct 18 06:33 yolox_l_8x8_300e_coco.py
+-rw-r--r--  1 root root 217289556 Oct 18 06:27 yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+-rw-r--r--  1 root root     13694 Oct 18 06:33 yolox_s_8x8_300e_coco.py
+-rw-r--r--  1 root root  36078190 Oct 18 06:26 yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+
+[bootstrap] ===== 3/5 Tải dataset COCO val2017 =====
+
+
+[download_dataset] annotations/ đã có sẵn, bỏ qua tải lại.
+
+[download_dataset] val2017/ đã có đủ 5000 ảnh, bỏ qua tải lại.
+
+[download_dataset] Xong. data/coco/ chứa 5000 ảnh val2017 + annotations.
+
+[bootstrap] ===== 4/5 Chốt danh sách ảnh n=300/n=1000 (idempotent — bỏ qua nếu đã khóa từ trước) =====
+
+/workspace/transfer-attack-final/data/image_lists/meta.json đã tồn tại — danh sách coi như đã khóa, bỏ qua (script tất định 100% với cùng seed/pool nên chạy lại cũng ra kết quả giống hệt, nhưng không tự ghi đè để tránh lẫn lộn nếu ai đó sửa script sau này; xóa data/image_lists/ thủ công nếu thật sự muốn tạo lại).
+
+[bootstrap] ===== 5/5 Ảnh adv baseline n300 từ HF (cần HF_TOKEN trong .env — gitignored) =====
+
+[bootstrap] Không có .env/HF_TOKEN — bỏ qua (chỉ cần cho GO @ n300; ảnh dev300 chưa từng lên HF).
+
+[bootstrap] ===== Xong toàn bộ bootstrap. =====
+
+Nhắc: kích hoạt venv trong shell hiện tại bằng: source .venv/bin/activate
+Nhắc: máy mới chưa có git identity — đặt cho repo: git config user.name/user.email (theo tác giả commit cũ).
+Nhắc: nếu data/image_lists/ mới được tạo lần đầu (chưa từng commit), commit + push ngay để khóa lại.
+loading annotations into memory...
+Done (t=0.62s)
+creating index...
+index created!
+[run] dev300_B50_eps5_limit100: 100 ảnh (subset dev100), methods=['OSFD']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD] 10/100  4.0s/ảnh  còn ~6 phút
+[attack OSFD] 20/100  4.0s/ảnh  còn ~5 phút
+[attack OSFD] 30/100  4.0s/ảnh  còn ~5 phút
+[attack OSFD] 40/100  4.0s/ảnh  còn ~4 phút
+[attack OSFD] 50/100  4.0s/ảnh  còn ~3 phút
+[attack OSFD] 60/100  4.0s/ảnh  còn ~3 phút
+[attack OSFD] 70/100  4.0s/ảnh  còn ~2 phút
+[attack OSFD] 80/100  4.0s/ảnh  còn ~1 phút
+[attack OSFD] 90/100  3.9s/ảnh  còn ~1 phút
+[attack OSFD] 100/100  3.9s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/100 (25s)
+[eval] predict 100/100 (48s)
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (119s)
+
+=== bbox AP (n=100, B=50, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          45.2 [ 42.9, 51.0]   46.5 [ 44.5, 52.5]   50.0 [ 48.2, 55.7]   50.0 [ 48.1, 55.7]
+OSFD            1.5 [  0.0,  2.4]    4.0 [  2.5,  6.6]   10.1 [  7.9, 14.5]   12.9 [ 10.9, 17.6]
+
+=== relative AP drop % [95% CI] ===
+OSFD           96.7 [ 94.8,100.0]   91.3 [ 86.4, 94.7]   79.9 [ 72.1, 84.6]   74.3 [ 66.0, 78.8]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+OSFD         CrossAvg  77.1 [ 69.2, 81.3]  gap→ConvNeXt  11.4 [  6.7, 17.9]  gap→Swin  17.0 [ 12.8, 23.6]  gap→avg  14.2 [ 10.3, 20.5]
+
+=== runtime === {'OSFD': 3.9}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5_limit100/metrics_c2_1v_dev100.json
+loading annotations into memory...
+Done (t=0.61s)
+creating index...
+index created!
+[run] dev300_B41_eps5_limit100: 100 ảnh (subset dev100), methods=['C2-OCT-1V']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack C2-OCT-1V] 10/100  3.8s/ảnh  còn ~6 phút
+[attack C2-OCT-1V] 20/100  3.9s/ảnh  còn ~5 phút
+[attack C2-OCT-1V] 30/100  4.0s/ảnh  còn ~5 phút
+[attack C2-OCT-1V] 40/100  4.0s/ảnh  còn ~4 phút
+[attack C2-OCT-1V] 50/100  3.9s/ảnh  còn ~3 phút
+[attack C2-OCT-1V] 60/100  3.9s/ảnh  còn ~3 phút
+[attack C2-OCT-1V] 70/100  3.9s/ảnh  còn ~2 phút
+[attack C2-OCT-1V] 80/100  3.9s/ảnh  còn ~1 phút
+[attack C2-OCT-1V] 90/100  3.8s/ảnh  còn ~1 phút
+[attack C2-OCT-1V] 100/100  3.8s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/100 (25s)
+[eval] predict 100/100 (50s)
+loading annotations into memory...
+Done (t=0.65s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (137s)
+
+=== bbox AP (n=100, B=41, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          45.2 [ 42.9, 51.0]   46.5 [ 44.5, 52.5]   50.0 [ 48.2, 55.7]   50.0 [ 48.1, 55.7]
+C2-OCT-1V       1.4 [  0.1,  2.0]    3.2 [  1.9,  5.3]    8.8 [  7.4, 12.5]   10.8 [  9.5, 15.1]
+
+=== relative AP drop % [95% CI] ===
+C2-OCT-1V      96.9 [ 95.7, 99.7]   93.2 [ 89.1, 96.1]   82.4 [ 76.3, 85.7]   78.4 [ 71.2, 81.6]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+C2-OCT-1V    CrossAvg  80.4 [ 73.7, 83.6]  gap→ConvNeXt  10.7 [  8.1, 15.3]  gap→Swin  14.8 [ 12.3, 20.4]  gap→avg  12.7 [ 10.1, 17.6]
+
+=== runtime === {'C2-OCT-1V': 3.8}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B41_eps5_limit100/metrics_c2_1v_dev100.json
+loading annotations into memory...
+Done (t=0.73s)
+creating index...
+index created!
+[run] dev300_B45_eps5_limit100: 100 ảnh (subset dev100), methods=['C2-PIA-1V']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack C2-PIA-1V] 10/100  4.1s/ảnh  còn ~6 phút
+[attack C2-PIA-1V] 20/100  4.1s/ảnh  còn ~5 phút
+[attack C2-PIA-1V] 30/100  4.1s/ảnh  còn ~5 phút
+[attack C2-PIA-1V] 40/100  4.1s/ảnh  còn ~4 phút
+[attack C2-PIA-1V] 50/100  4.2s/ảnh  còn ~3 phút
+[attack C2-PIA-1V] 60/100  4.3s/ảnh  còn ~3 phút
+[attack C2-PIA-1V] 70/100  4.2s/ảnh  còn ~2 phút
+[attack C2-PIA-1V] 80/100  4.2s/ảnh  còn ~1 phút
+[attack C2-PIA-1V] 90/100  4.2s/ảnh  còn ~1 phút
+[attack C2-PIA-1V] 100/100  4.2s/ảnh  còn ~0 phút
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[eval] predict 50/100 (25s)
+[eval] predict 100/100 (48s)
+loading annotations into memory...
+Done (t=0.65s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.30s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (124s)
+
+=== bbox AP (n=100, B=45, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          45.2 [ 42.9, 51.0]   46.5 [ 44.5, 52.5]   50.0 [ 48.2, 55.7]   50.0 [ 48.1, 55.7]
+C2-PIA-1V       2.1 [  0.4,  3.2]    4.0 [  2.5,  6.5]   10.1 [  8.4, 14.5]    9.8 [  8.5, 14.6]
+
+=== relative AP drop % [95% CI] ===
+C2-PIA-1V      95.4 [ 93.2, 99.1]   91.3 [ 86.5, 94.7]   79.7 [ 72.3, 83.6]   80.4 [ 71.9, 83.5]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+C2-PIA-1V    CrossAvg  80.1 [ 72.3, 83.5]  gap→ConvNeXt  11.6 [  8.5, 16.6]  gap→Swin  10.9 [  8.7, 16.7]  gap→avg  11.3 [  8.9, 16.3]
+
+=== runtime === {'C2-PIA-1V': 4.2}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B45_eps5_limit100/metrics_c2_1v_dev100.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.51s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/100 (3s)
+[gen yolox_s] 100/100 (6s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/100 (35s)
+[gen dino_swin_l] 100/100 (67s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.33s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=100) ===
+r101: 46.5  yolox_s: 46.5  dino_swin_l: 64.0
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+OSFD           91.3 [ 86.4, 94.7]   69.5 [ 61.3, 75.8]   23.3 [ 19.0, 27.8]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           21.8 [ 16.0, 28.5]   68.0 [ 60.8, 73.1]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+
+=== model_diff (OSFD) ===
+  dino_swin_l - yolox_s        -46.2 [-52.6,-37.2]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5_limit100/generalization_c2_1v_dev100.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.48s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/100 (3s)
+[gen yolox_s] 100/100 (5s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/100 (33s)
+[gen dino_swin_l] 100/100 (65s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.33s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=100) ===
+r101: 46.5  yolox_s: 46.5  dino_swin_l: 64.0
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+C2-OCT-1V      93.2 [ 89.1, 96.1]   70.6 [ 63.0, 75.6]   32.1 [ 25.8, 35.1]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V      22.5 [ 18.1, 28.4]   61.1 [ 57.0, 67.1]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+saved: /workspace/transfer-attack-final/results/runs/dev300_B41_eps5_limit100/generalization_c2_1v_dev100.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.47s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+[gen yolox_s] 50/100 (3s)
+[gen yolox_s] 100/100 (5s)
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[gen dino_swin_l] 50/100 (33s)
+[gen dino_swin_l] 100/100 (65s)
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: yolox_s
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.33s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=100) ===
+r101: 46.5  yolox_s: 46.5  dino_swin_l: 64.0
+
+=== relative AP drop % [95% CI] ===
+                             r101              yolox_s          dino_swin_l
+C2-PIA-1V      91.3 [ 86.5, 94.7]   69.6 [ 61.6, 74.0]   31.4 [ 25.4, 35.2]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-PIA-1V      21.8 [ 17.4, 28.0]   59.9 [ 54.9, 66.1]
+
+=== method_diff ===
+                                    yolox_s          dino_swin_l
+saved: /workspace/transfer-attack-final/results/runs/dev300_B45_eps5_limit100/generalization_c2_1v_dev100.json
+loading annotations into memory...
+Done (t=0.49s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.46s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.04s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.02s)
+creating index...
+index created!
+
+=== main (n = 100) relative AP drop % ===
+                           r50        r101  convnext_t      swin_t     yolox_s dino_swin_l   Cross3
+C2-OCT-1V@dev300_B41_eps5_limit100        96.9        93.2        82.4        78.4        70.6        32.1     77.2
+C2-PIA-1V@dev300_B45_eps5_limit100        95.4        91.3        79.7        80.4        69.6        31.4     76.6
+OSFD                      96.7        91.3        79.9        74.3        69.5        23.3     74.6
+C2-OCT-1V@dev300_B41_eps5_limit100 - OSFD DINO-SwinL  +8.8 [ +2.0,+11.3]  Cross3  +2.6 [ -2.1, +6.8]  R101  +1.8 [ -1.1, +5.3]  YOLOX  +1.1 [ -4.4, +6.3]  ConvNeXt  +2.6 [ -2.6, +7.9]  Swin-T  +4.1 [ -0.8, +8.0]
+C2-PIA-1V@dev300_B45_eps5_limit100 - OSFD DINO-SwinL  +8.2 [ +2.2,+10.9]  Cross3  +2.0 [ -2.1, +5.0]  R101  +0.0 [ -3.0, +3.2]  YOLOX  +0.1 [ -5.2, +3.7]  ConvNeXt  -0.2 [ -4.6, +4.1]  Swin-T  +6.1 [ +0.6, +9.4]
+
+=== dev100_minus_dev30 (n = 70) relative AP drop % ===
+                           r50        r101  convnext_t      swin_t     yolox_s dino_swin_l   Cross3
+C2-OCT-1V@dev300_B41_eps5_limit100        96.9        93.7        82.6        77.6        72.6        30.3     77.6
+C2-PIA-1V@dev300_B45_eps5_limit100        95.3        91.8        76.7        78.3        70.7        32.1     75.2
+OSFD                      97.1        93.0        80.0        74.9        70.8        21.9     75.2
+C2-OCT-1V@dev300_B41_eps5_limit100 - OSFD DINO-SwinL  +8.4 [ +2.7,+10.8]  Cross3  +2.4 [ -2.6, +6.9]  R101  +0.7 [ -2.4, +4.5]  YOLOX  +1.8 [ -4.3, +7.0]  ConvNeXt  +2.7 [ -3.5, +8.6]  Swin-T  +2.7 [ -3.1, +7.0]
+C2-PIA-1V@dev300_B45_eps5_limit100 - OSFD DINO-SwinL +10.2 [ +3.3,+13.2]  Cross3  -0.0 [ -3.9, +3.6]  R101  -1.1 [ -4.5, +2.3]  YOLOX  -0.1 [ -4.1, +3.4]  ConvNeXt  -3.3 [ -8.4, +2.3]  Swin-T  +3.4 [ -2.6, +7.6]
+[run.sh] XONG
