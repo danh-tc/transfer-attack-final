@@ -3170,3 +3170,16 @@ Hồ sơ lỗi DINO-Swin-L (recall nhỏ / vừa / lớn | conf | FP / ảnh | F
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0 | 3.9; **OBJ15** 99.9 / 94.6 / 84.6 / 82.9 / 72.1 / 30.1 | 79.9 | 4.1; **OBJ45** 99.7 / 93.8 / 82.7 / 76.1 / 64.5 / 29.8 | 74.4 | 3.9.
 Δ so C2-OCT-1V: OBJ15 CA3 +1.9 [−4.7, 3.9], Swin-L −2.5 [−5.7, 0.9]; OBJ45 CA3 −3.6 [−9.0, 0.3], Swin-L −2.8 [−8.2, 0.3].
 **Đọc:** w = 15 cùng mẫu quét λ / noCT (CNN nhích, Swin-L lùi, trong nhiễu); w = 45 hại CNN, Swin-L vẫn lùi. Làm lệch embedding RoI của R50 (không nhãn) KHÔNG chạm Swin-L như L_cls — phần lợi Swin-L của L_cls gắn với việc đẩy KHỎI LỚP ĐÚNG (tín hiệu ngữ nghĩa lớp), không phải với mức object nói chung. Khớp WB-probe: hướng nhạy của Swin-L nằm ngoài không gian R50; đổi thước đo trong R50 không mở được hướng mới. Dấu hiệu "đáng xác nhận" không đạt.
+
+---
+
+## 2026-10-18 — Sàng lọc dev300: C2-OCT-1V B41 vs OSFD B50 (cùng thời gian, V100) — chốt C2-OCT-1V (user); quy tắc khóa TRƯỚC khi chạy
+**Ô:** OSFD B50; C2-OCT-1V B41 (= L_OSFD + 4·(loss_rpn_cls + loss_cls), GT co-transform, OCT 1 view / bước: co giãn ±½ octave + dịch 0–7 px + nhiễu σ = 6, MI μ = 1, α = 1, ε = 5, skip_mask + AMP). User bỏ đối chứng OSFD-1V (lần này) → KHÔNG tách được lợi do "1 view / nhiều bước hơn" khỏi lợi do loss cls + OCT; ghi rõ khi báo cáo.
+**Dữ liệu:** dev300 (300 ảnh), V100, mốc OSFD sinh lại cùng máy. 100 ảnh dev100 tái dùng (PNG + stats chép từ run `_limit100`, cùng seed theo chỉ số dev300, cùng máy) → sinh thêm 200 ảnh mỗi ô. Run `dev300_B50_eps5_limit300`, `dev300_B41_eps5_limit300`; out `metrics_screen_dev300.json`, dets `dets_screen_dev300.json`; `pair_screen --tag screen_c2oct1v_dev300 --exclude dev100`. Chạy trong tmux session `screen300` (`results/screen_dev300/run.sh`, log `results/screen_dev300/run.log`).
+**Quy tắc (paired bootstrap 1000, BOOT_SEED 2026; Δ = drop(C2-OCT-1V) − drop(OSFD); CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S):**
+- **QUA-CA3** (bước 3 plan_sota): ΔCA3 ≥ 3 VÀ cận dưới CI > 0 VÀ Δ > 0 ở cả ConvNeXt-T, Swin-T, YOLOX-S VÀ ΔR101 ≥ −3.
+- **QUA-SwinL** (nhánh khai báo ở dev100): ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ 0 (điểm) VÀ ΔR101 ≥ −3.
+- Điều kiện chung: runtime ≤ 1.1 × OSFD (TB 300 ảnh, cùng máy).
+- QUA-CA3 → GO @ n300 theo plan_sota bước 4 (khóa entry riêng). Chỉ QUA-SwinL → "GO có điều kiện": claim chỉ về target Transformer khó (DINO-Swin-L), user quyết có đi n300 không. Không qua nhánh nào → NO-GO cho C2-OCT-1V; ghi log, user quyết.
+- Mô tả: dev300 \ dev100 (200 ảnh mới — kiểm dev100 có lạc quan không); R101, R50; hồ sơ lỗi nếu cần.
+**Kỳ vọng ghi trước (dev100):** ΔCA3 +2.6 [−2.1, 6.8], ΔSwin-L +8.8 [2.0, 11.3] → dự đoán trượt QUA-CA3, có khả năng QUA-SwinL.
