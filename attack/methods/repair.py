@@ -16,6 +16,7 @@ loại sống sót qua phép sửa.
 L = L_OSFD + λ·L_cls(head(FPN(R(C_adv)))), L_cls ∈ {C2: loss_rpn_cls + loss_cls, V: L_V}.
 Với p = 0 và cls="c2" trùng tuyệt đối loss của C2 (`preprocess.make_feature_plus_gt_loss`).
 """
+import contextlib
 import copy
 
 import numpy as np
@@ -98,12 +99,40 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
     return vanish_loss(model, model.extract_feat(batch_inputs), batch_data_samples)
 
 
+@contextlib.contextmanager
+def roi_cls_filter(model, cap=None, stats=None):
+    """C2-OCT-1V-POS / POS-CAP (progress_log 2026-10-18, kiểu DAG): loss_cls của RoI head chỉ trên RoI DƯƠNG (bỏ RoI nền
+    = nhãn num_classes); cap: bỏ thêm RoI dương có p(lớp đúng) < cap. avg_factor = số RoI còn giữ (giữ độ lớn trung bình
+    / RoI, không vô tình hạ λ). loss_rpn_cls KHÔNG đổi. Thay tạm forward của bbox_head.loss_cls (instance attribute)."""
+    head = model.roi_head.bbox_head
+    crit, orig = head.loss_cls, head.loss_cls.forward
+    nc = head.num_classes
+
+    def fwd(cls_score, label, weight=None, avg_factor=None, **kw):
+        keep = label < nc
+        if cap is not None:
+            p = torch.softmax(cls_score.float(), -1).gather(1, label.clamp(max=nc)[:, None])[:, 0]
+            keep = keep & (p >= cap)
+        w = (weight if weight is not None else torch.ones_like(label, dtype=cls_score.dtype)) * keep
+        n = max(float(keep.sum()), 1.0)
+        if stats is not None:
+            stats["kept"] += int(keep.sum()); stats["pos"] += int((label < nc).sum()); stats["total"] += label.numel()
+        return orig(cls_score, label, w, avg_factor=n, **kw)
+    crit.forward = fwd
+    try:
+        yield
+    finally:
+        del crit.forward  # về lại forward của lớp (orig là bound method của lớp)
+
+
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
-                   ilpd_gamma=None, ilpd_stage: int = 2):
+                   ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
-    F_sạch + γ·(F_adv − F_sạch) (F_sạch = feats_clean co-transform của view); L_OSFD vẫn trên F_adv gốc."""
+    F_sạch + γ·(F_adv − F_sạch) (F_sạch = feats_clean co-transform của view); L_OSFD vẫn trên F_adv gốc.
+    feat_chw (C2-OCT-1V-FIA, progress_log 2026-10-18): list [C_l] trọng số kênh, trung bình 1 -> L_OSFD từng stage =
+    mean(w_c · (k·F_sạch − F_adv)²); w ≡ 1 trùng F.mse_loss. roi_ctx: () -> context manager quanh cls_term (roi_cls_filter)."""
     assert ilpd_gamma is None or (repair_feats is None and feats_clean is not None)
 
     def loss_fn(model, pixel_tensor, data_sample):
@@ -122,12 +151,17 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
         h = model.backbone.register_forward_hook(hook)
         try:
             batch_inputs, bds = to_batch(model, [pixel_tensor], [data_sample])
-            c = cls_term(model, batch_inputs, bds, cls)
+            with (roi_ctx() if roi_ctx is not None else contextlib.nullcontext()):
+                c = cls_term(model, batch_inputs, bds, cls)
         finally:
             h.remove()
         if feat_weight == 0:  # CLS-OCT (progress_log 2026-10-08): chỉ loss cls
             return weight * c
-        feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
+        if feat_chw is not None:
+            feat = sum((w.view(1, -1, 1, 1) * (k * fc - fa).pow(2)).mean()
+                       for w, fc, fa in zip(feat_chw, feats_clean, cap["f"]))
+        else:
+            feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
         return feat_weight * feat + weight * c
     return loss_fn
 

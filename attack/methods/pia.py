@@ -338,6 +338,33 @@ def calib_cls_weight(model, orig_pixels, clean_pixels, data_sample, k: float, cl
     return min(max(raw, clip[0]), clip[1]), raw
 
 
+def fia_channel_weights(model, clean_pixels, data_sample, n: int, elem: dict, sigma: float, mix: float = 0.5):
+    """C2-OCT-1V-FIA (progress_log 2026-10-18; kiểu FIA / NAA, dạng mềm): độ quan trọng kênh của từng stage backbone =
+    mean_{n view OCT của ảnh SẠCH (nhiễu σ, GT co-transform)} mean_hw |∂L_cls / ∂F_l| (L_cls = rpn_cls + cls, như C2).
+    Theo KÊNH (bất biến với warp — gradient không gian của các view lệch nhau). w = (1 − mix) + mix · g / mean_c g (TB 1).
+    RNG Python + torch (CPU, CUDA) khôi phục -> chuỗi view của attack trùng ô gốc. n forward + n backward (tới feature)."""
+    from attack.methods.elem import elem_views
+    from attack.methods.repair import cls_term
+    from attack.preprocess import to_batch
+    rng = (random.getstate(), torch.get_rng_state(), torch.cuda.get_rng_state())
+    acc = None
+    for v, _, dsv in elem_views(clean_pixels, n, elem, sigma, data_sample=data_sample):
+        cap = {}
+        h = model.backbone.register_forward_hook(lambda m, i, o: cap.update(f=o))
+        try:
+            # input cần grad: stem + layer1 của R50 đóng băng (frozen_stages = 1) -> C2 không có grad nếu input không có
+            bi, bds = to_batch(model, [v.detach().requires_grad_(True)], [dsv])
+            c = cls_term(model, bi, bds, "c2")
+        finally:
+            h.remove()
+        gs = torch.autograd.grad(c, cap["f"], allow_unused=True)
+        g = [(x.float().abs().mean(dim=(0, 2, 3)) if x is not None else torch.zeros(f.shape[1], device=f.device))
+             for x, f in zip(gs, cap["f"])]
+        acc = g if acc is None else [a + b for a, b in zip(acc, g)]
+    random.setstate(rng[0]); torch.set_rng_state(rng[1]); torch.cuda.set_rng_state(rng[2])
+    return [((1 - mix) + mix * a / (a.mean() + 1e-12)).detach() for a in acc]
+
+
 def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float = 5.0,
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
@@ -348,7 +375,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
-                    season_sigma=None, cls_auto=None, ilpd_gamma=None):
+                    season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
+                    roi_cap=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -379,6 +407,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     cls_auto = c (progress_log 2026-10-18): thay cls_weight bằng c · λ_ảnh (calib_cls_weight, đo tại δ = 0; +2 backward / ảnh).
     ilpd_gamma = γ (progress_log 2026-10-18): ILPD trên đường head ở stage 3 (stride 16), repair.make_view_loss; cần cls_weight > 0."""
     assert ilpd_gamma is None or (cls_weight > 0 and feature and co_transform)
+    # fia_views = n (progress_log 2026-10-18): L_OSFD trọng số kênh 50% đều + 50% |∂L_cls/∂F| (fia_channel_weights, +n backward / ảnh).
+    # roi_pos / roi_cap: loss_cls RoI chỉ trên RoI dương | + bỏ RoI dương có p(lớp đúng) < roi_cap (repair.roi_cls_filter).
+    assert not fia_views or (geo == "elem" and cls_weight > 0 and feature and co_transform)
+    assert roi_cap is None or roi_pos
+    assert not roi_pos or (cls_weight > 0 and cls_mode == "c2")
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
@@ -402,6 +435,16 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             lam, raw = calib_cls_weight(model, orig_pixels, clean_pixels, data_sample, k, cls_mode)
         cls_weight = cls_auto * lam
         log.update(cls_lambda=cls_weight, cls_ratio_raw=raw)
+    feat_chw = None
+    if fia_views:
+        with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
+            feat_chw = fia_channel_weights(model, clean_pixels, data_sample, fia_views, elem, sigma)
+        log["fia_w_max"] = [float(w.max()) for w in feat_chw]
+    roi_stats = {"kept": 0, "pos": 0, "total": 0}
+    roi_ctx = None
+    if roi_pos:
+        from attack.methods.repair import roi_cls_filter
+        roi_ctx = lambda: roi_cls_filter(model, roi_cap, roi_stats)
     if geo.startswith("grgd") or geo.endswith("2"):
         rng_xi = random.Random(torch.initial_seed() + 1)
         rng_c = random.Random(torch.initial_seed() + 2)
@@ -512,7 +555,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 gtb = gtb.tensor if hasattr(gtb, "tensor") else gtb
                 out.append((v, ds, _view_loss_bg(fc, k, gtb.float(), bg_weight, 0.0 if bg_only else 1.0)))
             elif cls_weight > 0:
-                lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma)
+                lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx)
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
@@ -533,6 +576,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         log["rapa_masked_frac"] = int(rapa[1]["masked"]) / max(1, rapa[1]["total"])
     if rapa_cls is not None:
         log["rapa_masked_frac"] = int(rapa_cls[1]["masked"]) / max(1, rapa_cls[1]["total"])
+    if roi_pos:
+        log["roi_kept_frac_of_pos"] = roi_stats["kept"] / max(1, roi_stats["pos"])
+        log["roi_pos_frac"] = roi_stats["pos"] / max(1, roi_stats["total"])
     if info is not None:
         info.update(log)
     return noise

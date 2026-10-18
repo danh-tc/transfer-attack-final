@@ -3069,3 +3069,14 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 8
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0 | 3.63; **noCT 99.1 / 93.2 / 82.9 / 83.0 / 73.6 / 28.9 | 79.8 | 3.40**; OSFD 98.2 / 91.4 / 82.5 / 80.8 / 73.7 / 22.6 | 79.0.
 Δ noCT − C2-OCT-1V: CA3 +1.8 [−3.3, 4.0], Swin-L −3.7 [−5.4, +0.9], YOLOX +3.7, R101 −0.5. noCT − OSFD: Swin-L +6.3 [−1.1, 13.8], CA3 +0.8.
 **Đọc:** (1) Trái dự đoán (suy từ PIA-noCT), bỏ co-transform feature KHÔNG phá attack: white-box R50 99.1, CA3 ngang. Khác PIA-noCT ở 2 chỗ không tách được: biến đổi OCT nhẹ hơn PIA (không phối cảnh / xoay) VÀ ở đây có L_cls (box GT co-transform) giữ hướng đúng — PIA-noCT là loss feature thuần. (2) Mẫu giống quét λ: CNN / YOLOX nhích, Swin-L giảm → noCT chỉ đổi cân bằng 2 kênh, không phải đòn bẩy. (3) noCT rẻ hơn 6% (bỏ 1 forward sạch / bước). Giữ co-transform (Swin-L là lợi duy nhất đã xác nhận); claim "co-transform cần thiết" cho OCT KHÔNG được ủng hộ ở dev30 — paper phải nói đúng như vậy.
+
+---
+
+## 2026-10-18 — "Đổi hướng đánh": C2-OCT-1V-FIA / -POS / -POS-CAP @ dev30 B41 (user) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lý do:** mọi núm cường độ (λ, RaPA, ILPD, co-transform) chỉ trượt dọc đường đánh đổi CNN ↔ Swin-L. Thử đổi HƯỚNG: (1) cls chỉ đường cho feature; (2) dồn L_cls vào object thật / object còn đúng (kiểu DAG, Xie 2017).
+**Ô (mọi thứ như C2-OCT-1V B41, trừ):**
+- `C2-OCT-1V-FIA`: L_OSFD từng stage = mean(w_c · (3·F_sạch − F_adv)²), w = 0.5 + 0.5 · g_c / mean g, g_c = mean_hw |∂L_cls / ∂F_l| trung bình 4 view OCT của ảnh SẠCH (nhiễu σ = 6, GT co-transform). Theo KÊNH (bất biến warp). Dạng mềm vì NAA / RPA (họ FIA, thay hẳn loss) thua OSFD rõ trong paper OSFD. +4 backward / ảnh (B ghi 45) — KHÔNG cùng thời gian. RNG khôi phục → chuỗi view trùng ô gốc.
+- `C2-OCT-1V-POS`: loss_cls RoI chỉ trên RoI dương (bỏ RoI nền), avg_factor = số RoI giữ (giữ độ lớn TB / RoI). loss_rpn_cls không đổi.
+- `C2-OCT-1V-POS-CAP`: như POS + bỏ RoI dương có p(lớp đúng) < 0.1 (không đánh tiếp object đã hỏng trên R50).
+**Kiểm:** w ≡ 1 trùng tuyệt đối loss cũ (13.495076); filter tắt sau dùng → loss trở lại đúng; chuỗi view trùng ô gốc (2 ảnh × 3 bước); w_max 1.5–2.9; **RoI dương chỉ 14–25% số RoI** (→ ~80% loss_cls hiện tại nằm trên RoI nền = đẩy nền thành object); CAP giữ 79–94% RoI dương sau 3 bước.
+**Chạy:** khung như noCT (run `dev300_B41_eps5_limit100`, `--subset dev30`, so CẶP với C2-OCT-1V B41 + OSFD B50), out `metrics_dir_dev30.json`, dets `dets_dir_dev30.json`, tag `dir_dev30`, log `results/octdev5/dir_dev30.log`. Dấu hiệu "đáng xác nhận": ΔCA3 hoặc ΔSwin-L ≥ 3 so C2-OCT-1V VÀ phía kia không mất > 2 (tức RỜI khỏi đường đánh đổi); FIA nếu đạt phải xác nhận lại cùng thời gian (B ≈ 37).
