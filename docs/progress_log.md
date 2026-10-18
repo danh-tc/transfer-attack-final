@@ -3106,3 +3106,21 @@ So với box SẠCH của chính model (score ≥ 0.3, 100 ảnh; giữ / mất 
 2. **CNN / Swin-T:** C2-OCT-1V GIỮ nhiều box sạch hơn OSFD (Swin-T 616 vs 431) nhưng AP vẫn thấp hơn chút nhờ thêm FP (Swin-T 27.4 vs 23.7 / ảnh); recall ≈ nhau. Hình: FP của OSFD là box LỚN phủ nền / bầu trời; FP của C2-OCT-1V nhỏ hơn, dày, mang nhãn object ("chair", "person", "bottle") — dấu của loss cls (đẩy RoI sang lớp object).
 3. YOLOX: C2-OCT-1V recall cao hơn OSFD (0.27 vs 0.23) → xóa object KÉM hơn, bù bằng FP.
 **Hệ quả:** C2-OCT-1V đổi kiểu thiệt hại từ "xóa object" (OSFD) sang "chen box giả cỡ object + làm yếu box đúng". Với DINO (matching 1–1, ít NMS) kênh box giả cỡ object lọt được một phần. n = 100, 1 lần chạy.
+
+---
+
+## 2026-10-18 — Hồ sơ lỗi theo model: Mask R-CNN Swin-T (dễ phá) vs DINO-Swin-L (kháng), OSFD vs C2-OCT-1V @ dev100 (user) — MÔ TẢ, không GPU
+**Công cụ:** `scripts/err_profile.py` → `results/mechanism/err_profile_dev100.json`. GT 982 (nhỏ 446 / vừa 362 / lớn 174). Recall@0.3 theo cỡ GT; conf = TB score_adv / score_sạch của GT phát hiện ở cả hai; FP (score ≥ 0.3) theo vị trí / cỡ (√diện tích tương đối ảnh) / score.
+| model | cond | recall nhỏ / vừa / lớn | conf | FP / ảnh | FP sát object / nền | FP score ≥ 0.5 |
+|---|---|---|---|---|---|---|
+| Swin-T | sạch | 0.60 / 0.86 / 0.95 | – | 7.0 | 3.8 / 3.3 | 3.4 |
+| Swin-T | OSFD | 0.25 / 0.35 / 0.31 | 0.83 | 23.7 | 6.3 / 17.3 | 12.6 |
+| Swin-T | C2-OCT-1V | 0.20 / 0.40 / 0.45 | 0.84 | 27.4 | 6.4 / 21.0 | 18.2 |
+| DINO-Swin-L | sạch | 0.60 / 0.84 / 0.92 | – | 3.0 | 1.6 / 1.3 | 0.3 |
+| DINO-Swin-L | OSFD | 0.44 / 0.63 / 0.82 | 0.91 | 3.6 | 1.7 / 1.9 | 0.4 |
+| DINO-Swin-L | C2-OCT-1V | 0.37 / 0.64 / 0.86 | 0.89 | 4.7 | 2.1 / 2.6 | **1.1** |
+(R101 / ConvNeXt / YOLOX cùng mẫu Swin-T: FP nền 9–31 / ảnh, phần lớn score ≥ 0.5.)
+**Đọc:**
+1. **Hai lớp kháng của DINO-Swin-L:** (a) object LỚN gần như miễn nhiễm (recall 0.92 → 0.82–0.86; Swin-T 0.95 → 0.31–0.45); vừa mất ~¼; nhỏ mất nhiều nhất. Khớp E4 / E6 (Swin-L nhận object lớn bằng hình dạng). (b) **FP gần như không phát sinh**: Mask R-CNN Swin-T bị ngập 24–27 FP / ảnh (đa số nền, score cao — RPN + RoI head nhận nhiễu thành object), DINO chỉ 3.6–4.7, đa số score thấp (0.3–0.5). (c) Box đúng còn sống giữ confidence (0.89–0.91 vs CNN 0.80–0.85).
+2. **Lợi của C2-OCT-1V trên Swin-L đến từ:** object NHỎ (0.44 → 0.37) + FP score cao (0.4 → 1.1 / ảnh, ×2.75). Object lớn còn bị phá KÉM hơn OSFD (0.86 vs 0.82) — tái lập E9 (dev30, C2 − OSFD lớn −0.16) ở dev100. Trên Swin-T / CNN cùng mẫu: C2-OCT-1V phá nhỏ mạnh hơn, lớn yếu hơn OSFD.
+3. Khoảng trống còn lại trên Swin-L chủ yếu là object VỪA / LỚN (73% số GT bị bỏ qua nằm ở 2 nhóm này khi tính theo recall mất) — đúng kênh mà mọi thử "tần thấp / quy mô lớn" (S1, SEA, LVX, BG-OCT) đã thất bại.
