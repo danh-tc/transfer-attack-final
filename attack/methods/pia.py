@@ -312,6 +312,32 @@ def rapa_cls_sampler(model, p: float, device, scope: str = "all"):
     return sample, stats
 
 
+def calib_cls_weight(model, orig_pixels, clean_pixels, data_sample, k: float, cls_mode: str, clip=(1.0, 16.0)):
+    """λ theo ảnh (progress_log 2026-10-18): mean|∇ₓL_feat| / mean|∇ₓL_cls| tại δ = 0, ảnh không biến đổi — đúng quy tắc
+    chọn λ = 4 cũ (median trên 5 ảnh) nhưng đo riêng từng ảnh. 1 forward + 2 lần autograd.grad. RNG torch (CPU + CUDA)
+    khôi phục sau đo -> chuỗi view / RoI sampling của attack trùng ô λ cố định. Trả (λ đã clip, tỉ lệ thô)."""
+    from attack.methods.repair import cls_term
+    from attack.preprocess import to_batch
+    rng = (torch.get_rng_state(), torch.cuda.get_rng_state())
+    with torch.no_grad():
+        fc = tuple(f.detach() for f in extract_features(model, clean_pixels, data_sample))
+    n = torch.zeros_like(orig_pixels, requires_grad=True)
+    adv = resize_to_model(orig_pixels + n, tuple(data_sample.img_shape))
+    cap = {}
+    h = model.backbone.register_forward_hook(lambda m, i, o: cap.update(f=o))
+    try:
+        bi, bds = to_batch(model, [adv], [data_sample])
+        c = cls_term(model, bi, bds, cls_mode)
+    finally:
+        h.remove()
+    feat = sum(F.mse_loss(k * a, b) for a, b in zip(fc, cap["f"]))
+    gf = torch.autograd.grad(feat, n, retain_graph=True)[0]
+    gc = torch.autograd.grad(c, n)[0]
+    torch.set_rng_state(rng[0]); torch.cuda.set_rng_state(rng[1])
+    raw = float(gf.abs().mean() / (gc.abs().mean() + 1e-12))
+    return min(max(raw, clip[0]), clip[1]), raw
+
+
 def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float = 5.0,
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
@@ -322,7 +348,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     skip_mask: bool = False, amp: bool = False, feature: bool = True,
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
-                    season_sigma=None):
+                    season_sigma=None, cls_auto=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -349,7 +375,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     μ_nền sạch của view, box co-transform); bg_only: bỏ L_OSFD (BG-OCT).
     feat_stages (loss feature thuần, có / không cache): chỉ các stage backbone này trong L_OSFD (OCT-C4 = (2,), OCT-C34 = (1, 2)).
     strat (geo="elem", elem = {scale, shift: ph8}; progress_log 2026-10-17): co giãn ∘ pha theo lịch phủ có hệ thống
-    (elem.strat_schedule, steps × n_views view) thay cho rút độc lập."""
+    (elem.strat_schedule, steps × n_views view) thay cho rút độc lập.
+    cls_auto = c (progress_log 2026-10-18): thay cls_weight bằng c · λ_ảnh (calib_cls_weight, đo tại δ = 0; +2 backward / ảnh)."""
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
@@ -367,6 +394,12 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             del data_sample.gt_instances.masks
         mask_head, model.roi_head.mask_head = model.roi_head.mask_head, None
     log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": [], "morgd2": [], "pia_factors": []}
+    if cls_auto is not None:
+        assert cls_weight > 0 and feature and co_transform and cls_mode == "c2"
+        with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
+            lam, raw = calib_cls_weight(model, orig_pixels, clean_pixels, data_sample, k, cls_mode)
+        cls_weight = cls_auto * lam
+        log.update(cls_lambda=cls_weight, cls_ratio_raw=raw)
     if geo.startswith("grgd") or geo.endswith("2"):
         rng_xi = random.Random(torch.initial_seed() + 1)
         rng_c = random.Random(torch.initial_seed() + 2)
