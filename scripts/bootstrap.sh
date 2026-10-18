@@ -33,12 +33,12 @@ log "4/5 Chốt danh sách ảnh n=300/n=1000 (idempotent — bỏ qua nếu đ�
 python scripts/generate_image_lists.py
 
 log "5/5 Ảnh adv baseline n300 từ HF (cần HF_TOKEN trong .env — gitignored)"
-if [ -f .env ] && grep -q '^HF_TOKEN=' .env; then
+if [ -f .env ] && grep -Eq '^HF_TOKEN *=' .env; then
   if [ -d artifacts/runs/n300_B50_eps5/adv ]; then
     echo "[bootstrap] artifacts/runs/n300_B50_eps5/ đã có — bỏ qua."
   else
     # Không in token: chỉ export vào môi trường của lệnh tải.
-    HF_TOKEN="$(grep '^HF_TOKEN=' .env | head -1 | cut -d= -f2-)" \
+    HF_TOKEN="$(sed -n 's/^HF_TOKEN *= *//p' .env | head -1 | tr -d '\r"'"'"' ')" \
       python scripts/sync_artifacts.py download n300_B50_eps5
   fi
 else
