@@ -2976,3 +2976,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 - 70 ảnh mới (dev100 \ dev30): C2-OCT-1V Swin-L +8.4 [2.7, 10.8], CA3 +2.4 [−2.6, 6.9]; C2-PIA-1V Swin-L +10.2 [3.3, 13.2], CA3 −0.0 [−3.9, 3.6] → lợi Swin-L lặp lại ngoài dev30 ở cả hai; lợi CA3 của C2-PIA-1V thì không.
 **Đọc:** cùng thời gian OSFD, thêm loss cls + 1 view / bước cho lợi chắc trên DINO-Swin-L (~+8–9, CI > 0), lợi CNN / YOLOX nhỏ, chưa chắc (CA3 CI chứa 0). YOLOX gần như không đổi (OCT-1V B65 từng +3.0) — chưa tách được do B thấp hơn (41 vs 65) hay do loss cls.
 **Bước tiếp (theo quy tắc: khóa entry mới trước khi chạy):** sàng lọc dev300 C2-OCT-1V B41 vs OSFD B50 (cùng máy) + đối chứng OSFD-1V cùng thời gian. User quyết.
+
+---
+
+## 2026-10-18 — Tinh chỉnh C2-OCT-1V trên dev10 (user: "thử nhanh xem xu hướng") — CHỈ MÔ TẢ, KHÔNG quyết định
+**Ô mới (`run_baselines.py`), mọi thứ như C2-OCT-1V trừ 1 chỗ:** `C2-OCT-1V-w2` / `-w8` (trọng số cls 2 / 8 thay 4); `C2-OCT-1V-RaPA` (RaPA p = 0.01 trên 53 BN backbone, mask mới mỗi view, CÙNG mask cho feature sạch co-transform và forward adv → tác động cả L_feature lẫn L_cls; không thêm forward). Code: `geo_osfd_attack` cho phép `rapa_cls_p` khi `feature=True` chỉ với `rapa_scope="backbone"`; đường cũ không đổi.
+**Kiểm:** 1 ảnh × 4 bước — base vs base cùng seed lệch 2.3% pixel (sàn không tất định); RaPA p = 0 vs base 4.5% (cùng cỡ sàn); p = 0.01: mask 1.0%, L∞ ≤ ε.
+**Chạy (V100, dev10 = 10 ảnh đầu dev30, mốc sinh lại cùng máy; B41 = cùng thời gian OSFD B50):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev10 --limit 10 --methods OSFD --out metrics_tune_dev10.json
+python scripts/run_baselines.py --split dev300 --subset dev10 --limit 10 --budget 41 --methods C2-OCT-1V C2-OCT-1V-w2 C2-OCT-1V-w8 C2-OCT-1V-RaPA --out metrics_tune_dev10.json
+# + eval_generalization (yolox_s dino_swin_l) cho 2 run
+```
+Log `results/octdev5/tune_dev10.log`. **n = 10 (CI ±10 điểm) → chỉ xem xu hướng**; ô nào đáng đi tiếp phải khóa quy tắc riêng @ dev100 (so C2-OCT-1V B41 đã có).

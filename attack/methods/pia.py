@@ -376,8 +376,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             feats_fixed = tuple(f.detach() for f in extract_features(model, clean_pixels, data_sample))
 
     rapa = rapa_sampler(model, rapa_p, clean_pixels.device) if rapa_p is not None else None
-    assert rapa_cls_p is None or not feature
-    rapa_cls = rapa_cls_sampler(model, rapa_cls_p, clean_pixels.device, rapa_scope) if rapa_cls_p is not None else None
+    # feature=True (C2-OCT-1V-RaPA, progress_log 2026-10-18): chỉ scope="backbone", CÙNG mask cho feature sạch và adv của view.
+    assert rapa_cls_p is None or not feature or (rapa_scope == "backbone" and cls_weight > 0 and co_transform)
+    rapa_cls =rapa_cls_sampler(model, rapa_cls_p, clean_pixels.device, rapa_scope) if rapa_cls_p is not None else None
 
     sched = None
     if strat:
@@ -457,6 +458,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         out = []
         for v, c, dsv in triples:
             ctx = rapa[0]() if rapa is not None else contextlib.nullcontext  # CÙNG mask cho sạch và adv của view
+            if rapa_cls is not None and feature:
+                ctx = rapa_cls[0]()
             if not feature:
                 assert cls_weight > 0
                 lf = make_view_loss(None, k, cls_mode, cls_weight, feat_weight=0.0)
@@ -473,7 +476,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 gtb = gtb.tensor if hasattr(gtb, "tensor") else gtb
                 out.append((v, ds, _view_loss_bg(fc, k, gtb.float(), bg_weight, 0.0 if bg_only else 1.0)))
             elif cls_weight > 0:
-                out.append((v, dsv, make_view_loss(fc, k, cls_mode, cls_weight)))
+                lf = make_view_loss(fc, k, cls_mode, cls_weight)
+                out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
             else:
