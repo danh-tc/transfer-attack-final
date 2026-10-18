@@ -3145,3 +3145,14 @@ Mồi được phát hiện đúng lớp (score ≥ 0.3, IoU ≥ 0.5; mốc sạ
 **Câu hỏi mới so với E8 (E8 chỉ có AP drop + suppression theo cỡ):** (1) attack phá ĐƯỢC DINO-Swin-L (white-box) phá theo kiểu nào — recall theo cỡ, box giả (FP / ảnh, FP score cao), confidence box còn sống — so với C2-OCT-1V / OSFD từ R50; (2) chiều NGƯỢC: δ sinh trên DINO-Swin-L hại R50 / CNN / Swin-T bao nhiêu (bất đối xứng chuyển giao?).
 **Ô (surrogate = DINO-Swin-L, ngoài threat model, chỉ phân tích):** `WB-OSFD` (công thức OSFD k = 3, MI, RRB, B50, **AMP fp16** — E8 fp32 trên 3090 không vừa V100: đo 0.33 s / bước, 11.2 GB); `WB-CLS` (số hạng phân loại DINO như E8 WB-s1, B50, checkpointing: 1.05 s / bước, 9.8 GB). Mốc R50: OSFD B50, C2-OCT-1V B41 (PNG có sẵn, cùng 10 ảnh). Seed theo chỉ số dev300.
 **Script:** `scripts/wb_probe.py` → PNG `artifacts/wb_probe/`, kết quả `results/mechanism/wb_probe_dev10.json`, log `results/e15/wb_probe.log`. n = 10 → chỉ sinh giả thuyết.
+
+### Kết quả WB-probe @ dev10 (`results/mechanism/wb_probe_dev10.json`, log `results/e15/wb_probe.log`, PNG `artifacts/wb_probe/`) — MÔ TẢ (n = 10; GT nhỏ / vừa / lớn = 88 / 44 / 10)
+AP drop %, R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L:
+- OSFD (R50): 99.4 / 84.3 / 77.3 / 69.5 / 61.1 / 27.9; C2-OCT-1V (R50): 99.6 / 89.8 / 83.3 / 75.5 / 72.1 / 34.8
+- **WB-OSFD (DINO-Swin-L): 31.4 / 24.0 / 42.1 / 53.2 / 32.7 / 77.1**; **WB-CLS (DINO-Swin-L): 7.6 / −0.6 / 17.3 / 24.1 / 6.5 / 91.2**
+Hồ sơ lỗi DINO-Swin-L (recall nhỏ / vừa / lớn | conf | FP / ảnh | FP score ≥ 0.5): sạch 0.57 / 0.82 / 1.00 | – | 5.1 | 0.7; OSFD 0.40 / 0.73 / 1.00 | 0.90 | 4.7 | 0.4; C2-OCT-1V 0.36 / 0.73 / 0.90 | 0.90 | 5.8 | 1.2; **WB-OSFD 0.15 / 0.30 / 0.50 | 0.83 | 7.2 | 1.1**; **WB-CLS 0.06 / 0.09 / 0.50 | 1.04 | 37.2 | 27.3**.
+**Đọc (sinh giả thuyết):**
+1. **Bất đối xứng KHÔNG có — khoảng cách họ backbone là HAI CHIỀU:** δ sinh trên DINO-Swin-L chuyển sang R50 / R101 / YOLOX chỉ 24–33% (WB-OSFD) hay ~0–8% (WB-CLS) — ngang hoặc tệ hơn chiều R50 → Swin-L (28–35%). Chuyển tốt nhất sang Swin-T (53.2), rồi ConvNeXt (42.1) → thứ tự theo khoảng cách họ, cả hai chiều. Kết quả trực tiếp cho RQ1 / RQ2: gap không phải vì Swin-L "bền", mà vì hướng nhạy của hai họ gần như rời nhau.
+2. **DINO KHÔNG miễn nhiễm box giả:** WB-CLS tạo 37 FP / ảnh (27 score ≥ 0.5) — ngang mức Mask R-CNN bị R50 phá. DINO chặn FP từ δ của R50 vì δ đó không tạo được feature "giống object" trong không gian Swin-L, không phải vì kiến trúc (khớp FAB: mồi 0% trên DINO).
+3. **Object lớn KHÔNG phải bức tường cơ bản:** WB-OSFD hạ recall lớn 1.00 → 0.50, vừa 0.82 → 0.30 (C2-OCT-1V: 0.90 / 0.73) — nhưng n lớn = 10, chỉ là dấu hiệu.
+4. Hai kênh white-box khác nhau: WB-OSFD xóa object (recall ↓ mọi cỡ, FP ít) — đúng kiểu OSFD làm với CNN; WB-CLS làm ngập FP (box sống vẫn tự tin, conf 1.04). Loss feature thuần chuyển ngược sang CNN tốt hơn hẳn loss cls (31 vs 8 trên R50) — cùng chiều với phía R50 (feature giữ CNN / YOLOX, cls giúp riêng Swin-L).
