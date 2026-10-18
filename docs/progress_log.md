@@ -2941,3 +2941,25 @@ Lưu ý `pair_screen.py` đọc CÙNG tên `--dets` ở mọi run → đặt cù
 **Code mới:** ô `OCT-1V`, `OCT-1V-S` (`elem.strat_schedule`, `geo_osfd_attack(strat)`), `OCT-1V-SEA` (`core.run_iterative_attack(season_sigma)`), `C2-OCT-1V`, `C2-PIA-1V`; `pair_screen.py` nhận `TÊN@RUN`; `scripts/viz_dets.py`, `scripts/e15_shift_object.py`; `data/image_lists/dev10.csv`. Run riêng V100: `results/runs/dev300_B{50,65}_eps5_limit{5,10,30,100}/`.
 **Việc mở:** (1) C2-OCT-1V / C2-PIA-1V @ dev100 cùng thời gian (trên). (2) Đối chứng OSFD-1V cùng thời gian nếu một ô 1V vượt OSFD. (3) Cân nhắc định vị analysis paper (cơ chế: khóa lưới / thang kích thước; Swin-L: stride 16, hướng, kéo về nền vs dời). (4) Rà BFDA. (5) Nợ cũ: GO @ n300 cho C2 (110 / 300).
 **Artifact:** KHÔNG upload HF. PNG V100 ở `artifacts/runs/dev300_B*_limit*` (mất khi trả máy; sinh lại được). **Commit local, CHƯA push.** Không có tiến trình nào đang chạy.
+
+---
+
+## 2026-10-18 — C2-OCT-1V B41 / C2-PIA-1V B45 vs OSFD B50 @ dev100 (cùng thời gian; user duyệt "oke run") — khóa TRƯỚC khi chạy
+**Máy:** V100 16GB (cùng loại phiên 10-17, máy mới) — PNG OSFD B50 dev100 cũ đã mất → **sinh lại mốc OSFD cùng máy** (cùng seed). Bootstrap lại checkpoint + COCO.
+**Ô (đã có trong `run_baselines.py`, entry 2026-10-17):** `C2-OCT-1V` B41 (= 50 × 3.9 / 4.7), `C2-PIA-1V` B45 (= 50 × 3.9 / 4.3) — B chọn để cùng thời gian OSFD B50 theo số đo dev5. ε = 5.
+**Lệnh** (log `results/octdev5/c2_1v_dev100.log`; cùng `--out` / `--dets` ở cả 3 run để `pair_screen.py` đọc được):
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --methods OSFD --out metrics_c2_1v_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --methods C2-OCT-1V --out metrics_c2_1v_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 45 --methods C2-PIA-1V --out metrics_c2_1v_dev100.json
+# eval_generalization (--subset dev100 --models yolox_s dino_swin_l --dets dets_c2_1v_dev100.json --out generalization_c2_1v_dev100.json) cho 3 run B50 / B41 / B45
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev100 --dets dets_c2_1v_dev100.json --tag c2_1v_dev100 --exclude dev30 \
+  --pairs C2-OCT-1V@dev300_B41_eps5_limit100:OSFD C2-PIA-1V@dev300_B45_eps5_limit100:OSFD
+```
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; Δ = drop(ô) − drop(OSFD B50); CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S), áp riêng cho từng ô:**
+- **GO dev300** nếu [(ΔCA3 ≥ 2 VÀ cận dưới CI > 0) HOẶC (ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ 0)] VÀ ΔR101 ≥ −3 VÀ runtime ≤ 1.1 × OSFD (đo cùng lần).
+- **NO-GO** nếu ΔCA3 ≤ 0 VÀ ΔSwin-L < 3 (điểm). Còn lại → XÁM, mô tả.
+- Runtime > 1.1 × OSFD nhưng Δ đạt → ghi "đạt nhưng vượt thời gian", không GO (user quyết đổi B).
+- Cả hai GO → chọn ΔCA3 lớn hơn (chênh < 0.5 → C2-OCT-1V, đơn giản hơn / không phụ thuộc PIA). GO → khóa entry mới: sàng lọc dev300 + đối chứng OSFD-1V cùng thời gian.
+- Mô tả: dev100 \ dev30 (70 ảnh mới); R101 / ConvNeXt / Swin-T / YOLOX riêng; so số OSFD B50 sinh lại với số 10-17 (CA3 75.0, Swin-L 24.9).
+**Caveat:** GPU không tất định (đọc theo CI); held-out (YOLOX-L, Swin-S) không dùng.
