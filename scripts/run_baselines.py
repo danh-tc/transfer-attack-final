@@ -253,7 +253,11 @@ METHODS["C2-OCT-1V-POS-CAP"] = (functools.partial(geo_osfd_attack, **_C2OCT, roi
 # Hướng A — box mồi cỡ object, descent có chủ đích (progress_log 2026-10-18): 3 mồi / ảnh, trọng số 4 | 8.
 METHODS["C2-OCT-1V-FAB4"] = (functools.partial(geo_osfd_attack, **_C2OCT, fab_k=3, fab_weight=4.0), 1)
 METHODS["C2-OCT-1V-FAB8"] = (functools.partial(geo_osfd_attack, **_C2OCT, fab_k=3, fab_weight=8.0), 1)
-GEO_METHODS_1V = {"C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
+# Embedding mức object (progress_log 2026-10-18): + w·‖e_RoI(adv) − e_RoI(sạch)‖² tại box GT; w = 15 (cân bằng gradient với
+# 4·L_cls, trung vị 5 ảnh dev100 tại δ ngẫu nhiên ±5) | 45.
+METHODS["C2-OCT-1V-OBJ15"] = (functools.partial(geo_osfd_attack, **_C2OCT, obj_weight=15.0), 1)
+METHODS["C2-OCT-1V-OBJ45"] = (functools.partial(geo_osfd_attack, **_C2OCT, obj_weight=45.0), 1)
+GEO_METHODS_1V = {"C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
                   "C2-OCT-1V-LA05", "C2-OCT-1V-LA1", "C2-OCT-1V-LA2", "C2-OCT-1V-ILPD05", "C2-OCT-1V-ILPD075"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",

@@ -165,8 +165,20 @@ def fab_term(model, x, fab_ds):
     return l_rpn + l_roi
 
 
+def roi_embed(model, x, boxes):
+    """Embedding mức object của Mask R-CNN: RoIAlign 7×7 trên FPN x tại `boxes` [N,4] (khung model) -> 2 fc chung
+    (Shared2FCBBoxHead, ReLU) -> [N, 1024] — đúng vector mà bộ phân loại / hồi quy box của RoI head dùng."""
+    rois = bbox2roi([boxes])
+    ext = model.roi_head.bbox_roi_extractor
+    f = ext(x[:ext.num_inputs], rois).flatten(1)
+    for fc in model.roi_head.bbox_head.shared_fcs:
+        f = F.relu(fc(f))
+    return f
+
+
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
-                   ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0):
+                   ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
+                   obj_weight: float = 0.0, obj_k: float = 1.0):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -189,7 +201,7 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
                 return tuple(o)
             return None
         h = model.backbone.register_forward_hook(hook)
-        hn = model.neck.register_forward_hook(lambda m, i, o: cap.update(x=o)) if fab_weight > 0 else None
+        hn = model.neck.register_forward_hook(lambda m, i, o: cap.update(x=o)) if fab_weight > 0 or obj_weight > 0 else None
         fab_ds = None
         if fab_weight > 0:
             data_sample, fab_ds = split_fab(data_sample)
@@ -204,6 +216,17 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
         if fab_weight > 0:
             fab_ds.set_metainfo(bds[0].metainfo)  # batch_input_shape / pad_shape do to_batch đặt
             c = c - fab_weight / weight * fab_term(model, cap["x"], fab_ds)  # weight·c − fab_weight·L_fab
+        if obj_weight > 0:
+            # C2-OCT-1V-OBJ (progress_log 2026-10-18): L_obj = MSE(obj_k·e_sạch, e_adv) trên embedding RoI 1024-d tại box GT
+            # của view (mức object, không cần nhãn); e_sạch qua FPN của feature backbone sạch co-transform. obj_k = 1: khoảng
+            # cách thuần (k = 3 kiểu OSFD cho gradient NGƯỢC L_cls, cos tới −0.56 — đo 5 ảnh dev100).
+            gb = data_sample.gt_instances.bboxes
+            gb = (gb.tensor if hasattr(gb, "tensor") else gb).float()
+            if len(gb):
+                with torch.no_grad():
+                    e_c = roi_embed(model, model.neck(tuple(feats_clean)), gb)
+                e_a = roi_embed(model, cap["x"], gb)
+                c = c + obj_weight / weight * F.mse_loss(obj_k * e_c, e_a)  # weight·c + obj_weight·L_obj
         if feat_weight == 0:  # CLS-OCT (progress_log 2026-10-08): chỉ loss cls
             return weight * c
         if feat_chw is not None:

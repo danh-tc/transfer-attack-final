@@ -3156,3 +3156,12 @@ Hồ sơ lỗi DINO-Swin-L (recall nhỏ / vừa / lớn | conf | FP / ảnh | F
 2. **DINO KHÔNG miễn nhiễm box giả:** WB-CLS tạo 37 FP / ảnh (27 score ≥ 0.5) — ngang mức Mask R-CNN bị R50 phá. DINO chặn FP từ δ của R50 vì δ đó không tạo được feature "giống object" trong không gian Swin-L, không phải vì kiến trúc (khớp FAB: mồi 0% trên DINO).
 3. **Object lớn KHÔNG phải bức tường cơ bản:** WB-OSFD hạ recall lớn 1.00 → 0.50, vừa 0.82 → 0.30 (C2-OCT-1V: 0.90 / 0.73) — nhưng n lớn = 10, chỉ là dấu hiệu.
 4. Hai kênh white-box khác nhau: WB-OSFD xóa object (recall ↓ mọi cỡ, FP ít) — đúng kiểu OSFD làm với CNN; WB-CLS làm ngập FP (box sống vẫn tự tin, conf 1.04). Loss feature thuần chuyển ngược sang CNN tốt hơn hẳn loss cls (31 vs 8 trên R50) — cùng chiều với phía R50 (feature giữ CNN / YOLOX, cls giúp riêng Swin-L).
+
+---
+
+## 2026-10-18 — Embedding mức object: C2-OCT-1V-OBJ15 / OBJ45 @ dev30 B41 (user) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lý do (từ WB-probe + POS-CAP):** chỉ loss mức object (L_cls qua RoI-pool) chạm được Swin-L; Swin-L nhận object bằng hình dạng toàn cục; đẩy xa hơn biên giúp. L_cls bị trói vào nhãn → thử khoảng cách thuần trên embedding object, không nhãn.
+**Ô:** C2-OCT-1V + w · L_obj, L_obj = MSE(e_sạch, e_adv) với e = embedding RoI 1024-d (RoIAlign 7×7 FPN → 2 fc + ReLU của Shared2FCBBoxHead, `repair.roi_embed`) tại box GT của view; e_sạch qua neck(feature backbone sạch co-transform), no_grad. w ∈ {15, 45}.
+**Thiết kế đổi trước khi chạy:** bản k = 3 (kiểu OSFD) cho ∇L_obj NGƯỢC ∇(4·L_cls) (cos −0.56 / −0.13 / −0.53 / +0.12 / −0.22, 5 ảnh đầu dev100, δ = 0) → dùng k = 1 (khoảng cách thuần; cos −0.40 … +0.55, không xung đột hệ thống). w = 15 = trung vị |∇4·L_cls| / |∇L_obj| (k = 1, tại δ ngẫu nhiên ±5; 8.8 / 14.5 / 15.0 / 56.8 / 86.2); 45 = 3×.
+**Kiểm:** chuỗi view trùng ô gốc; L∞ 5; 10 bước: δ lệch ô gốc 0.266 (w = 15) / 0.334 (w = 45) pixel vs sàn không tất định 0.100; thời gian ≈ ô gốc.
+**Chạy:** khung như các ô dev30 trước, out `metrics_obj_dev30.json`, dets `dets_obj_dev30.json`, tag `obj_dev30`, log `results/octdev5/obj_dev30.log`. Dấu hiệu "đáng xác nhận": ΔSwin-L ≥ 3 so C2-OCT-1V VÀ ΔCA3 ≥ −2 (rời đường đánh đổi).
