@@ -34,13 +34,15 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("action", choices=["upload", "download"])
     p.add_argument("run")
+    p.add_argument("--tag", default="", help="hậu tố tên file trên HF (vd _a4500): tránh ghi đè tar cùng tên của máy khác; "
+                                              "giải nén vẫn ra artifacts/runs/<run>/")
     args = p.parse_args()
     token = os.environ.get("HF_TOKEN")
     if not token:
         sys.exit("Thiếu HF_TOKEN trong biến môi trường.")
     api = HfApi(token=token)
     assert api.repo_info(HF_REPO, repo_type="dataset").private, f"{HF_REPO} không còn private — dừng."
-    remote = f"runs/{args.run}.tar"
+    remote = f"runs/{args.run}{args.tag}.tar"
 
     if args.action == "upload":
         src = os.path.join(ART_RUNS, args.run)
