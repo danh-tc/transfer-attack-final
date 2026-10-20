@@ -3210,3 +3210,30 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh (TB 300 ảnh): 
 - (d) Rà BFDA: cần PDF ICASSP'24 (IEEE Xplore / email tác giả) để quyết cài lại.
 **Code mới phiên này (mặc định giữ hành vi cũ):** ô `C2-OCT-1V-{w2,w8,RaPA,RaPA005,RaPA02,LA05,LA1,LA2,ILPD05,ILPD075,noCT,FIA,POS,POS-CAP}` (+ FAB / OBJ của phiên song song); `pia.calib_cls_weight`, `pia.fia_channel_weights`, `geo_osfd_attack(cls_auto, ilpd_gamma, fia_views, roi_pos, roi_cap)`, `rapa_cls_p` cho phép với loss feature (scope backbone); `repair.roi_cls_filter`, `make_view_loss(ilpd_gamma, feat_chw, roi_ctx)`.
 **Artifact (V100) ĐÃ upload HF** (`scripts/sync_artifacts.py upload`, dataset private `congdanh99/transfer-attack`): `runs/dev300_B50_eps5_limit{10,100,300}.tar`, `runs/dev300_B41_eps5_limit{10,100,300}.tar`, `runs/dev300_B45_eps5_limit100.tar` (sha256 trong commit message HF). Tải lại: `python scripts/sync_artifacts.py download dev300_B41_eps5_limit300` (cần HF_TOKEN). KHÔNG trộn với tar 3090 cũ (`dev300_B50_eps5.tar`, …). Chưa upload: `artifacts/wb_probe/` (17 MB), `artifacts/e15/`. `bootstrap.sh` sửa: đọc được `HF_TOKEN = ...` có dấu cách.
+
+---
+
+## 2026-10-20 — Máy mới RTX A4500 20GB; (a) đường bão hòa theo B của C2-OCT-1V + (d) gỡ cạnh tranh qua sign (DM / DMA) @ dev100 (user chọn) — khóa TRƯỚC khi chạy
+**Máy:** NVIDIA RTX A4500 20GB (KHÔNG phải V100 / 3090), bootstrap lại (`results/bootstrap/a4500.log`), đủ 11 checkpoint + COCO; không có `.env`. → sinh lại mọi mốc trên máy này, không trộn PNG V100 / 3090.
+**Đo thời gian (`scripts/dm_unit_test.py`, ảnh 1–2 dev300, ảnh 0 = khởi động), s / bước:** OSFD 0.0767; C2-OCT-1V 0.0671; DM 0.0773; DMA 0.0473 → **B cùng thời gian OSFD B50 trên A4500: C2-OCT-1V ≈ 57 (V100: 41), DM ≈ 50, DMA ≈ 81.** Định nghĩa đã đóng băng của C2-OCT-1V (sàng lọc dev300) là B41 = cùng thời gian trên V100; B nào dùng cho GO @ n300 trên A4500 — user quyết riêng, KHÔNG quyết trong entry này.
+**Code mới (mặc định giữ hành vi cũ):**
+- `core.run_iterative_attack(dual)`: loss view trả cặp (L_feat, L_cls); mỗi số hạng gradient + momentum riêng (chuẩn hoá mean|·|), cập nhật δ += α·sign(m_feat + m_cls) → mỗi kênh "1 phiếu" ở từng bước bất kể độ lớn gradient (bản gốc: sign(MI(g_feat + 4·g_cls)), kênh lớn hơn thắng từng pixel; cos ∇ ≈ −0.08, tỉ lệ độ lớn đổi 5× theo ảnh — entry 10-18). Trọng số 4 không còn tác dụng (bất biến thang đo).
+- `C2-OCT-1V-DM` (`dual="exact"`): cả 2 số hạng mỗi bước (2 lần autograd.grad cùng graph). `C2-OCT-1V-DMA` (`dual="alt"`): bước chẵn chỉ L_feat (chỉ backbone), bước lẻ chỉ L_cls (bỏ forward sạch co-transform) → mỗi momentum cập nhật mỗi 2 bước, rẻ hơn / bước.
+- `repair.make_view_loss(split)`; `run_baselines.py --snapshots`: 1 lần chạy B lớn ghi δ sau từng mốc B vào run `..._B<k>_...` (PNG + stats, runtime = thời gian tới bước k).
+**Kiểm:** split: tổng trùng tuyệt đối (14.609420); DM / DMA L∞ 5.0; DMA forward sạch 21 / 41 bước; snapshot k = 10 của lần chạy B20 vs chạy B10 lệch 0.299 pixel = sàn không tất định (B10 vs B10: 0.294).
+**Chạy (A4500, dev100, seed theo chỉ số dev300; log `results/sat_dm/run.log`, script `results/sat_dm/run.sh`; cùng `--out metrics_sat_dev100.json` / dets `dets_sat_dev100.json` mọi run):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --methods OSFD C2-OCT-1V-DM --out metrics_sat_dev100.json          # B50
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 100 --snapshots 20 41 57 65 --methods C2-OCT-1V --out metrics_sat_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 81 --methods C2-OCT-1V-DMA --out metrics_sat_dev100.json
+# --stage eval cho các run B20 / B41 / B57 / B65 (methods C2-OCT-1V); eval_generalization (yolox_s dino_swin_l) cho mọi run; rồi
+python scripts/pair_screen.py --run dev300_B50_eps5_limit100 --subset dev100 --dets dets_sat_dev100.json --tag sat_dm_dev100 --pairs \
+  C2-OCT-1V@dev300_B57_eps5_limit100:OSFD C2-OCT-1V@dev300_B100_eps5_limit100:C2-OCT-1V@dev300_B57_eps5_limit100 \
+  C2-OCT-1V@dev300_B57_eps5_limit100:C2-OCT-1V@dev300_B41_eps5_limit100 \
+  C2-OCT-1V-DM:C2-OCT-1V@dev300_B57_eps5_limit100 C2-OCT-1V-DMA@dev300_B81_eps5_limit100:C2-OCT-1V@dev300_B57_eps5_limit100
+```
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S; Δ = drop(A) − drop(B)):**
+- **(a) Bão hòa** — Δ_hi = B100 − B57. **CÒN DỐC** nếu ΔCA3_hi ≥ 2 VÀ cận dưới CI > 0, HOẶC ΔSwin-L_hi ≥ 2 VÀ cận dưới CI > 0 → hướng tăng tốc (bỏ / cache forward sạch để thêm bước cùng thời gian) đáng làm, khóa entry riêng. **BÃO HÒA** nếu ΔCA3_hi < 1 VÀ ΔSwin-L_hi < 1 (điểm) → bỏ hướng tăng tốc. Còn lại → XÁM. Mô tả: đường CA3 / Swin-L / R101 theo B ∈ {20, 41, 57, 65, 100}, runtime theo B; B57 − B41; **C2-OCT-1V B57 − OSFD B50 (cùng thời gian A4500)** — tái lập dev100 V100 (B41: Swin-L +8.8, CA3 +2.6) không.
+- **(d) DM / DMA vs C2-OCT-1V B57 (cùng thời gian)**, áp riêng từng ô: **GIÚP (rời đường đánh đổi)** nếu [(ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −1) HOẶC (ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1)] VÀ ΔR101 ≥ −3 VÀ runtime ≤ 1.1 × OSFD B50 (đo cùng lần). **HẠI** nếu ΔCA3 ≤ −3 HOẶC ΔSwin-L ≤ −3 (điểm). **TRÊN ĐƯỜNG** nếu một phía ≥ 2 và phía kia ≤ −1 (điểm). Còn lại → NGANG. Cả hai GIÚP → chọn ΔCA3 + ΔSwin-L lớn hơn (chênh < 1 → DMA, rẻ hơn). GIÚP → bước sau: sàng lọc dev300 so C2-OCT-1V cùng thời gian (entry riêng).
+- Mô tả: DM / DMA − OSFD B50; dev100 \ dev30; ConvNeXt / Swin-T / YOLOX / R101 riêng.
+**Caveat khai báo trước:** quét λ theo ảnh (LA1 ≈ λ = 4) gợi ý cân bằng 1 phiếu có thể chỉ là một điểm khác trên cùng đường đánh đổi; DMA đổi đồng thời 2 thứ (xen kẽ + nhiều bước hơn ở cùng thời gian) — không tách được nếu GIÚP. GPU không tất định → đọc theo CI. Held-out (YOLOX-L, Swin-S) không dùng.

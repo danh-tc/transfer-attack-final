@@ -257,7 +257,11 @@ METHODS["C2-OCT-1V-FAB8"] = (functools.partial(geo_osfd_attack, **_C2OCT, fab_k=
 # 4·L_cls, trung vị 5 ảnh dev100 tại δ ngẫu nhiên ±5) | 45.
 METHODS["C2-OCT-1V-OBJ15"] = (functools.partial(geo_osfd_attack, **_C2OCT, obj_weight=15.0), 1)
 METHODS["C2-OCT-1V-OBJ45"] = (functools.partial(geo_osfd_attack, **_C2OCT, obj_weight=45.0), 1)
-GEO_METHODS_1V = {"C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
+# Gỡ cạnh tranh qua sign (progress_log 2026-10-20): momentum riêng L_feat / L_cls, cập nhật sign(m_feat + m_cls) — mỗi bước cả 2
+# số hạng (DM, 2 grad / bước) | xen kẽ 1 số hạng / bước (DMA, 1 grad / bước, bước cls bỏ forward sạch).
+METHODS["C2-OCT-1V-DM"] = (functools.partial(geo_osfd_attack, **_C2OCT, dual="exact"), 1)
+METHODS["C2-OCT-1V-DMA"] = (functools.partial(geo_osfd_attack, **_C2OCT, dual="alt"), 1)
+GEO_METHODS_1V = {"C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
                   "C2-OCT-1V-LA05", "C2-OCT-1V-LA1", "C2-OCT-1V-LA2", "C2-OCT-1V-ILPD05", "C2-OCT-1V-ILPD075"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
@@ -306,9 +310,33 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                 kw = {"repair_seed": seed, "info": info}
             if name in GEO_METHODS:
                 kw = {"info": info}
+            snap_recs = []
+            if args.snapshots:
+                # Đường bão hòa theo B (progress_log 2026-10-20): noise sau k bước = lần chạy steps=k -> ghi PNG + stats
+                # (runtime = thời gian tới bước k) vào run của B = k; không có thống kê info riêng cho mốc.
+                def on_step(kk, nz, img_id=img_id, orig=orig, name=name):
+                    if kk not in args.snapshots:
+                        return
+                    torch.cuda.synchronize()
+                    sdir = os.path.join(REPO_ROOT, "artifacts/runs", run_name(args, kk), "adv", name)
+                    os.makedirs(sdir, exist_ok=True)
+                    a = to_adv_image(orig, nz)
+                    assert float((a - orig).abs().max()) <= args.epsilon + 1e-4
+                    mmcv.imwrite(a.permute(1, 2, 0).cpu().numpy().astype(np.uint8), os.path.join(sdir, f"{img_id}.png"))
+                    d = (a - orig) / 255.0
+                    snap_recs.append((kk, {"method": name, "img_id": img_id, "linf_255": float((a - orig).abs().max()),
+                                           "l2": float(d.norm()), "l2_per_pixel_rms": float(d.pow(2).mean().sqrt()),
+                                           "runtime_s": time.time() - t0, "backward": kk * BACKWARD_PER_STEP.get(name, 1),
+                                           "forward_views": kk * views, "snapshot_of_B": args.budget}))
+                kw["on_step"] = on_step
             noise = fn(surrogate, orig, ds, steps=args.budget, epsilon=args.epsilon, **kw)
             torch.cuda.synchronize()
             runtime = time.time() - t0
+            for kk, r in snap_recs:
+                sp = os.path.join(REPO_ROOT, "results/runs", run_name(args, kk))
+                os.makedirs(sp, exist_ok=True)
+                with open(os.path.join(sp, "attack_stats.jsonl"), "a") as f:
+                    f.write(json.dumps(r) + "\n")
             adv = to_adv_image(orig, noise)
             delta = (adv - orig) / 255.0
             linf = float((adv - orig).abs().max())
@@ -485,6 +513,11 @@ def print_table(m, keys, methods):
     print("\n=== runtime ===", {c: round(v["runtime_s_per_img"], 1) for c, v in m["compute"].items()})
 
 
+def run_name(args, budget):
+    return (f"{args.split}_B{budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
+            + (f"_sur-{args.surrogate}" if args.surrogate != SURROGATE_KEY else ""))
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--split", default="n300")
@@ -500,10 +533,12 @@ def main():
                         "dev300); seed vẫn theo chỉ số trong split -> nối thêm ảnh sau không phải chạy lại")
     p.add_argument("--surrogate", default=SURROGATE_KEY, choices=list(CONTROLLED_PANEL),
                    help="kiểm tổng quát surrogate (progress_log 2026-10-08); khác r50 -> run riêng *_sur-<key>")
+    p.add_argument("--snapshots", type=int, nargs="*", default=[],
+                   help="mốc B < --budget: ghi δ sau từng mốc vào run B tương ứng (đường bão hòa, progress_log 2026-10-20)")
     args = p.parse_args()
+    assert all(b < args.budget for b in args.snapshots)
 
-    run = (f"{args.split}_B{args.budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
-           + (f"_sur-{args.surrogate}" if args.surrogate != SURROGATE_KEY else ""))
+    run = run_name(args, args.budget)
     run_dir = os.path.join(REPO_ROOT, "results/runs", run)
     art_dir = os.path.join(REPO_ROOT, "artifacts/runs", run)
     adv_dir = os.path.join(art_dir, "adv")

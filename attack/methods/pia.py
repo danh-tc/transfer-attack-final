@@ -385,7 +385,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     cls_mode: str = "c2", rapa_cls_p=None, rapa_scope: str = "all", cache_views: int = 0,
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
-                    roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0):
+                    roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -421,6 +421,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert not fia_views or (geo == "elem" and cls_weight > 0 and feature and co_transform)
     assert roi_cap is None or roi_pos
     assert obj_weight == 0.0 or (cls_weight > 0 and feature and co_transform)  # C2-OCT-1V-OBJ: embedding RoI mức object
+    # dual (progress_log 2026-10-20): momentum riêng cho L_feat và L_cls (core.run_iterative_attack). "exact": cả 2 số hạng
+    # mỗi bước; "alt": bước chẵn chỉ L_feat (chỉ backbone), bước lẻ chỉ L_cls (bỏ forward sạch co-transform).
+    assert dual is None or (geo == "elem" and cls_weight > 0 and feature and co_transform and rapa_cls_p is None
+                            and not (fia_views or roi_pos or fab_k or obj_weight or ilpd_gamma is not None or cls_auto))
     assert not roi_pos or (cls_weight > 0 and cls_mode == "c2")
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
@@ -584,6 +588,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 lf = make_view_loss(None, k, cls_mode, cls_weight, feat_weight=0.0)
                 out.append((v, dsv, _with_ctx(lf, rapa_cls[0]()) if rapa_cls is not None else lf))
                 continue
+            if dual == "alt" and step_idx % 2 == 1:
+                lc = make_view_loss(None, k, cls_mode, cls_weight, feat_weight=0.0)
+                out.append((v, dsv, lambda m, p, d, lc=lc: (None, lc(m, p, d))))
+                continue
             if co_transform:
                 with torch.no_grad(), ctx():
                     fc = tuple(f.detach() for f in extract_features(model, c, ds))
@@ -594,9 +602,12 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 gtb = dsv.gt_instances.bboxes
                 gtb = gtb.tensor if hasattr(gtb, "tensor") else gtb
                 out.append((v, ds, _view_loss_bg(fc, k, gtb.float(), bg_weight, 0.0 if bg_only else 1.0)))
+            elif dual == "alt":
+                lfe = _view_loss(fc, k)
+                out.append((v, dsv, lambda m, p, d, lfe=lfe: (lfe(m, p, d), None)))
             elif cls_weight > 0:
                 lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
-                                    fab_weight=fab_weight, obj_weight=obj_weight)
+                                    fab_weight=fab_weight, obj_weight=obj_weight, split=dual == "exact")
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
@@ -609,7 +620,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                          on_step=on_step, backward_per_step=backward_per_step,
-                                         season_sigma=season_sigma)
+                                         season_sigma=season_sigma, dual=dual)
     finally:
         if mask_head is not None:
             model.roi_head.mask_head = mask_head

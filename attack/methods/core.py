@@ -62,6 +62,7 @@ def run_iterative_attack(
     backward_per_step: int = 1,
     combine: str = "sum",
     season_sigma: Optional[float] = None,
+    dual: Optional[str] = None,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -93,8 +94,16 @@ def run_iterative_attack(
     2 dòng — g_L = Gauss_σ(g) (bán kính 2σ, reflect), g_H = g − g_L; mỗi dòng momentum riêng (chuẩn hoá mean|·|) và δ
     riêng (+α·sign); δ_H chiếu trực giao với δ_L (tích vô hướng toàn ảnh); δ = δ_L + δ_H, mỗi pixel co cả hai theo
     cùng hệ số min(1, ε / |δ_L + δ_H|) để δ ∈ [−ε, ε]. Cần momentum > 0. None = trùng tuyệt đối bản cũ.
+
+    dual (C2-OCT-1V-DM / -DMA, progress_log 2026-10-20): loss của view trả về CẶP (L_feat, L_cls), phần tử có thể None.
+    Mỗi số hạng có gradient + momentum riêng (chuẩn hoá mean|·| như MI), hướng cập nhật = m_feat + m_cls -> mỗi kênh có
+    phiếu ngang nhau ở từng bước, bất kể độ lớn gradient (thay vì sign(g_feat + λ·g_cls)). "exact": cả 2 số hạng mỗi bước
+    (2 lần autograd.grad trên cùng graph); "alt": views_fn chỉ trả 1 số hạng mỗi bước (xen kẽ), 1 grad / bước.
     """
     assert combine in ("sum", "consensus")
+    assert dual in (None, "exact", "alt")
+    assert dual is None or (momentum > 0.0 and season_sigma is None and backward_per_step == 1 and grad_transform is None)
+    m_dual = [torch.zeros_like(orig_pixels), torch.zeros_like(orig_pixels)]
     model_size = tuple(data_sample.img_shape)
     noise = torch.zeros_like(orig_pixels)
     accumulated_grad = torch.zeros_like(orig_pixels)
@@ -126,6 +135,20 @@ def run_iterative_attack(
             views = (views_fn(adv_pixels, data_sample, step_idx, steps)
                     if views_fn is not None else [(adv_pixels, data_sample)])
 
+            if dual is not None:
+                parts = [None, None]
+                for view in views:
+                    for j, t in enumerate(view[2](model, view[0], view[1])):
+                        if t is not None:
+                            parts[j] = t if parts[j] is None else parts[j] + t
+                live = [j for j in (0, 1) if parts[j] is not None]
+                gj = torch.autograd.grad([parts[j] for j in live][0], noise, retain_graph=len(live) > 1)[0]
+                gl = [gj] + ([torch.autograd.grad(parts[live[1]], noise)[0]] if len(live) > 1 else [])
+                for j, g in zip(live, gl):
+                    m_dual[j] = momentum * m_dual[j] + g / (g.abs().mean() + 1e-12)
+                with torch.no_grad():
+                    noise = torch.clamp(noise + alpha * torch.sign(m_dual[0] + m_dual[1]), min=-epsilon, max=epsilon)
+                break
             loss = None
             for view in views:
                 # Phần tử thứ 3 (tùy chọn) = loss riêng của view — pilot KG: view cặp so với
@@ -138,6 +161,10 @@ def run_iterative_attack(
             grad = g if grad is None else grad + g
             if combine == "consensus":
                 gs.append(g)
+        if dual is not None:
+            if on_step is not None:
+                on_step(step_idx + 1, noise.detach())
+            continue
         if combine == "consensus":
             s = torch.stack([torch.sign(x) for x in gs])
             agree = (s == s[0]).all(0) & (s[0] != 0)

@@ -178,13 +178,14 @@ def roi_embed(model, x, boxes):
 
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
                    ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
-                   obj_weight: float = 0.0, obj_k: float = 1.0):
+                   obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
     F_sạch + γ·(F_adv − F_sạch) (F_sạch = feats_clean co-transform của view); L_OSFD vẫn trên F_adv gốc.
     feat_chw (C2-OCT-1V-FIA, progress_log 2026-10-18): list [C_l] trọng số kênh, trung bình 1 -> L_OSFD từng stage =
-    mean(w_c · (k·F_sạch − F_adv)²); w ≡ 1 trùng F.mse_loss. roi_ctx: () -> context manager quanh cls_term (roi_cls_filter)."""
+    mean(w_c · (k·F_sạch − F_adv)²); w ≡ 1 trùng F.mse_loss. roi_ctx: () -> context manager quanh cls_term (roi_cls_filter).
+    split (C2-OCT-1V-DM, progress_log 2026-10-20): trả cặp (feat_weight·L_feat, weight·L_cls) thay cho tổng (core dual)."""
     assert ilpd_gamma is None or (repair_feats is None and feats_clean is not None)
 
     def loss_fn(model, pixel_tensor, data_sample):
@@ -234,6 +235,8 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
                        for w, fc, fa in zip(feat_chw, feats_clean, cap["f"]))
         else:
             feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
+        if split:
+            return feat_weight * feat, weight * c
         return feat_weight * feat + weight * c
     return loss_fn
 
