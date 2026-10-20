@@ -126,6 +126,34 @@ def roi_cls_filter(model, cap=None, stats=None, head=None):
         del crit.forward  # về lại forward của lớp (orig là bound method của lớp)
 
 
+@contextlib.contextmanager
+def roi_margin(model, mode: str, scale: float):
+    """C2-OCT-1V-MRG / -MRGF (progress_log 2026-10-20, kiểu CW): thay CE của RoI head bằng margin KHÔNG chặn trên RoI DƯƠNG:
+    L = scale · mean_{RoI dương} (max_{c ≠ đúng} z_c − z_đúng); mode "all": c chạy mọi logit khác lớp đúng (kể cả nền),
+    "fg": chỉ 80 lớp object (không đẩy về nền). Ascent -> đẩy logit đúng xuống dưới lớp sai mạnh nhất, tiếp tục cả khi đã sai.
+    RoI nền bị bỏ (POS: không quan trọng). loss_rpn_cls KHÔNG đổi. Thay tạm forward của bbox_head.loss_cls."""
+    assert mode in ("all", "fg")
+    head = model.roi_head.bbox_head
+    crit, nc = head.loss_cls, head.num_classes
+
+    def fwd(cls_score, label, weight=None, avg_factor=None, **kw):
+        keep = label < nc
+        z = cls_score.float()[keep]
+        if len(z) == 0:
+            return cls_score.sum() * 0.0
+        t = label[keep]
+        zt = z.gather(1, t[:, None])[:, 0]
+        other = z.scatter(1, t[:, None], float("-inf"))
+        if mode == "fg":
+            other = other[:, :nc]
+        return scale * (other.max(1).values - zt).mean()
+    crit.forward = fwd
+    try:
+        yield
+    finally:
+        del crit.forward
+
+
 FAB_LABEL_OFFSET = 1000  # box mồi đi chung gt_instances (co-transform cùng GT thật), nhãn + offset để tách lại
 FAB_JITTER = 32
 

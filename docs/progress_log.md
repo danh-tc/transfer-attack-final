@@ -3248,3 +3248,24 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 **C2-OCT-1V B57 − OSFD B50 (cùng thời gian A4500, 3.87 vs 3.85 s):** CA3 **+7.5 [2.5, 11.8]**, Swin-L **+6.6 [1.5, 9.7]**, ConvNeXt +7.7, Swin-T +8.1, YOLOX +6.6, R101 +4.3 → tái lập (dev100 V100 B41: +2.6 / +8.8; dev300 V100: +7.0 / +9.0). B41 (= 0.72× thời gian OSFD trên A4500): CA3 +5.1 [0.0, 9.1], Swin-L +6.4.
 **(d)** so C2-OCT-1V B57: DM CA3 +1.1 [−0.3, 3.1], Swin-L +0.7, YOLOX +2.9 [0.4, 5.0], R101 −0.5; DMA CA3 +0.4, Swin-L +0.7 → cả hai **NGANG** (không GIÚP, không HẠI, không "trên đường"). Runtime 1.02× / 1.03× OSFD ✓. 70 ảnh mới: DM +1.4 / −0.4, DMA −0.1 / −0.2.
 **Đọc:** cân bằng 1 phiếu / bước giữa 2 kênh (DM) hay xen kẽ (DMA) không đổi được gì so với sign(g_feat + 4·g_cls) ở cùng thời gian → cạnh tranh độ lớn gradient qua sign KHÔNG phải nút thắt (khớp LA1 ≈ λ = 4). Trên A4500, công thức C2-OCT-1V gần bão hòa cho CNN ở B ≈ 57; tăng tốc để thêm bước chỉ hứa hẹn ≤ ~1 điểm CA3, Swin-L có thể +2–3 (chưa chắc). Không ô nào thành ứng viên.
+
+---
+
+## 2026-10-20 — (b) L_cls dạng margin CW trên RoI dương: C2-OCT-1V-MRG / -MRGF @ dev100 B57 (user duyệt "approve b") — khóa TRƯỚC khi chạy
+**Cơ sở:** POS (CE chỉ RoI dương ≈ ô gốc → RoI nền không quan trọng); POS-CAP (ngừng đánh object đã sai p < 0.1 → hại mạnh, Swin-L −11.7) → lợi của L_cls đến từ việc tiếp tục đẩy object ĐÃ sai ra xa biên của surrogate.
+**Ô (như C2-OCT-1V, trừ loss_cls của RoI head; loss_rpn_cls giữ nguyên, trọng số 4 giữ nguyên):** L_mrg = s · mean_{RoI dương} (max_{c ≠ đúng} z_c − z_đúng), không chặn (κ = ∞).
+- `C2-OCT-1V-MRG`: đối thủ = mọi logit khác lớp đúng, KỂ CẢ nền; s = 0.0594.
+- `C2-OCT-1V-MRGF`: chỉ 80 lớp object (đẩy sang lớp sai, không về nền); s = 0.0484.
+- s = trung vị mean|∇ₓ CE_RoI| / mean|∇ₓ L_mrg| tại δ = 0, ảnh không biến đổi, 5 ảnh đầu dev100 (`scripts/mrg_calib.py`; all 0.061 / 0.059 / 0.041 / 0.026 / 0.156; fg 0.048 / 0.035 / 0.059 / 0.024 / 0.082) — cùng cách chọn λ = 4; margin chỉ trung bình trên RoI dương (~11%) nên gradient gấp ~17–20× CE. Code `repair.roi_margin`, `geo_osfd_attack(margin, margin_scale)`.
+**Kiểm:** 6 bước ảnh đầu dev300: L∞ 5.0; mask head + loss_cls.forward khôi phục; giá trị trong context là margin (vd ảnh 7088: CE 0.114 vs margin all −1.65 / fg −6.86).
+**Đổi so với đề xuất 10-18 (dev30 B41):** chạy dev100 B57 — B57 = cùng thời gian OSFD B50 trên A4500 (entry trên), mốc C2-OCT-1V B57 + OSFD B50 dev100 đã có cùng máy → so cặp trực tiếp, ít nhiễu hơn dev30. Runtime kỳ vọng = ô gốc (chỉ đổi hàm loss trên logit).
+**Chạy (log `results/mrg/run.log`, script `results/mrg/run.sh`):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 57 --methods C2-OCT-1V C2-OCT-1V-MRG C2-OCT-1V-MRGF --out metrics_sat_dev100.json
+python scripts/eval_generalization.py --run dev300_B57_eps5_limit100 --subset dev100 --models yolox_s dino_swin_l --methods C2-OCT-1V C2-OCT-1V-MRG C2-OCT-1V-MRGF --dets dets_sat_dev100.json --out generalization_sat_dev100.json
+python scripts/pair_screen.py --run dev300_B57_eps5_limit100 --subset dev100 --dets dets_sat_dev100.json --tag mrg_dev100 --exclude dev30 --pairs \
+  C2-OCT-1V-MRG:C2-OCT-1V C2-OCT-1V-MRGF:C2-OCT-1V C2-OCT-1V-MRG:OSFD@dev300_B50_eps5_limit100 C2-OCT-1V-MRGF:OSFD@dev300_B50_eps5_limit100
+```
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; Δ = drop(ô) − drop(C2-OCT-1V B57)), áp riêng từng ô — cùng khung (d):** **GIÚP** nếu [(ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −1) HOẶC (ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1)] VÀ ΔR101 ≥ −3 VÀ runtime ≤ 1.1 × OSFD B50 (3.85 s). **HẠI** nếu ΔCA3 ≤ −3 HOẶC ΔSwin-L ≤ −3. **TRÊN ĐƯỜNG** nếu một phía ≥ 2 và phía kia ≤ −1. Còn lại → NGANG. Cả hai GIÚP → chọn ΔCA3 + ΔSwin-L lớn hơn (chênh < 1 → MRG). GIÚP → sàng lọc dev300 so C2-OCT-1V cùng thời gian (entry riêng). Không ô nào GIÚP → theo đề xuất 10-18 mục (c): coi C2-OCT-1V gần trần nhóm 1 surrogate R50, chuẩn bị GO @ n300 (user quyết B).
+- Mô tả: Δ − OSFD; 70 ảnh mới; hồ sơ lỗi DINO-Swin-L nếu GIÚP.
+**Caveat khai báo trước:** CE ascent vốn KHÔNG bão hòa theo z_đúng (∂CE/∂z_đúng → −1 khi p_đúng → 0) → khác biệt thực của MRG so với CE chủ yếu là: chỉ RoI dương (POS ≈ ô gốc), chỉ 1 lớp đối thủ mạnh nhất, (MRGF) không về nền — kỳ vọng tiên nghiệm: dễ NGANG.
