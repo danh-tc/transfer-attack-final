@@ -386,7 +386,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
-                    margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None):
+                    margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -630,15 +630,26 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 out.append((v, ds, _view_loss(fc, k, feat_stages)))
         return out
 
+    wp = None
+    if weight_rho is not None:
+        # C2-OCT-1V-WP (progress_log 2026-10-21): nhiễu trọng số conv backbone (chỉ tensor requires_grad — stage đóng băng
+        # của mmdet giữ nguyên), core.run_iterative_attack(weight_perturb). Feature sạch co-transform cũng tính trên θ'.
+        params = [m.weight for m in model.backbone.modules() if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
+        wp = (params, weight_rho, [p.detach().clone() for p in params])
     try:
-        with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
+        # cache_enabled=False khi nhiễu trọng số: bản fp16 cache từ forward no_grad (feature sạch) không có liên kết tới θ.
+        with torch.autocast("cuda", dtype=torch.float16, enabled=amp, cache_enabled=wp is None):
             noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                          on_step=on_step, backward_per_step=backward_per_step,
-                                         season_sigma=season_sigma, dual=dual)
+                                         season_sigma=season_sigma, dual=dual, weight_perturb=wp)
     finally:
         if mask_head is not None:
             model.roi_head.mask_head = mask_head
+        if wp is not None:
+            with torch.no_grad():
+                for p, p0 in zip(wp[0], wp[2]):
+                    p.copy_(p0)
     if rapa is not None:
         log["rapa_masked_frac"] = int(rapa[1]["masked"]) / max(1, rapa[1]["total"])
     if rapa_cls is not None:

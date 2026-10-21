@@ -63,6 +63,7 @@ def run_iterative_attack(
     combine: str = "sum",
     season_sigma: Optional[float] = None,
     dual: Optional[str] = None,
+    weight_perturb=None,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -99,6 +100,10 @@ def run_iterative_attack(
     Mỗi số hạng có gradient + momentum riêng (chuẩn hoá mean|·| như MI), hướng cập nhật = m_feat + m_cls -> mỗi kênh có
     phiếu ngang nhau ở từng bước, bất kể độ lớn gradient (thay vì sign(g_feat + λ·g_cls)). "exact": cả 2 số hạng mỗi bước
     (2 lần autograd.grad trên cùng graph); "alt": views_fn chỉ trả 1 số hạng mỗi bước (xen kẽ), 1 grad / bước.
+
+    weight_perturb = (params, rho) (C2-OCT-1V-WP, progress_log 2026-10-21; họ AWT / SAM phía model): trong CÙNG lần
+    autograd.grad lấy thêm ∇θ của loss attack; trước bước sau đặt θ' = θ − rho·‖θ_t‖·∇θ_t / ‖∇θ_t‖ (từng tensor) -> surrogate
+    "chống lại" δ hiện tại, gradient ảnh bước sau tính trên θ' (trễ 1 bước, không forward thêm). Caller khôi phục θ gốc.
     """
     assert combine in ("sum", "consensus")
     assert dual in (None, "exact", "alt")
@@ -157,7 +162,15 @@ def run_iterative_attack(
                 view_loss_fn = view[2] if len(view) > 2 else loss_fn
                 term = view_loss_fn(model, view_img, view_data_sample)
                 loss = term if loss is None else loss + term
-            g = torch.autograd.grad(loss, noise)[0]
+            if weight_perturb is not None:
+                params, rho, base = weight_perturb
+                gall = torch.autograd.grad(loss, [noise] + params)
+                g = gall[0]
+                with torch.no_grad():
+                    for p, p0, gp in zip(params, base, gall[1:]):
+                        p.copy_(p0 - rho * p0.norm() * gp / (gp.norm() + 1e-12))
+            else:
+                g = torch.autograd.grad(loss, noise)[0]
             grad = g if grad is None else grad + g
             if combine == "consensus":
                 gs.append(g)
