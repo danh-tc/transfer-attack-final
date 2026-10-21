@@ -3335,3 +3335,13 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh:
 - Không (A), và **(C) "cấu trúc mịn (mức patch / token)"** nếu [drop(HP_2 δ_SwinT) − drop(FULL δ_R50)] ≥ 0.7·G' → hướng: biến đổi đầu vào / ràng buộc theo cấu trúc patch.
 - Cả (B) và (C) → cả hai dải đều mang (thành phần "đúng hướng" có mặt mọi tần) → như (B). Còn lại → XÁM (mô tả). GRAY: mô tả (vai trò màu).
 **Caveat:** co giãn L∞ = 5 làm L2 của biến thể khác FULL (báo L2); inference_detector ≠ pipeline Controlled của run_baselines; dev100 duy nhất, không chọn tham số nào cho method từ đây (chỉ chọn hướng).
+
+### Kết quả E16 @ dev100 (`results/mechanism/e16_delta_band.json`, log `results/e16/run.log`) — theo quy tắc: **XÁM** (không A, không B, không C)
+(Sự cố: bản đầu khởi tạo lại CocoImageEval cho mỗi mẫu bootstrap → treo > 1 h ở bước AP; sửa, chạy lại, dets DINO giữ nguyên — số không đổi.)
+Relative AP drop % DINO-Swin-L / R50 / Swin-T (inference_detector):
+- R50: FULL 32.0 / 97.7 / 77.7; LP1 10.6; LP2 3.4; LP4 1.7; HP2 8.1; GRAY 15.9 (DINO)
+- SwinT: FULL 58.0 / 78.7 / 95.3; LP1 22.4; LP2 10.1; LP4 5.3; HP2 16.4; GRAY 24.4 (DINO)
+G' = +26.0 [19.6, 29.6] (= số Controlled, cùng PNG). (A) LP tốt nhất của δ_R50 (LP1) −21.4 → KHÔNG; (B) LP2 δ_SwinT giữ −0.84·G → KHÔNG; (C) HP2 giữ −0.60·G → KHÔNG.
+**Mô tả (không thuộc quy tắc; so CÙNG phép lọc giữa 2 nguồn → cùng L2):** δ_SwinT − δ_R50 trên DINO: LP1 +11.8, LP2 +6.7, LP4 +3.6, HP2 +8.3, GRAY +8.5 → lợi thế của δ_SwinT **có mặt ở mọi dải và cả khi bỏ màu** (tỉ lệ ~1.5–3×), không nằm riêng ở dải nào.
+**Vân tay (TB 100 ảnh):** phổ 3 dải R50 0.34 / 0.36 / 0.30 vs SwinT 0.35 / 0.35 / 0.31 (gần như trùng); mật độ năng lượng trong GT box 1.01 vs 1.01 (không dồn vào object); màu 0.49 vs 0.61 (SwinT màu hơn — nhưng GRAY vẫn giữ lợi thế); cos(δ_R50, δ_SwinT) = 0.06 (gần trực giao).
+**Đọc:** mọi phép lọc đều phá phần lớn tác dụng của CẢ HAI δ (δ băng rộng, dạng sign ±5 khắp ảnh) → (A) bị loại rõ: làm mượt δ R50 chỉ HẠI. Hai δ giống nhau về phổ, phân bố không gian, gần giống về màu, nhưng gần trực giao và δ_SwinT phá DINO gấp ~2× ở mọi dải → khác biệt là **HƯỚNG / mẫu không gian cụ thể** (δ đánh vào feature nào), không phải thống kê bậc thấp (phổ, màu, vị trí). Đáng chú ý: δ_SwinT vẫn phá R50 78.7% → tồn tại vùng δ adversarial cho CẢ R50 lẫn Transformer mà gradient ascent trên R50 không tìm tới. Hướng method: thay đổi HƯỚNG gradient R50 (đường lan ngược / mục tiêu feature / biến đổi kiểu token), không phải ràng buộc phổ. User quyết ô cụ thể.
