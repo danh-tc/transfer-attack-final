@@ -3403,3 +3403,19 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.3 
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.3 / 94.4 / 81.9 / 80.3 / 64.8 / 31.9 | 75.7 | 4.1; **WP2** 99.0 / 92.4 / 83.8 / 81.4 / 74.7 / 38.9 | 80.0 | 4.7; **WP5** 97.3 / 87.5 / 79.9 / 75.1 / 72.8 / 32.2 | 75.9 | 4.6.
 Δ so C2-OCT-1V: **WP2 Swin-L +7.0 [+1.3, +8.3]**, CA3 +4.3 [−2.1, 7.6], YOLOX +9.9, ConvNeXt +1.9, Swin-T +1.0, R101 −1.9; WP5 Swin-L +0.4, CA3 +0.2, R101 −6.9, Swin-T −5.3.
 **Đọc:** WP2 là ô ĐẦU TIÊN trong mọi thử nghiệm phía R50 tăng ĐỒNG THỜI DINO-Swin-L và CA3 (không trượt đường đánh đổi YOLOX ↑ / Swin-L ↓) — ủng hộ giả thuyết nút thắt nằm ở hình học gradient của θ surrogate. Liều nhạy: ρ = 0.005 mất lợi Swin-L và hại R101 / Swin-T (gần ngưỡng dao động 0.01). **Caveat:** dev30 nhiễu (CA3 CI chứa 0); runtime 4.7 vs 4.1 = **1.15×** (đo 2 ảnh trước đó ≈ 1.0× — thiếu đại diện) → so CÙNG THỜI GIAN ở dev100 cần WP2 ở B ≈ 36 (= 41 / 1.15) hoặc giảm chi phí.
+
+---
+
+## 2026-10-21 — TẠM DỪNG (user đi ngủ, mai chạy tiếp): tổng kết phiên V100 + việc mở
+**Máy:** Tesla V100-SXM2 16GB (bootstrap lại; đủ 11 checkpoint + COCO; KHÔNG có `.env` → PNG phiên này CHƯA upload HF). Không có tiến trình nào đang chạy.
+**Kết quả chính:**
+1. **Chẩn đoán đổi surrogate (dev100 B41): TƯỜNG HỌ** — surrogate Swin-T đưa DINO-Swin-L 32.0 → 58.0 (Δ +26.0 [19.6, 29.6]); gap hai chiều đối xứng (Swin-T → R50 78.7 ≈ R50 → Swin-T 77.7). **δ_SwinT vẫn phá R50 78.7% → tồn tại vùng δ chung cho 2 họ mà gradient θ R50 không chỉ tới.**
+2. **E16 (lọc δ, dev100): XÁM** — khác biệt δ_SwinT vs δ_R50 là HƯỚNG (cos 0.06), không phải phổ / màu / vị trí; làm mượt δ R50 chỉ hại.
+3. **User xác định mục tiêu paper = vượt gap CNN → Transformer (KHÔNG dừng ở kết luận cơ chế).** Ba hướng "δ R50 giống Transformer" phía attack (dev30): BPA NGANG, GLB HẠI, PD HẠI — lại trượt đường đánh đổi.
+4. **Hướng mới — sửa hình học gradient của surrogate (nhiễu trọng số R50 trong lúc attack, họ AWT / SAM phía model; user đồng ý vẫn là single surrogate R50):** **C2-OCT-1V-WP2 (ρ = 0.002) @ dev30: Swin-L +7.0 [1.3, 8.3], CA3 +4.3, YOLOX +9.9** — ô ĐẦU TIÊN tăng cả hai phía; WP5 (ρ = 0.005) NGANG. Runtime 1.15× → chưa cùng thời gian.
+**Việc tiếp (phiên sau, theo thứ tự):**
+- (1) **Xác nhận WP2 @ dev100, CÙNG THỜI GIAN** — khóa quy tắc entry riêng TRƯỚC khi chạy (đề xuất khung GIÚP / HẠI như (d) 10-20): WP2 B36 (= 41 / 1.15; đo lại s/bước trên máy mới, đặt B theo đó) vs C2-OCT-1V B41 cùng máy + OSFD B50 làm mốc SOTA; ~25–30 phút. Máy mới ≠ V100 → sinh lại mọi mốc cùng máy (B cùng thời gian theo máy, như A4500 = B57).
+- (2) Qua → sàng lọc dev300 → GO @ n300 kèm held-out YOLOX-L + Mask R-CNN Swin-S. Không qua → các biến thể cùng họ (AWT đầy đủ / SAM phía model không trễ / chỉ stage 3–4), khóa trước.
+- (3) Rà literature surrogate-refinement cho detection (AWT, SASD-WS, flat-minima-over-surrogates) — khẳng định novelty; BFDA vẫn mở.
+**Code mới phiên này (mặc định giữ hành vi cũ):** `core.run_iterative_attack(weight_perturb)`, `geo_osfd_attack(stage_pool, patch_drop, weight_rho)` (autocast `cache_enabled=False` khi weight_rho), `repair._pooled_mse`, `make_view_loss(stage_pool)`, `attack/methods/bpa.py`; ô `C2-OCT-1V-{BPA, BPA34, GLB7, GLBG, PD16, PD32, WP2, WP5}`; `scripts/e16_delta_band.py`.
+**Artifact CHƯA upload (mất khi trả máy; sinh lại được):** `artifacts/runs/dev300_B41_eps5_limit100{,_sur-swin_t}/` (PNG dev100 C2-OCT-1V sur R50 / Swin-T + PNG dev30 các ô BPA / GLB / PD / WP), `artifacts/e16/`. Số liệu + dets tổng hợp đã nằm trong `results/` (git).
