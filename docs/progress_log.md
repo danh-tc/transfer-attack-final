@@ -3314,3 +3314,11 @@ python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev100 --d
 - Còn lại → XÁM (mô tả, user quyết).
 - Mô tả: chiều ngược Swin-T → R50 / R101 / ConvNeXt / YOLOX (so WB-probe: gap hai chiều); runtime s/ảnh của 2 surrogate; 70 ảnh mới (dev100 \ dev30).
 **Caveat khai báo trước:** λ = 4 và mọi liều OCT hiệu chỉnh trên R50, không tune lại cho Swin-T (thiên về bất lợi cho surrogate Swin-T → nếu vẫn TƯỜNG HỌ thì kết luận càng chắc; nếu TƯỜNG DINO-Swin-L có thể một phần do chưa tune); Swin-T là surrogate "cùng họ" với Swin-L nhưng khác detector (Mask R-CNN vs DINO) và khác cỡ / dữ liệu pretrain (IN-1k vs IN-22k) — không tách được 2 yếu tố này trong 1 thí nghiệm. GPU không tất định → đọc theo CI. Held-out (YOLOX-L, Swin-S) không dùng.
+
+### Kết quả @ dev100 B41 (V100; `results/ablation/sur_swint_dev100/screen.json`, `results/runs/dev300_B41_eps5_limit100{,_sur-swin_t}/{metrics,generalization}_sur_dev100.json`, log `results/sur/run.log`) — theo quy tắc: **HỢP LỆ, TƯỜNG HỌ (CNN ↔ Transformer)**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh:
+- sur R50: 97.7 / 92.7 / 82.4 / 77.7 / 69.1 / **32.0** | 76.4 | 4.1
+- sur Swin-T: 78.7 / 75.7 / 85.2 / **95.3** (white-box) / 70.8 / **58.0** | 83.8 | 5.3 (1.3×)
+**Quy tắc:** white-box Swin-T 95.3 ≥ 80 → HỢP LỆ. drop_Swin-L(sur Swin-T) 58.0 ≥ 50 VÀ Δ = **+26.0 [+19.6, +29.6]** (cận dưới > 0) → **TƯỜNG HỌ**. 70 ảnh mới cùng chiều: 53.2 vs 31.1, Δ +22.1 [+17.5, +26.9].
+**Mô tả:** chiều ngược gap y hệt — Swin-T → R50 78.7 / R101 75.7 (Δ R101 −17.0) ≈ R50 → Swin-T 77.7 (khớp WB-probe: gap hai chiều). ConvNeXt +2.8 [−0.2, 7.1] (CNN "thiết kế kiểu Transformer" hưởng nhẹ), YOLOX +1.7 (CI chứa 0). DINO-Swin-L vẫn kháng hơn Swin-T (58 vs 95 white-box) → encoder DINO / cỡ Swin-L có góp phần nhưng KHÔNG phải bức tường chính.
+**Đọc:** DINO-Swin-L KHÔNG miễn nhiễm transfer — đổi surrogate sang cùng họ Transformer (detector khác, Mask R-CNN vs DINO; pretrain khác IN-1k vs IN-22k; λ / liều OCT chưa tune cho Swin-T) đã gần gấp đôi drop (32 → 58). Bức tường chính là khác họ backbone CNN ↔ Transformer. Theo đề xuất 10-20: hướng method = làm δ sinh từ R50 "giống Transformer" (hoặc user cân nhắc threat model). Bước tiếp — user quyết.
