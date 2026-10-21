@@ -3291,3 +3291,26 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 98.3 
 - (3) Rà BFDA (cần PDF ICASSP'24).
 **Code mới phiên này (mặc định giữ hành vi cũ):** `core.run_iterative_attack(dual)`, `repair.make_view_loss(split)`, `repair.roi_margin`, `geo_osfd_attack(dual, margin, margin_scale)`; ô `C2-OCT-1V-{DM, DMA, MRG, MRGF}`; `run_baselines.py --snapshots` (+ `run_name`); `scripts/dm_unit_test.py`, `scripts/mrg_calib.py`.
 **Artifact A4500 ĐÃ upload HF** (user thêm `.env` cuối phiên) với hậu tố `_a4500` để KHÔNG ghi đè tar V100 cùng tên (`dev300_B{41,50}_eps5_limit100.tar`): `runs/dev300_B{20,41,50,57,65,81,100}_eps5_limit100_a4500.tar` (sha256 trong commit message HF). Tải lại: `python scripts/sync_artifacts.py download dev300_B57_eps5_limit100 --tag _a4500` (giải nén ra `artifacts/runs/dev300_B57_eps5_limit100/` — không trộn với PNG V100 cùng tên run). `sync_artifacts.py` thêm `--tag` (hậu tố tên file HF).
+
+---
+
+## 2026-10-21 — Máy mới V100 16GB; chẩn đoán đổi surrogate: C2-OCT-1V với surrogate Swin-T @ dev100 B41 (user: "chỉ cần câu trả lời chính") — khóa TRƯỚC khi chạy
+**Máy:** Tesla V100-SXM2 16GB (cùng loại máy sàng lọc dev300 10-18 → B41 = cùng thời gian OSFD B50 với surrogate R50), bootstrap lại; không có `.env` → không tải được dets V100 cũ từ HF → sinh lại mốc R50 cùng máy.
+**Câu hỏi (việc mở (1) entry 10-20, chỉ nhánh Swin-T):** transfer không qua DINO-Swin-L (drop ~31%) là do bức tường **khác họ CNN ↔ Transformer** hay do **chính DINO-Swin-L** (encoder DINO "sửa" + Swin-L / IN-22k)? Chỉ PHÂN TÍCH — threat model vẫn khóa surrogate R50 (idea.md §5); r101 / convnext_t KHÔNG chạy (user chỉ cần câu trả lời chính).
+**Ô:** `C2-OCT-1V` y nguyên (λ = 4, OCT 1 view, MI, skip_mask + AMP, ε = 5, B41), chỉ đổi `--surrogate swin_t` (Mask R-CNN Swin-T, cùng head RPN + RoI → loss C2 định nghĩa y hệt; L_OSFD trên 4 stage backbone Swin-T). Cùng số bước B41 (không cùng thời gian — runtime báo mô tả).
+**Chạy (log `results/sur/run.log`, script `results/sur/run.sh`):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --methods C2-OCT-1V --out metrics_sur_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --surrogate swin_t --methods C2-OCT-1V --out metrics_sur_dev100.json
+python scripts/eval_generalization.py --run dev300_B41_eps5_limit100 --subset dev100 --models yolox_s dino_swin_l --methods C2-OCT-1V --dets dets_sur_dev100.json --out generalization_sur_dev100.json
+python scripts/eval_generalization.py --run dev300_B41_eps5_limit100_sur-swin_t --subset dev100 --models yolox_s dino_swin_l --methods C2-OCT-1V --dets dets_sur_dev100.json --out generalization_sur_dev100.json
+python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev100 --dets dets_sur_dev100.json --tag sur_swint_dev100 --exclude dev30 \
+  --pairs C2-OCT-1V@dev300_B41_eps5_limit100_sur-swin_t:C2-OCT-1V
+```
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; Δ = drop_Swin-L(sur Swin-T) − drop_Swin-L(sur R50), cùng ảnh):**
+- **Hợp lệ** chỉ khi white-box drop của Swin-T (surrogate) ≥ 80% (attack thật sự khớp surrogate mới). Không đạt → KHÔNG HỢP LỆ, không kết luận, ghi log.
+- **TƯỜNG HỌ (CNN ↔ Transformer)** nếu drop_Swin-L(sur Swin-T) ≥ 50 VÀ cận dưới CI của Δ > 0 → hướng method: làm δ từ R50 "giống Transformer" (hoặc user cân nhắc threat model).
+- **TƯỜNG DINO-Swin-L** nếu drop_Swin-L(sur Swin-T) < 40 → bức tường nằm ở chính DINO-Swin-L; ngừng đuổi Swin-L bằng method, báo cáo như kết quả độ bền có cơ chế (RQ2).
+- Còn lại → XÁM (mô tả, user quyết).
+- Mô tả: chiều ngược Swin-T → R50 / R101 / ConvNeXt / YOLOX (so WB-probe: gap hai chiều); runtime s/ảnh của 2 surrogate; 70 ảnh mới (dev100 \ dev30).
+**Caveat khai báo trước:** λ = 4 và mọi liều OCT hiệu chỉnh trên R50, không tune lại cho Swin-T (thiên về bất lợi cho surrogate Swin-T → nếu vẫn TƯỜNG HỌ thì kết luận càng chắc; nếu TƯỜNG DINO-Swin-L có thể một phần do chưa tune); Swin-T là surrogate "cùng họ" với Swin-L nhưng khác detector (Mask R-CNN vs DINO) và khác cỡ / dữ liệu pretrain (IN-1k vs IN-22k) — không tách được 2 yếu tố này trong 1 thí nghiệm. GPU không tất định → đọc theo CI. Held-out (YOLOX-L, Swin-S) không dùng.
