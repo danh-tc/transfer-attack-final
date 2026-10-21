@@ -3345,3 +3345,15 @@ G' = +26.0 [19.6, 29.6] (= số Controlled, cùng PNG). (A) LP tốt nhất củ
 **Mô tả (không thuộc quy tắc; so CÙNG phép lọc giữa 2 nguồn → cùng L2):** δ_SwinT − δ_R50 trên DINO: LP1 +11.8, LP2 +6.7, LP4 +3.6, HP2 +8.3, GRAY +8.5 → lợi thế của δ_SwinT **có mặt ở mọi dải và cả khi bỏ màu** (tỉ lệ ~1.5–3×), không nằm riêng ở dải nào.
 **Vân tay (TB 100 ảnh):** phổ 3 dải R50 0.34 / 0.36 / 0.30 vs SwinT 0.35 / 0.35 / 0.31 (gần như trùng); mật độ năng lượng trong GT box 1.01 vs 1.01 (không dồn vào object); màu 0.49 vs 0.61 (SwinT màu hơn — nhưng GRAY vẫn giữ lợi thế); cos(δ_R50, δ_SwinT) = 0.06 (gần trực giao).
 **Đọc:** mọi phép lọc đều phá phần lớn tác dụng của CẢ HAI δ (δ băng rộng, dạng sign ±5 khắp ảnh) → (A) bị loại rõ: làm mượt δ R50 chỉ HẠI. Hai δ giống nhau về phổ, phân bố không gian, gần giống về màu, nhưng gần trực giao và δ_SwinT phá DINO gấp ~2× ở mọi dải → khác biệt là **HƯỚNG / mẫu không gian cụ thể** (δ đánh vào feature nào), không phải thống kê bậc thấp (phổ, màu, vị trí). Đáng chú ý: δ_SwinT vẫn phá R50 78.7% → tồn tại vùng δ adversarial cho CẢ R50 lẫn Transformer mà gradient ascent trên R50 không tìm tới. Hướng method: thay đổi HƯỚNG gradient R50 (đường lan ngược / mục tiêu feature / biến đổi kiểu token), không phải ràng buộc phổ. User quyết ô cụ thể.
+
+---
+
+## 2026-10-21 — Hướng (1) "đổi hướng gradient R50": C2-OCT-1V-BPA / -BPA34 @ dev30 B41 (user: test nhanh 5–10 phút để thấy xu hướng) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Ô (`attack/methods/bpa.py`):** C2-OCT-1V y nguyên; forward ReLU giữ nguyên, backward thay 1[x > 0] bằng đạo hàm x·σ(βx), β = 1.702 (≈ GELU của Swin). `BPA`: mọi ReLU backbone R50 (17 module, stem + 16 Bottleneck); `BPA34`: chỉ res_layers 3–4 (stage 3 = nút thắt E14). Kiểm: loss forward lệch 0.0; cos(∇ mới, ∇ gốc) trên loss feature, ảnh ngẫu nhiên: BPA 0.66, BPA34 0.96; AMP hữu hạn; khôi phục ReLU đúng. Runtime kỳ vọng ≈ ô gốc.
+**Chạy (V100, dev30 ⊂ dev100, PNG C2-OCT-1V B41 dev100 tái dùng; log `results/bpa/run.log`):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev30 --limit 100 --budget 41 --methods C2-OCT-1V C2-OCT-1V-BPA C2-OCT-1V-BPA34 --out metrics_bpa_dev30.json
+python scripts/eval_generalization.py --run dev300_B41_eps5_limit100 --subset dev30 --models yolox_s dino_swin_l --methods C2-OCT-1V C2-OCT-1V-BPA C2-OCT-1V-BPA34 --dets dets_bpa_dev30.json --out generalization_bpa_dev30.json
+python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev30 --dets dets_bpa_dev30.json --tag bpa_dev30 --pairs C2-OCT-1V-BPA:C2-OCT-1V C2-OCT-1V-BPA34:C2-OCT-1V
+```
+**Đọc xu hướng (dev30, điểm ước lượng, KHÔNG quyết định method):** "đáng lên dev100 (khóa entry riêng)" nếu ΔSwin-L ≥ +3 VÀ ΔCA3 ≥ −2; "hại" nếu ΔSwin-L ≤ −3 HOẶC ΔCA3 ≤ −3; còn lại "ngang". β, stage KHÔNG tune thêm trên dev30.

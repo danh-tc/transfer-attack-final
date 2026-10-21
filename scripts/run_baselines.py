@@ -35,6 +35,7 @@ sys.path.insert(0, REPO_ROOT)
 
 from attack.data import build_attack_dataset, load_image_ids
 from attack.evaluation import CocoImageEval, bootstrap_indices, summarize, to_coco_dets
+from attack.methods.bpa import bpa_attack
 from attack.methods.baselines import di_fgsm_attack, mi_fgsm_attack, osfd_attack
 from attack.methods.kg_pair import kg_osfd_attack
 from attack.methods.pia import geo_osfd_attack
@@ -265,7 +266,11 @@ METHODS["C2-OCT-1V-DMA"] = (functools.partial(geo_osfd_attack, **_C2OCT, dual="a
 # scale = trung vị |∇CE| / |∇margin| tại δ = 0, 5 ảnh đầu dev100 (scripts/mrg_calib.py).
 METHODS["C2-OCT-1V-MRG"] = (functools.partial(geo_osfd_attack, **_C2OCT, margin="all", margin_scale=0.0594), 1)
 METHODS["C2-OCT-1V-MRGF"] = (functools.partial(geo_osfd_attack, **_C2OCT, margin="fg", margin_scale=0.0484), 1)
-GEO_METHODS_1V = {"C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
+# Làm mượt backward ReLU backbone R50 (≈ GELU, họ LinBP / BPA; progress_log 2026-10-21): mọi stage | stage 3–4.
+METHODS["C2-OCT-1V-BPA"] = (functools.partial(bpa_attack, attack_fn=functools.partial(geo_osfd_attack, **_C2OCT)), 1)
+METHODS["C2-OCT-1V-BPA34"] = (functools.partial(bpa_attack, attack_fn=functools.partial(geo_osfd_attack, **_C2OCT),
+                                                stages=(2, 3)), 1)
+GEO_METHODS_1V = {"C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
                   "C2-OCT-1V-LA05", "C2-OCT-1V-LA1", "C2-OCT-1V-LA2", "C2-OCT-1V-ILPD05", "C2-OCT-1V-ILPD075"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
