@@ -386,7 +386,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
-                    margin=None, margin_scale: float = 1.0, stage_pool=None):
+                    margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -436,6 +436,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert not bg_only or bg_weight > 0
     assert feat_stages is None or (cls_weight == 0.0 and bg_weight == 0.0 and rapa_p is None and feature)
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
+    pd_gen = torch.Generator().manual_seed(torch.initial_seed() + 7) if patch_drop is not None else None
     mask_head = None
     if skip_mask:
         assert cls_weight > 0
@@ -585,6 +586,15 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                   gt_log=log["gt_kept"])
         out = []
         for v, c, dsv in triples:
+            if patch_drop is not None:
+                # C2-OCT-1V-PD (progress_log 2026-10-21): che ngẫu nhiên patch ps×ps (xác suất p) bằng trung bình kênh của view
+                # sạch, CÙNG mask cho adv và sạch; RNG riêng (seed + 7) -> chuỗi view OCT trùng ô gốc. Box GT giữ nguyên.
+                ps, p = patch_drop
+                hh, ww = v.shape[-2:]
+                keep = (torch.rand(1, 1, -(-hh // ps), -(-ww // ps), generator=pd_gen) >= p).float().to(v.device)
+                keep = F.interpolate(keep, scale_factor=ps, mode="nearest")[0, :, :hh, :ww]  # [1, H, W]
+                fill = c.mean((-2, -1), keepdim=True)
+                v, c = v * keep + fill * (1 - keep), c * keep + fill * (1 - keep)
             ctx = rapa[0]() if rapa is not None else contextlib.nullcontext  # CÙNG mask cho sạch và adv của view
             if rapa_cls is not None and feature:
                 ctx = rapa_cls[0]()
