@@ -3362,3 +3362,11 @@ python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev30 --de
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.3 / 94.4 / 81.9 / 80.3 / 64.8 / 31.9 | 75.7 | 4.1; **BPA** 99.0 / 92.8 / 82.9 / 79.6 / 71.1 / 29.8 | 77.9 | 5.2; **BPA34** 99.3 / 93.4 / 81.8 / 79.1 / 68.0 / 30.0 | 76.3 | 4.4.
 Δ so C2-OCT-1V: BPA Swin-L −2.0 [−5.0, 1.6], CA3 +2.2 [−1.9, 3.6], YOLOX +6.3, Swin-T −0.8; BPA34 Swin-L −1.8, CA3 +0.6, YOLOX +3.2, Swin-T −1.2.
 **Đọc:** backward ReLU ≈ GELU KHÔNG đưa δ R50 về phía Transformer (Swin-T / Swin-L không tăng, hơi giảm); lợi chỉ ở YOLOX (CNN) → lại là một điểm khác trên đường đánh đổi CNN ↔ Transformer. "Giống Transformer" theo nghĩa activation cục bộ (ReLU vs GELU) không phải chỗ khác biệt về hướng (E16). Không đưa lên dev100. BPA còn chậm 1.27× (sigmoid fp32 trong backward).
+
+---
+
+## 2026-10-21 — Hướng (3) "mục tiêu feature toàn cục ở stage 3": C2-OCT-1V-GLB7 / -GLBG @ dev30 B41 (user: test nhanh) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Hướng (2) (biến đổi đầu vào kiểu patch / token) chưa từng chạy** — BSR khai báo rồi bỏ trước khi code (entry PIA); chỉ có dịch pha lưới (SH*) và xáo δ phân tích (E7). Vẫn còn mở.
+**Ô (`repair._pooled_mse`, `make_view_loss(stage_pool)`, `geo_osfd_attack(stage_pool)`):** C2-OCT-1V y nguyên trừ số hạng L_OSFD của **stage 3** (res_layers[2], stride 16): MSE(k·P(F_sạch), P(F_adv)) với P = avg-pool 7×7 stride 7 (`GLB7`, cửa sổ kiểu Swin) | trung bình toàn cục (`GLBG`), nhân hệ số detach để GIÁ TRỊ = MSE từng điểm gốc → chỉ đổi HƯỚNG gradient của stage 3 (mô phỏng trộn token: δ phải dịch chuyển feature gộp vùng thay vì từng vị trí). Stage 1, 2, 4 và L_cls không đổi. Kiểm: giá trị lệch 0.0; cos(∇ gộp, ∇ từng điểm) trên tensor ngẫu nhiên 0.10 (7×7) / 0.02 (GAP); chạy thử 1 ảnh 3 bước OK.
+**Chạy (V100, dev30, log `results/glb/run.log`):** như BPA, `--methods C2-OCT-1V C2-OCT-1V-GLB7 C2-OCT-1V-GLBG --out metrics_glb_dev30.json`, eval_generalization `--dets dets_glb_dev30.json --out generalization_glb_dev30.json`, pair_screen `--tag glb_dev30 --pairs C2-OCT-1V-GLB7:C2-OCT-1V C2-OCT-1V-GLBG:C2-OCT-1V`.
+**Đọc xu hướng (dev30, điểm ước lượng, như BPA):** "đáng lên dev100" nếu ΔSwin-L ≥ +3 VÀ ΔCA3 ≥ −2; "hại" nếu ΔSwin-L ≤ −3 HOẶC ΔCA3 ≤ −3; còn lại "ngang". Mô tả thêm Δ Swin-T (target Transformer thứ 2). Kernel / stage KHÔNG tune trên dev30.
