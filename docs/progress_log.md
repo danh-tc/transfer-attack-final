@@ -3357,3 +3357,8 @@ python scripts/eval_generalization.py --run dev300_B41_eps5_limit100 --subset de
 python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev30 --dets dets_bpa_dev30.json --tag bpa_dev30 --pairs C2-OCT-1V-BPA:C2-OCT-1V C2-OCT-1V-BPA34:C2-OCT-1V
 ```
 **Đọc xu hướng (dev30, điểm ước lượng, KHÔNG quyết định method):** "đáng lên dev100 (khóa entry riêng)" nếu ΔSwin-L ≥ +3 VÀ ΔCA3 ≥ −2; "hại" nếu ΔSwin-L ≤ −3 HOẶC ΔCA3 ≤ −3; còn lại "ngang". β, stage KHÔNG tune thêm trên dev30.
+
+### Kết quả BPA @ dev30 B41 (V100; `results/ablation/bpa_dev30/screen.json`, `results/runs/dev300_B41_eps5_limit100/{metrics,generalization}_bpa_dev30.json`, log `results/bpa/run.log`) — xu hướng: **BPA NGANG, BPA34 NGANG**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.3 / 94.4 / 81.9 / 80.3 / 64.8 / 31.9 | 75.7 | 4.1; **BPA** 99.0 / 92.8 / 82.9 / 79.6 / 71.1 / 29.8 | 77.9 | 5.2; **BPA34** 99.3 / 93.4 / 81.8 / 79.1 / 68.0 / 30.0 | 76.3 | 4.4.
+Δ so C2-OCT-1V: BPA Swin-L −2.0 [−5.0, 1.6], CA3 +2.2 [−1.9, 3.6], YOLOX +6.3, Swin-T −0.8; BPA34 Swin-L −1.8, CA3 +0.6, YOLOX +3.2, Swin-T −1.2.
+**Đọc:** backward ReLU ≈ GELU KHÔNG đưa δ R50 về phía Transformer (Swin-T / Swin-L không tăng, hơi giảm); lợi chỉ ở YOLOX (CNN) → lại là một điểm khác trên đường đánh đổi CNN ↔ Transformer. "Giống Transformer" theo nghĩa activation cục bộ (ReLU vs GELU) không phải chỗ khác biệt về hướng (E16). Không đưa lên dev100. BPA còn chậm 1.27× (sigmoid fp32 trong backward).
