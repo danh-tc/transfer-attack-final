@@ -242,6 +242,15 @@ def _pooled_mse(target, fa, kernel):
     return p * (F.mse_loss(target, fa).detach() / p.detach().clamp_min(1e-12))
 
 
+def _ln_mse(target, fa):
+    """C2-OCT-1V-WP2-LN (progress_log 2026-10-22): MSE giữa LayerNorm theo kênh tại từng vị trí của target và fa (chỉ đo
+    thay đổi HƯỚNG của vector feature mỗi token — thứ còn lại sau LN của Transformer; LN(k·F) = LN(F) nên k không tác dụng),
+    nhân hệ số detach để GIÁ TRỊ bằng MSE gốc (giữ cân bằng với L_cls như GLB, không tune)."""
+    ln = lambda f: F.layer_norm(f.float().permute(0, 2, 3, 1), f.shape[1:2]).permute(0, 3, 1, 2)
+    p = F.mse_loss(ln(target), ln(fa))
+    return p * (F.mse_loss(target.float(), fa.float()).detach() / p.detach().clamp_min(1e-12))
+
+
 def _size_weighted_mse(target, fa, stage, data_sample, size_w):
     """C2-OCT-1V-WP2-SZ: mean(w·(target − fa)²) / mean(w); w = 1 + a trong box GT lớn (diện tích quy về ảnh gốc ≥ thr)."""
     a, thr = size_w
@@ -259,7 +268,8 @@ def _size_weighted_mse(target, fa, stage, data_sample, size_w):
 
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
                    ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
-                   obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False, stage_pool=None, size_w=None):
+                   obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False, stage_pool=None, size_w=None,
+                   ln_feat: bool = False):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -269,6 +279,7 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
     split (C2-OCT-1V-DM, progress_log 2026-10-20): trả cặp (feat_weight·L_feat, weight·L_cls) thay cho tổng (core dual).
     stage_pool = (s, kernel | "gap") (C2-OCT-1V-GLB, progress_log 2026-10-21): số hạng L_OSFD của stage s tính trên feature
     gộp avg-pool kernel×kernel (stride = kernel) | toàn cục, nhân hệ số (detach) để GIÁ TRỊ bằng MSE từng điểm -> chỉ đổi hướng.
+    ln_feat (C2-OCT-1V-WP2-LN, progress_log 2026-10-22): L_OSFD từng stage trong không gian LayerNorm theo kênh (_ln_mse).
     size_w = (a, thr) (C2-OCT-1V-WP2-SZ, progress_log 2026-10-22): L_OSFD từng stage = mean(w·(k·F_sạch − F_adv)²) / mean(w),
     w = 1 + a trong box GT của view có diện tích quy về ảnh gốc ≥ thr (px²), 1 ngoài -> dồn đẩy feature vào object lớn."""
     assert ilpd_gamma is None or (repair_feats is None and feats_clean is not None)
@@ -321,6 +332,8 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
         elif stage_pool is not None:
             feat = sum(_pooled_mse(k * fc, fa, stage_pool[1]) if s == stage_pool[0] else F.mse_loss(k * fc, fa)
                        for s, (fc, fa) in enumerate(zip(feats_clean, cap["f"])))
+        elif ln_feat:
+            feat = sum(_ln_mse(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
         elif size_w is not None:
             feat = sum(_size_weighted_mse(k * fc, fa, s, data_sample, size_w)
                        for s, (fc, fa) in enumerate(zip(feats_clean, cap["f"])))

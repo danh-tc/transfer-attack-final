@@ -402,7 +402,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
-                    margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None):
+                    margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
+                    ln_feat: bool = False, bn_inst=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -651,7 +652,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             elif cls_weight > 0:
                 lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
                                     fab_weight=fab_weight, obj_weight=obj_weight, split=dual == "exact", stage_pool=stage_pool,
-                                    size_w=size_w)
+                                    size_w=size_w, ln_feat=ln_feat)
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
@@ -665,6 +666,17 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         # của mmdet giữ nguyên), core.run_iterative_attack(weight_perturb). Feature sạch co-transform cũng tính trên θ'.
         params = [m.weight for m in model.backbone.modules() if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
         wp = (params, weight_rho, [p.detach().clone() for p in params])
+    bn_saved = []
+    if bn_inst is not None:
+        # C2-OCT-1V-WP2-IN (progress_log 2026-10-22): BN backbone dùng thống kê của CHÍNH ảnh / view (bỏ running stats tạm
+        # thời -> F.batch_norm tính theo batch = 1 ảnh, như InstanceNorm theo kênh) -> surrogate miễn nhiễm thay đổi biên độ
+        # theo kênh giống LN của Transformer. "all": mọi BN backbone; "s34": chỉ res_layers 3–4. Feature sạch cũng qua đây.
+        assert bn_inst in ("all", "s34")
+        bb = model.backbone
+        scope = [bb] if bn_inst == "all" else [getattr(bb, n) for n in bb.res_layers[2:]]
+        for m in (m for sc in scope for m in sc.modules() if isinstance(m, torch.nn.modules.batchnorm._BatchNorm)):
+            bn_saved.append((m, m.running_mean, m.running_var))
+            m.running_mean, m.running_var = None, None
     try:
         # cache_enabled=False khi nhiễu trọng số: bản fp16 cache từ forward no_grad (feature sạch) không có liên kết tới θ.
         with torch.autocast("cuda", dtype=torch.float16, enabled=amp, cache_enabled=wp is None):
@@ -679,6 +691,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             with torch.no_grad():
                 for p, p0 in zip(wp[0], wp[2]):
                     p.copy_(p0)
+        for m, rm, rv in bn_saved:
+            m.running_mean, m.running_var = rm, rv
     if rapa is not None:
         log["rapa_masked_frac"] = int(rapa[1]["masked"]) / max(1, rapa[1]["total"])
     if rapa_cls is not None:
