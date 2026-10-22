@@ -3575,3 +3575,22 @@ Relative AP drop %, R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | r = S
 - WP2 (mốc): 95.9 / 91.3 / 84.1 / 78.9 / 72.7 / 36.4 | 0.44
 Swin-L INP − RNDBOX +1.3 [−1.5, 2.3]; CNN3 −0.4. Box chiếm 44% pixel; INP δ ≠ 0 ở 98% pixel trong box.
 **Đọc:** nhích pixel object về phía ảnh đã xóa object ở ±5 gần như KHÔNG tác dụng lên MỌI model (~2%, ngang nhiễu ngẫu nhiên cùng vùng) → hướng ngữ nghĩa "thô" ở mức pixel quá yếu ở ε = 5; r(INP) 1.93 vô nghĩa ở mức nhiễu. KHÔNG bác cũng KHÔNG xác nhận ý "đích = F_R50(x_bg)" (bản attack tối ưu theo đích, khác hẳn δ cố định) — chỉ cho biết lợi nếu có phải đến từ tối ưu, không phải từ bản thân hướng pixel.
+
+---
+
+## 2026-10-22 — TẠM DỪNG (user, 22:35 GMT+7): tổng kết phiên V100 + việc mở
+**Máy:** Tesla V100-SXM2 16GB (bootstrap lại; đủ 11 checkpoint + COCO; CÓ `.env` nhưng bootstrap chạy trước khi có → PNG n300 chưa tải). Không có tiến trình nào đang chạy. Commit phiên này CHƯA push, PNG CHƯA upload HF (chờ user đồng ý).
+**Kết quả chính (ε = 5, surrogate R50, cùng thời gian OSFD trừ khi ghi khác):**
+1. **WP2 @ dev100: GIÚP** — WP2 B36 − C2-OCT-1V B41: Swin-L **+6.2 [3.1, 8.2]** (70 ảnh mới +5.1), CA3 +1.6, Swin-T 0.0; WP2 − OSFD B50: Swin-L **+11.5 [5.7, 14.3]**, CA3 +4.0. Lợi WP2 nằm ở DINO-Swin-L, KHÔNG ở Mask R-CNN Swin-T (cùng thời gian).
+2. **Đo trần họ WP @ dev30: BÃO HÒA** — WP2 B100 Swin-L 38.0 (+1.8 so B36 cho ~3× thời gian); WP2 − C2-OCT-1V ở B100: Swin-L +3.4, Swin-T +4.1 [1.3, 7.1].
+3. ε = 8 @ dev10 (mô tả): mọi method Swin-L ~46–51; lợi WP2 co còn +1.2; CNN gần trần, OSFD ≈ C2 ≈ WP2 → user gác ε = 8, tập trung ε = 5.
+4. **Phân tích theo object (dev100):** method mạnh ở object nhỏ, OSFD thắng ở object lớn (Swin-T 68 vs 53); xóa trên Swin-L ⊂ xóa trên Swin-T (P = 0.43 vs 0.05).
+5. **Chuỗi "bước nhảy kiểu RRB" (dev30, so WP2) — đều không đạt:** SZ / R / SZR / SZC (cỡ object) NGANG; TX (xóa texture nội dung) HẠI theo liều; LN (L_OSFD bất biến biên độ) KHÔNG (+1.6); IN (BN theo ảnh) loại ở cổng sức khỏe; E17 (hướng pixel về ảnh xóa object) QUÁ YẾU (~2% mọi model).
+6. Tổng hợp cơ chế WB (E8 / E14 / E14b / E14c / E15, đọc lại): WB thắng nhờ HƯỚNG ở token object stage 3 (≈ xóa ngữ nghĩa về nền), không nhờ độ lớn; δ R50 chỉ ~2× nhiễu ngẫu nhiên theo hướng đó (WB ~5×).
+**Trạng thái method:** tốt nhất = **C2-OCT-1V-WP2** (ρ = 0.002, B36 trên V100 = cùng thời gian OSFD B50). Trần Swin-L thực tế ~36–40% ở ε = 5 với 1 surrogate R50 (mọi họ đã thử). **Mục tiêu user: method mới vượt "bước nhảy kiểu RRB", Swin-L > 50% ở ε = 5** — user KHÔNG duyệt định vị "SOTA + cơ chế" (phương án A), muốn tiếp tục tìm.
+**Việc mở (phiên sau):**
+- (1) Ý chưa chạy: **WP2 + loss đích F_R50(x_bg)** (x_bg = inpaint xóa object; E17 không ủng hộ cũng không bác) @ dev30; **thành phần universal** (u học trên ~500 ảnh COCO val ngoài mọi danh sách, R50 + WP + OCT; UNI / UNI+WP2) @ dev30 — đa dạng GIỮA ảnh, trục chưa từng thử. Khóa entry trước khi chạy, quy tắc "bước nhảy" ΔSwin-L ≥ +10.
+- (2) Biến thể họ WP (nếu quay lại): WPA (θ tích lũy kiểu AWT), WP-s34 liều cao, WP-cls; đối chứng AWT-OD bắt buộc cho claim novelty.
+- (3) Khi chốt method: sàng lọc dev300 → GO @ n300 + held-out YOLOX-L / Swin-S; rà BFDA.
+**Code mới phiên này (mặc định giữ hành vi cũ):** `repair.{_size_weighted_mse, _ln_mse, roi_size_weight}`, `make_view_loss(size_w, ln_feat)`, `geo_osfd_attack(size_w, roi_size_w, tex_blur, ln_feat, bn_inst)`, `pia._blur`; ô `C2-OCT-1V-WP2-{SZ, R, SZR, SZC, TXC1..8, LN, INall, INs34}`; `scripts/{szc_unit_test, tx_calib, e17_inpaint_probe}.py`.
+**Artifact CHƯA upload (mất khi trả máy; sinh lại được):** `artifacts/runs/dev300_B{36,41,50,100}_eps5_limit100/`, `dev300_B{36,41,50}_eps8_limit100/`, `artifacts/e17/`. Số liệu + dets tổng hợp đã ở `results/` (git); dets thô ở `artifacts/` (không git).
