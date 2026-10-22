@@ -3470,3 +3470,20 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3, ε = 8 (ε = 5 cùng 10 �
 Δ WP2 − C2-OCT-1V: ε = 8 Swin-L +1.2 [−0.6, 3.3], CA3 −0.0, R101 −2.9; (ε = 5: Swin-L +4.0). Δ WP2 − OSFD ε = 8: Swin-L +4.5, CA3 −1.8.
 **Tiêu chí "khả quan" (user chốt trong hội thoại TRƯỚC khi thấy số: WP2 ε8 Swin-L ≥ 50 VÀ WP2 − C2-OCT-1V ≥ +3):** 50.6 ✓ nhưng +1.2 ✗ → **KHÔNG khả quan** → chuyển hướng "sửa surrogate mạnh hơn".
 **Đọc:** tăng ε 5 → 8 cho +17 – 18 điểm Swin-L ở MỌI method (kể cả OSFD 28 → 46) — ε là núm lớn nhất nhưng không phải đóng góp; ở ε = 8 CNN gần bão hòa và các method dồn lại (OSFD ≈ C2 ≈ WP2 trên CA3), lợi riêng của WP2 co lại (+4.0 → +1.2). n = 10 rất nhiễu (CI Swin-T ±10).
+
+---
+
+## 2026-10-22 — Phân tích theo object (dets dev100 có sẵn, CPU) + quick test "attack theo cỡ object": C2-OCT-1V-WP2-SZ / -R / -SZR @ dev30 B36 (user duyệt "quick test 10–30 ảnh") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Phân tích theo object (dev100, dets `artifacts/runs/dev300_B{36,41,50}_eps5_limit100/`; object "bị xóa" = không còn box cùng lớp IoU ≥ 0.5 score ≥ 0.3; chỉ object model phát hiện được khi sạch):**
+- DINO-Swin-L (734 object), tỉ lệ bị xóa OSFD / C2-OCT-1V / WP2: tất cả 25 / 27 / 30; **nhỏ 29 / 39 / 42; vừa 28 / 25 / 30; lớn 14 / 8 / 10**. Swin-T (744): nhỏ 62 / 68 / 67; vừa 59 / 59 / 58; **lớn 68 / 52 / 53**.
+- Bù trừ (cận trên lý tưởng, object bị ÍT NHẤT 1 trong OSFD / WP2 xóa): Swin-L 30 → 36%, Swin-T 60 → 70%.
+- Lồng nhau: P(xóa Swin-L | xóa Swin-T) = 0.43 (WP2) / 0.38 (C2) vs P(xóa Swin-L | Swin-T còn) = 0.05 → kênh phá Swin-L ⊂ kênh phá Swin-T; WP2 xóa SÂU hơn trên Swin-L (50 object chỉ WP2 xóa vs 24 chỉ C2) nhưng KHÔNG mở rộng tập xóa trên Swin-T.
+**Giả thuyết:** method hiện tại (L_cls + OCT) mạnh ở object nhỏ, OSFD (loss feature + RRB xoay) mạnh ở object lớn → dồn L_OSFD vào object lớn (+ xoay) lấy lại phần object lớn mà không mất phần nhỏ.
+**Ô (`repair._size_weighted_mse`, `make_view_loss(size_w)`, `geo_osfd_attack(size_w)`):** gốc = WP2 (C2-OCT-1V, ρ = 0.002).
+- `WP2-SZ`: L_OSFD từng stage = mean(w·(k·F_sạch − F_adv)²) / mean(w), w = 1 + 3 trong box GT của view có diện tích quy về ảnh gốc ≥ 96² (quy theo scale_factor; box sau co giãn OCT — object sát ngưỡng có thể đổi phía giữa các view), 1 ngoài; trung bình kênh. L_cls, λ = 4 không đổi.
+- `WP2-R`: OCT thêm xoay θ ~ U(−7°, 7°) (liều RRB của OSFD) quanh tâm, GT co-transform (elem "rot") — tách riêng vai trò xoay.
+- `WP2-SZR`: cả hai.
+Liều a = 3, ngưỡng 96², 7° chọn trước theo định nghĩa COCO / OSFD, KHÔNG tune trên dev30.
+**Kiểm:** a = 0 trùng tuyệt đối F.mse_loss; chỉ box nhỏ → trùng MSE; sai khác dồn trong box lớn → loss tăng (4.23 → 7.08); chạy thử 3 ảnh: L∞ 5.0, runtime ≈ WP2 (3.8–3.9 s / ảnh) → B36 cho mọi ô = cùng thời gian.
+**Chạy (V100, dev30 ⊂ dev100; PNG WP2 B36 dev100 tái dùng; script `results/sz/run.sh`, log `results/sz/run.log`).**
+**Đọc xu hướng (dev30, điểm ước lượng, như BPA / WP 10-21; KHÔNG quyết định method):** so WP2 B36. "đáng lên dev100" nếu ΔSwin-T ≥ +3 VÀ ΔSwin-L ≥ −1 VÀ ΔCA3 ≥ −1 (mục tiêu chính: mở rộng tập xóa trên Transformer, cửa ngõ của Swin-L); "hại" nếu ΔSwin-L ≤ −3 HOẶC ΔCA3 ≤ −3; còn lại "ngang". Mô tả: tỉ lệ xóa object lớn trên Swin-T / Swin-L (cùng định nghĩa trên), Δ Swin-L, R101.
