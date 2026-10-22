@@ -3567,3 +3567,11 @@ Tỉ lệ xóa theo cỡ (WP2 / LN): Swin-L lớn 11 / 16%, tất cả 30 / 29; 
 - **QUÁ YẾU** nếu drop INP < 5 ở mọi model → ±5 theo hướng này không đủ để đọc; XÁM (user quyết bước 1).
 - **SAI** nếu r(INP) ≤ r(WP2) (Swin-L vẫn kháng như với δ R50) → dừng hướng.
 - Còn lại → XÁM. Mô tả: Swin-T, R50.
+
+### Kết quả E17 @ dev100 (`results/mechanism/e17_inpaint_probe.json`, log `results/e17/run.log`, dets `artifacts/e17/`) — theo khai báo: **QUÁ YẾU → XÁM** (user quyết bước 1)
+Relative AP drop %, R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | r = Swin-L / TB CNN3:
+- INP: 2.0 / 0.4 / 0.6 / 2.1 / 2.0 / 2.0 | r 1.93
+- RNDBOX: 0.5 / 2.5 / 0.2 / 1.6 / 1.6 / 0.7 | 0.48
+- WP2 (mốc): 95.9 / 91.3 / 84.1 / 78.9 / 72.7 / 36.4 | 0.44
+Swin-L INP − RNDBOX +1.3 [−1.5, 2.3]; CNN3 −0.4. Box chiếm 44% pixel; INP δ ≠ 0 ở 98% pixel trong box.
+**Đọc:** nhích pixel object về phía ảnh đã xóa object ở ±5 gần như KHÔNG tác dụng lên MỌI model (~2%, ngang nhiễu ngẫu nhiên cùng vùng) → hướng ngữ nghĩa "thô" ở mức pixel quá yếu ở ε = 5; r(INP) 1.93 vô nghĩa ở mức nhiễu. KHÔNG bác cũng KHÔNG xác nhận ý "đích = F_R50(x_bg)" (bản attack tối ưu theo đích, khác hẳn δ cố định) — chỉ cho biết lợi nếu có phải đến từ tối ưu, không phải từ bản thân hướng pixel.
