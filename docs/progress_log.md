@@ -3521,3 +3521,9 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.7 / 91.0 / 81.4 / 
 - **CÓ TÍN HIỆU** nếu +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → xem liều / kết hợp (khóa entry).
 - **KHÔNG** nếu ΔSwin-L < +3 → lối tắt texture (ở dạng blur nội dung) không phải nút thắt; chuyển hướng.
 - Mô tả: Swin-T, tỉ lệ xóa object lớn Swin-T / Swin-L (giả thuyết dự đoán tăng), white-box R50, R101.
+
+### Kết quả TX @ dev30 B36 (V100; `results/ablation/tx_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/{metrics,generalization}_tx_dev30.json`, log `results/sz/run_tx.log`) — theo khai báo: **KHÔNG** (cả hai liều HẠI mạnh, theo liều)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.7 / 91.0 / 81.4 / 83.0 / 76.8 / 36.2 | 80.4; **TXC2** 95.4 / 87.6 / 73.9 / 75.1 / 66.6 / 31.2 | 71.9; **TXC4** 90.7 / 79.8 / 63.5 / 65.3 / 54.6 / 18.8 | 61.1.
+Δ so WP2: TXC2 Swin-L −5.0 [−9.6, 0.0], CA3 −8.5, Swin-T −7.9; TXC4 Swin-L −17.4, CA3 −19.3, Swin-T −17.7.
+**Mô tả — tỉ lệ xóa theo cỡ (dev30), WP2 / TXC2 / TXC4:** Swin-L lớn 11 / 11 / 11%, vừa 27 / 18 / 12, nhỏ 40 / 33 / 27; Swin-T lớn 60 / 58 / 40, nhỏ 67 / 59 / 49.
+**Đọc:** giả thuyết "lối tắt texture" ở dạng blur nội dung BỊ BÁC: kể cả liều nhẹ (σ_max 2, không mất white-box trên ảnh hiệu chỉnh) đã hạ MỌI target, Swin-L / Swin-T giảm ngang CNN, object lớn trên Swin-L không nhích (11%). → tác dụng transfer của δ GẮN VỚI texture của chính nội dung ảnh (khớp E7: δ là mẫu khớp nội dung): tối ưu δ trên nội dung đã mờ làm δ lệch khỏi nội dung thật → yếu khắp nơi, không chuyển sang kênh hình dạng. Không thêm liều / dạng xóa texture khác (stylize, bilateral) mà không khóa entry mới.
