@@ -127,6 +127,37 @@ def roi_cls_filter(model, cap=None, stats=None, head=None):
 
 
 @contextlib.contextmanager
+def roi_size_weight(model, thr_model: float, w_large: float):
+    """C2-OCT-1V-WP2-SZC (progress_log 2026-10-22): loss_cls của RoI head nhân w_large ở RoI DƯƠNG gán cho GT có diện tích
+    (khung view) ≥ thr_model -> object lớn gần như chỉ còn L_OSFD. Thứ tự RoI = [dương, âm] (StandardRoIHead: priors =
+    cat(pos, neg); BBoxHead._get_targets_single cùng thứ tự). avg_factor giữ nguyên (bỏ đóng góp, không dồn sang RoI khác).
+    loss_rpn_cls KHÔNG đổi. Thay tạm loss_and_target + forward của bbox_head.loss_cls."""
+    head = model.roi_head.bbox_head
+    crit, orig_fwd, orig_lat = head.loss_cls, head.loss_cls.forward, head.loss_and_target
+    roi_w = {}
+
+    def lat(cls_score, bbox_pred, rois, sampling_results, *a, **kw):
+        ws = []
+        for res in sampling_results:
+            gb = res.pos_gt_bboxes
+            gb = (gb.tensor if hasattr(gb, "tensor") else gb).float()
+            area = (gb[:, 2] - gb[:, 0]) * (gb[:, 3] - gb[:, 1])
+            ws += [torch.where(area >= thr_model, w_large, 1.0), torch.ones(len(res.neg_priors), device=gb.device)]
+        roi_w["w"] = torch.cat(ws)
+        return orig_lat(cls_score, bbox_pred, rois, sampling_results, *a, **kw)
+
+    def fwd(cls_score, label, weight=None, avg_factor=None, **kw):
+        w = roi_w["w"].to(cls_score.dtype)
+        w = w * weight if weight is not None else w
+        return orig_fwd(cls_score, label, w, avg_factor=avg_factor, **kw)
+    head.loss_and_target, crit.forward = lat, fwd
+    try:
+        yield
+    finally:
+        del head.loss_and_target, crit.forward  # về lại phương thức của lớp
+
+
+@contextlib.contextmanager
 def roi_margin(model, mode: str, scale: float):
     """C2-OCT-1V-MRG / -MRGF (progress_log 2026-10-20, kiểu CW): thay CE của RoI head bằng margin KHÔNG chặn trên RoI DƯƠNG:
     L = scale · mean_{RoI dương} (max_{c ≠ đúng} z_c − z_đúng); mode "all": c chạy mọi logit khác lớp đúng (kể cả nền),
