@@ -3556,3 +3556,14 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: WP2 B36 98.7 / 
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.7 / 91.0 / 81.4 / 83.0 / 76.8 / 36.2 | 80.4; **LN** 98.4 / 89.6 / 83.9 / 83.8 / 75.5 / 37.9 | 81.1. Δ: Swin-L +1.6 [−2.9, 5.8], Swin-T +0.8, CA3 +0.7, ConvNeXt +2.5, YOLOX −1.3, R101 −1.3.
 Tỉ lệ xóa theo cỡ (WP2 / LN): Swin-L lớn 11 / 16%, tất cả 30 / 29; Swin-T vừa 47 / 53, tất cả 58 / 60.
 **Đọc:** bỏ thành phần biên độ khỏi L_OSFD gần như KHÔNG đổi gì (mọi Δ trong nhiễu, CNN cũng không giảm như dự đoán) → kênh biên độ không phải thứ làm δ R50 thắng CNN, và cũng không phải thứ chặn Transformer; lối tắt "biên độ" BỊ BÁC. Cùng TX (texture), SZ (cỡ object), BPA / GLB / PD (10-21): giả thuyết "δ R50 khai thác 1 thuộc tính đặc thù CNN mà Transformer bỏ qua" chưa tìm ra thuộc tính nào tách được.
+
+---
+
+## 2026-10-22 — E17: hướng NGỮ NGHĨA "xóa object" trong không gian pixel có trung lập họ backbone không? (bước 0 của hướng "đích = ảnh đã xóa object"; user duyệt "Approve") — MÔ TẢ, forward-only, khai báo TRƯỚC khi chạy
+**Lý do:** WB thắng nhờ HƯỚNG — trên Swin-L, kéo token object stage 3 về phía nền rất hiệu quả (E14c / E15), nhưng "nền theo feature R50" ≠ "nền theo Swin-L" (BG-OCT âm). Thứ chung giữa 2 họ là NGỮ NGHĨA ảnh → định nghĩa hướng qua ảnh x_bg = x đã xóa object (inpaint OpenCV Telea r = 5 trong GT box không-crowd; không model học → không thêm surrogate; GT-assisted). Trước khi viết attack có đích F_R50(x_bg), kiểm tiền đề rẻ: chính hướng pixel "về x_bg" ở ±5 có tác dụng ngang nhau lên CNN và Transformer không.
+**Điều kiện (`scripts/e17_inpaint_probe.py`, dev100, PNG `artifacts/e17/`, kết quả `results/mechanism/e17_inpaint_probe.json`, log `results/e17/run.log`):** INP: δ = 5·sign(x_bg − x) trong box, 0 ngoài; RNDBOX: δ = ±5 ngẫu nhiên trong box (cùng vùng, cùng L∞; seed 2026 + img_id); WP2: PNG C2-OCT-1V-WP2 B36 dev100 (mốc transfer). Đo relative AP drop 6 model qua inference_detector (cùng cách cho clean; KHÔNG so trực tiếp số run_baselines), paired bootstrap 1000, BOOT_SEED 2026.
+**Đọc (khai báo trước):** r(c) = drop_SwinL(c) / TB drop(R101, ConvNeXt, YOLOX).
+- **TIỀN ĐỀ ĐÚNG** nếu r(INP) ≥ 0.8 VÀ drop_SwinL(INP) − drop_SwinL(RNDBOX) ≥ 5 với cận dưới CI > 0 → hướng ngữ nghĩa pixel trung lập họ; bước 1 = WP2 + loss đích F_R50(x_bg) @ dev30 (khóa entry riêng).
+- **QUÁ YẾU** nếu drop INP < 5 ở mọi model → ±5 theo hướng này không đủ để đọc; XÁM (user quyết bước 1).
+- **SAI** nếu r(INP) ≤ r(WP2) (Swin-L vẫn kháng như với δ R50) → dừng hướng.
+- Còn lại → XÁM. Mô tả: Swin-T, R50.
