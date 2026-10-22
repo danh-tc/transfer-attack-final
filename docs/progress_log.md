@@ -3419,3 +3419,26 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: C2-OCT-1V 99.3 
 - (3) Rà literature surrogate-refinement cho detection (AWT, SASD-WS, flat-minima-over-surrogates) — khẳng định novelty; BFDA vẫn mở.
 **Code mới phiên này (mặc định giữ hành vi cũ):** `core.run_iterative_attack(weight_perturb)`, `geo_osfd_attack(stage_pool, patch_drop, weight_rho)` (autocast `cache_enabled=False` khi weight_rho), `repair._pooled_mse`, `make_view_loss(stage_pool)`, `attack/methods/bpa.py`; ô `C2-OCT-1V-{BPA, BPA34, GLB7, GLBG, PD16, PD32, WP2, WP5}`; `scripts/e16_delta_band.py`.
 **Artifact CHƯA upload (mất khi trả máy; sinh lại được):** `artifacts/runs/dev300_B41_eps5_limit100{,_sur-swin_t}/` (PNG dev100 C2-OCT-1V sur R50 / Swin-T + PNG dev30 các ô BPA / GLB / PD / WP), `artifacts/e16/`. Số liệu + dets tổng hợp đã nằm trong `results/` (git).
+
+---
+
+## 2026-10-22 — Máy mới V100 16GB; xác nhận C2-OCT-1V-WP2 @ dev100 CÙNG THỜI GIAN (việc mở (1) entry 10-21; user: "đợi xong rồi run WP2") — khóa TRƯỚC khi chạy
+**Máy:** Tesla V100-SXM2 16GB (cùng loại máy sàng lọc dev300 10-18 / phiên 10-21 → C2-OCT-1V B41 = cùng thời gian OSFD B50), bootstrap lại; đủ 11 checkpoint + COCO. Không có PNG cũ (phiên 10-21 chưa upload) → sinh lại mọi mốc cùng máy.
+**Đo thời gian (10 ảnh đầu dev300, chỉ attack, KHÔNG eval; log `results/wp/timing_v100.log`), s / ảnh:** C2-OCT-1V B41 3.9; WP2 B41 4.2 (1.08×); OSFD B50 4.0. dev30 (10-21) cho 1.15×. → chọn **WP2 B36** (= 41 / 1.15, tỉ lệ lớn hơn → bất lợi cho WP2; nếu vẫn GIÚP thì kết luận càng chắc). Runtime thực đo lại trong lần chạy chính.
+**Ô:** `C2-OCT-1V-WP2` (ρ = 0.002, y nguyên 10-21; ρ KHÔNG tune thêm) B36 vs `C2-OCT-1V` B41 (cùng thời gian); OSFD B50 làm mốc SOTA; WP2 B41 (cùng số bước) chỉ mô tả.
+**Chạy (V100, dev100, seed theo chỉ số dev300; script `results/wp/run_dev100.sh`, log `results/wp/run_dev100.log`; cùng `--out metrics_wp_dev100.json` / dets `dets_wp_dev100.json` mọi run):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --methods C2-OCT-1V C2-OCT-1V-WP2 --out metrics_wp_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 36 --methods C2-OCT-1V-WP2 --out metrics_wp_dev100.json
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 50 --methods OSFD --out metrics_wp_dev100.json
+# eval_generalization --models yolox_s dino_swin_l cho 3 run (B41: C2-OCT-1V C2-OCT-1V-WP2; B36: C2-OCT-1V-WP2; B50: OSFD), rồi
+python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev100 --dets dets_wp_dev100.json --tag wp_dev100 --exclude dev30 --pairs \
+  C2-OCT-1V-WP2@dev300_B36_eps5_limit100:C2-OCT-1V C2-OCT-1V-WP2:C2-OCT-1V \
+  C2-OCT-1V-WP2@dev300_B36_eps5_limit100:OSFD@dev300_B50_eps5_limit100 C2-OCT-1V:OSFD@dev300_B50_eps5_limit100
+```
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S; Δ = drop(WP2 B36) − drop(C2-OCT-1V B41), cùng ảnh) — như (d) 10-20:**
+- **GIÚP** nếu [(ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1) HOẶC (ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −1)] VÀ ΔR101 ≥ −3 VÀ runtime WP2 B36 ≤ 1.1 × C2-OCT-1V B41 (đo cùng lần).
+- **HẠI** nếu ΔCA3 ≤ −3 HOẶC ΔSwin-L ≤ −3 (điểm). **TRÊN ĐƯỜNG** nếu một phía ≥ 2 và phía kia ≤ −1 (điểm). Còn lại → **NGANG**.
+- Mô tả (không thuộc quy tắc): **70 ảnh mới (dev100 \ dev30)** — dev30 là nơi phát hiện WP2, nên đọc riêng phần chưa thấy; WP2 B41 − C2-OCT-1V B41 (cùng số bước); WP2 B36 − OSFD B50 và C2-OCT-1V − OSFD (cùng thời gian, tái lập mốc); ConvNeXt / Swin-T / YOLOX / R101 riêng.
+- **GIÚP** → bước sau (entry riêng, khóa trước): sàng lọc dev300 so C2-OCT-1V + OSFD cùng thời gian, **thêm đối chứng AWT port sang detection** (code chính thức xaddwell/AWT, cùng thời gian) — điều kiện cho claim novelty. **NGANG / TRÊN ĐƯỜNG / HẠI** → ghi nhận; biến thể cùng họ (SAM phía model không trễ / chỉ stage 3–4 / AWT đầy đủ) chỉ chạy sau khi khóa entry mới.
+**Caveat khai báo trước:** 30 / 100 ảnh là dev30 (đã thấy kết quả) → thiên lạc quan cho WP2, vì vậy báo 70 ảnh mới; ρ chọn theo sức khỏe tối ưu trên ảnh 1–4 dev300 (10-21), không nhìn transfer; GPU không tất định → đọc theo CI. Held-out (YOLOX-L, Swin-S) không dùng.

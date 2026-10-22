@@ -1,0 +1,15 @@
+loading annotations into memory...
+Done (t=0.62s)
+creating index...
+index created!
+[run] dev300_B41_eps5_limit10: 10 ảnh, methods=['C2-OCT-1V', 'C2-OCT-1V-WP2']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack C2-OCT-1V] 10/10  3.9s/ảnh  còn ~0 phút
+[attack C2-OCT-1V-WP2] 10/10  4.2s/ảnh  còn ~0 phút
+loading annotations into memory...
+Done (t=0.67s)
+creating index...
+index created!
+[run] dev300_B50_eps5_limit10: 10 ảnh, methods=['OSFD']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack OSFD] 10/10  4.0s/ảnh  còn ~0 phút
