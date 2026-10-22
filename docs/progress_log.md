@@ -3527,3 +3527,13 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.7 / 91.0 / 81.4 / 
 Δ so WP2: TXC2 Swin-L −5.0 [−9.6, 0.0], CA3 −8.5, Swin-T −7.9; TXC4 Swin-L −17.4, CA3 −19.3, Swin-T −17.7.
 **Mô tả — tỉ lệ xóa theo cỡ (dev30), WP2 / TXC2 / TXC4:** Swin-L lớn 11 / 11 / 11%, vừa 27 / 18 / 12, nhỏ 40 / 33 / 27; Swin-T lớn 60 / 58 / 40, nhỏ 67 / 59 / 49.
 **Đọc:** giả thuyết "lối tắt texture" ở dạng blur nội dung BỊ BÁC: kể cả liều nhẹ (σ_max 2, không mất white-box trên ảnh hiệu chỉnh) đã hạ MỌI target, Swin-L / Swin-T giảm ngang CNN, object lớn trên Swin-L không nhích (11%). → tác dụng transfer của δ GẮN VỚI texture của chính nội dung ảnh (khớp E7: δ là mẫu khớp nội dung): tối ưu δ trên nội dung đã mờ làm δ lệch khỏi nội dung thật → yếu khắp nơi, không chuyển sang kênh hình dạng. Không thêm liều / dạng xóa texture khác (stylize, bilateral) mà không khóa entry mới.
+
+---
+
+## 2026-10-22 — Đo trần họ WP: WP2 B100 (+ đối chứng C2-OCT-1V B100) @ dev30 (user duyệt "approve") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Câu hỏi:** cùng công thức WP2 (ρ = 0.002), nhiều bước hơn (B100 ≈ 2.8× thời gian WP2 B36) thì DINO-Swin-L lên tới đâu — họ "can thiệp θ surrogate" còn dư địa để tiến về 50% ở ε = 5 không? Đối chứng C2-OCT-1V B100: WP2 có tăng theo B tốt hơn method nền (giả thuyết "mỗi bước thấy θ' khác → ensemble theo thời gian")?
+**Chạy (V100, dev30; run `dev300_B100_eps5_limit100`; WP2 B36 eval lại với dets `dets_b100_dev30.json` để ghép cặp; `results/b100/run.sh`, log `results/b100/run.log`).**
+**Đọc (khai báo trước, điểm ước lượng dev30):**
+- **CÒN DƯ ĐỊA** nếu drop Swin-L(WP2 B100) ≥ 45 → hướng tiếp: đạt hiệu quả nhiều bước trong cùng thời gian (WPA tích lũy / nhiễu theo stage liều cao), khóa entry riêng.
+- **BÃO HÒA** nếu < 42 → với 1 surrogate R50 ở ε = 5, 50% Swin-L gần như ngoài tầm họ method hiện tại → user quyết định vị paper.
+- 42–45 → XÁM. Mô tả: Δ WP2 B100 − C2-OCT-1V B100 (WP có tăng theo B tốt hơn không, so với Δ ở B36/B41); CA3, Swin-T, R101; runtime.
