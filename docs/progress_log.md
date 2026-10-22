@@ -3455,3 +3455,9 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 - Cùng số bước (WP2 B41 − C2 B41): Swin-L +7.4 [4.1, 9.2], CA3 +2.8 [0.4, 4.9] → thêm 5 bước (≈ 1.18× thời gian) cho thêm lợi CA3.
 - So SOTA cùng thời gian (WP2 B36 − OSFD B50): Swin-L **+11.5 [+5.7, +14.3]**, CA3 +4.0 [−0.3, 8.1]; C2-OCT-1V − OSFD: Swin-L +5.3, CA3 +2.4 (tái lập mốc, dev100 nhiễu hơn dev300).
 **Đọc:** WP2 qua quy tắc khóa ở cùng thời gian; lợi DINO-Swin-L bền trên ảnh mới (~+5–6), lợi CA3 nhỏ / không chắc. **Lưu ý cho claim "CNN → Transformer":** Mask R-CNN Swin-T KHÔNG tăng (−0.0 / −1.7 ảnh mới) → lợi nằm riêng ở DINO-Swin-L, chưa phải ở họ Transformer nói chung; cần xem ở dev300 + held-out Swin-S. Bước tiếp theo quy tắc: sàng lọc dev300 so C2-OCT-1V + OSFD cùng thời gian + đối chứng AWT-OD (entry riêng, khóa trước).
+
+---
+
+## 2026-10-22 — Quick test ε = 8/255 trên 10 ảnh (dev10): WP2 B36 / C2-OCT-1V B41 / OSFD B50 (user: "quick test 10 ảnh ở epsilon = 8") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Mục đích:** ε = 8 là điều kiện phụ của plan (idea.md §7); xem nhanh mức DINO-Swin-L đạt được (câu hỏi user: lên ~50% được không). Cấu hình y hệt dev100 hôm nay (cùng thời gian V100), chỉ đổi `--epsilon 8`; α = 1, ρ = 0.002 KHÔNG đổi (ρ hiệu chỉnh ở ε = 5). Run `dev300_B{41,36,50}_eps8_limit100`, subset dev10 (⊂ dev30); script `results/eps8/run.sh`, log `results/eps8/run.log`.
+**Đọc:** n = 10 → chỉ điểm ước lượng, KHÔNG quyết định method, KHÔNG chọn tham số. Mô tả: drop 6 model, Δ WP2 − C2-OCT-1V, Δ WP2 − OSFD; so mốc ε = 5 trên cùng 10 ảnh (từ run dev100 hôm nay).
