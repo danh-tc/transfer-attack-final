@@ -3442,3 +3442,16 @@ python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev100 --d
 - Mô tả (không thuộc quy tắc): **70 ảnh mới (dev100 \ dev30)** — dev30 là nơi phát hiện WP2, nên đọc riêng phần chưa thấy; WP2 B41 − C2-OCT-1V B41 (cùng số bước); WP2 B36 − OSFD B50 và C2-OCT-1V − OSFD (cùng thời gian, tái lập mốc); ConvNeXt / Swin-T / YOLOX / R101 riêng.
 - **GIÚP** → bước sau (entry riêng, khóa trước): sàng lọc dev300 so C2-OCT-1V + OSFD cùng thời gian, **thêm đối chứng AWT port sang detection** (code chính thức xaddwell/AWT, cùng thời gian) — điều kiện cho claim novelty. **NGANG / TRÊN ĐƯỜNG / HẠI** → ghi nhận; biến thể cùng họ (SAM phía model không trễ / chỉ stage 3–4 / AWT đầy đủ) chỉ chạy sau khi khóa entry mới.
 **Caveat khai báo trước:** 30 / 100 ảnh là dev30 (đã thấy kết quả) → thiên lạc quan cho WP2, vì vậy báo 70 ảnh mới; ρ chọn theo sức khỏe tối ưu trên ảnh 1–4 dev300 (10-21), không nhìn transfer; GPU không tất định → đọc theo CI. Held-out (YOLOX-L, Swin-S) không dùng.
+
+### Kết quả @ dev100 (V100; `results/ablation/wp_dev100/screen.json`, `results/runs/dev300_B{36,41,50}_eps5_limit100/{metrics,generalization}_wp_dev100.json`, log `results/wp/run_dev100.log`) — theo quy tắc: **WP2 B36 GIÚP**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
+- C2-OCT-1V B41: 96.4 / 92.8 / 82.1 / 78.9 / 70.0 / 30.3 | 77.0 | 3.93
+- **WP2 B36 (cùng thời gian):** 95.9 / 91.3 / 84.1 / 78.9 / 72.7 / **36.4** | 78.6 | 3.77
+- WP2 B41 (cùng số bước): 96.2 / 92.4 / 83.7 / 80.8 / 74.9 / 37.7 | 79.8 | 4.70
+- OSFD B50: 96.6 / 91.6 / 78.6 / 74.3 / 70.7 / 25.0 | 74.6
+**Quy tắc** (WP2 B36 − C2-OCT-1V B41): Swin-L **+6.2 [+3.1, +8.2]** (≥ 3, cận dưới > 0) VÀ CA3 +1.6 [−0.1, 3.4] (≥ −1) ✓; R101 −1.5 ≥ −3 ✓; runtime 3.77 ≤ 1.1 × 3.93 ✓ → **GIÚP**. Từng target: ConvNeXt +2.0, YOLOX +2.7, Swin-T −0.0.
+**Mô tả:**
+- **70 ảnh mới (dev100 \ dev30):** Swin-L **+5.1 [+1.8, +8.1]** — lợi Swin-L giữ ở ảnh chưa thấy; CA3 +0.2 [−0.9, 2.0], Swin-T −1.7 → phần lợi CA3 ở dev30 (+4.3) phần lớn KHÔNG tái lập; WP2 ở cùng thời gian = **tăng Swin-L, giữ nguyên CNN** (không trượt đường đánh đổi, nhưng cũng không tăng CA3).
+- Cùng số bước (WP2 B41 − C2 B41): Swin-L +7.4 [4.1, 9.2], CA3 +2.8 [0.4, 4.9] → thêm 5 bước (≈ 1.18× thời gian) cho thêm lợi CA3.
+- So SOTA cùng thời gian (WP2 B36 − OSFD B50): Swin-L **+11.5 [+5.7, +14.3]**, CA3 +4.0 [−0.3, 8.1]; C2-OCT-1V − OSFD: Swin-L +5.3, CA3 +2.4 (tái lập mốc, dev100 nhiễu hơn dev300).
+**Đọc:** WP2 qua quy tắc khóa ở cùng thời gian; lợi DINO-Swin-L bền trên ảnh mới (~+5–6), lợi CA3 nhỏ / không chắc. **Lưu ý cho claim "CNN → Transformer":** Mask R-CNN Swin-T KHÔNG tăng (−0.0 / −1.7 ảnh mới) → lợi nằm riêng ở DINO-Swin-L, chưa phải ở họ Transformer nói chung; cần xem ở dev300 + held-out Swin-S. Bước tiếp theo quy tắc: sàng lọc dev300 so C2-OCT-1V + OSFD cùng thời gian + đối chứng AWT-OD (entry riêng, khóa trước).
