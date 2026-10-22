@@ -3537,3 +3537,8 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.7 / 91.0 / 81.4 / 
 - **CÒN DƯ ĐỊA** nếu drop Swin-L(WP2 B100) ≥ 45 → hướng tiếp: đạt hiệu quả nhiều bước trong cùng thời gian (WPA tích lũy / nhiễu theo stage liều cao), khóa entry riêng.
 - **BÃO HÒA** nếu < 42 → với 1 surrogate R50 ở ε = 5, 50% Swin-L gần như ngoài tầm họ method hiện tại → user quyết định vị paper.
 - 42–45 → XÁM. Mô tả: Δ WP2 B100 − C2-OCT-1V B100 (WP có tăng theo B tốt hơn không, so với Δ ở B36/B41); CA3, Swin-T, R101; runtime.
+
+### Kết quả đo trần @ dev30 (V100; `results/ablation/b100_dev30/screen.json`, `results/runs/dev300_B{100,36}_eps5_limit100/{metrics,generalization}_b100_dev30.json`, log `results/b100/run.log`) — theo khai báo: **BÃO HÒA** (Swin-L WP2 B100 = 38.0 < 42)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh: WP2 B36 98.7 / 91.0 / 81.4 / 83.0 / 76.8 / 36.2 | 80.4 | 3.8; **WP2 B100** 99.8 / 95.7 / 86.6 / 89.0 / 80.4 / **38.0** | 85.3 | 10.9; C2-OCT-1V B100 99.9 / 95.4 / 87.9 / 84.9 / 76.3 / 34.6 | 83.0 | 9.6.
+Δ WP2 B100 − B36: Swin-L **+1.8** [−3.6, 5.1], CA3 +4.9 [3.6, 10.1], Swin-T +6.0, R101 +4.7. Δ WP2 − C2-OCT-1V (cùng B100): Swin-L +3.4 [−2.6, 7.1], Swin-T +4.1 [1.3, 7.1], CA3 +2.3, YOLOX +4.1.
+**Đọc:** gần 3× thời gian chỉ thêm ~2 điểm Swin-L → họ WP (ρ = 0.002) bão hòa trên DINO-Swin-L quanh 36–38% ở ε = 5; thêm bước chủ yếu lợi phía CNN / Swin-T. Lợi riêng của WP so method nền vẫn giữ ở B100 (Swin-L +3.4, Swin-T +4.1 — Swin-T lần đầu dương rõ). Theo khai báo: 50% Swin-L với 1 surrogate R50 ở ε = 5 gần như ngoài tầm họ method hiện tại (loss / đa dạng đầu vào / nhiễu trọng số 1 bước trễ) → user quyết định vị paper.
