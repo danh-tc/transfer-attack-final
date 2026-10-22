@@ -3461,3 +3461,12 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3 | s/ảnh:
 ## 2026-10-22 — Quick test ε = 8/255 trên 10 ảnh (dev10): WP2 B36 / C2-OCT-1V B41 / OSFD B50 (user: "quick test 10 ảnh ở epsilon = 8") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
 **Mục đích:** ε = 8 là điều kiện phụ của plan (idea.md §7); xem nhanh mức DINO-Swin-L đạt được (câu hỏi user: lên ~50% được không). Cấu hình y hệt dev100 hôm nay (cùng thời gian V100), chỉ đổi `--epsilon 8`; α = 1, ρ = 0.002 KHÔNG đổi (ρ hiệu chỉnh ở ε = 5). Run `dev300_B{41,36,50}_eps8_limit100`, subset dev10 (⊂ dev30); script `results/eps8/run.sh`, log `results/eps8/run.log`.
 **Đọc:** n = 10 → chỉ điểm ước lượng, KHÔNG quyết định method, KHÔNG chọn tham số. Mô tả: drop 6 model, Δ WP2 − C2-OCT-1V, Δ WP2 − OSFD; so mốc ε = 5 trên cùng 10 ảnh (từ run dev100 hôm nay).
+
+### Kết quả quick test ε = 8 @ dev10 (`results/ablation/eps8_dev10/screen.json`, log `results/eps8/run.log`; mốc ε = 5 cùng 10 ảnh: `results/ablation/eps5_ref_dev10/screen.json`) — MÔ TẢ, n = 10
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3, ε = 8 (ε = 5 cùng 10 ảnh):
+- C2-OCT-1V B41: 100 / 98.2 / 96.0 / 88.9 / 84.8 / **49.4** | 89.9 (Swin-L 32.3 | CA3 76.7)
+- WP2 B36: 100 / 95.3 / 94.4 / 91.0 / 84.2 / **50.6** | 89.9 (36.2 | 75.7)
+- OSFD B50: 100 / 99.4 / 96.1 / 92.1 / 86.9 / **46.1** | 91.7 (27.9 | 69.6)
+Δ WP2 − C2-OCT-1V: ε = 8 Swin-L +1.2 [−0.6, 3.3], CA3 −0.0, R101 −2.9; (ε = 5: Swin-L +4.0). Δ WP2 − OSFD ε = 8: Swin-L +4.5, CA3 −1.8.
+**Tiêu chí "khả quan" (user chốt trong hội thoại TRƯỚC khi thấy số: WP2 ε8 Swin-L ≥ 50 VÀ WP2 − C2-OCT-1V ≥ +3):** 50.6 ✓ nhưng +1.2 ✗ → **KHÔNG khả quan** → chuyển hướng "sửa surrogate mạnh hơn".
+**Đọc:** tăng ε 5 → 8 cho +17 – 18 điểm Swin-L ở MỌI method (kể cả OSFD 28 → 46) — ε là núm lớn nhất nhưng không phải đóng góp; ở ε = 8 CNN gần bão hòa và các method dồn lại (OSFD ≈ C2 ≈ WP2 trên CA3), lợi riêng của WP2 co lại (+4.0 → +1.2). n = 10 rất nhiễu (CI Swin-T ±10).
