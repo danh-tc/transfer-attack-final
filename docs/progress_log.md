@@ -3508,3 +3508,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.7 / 91.0 / 81.4 / 
 Δ so WP2 (số chính xác): Swin-L +1.40 [−2.9, 3.5], CA3 **−2.95** [−4.3, 0.6] (> −3 → không chạm "hại"), Swin-T −1.43, YOLOX **−6.46**, R101 −4.31, ConvNeXt −0.97 → không đạt ΔSwin-T ≥ +3 → NGANG.
 **Mô tả — tỉ lệ xóa theo cỡ (dev30), WP2 / SZC:** Swin-L nhỏ 40 / 41, vừa 27 / 26, lớn 11 / 14%; Swin-T nhỏ 67 / 67, vừa 47 / 51, **lớn 60 / 58%**.
 **Đọc:** bỏ L_cls ở object lớn KHÔNG lấy lại lợi thế object lớn của OSFD trên Swin-T (60 → 58%) và làm mất phía CNN (YOLOX −6.5, R101 −4.3) → giả thuyết "L_cls lấn át ở object lớn" BỊ BÁC; L_cls ở object lớn đang có ích cho CNN. Cùng SZ / R / SZR: phần OSFD thắng ở object lớn không tái tạo được bằng cách trộn thành phần OSFD vào khung WP2 theo cỡ (trọng số không gian, xoay, bỏ cls) — còn lại giả thuyết 2 view / bước của RRB (chưa kiểm). Không đưa lên dev100.
+
+---
+
+## 2026-10-22 — "RRB cho texture": C2-OCT-1V-WP2-TXC2 / -TXC4 (làm mờ riêng nội dung sạch của view) @ dev30 B36 (user duyệt "Approve") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lập luận:** RRB (+32) không "tune" — nó xóa một LỐI TẮT đặc thù surrogate (hình học chính xác). Lối tắt tương ứng cho CNN → Transformer theo dữ liệu dự án: **texture / cấu trúc cục bộ** — E6: DINO-Swin-L nhận object (nhất là lớn) bằng HÌNH DẠNG, R50 bằng cấu trúc cục bộ; phân tích theo object hôm nay: method mạnh ở object nhỏ, yếu ở object lớn. → mỗi bước cho R50 nhìn ảnh có texture nội dung bị xóa ngẫu nhiên (giữ hình dạng, như BLUR của E6) → gradient theo δ buộc nhắm kênh hình dạng. KHÁC S1 / SEA / E16 (làm mượt δ / gradient) và PD (che, phá tối ưu): chỉ biến đổi NỘI DUNG x, δ giữ băng rộng.
+**Ô (`geo_osfd_attack(tex_blur)`, `pia._blur`):** WP2 y nguyên; mỗi view sau OCT: v' = v + (Blur_s(c) − c) = Blur_s(warp x) + warp δ + nhiễu σ = 6 (view adv elem có nhiễu, view sạch không), s ~ U(0, σ_max) px khung model (Gaussian tách được, pad reflect, s < 0.3 → không mờ); feature sạch L_OSFD tính trên Blur_s(c); box GT không đổi; RNG riêng seed + 9 → chuỗi OCT trùng ô gốc.
+**Hiệu chỉnh liều — CHỈ sức khỏe white-box (`scripts/tx_calib.py`, ảnh 1–4 dev300, chỉ R50, không đo target), B36:** |δ| = 5 / R50 xóa: WP2 79% / 92% (34 / 37); σ_max 1, 2: 79% / 92%; 3: 78% / 89%; 4: 78% / 86%; **6, 8: 77% / 54% (sụp)**. → **TXC2** (lớn nhất chưa mất white-box), **TXC4** (lớn nhất trước khi sụp). Runtime 3.7–3.8 s / ảnh ≈ WP2 → B36 = cùng thời gian.
+**Chạy (V100, dev30; PNG WP2 B36 tái dùng; `results/sz/run_tx.sh`, log `results/sz/run_tx.log`).**
+**Đọc (khai báo trước; so WP2 B36 cùng 30 ảnh; ngưỡng cao theo yêu cầu user "khác biệt rõ rệt như RRB"):**
+- **BƯỚC NHẢY** nếu ΔSwin-L ≥ +10 → lên dev100 ngay (khóa entry).
+- **CÓ TÍN HIỆU** nếu +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → xem liều / kết hợp (khóa entry).
+- **KHÔNG** nếu ΔSwin-L < +3 → lối tắt texture (ở dạng blur nội dung) không phải nút thắt; chuyển hướng.
+- Mô tả: Swin-T, tỉ lệ xóa object lớn Swin-T / Swin-L (giả thuyết dự đoán tăng), white-box R50, R101.
