@@ -3649,3 +3649,19 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.5
 - **KHÔNG** nếu ΔSwin-L < +3 → đóng họ WP động, bỏ UNI, đưa WP2 lên sàng lọc dev300 (khóa entry riêng).
 - Mô tả: Swin-T, R101, CNN; ‖Δ‖ / bán kính không log (unit test cho thấy bám biên khi gradient ngẫu nhiên).
 **Caveat:** dev30 đã dùng nhiều lần (không chọn tham số ở đây); GPU không tất định → đọc theo CI; n = 30.
+
+### Kết quả WPA @ dev30 B36 (V100; `results/ablation/wpa_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/{metrics,generalization}_wpa_dev30.json`, log `results/wpa/run.log`) — theo khai báo: **CÓ TÍN HIỆU** (+3 ≤ ΔSwin-L < +10, ΔCA3 ≥ −3)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.5 / 92.1 / 83.2 / 83.2 / 75.2 / 37.5 | 80.5; **WPA** 98.6 / 92.0 / 85.0 / 84.1 / 78.6 / **41.8** | 82.6.
+Δ WPA − WP2: Swin-L **+4.3 [−1.5, +8.8]**, CA3 +2.0 [+0.5, +4.2], YOLOX +3.5, ConvNeXt +1.8, Swin-T +0.9, R101 −0.1. Runtime attack thực 4.7 s / ảnh (WP2 tái dùng PNG → không đo cùng lần; hiệu chỉnh 1.02×) → đo lại cùng lần ở dev100.
+**Đọc:** tích lũy θ' trong cùng bán kính ρ cho thêm lợi cùng chiều cả Swin-L lẫn CNN, CI Swin-L còn chứa 0 (n = 30). Theo khai báo: lên dev100, CHƯA gọi là method mới.
+
+---
+
+## 2026-10-23 — WPA @ dev100 B36 so WP2 B36 (theo khai báo "CÓ TÍN HIỆU" ở trên) — khóa TRƯỚC khi chạy
+**Chạy (V100, dev100; PNG WP2 B36 dev100 có sẵn từ E18 hôm nay; WPA sinh 70 ảnh mới (30 ảnh dev30 tái dùng); `results/wpa/run_dev100.sh`, log `results/wpa/run_dev100.log`; metrics `metrics_wpa_dev100.json`, dets `dets_wpa_dev100.json`).** **Runtime đo cùng lần:** attack lại WP2 + WPA nối tiếp trên dev10 vào run riêng `dev300_B36_eps5_limit12` (chỉ để đo thời gian, không eval), so s / ảnh trung bình ảnh 2–10 (bỏ ảnh khởi động).
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; CA3 = TB ConvNeXt-T / Swin-T / YOLOX-S; Δ = drop(WPA B36) − drop(WP2 B36), cùng ảnh) — như WP2 @ dev100 (10-22):**
+- **GIÚP** nếu [(ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1) HOẶC (ΔCA3 ≥ 2 VÀ cận dưới CI > 0 VÀ ΔSwin-L ≥ −1)] VÀ ΔR101 ≥ −3 VÀ runtime WPA ≤ 1.1 × WP2 (đo cùng lần).
+- **HẠI** nếu ΔCA3 ≤ −3 HOẶC ΔSwin-L ≤ −3. **TRÊN ĐƯỜNG** nếu một phía ≥ 2 và phía kia ≤ −1. Còn lại → **NGANG**.
+- Mô tả: **70 ảnh mới (dev100 \ dev30)**; từng target.
+- **GIÚP** → WPA thay WP2 làm ứng viên, sàng lọc dev300 so WP2 + C2-OCT-1V + OSFD cùng thời gian (+ đối chứng AWT-OD cho claim novelty), entry riêng. **Khác** → WP2 lên sàng lọc dev300 (như khai báo WPA dev30), đóng họ WP động.
+**Caveat:** 30 / 100 ảnh là dev30 (đã thấy) → đọc 70 ảnh mới; η không tune.
