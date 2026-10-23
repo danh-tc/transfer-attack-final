@@ -1,0 +1,5 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+{"img_id": 7088, "cos_direct_vs_sum_comp": 0.9999999935127128, "cos_repeat": 0.9999999935128231, "cos_dS_dS": 0.9999999999999998, "grad_abs_mean": 2.787954599625664e-06, "comp_abs_mean": {"s0": 3.867325570894309e-09, "s1": 4.2620442286533944e-07, "s2": 9.125828341893794e-07, "s3": 7.43383225199068e-07, "rpn": 1.4892837896240962e-07, "roi": 1.429655526408169e-06}, "sec_3grad": 1.1482493877410889, "pass": true}
+{"img_id": 7795, "cos_direct_vs_sum_comp": 0.9999999854640516, "cos_repeat": 0.9999999854642078, "cos_dS_dS": 1.0, "grad_abs_mean": 4.2669398681027815e-06, "comp_abs_mean": {"s0": 6.3457870069782985e-09, "s1": 5.855715130564931e-07, "s2": 1.468622485845117e-06, "s3": 2.378193585172994e-06, "rpn": 6.441007371904561e-07, "roi": 1.4497300071525387e-06}, "sec_3grad": 0.8038616180419922, "pass": true}
+[E19 check] 1 ảnh đo đầy đủ (P0 + phẳng + hồ sơ): 14s
+CHECK QUA
