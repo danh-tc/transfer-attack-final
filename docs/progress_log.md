@@ -3707,3 +3707,11 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 96.0 / 92.2 / 83.9 / 
 - **Đọc sơ bộ trên dev30** (= 30 ảnh đầu theo thứ tự đo, `--analyze-only --limit 30`, bootstrap trên 30 ảnh): áp NGUYÊN quy tắc sức khỏe / TÁCH ĐƯỢC / PHẲNG HƠN / KHÁC HỒ SƠ / ánh xạ ở trên, không đổi ngưỡng. Báo user; user quyết bước tiếp theo từ kết quả dev30.
 - Tiến trình đo vẫn chạy tiếp tới 100 ảnh (không tốn thêm công; dừng nếu user muốn). Nếu dùng dev100: quy tắc như khai báo gốc; dev100 có thể lật kết luận dev30, khi đó **dev100 thắng**.
 - Caveat thêm: CI rộng hơn ~1.8× so dev100 → dễ ra "không tách được" dù có tín hiệu nhỏ; 30 ảnh đều là dev30 (đã thấy trong mọi pilot trước).
+
+### Kết quả E19 @ dev30 (sơ bộ, 22:30 GMT+7; `results/mechanism/e19_oracle_dissect_dev30.json`, thô `artifacts/e19/raw_snapshot30.json`, log `results/e19/run.log`) — theo quy tắc: **dòng (3)** (KHÁC HỒ SƠ ở stage C2), không ước lượng nào TÁCH ĐƯỢC
+- **Sức khỏe QUA:** A_S(RAND) −0.0003; G8 − RAND +0.044 [0.040, 0.048]; kiểm 2 ảnh QUA.
+- **Độ căn hướng tại P0 (A_S | A_W):** G8 0.044 | 0.200; G1 0.022 | 0.109; δ_W 0.061. Δ so G8: **IG-0 +0.0007 [−0.0008, 0.0021]** (×1.01), PGN4 −0.010, WP4 −0.012, IG-blur −0.047 (≈ 0); mọi thành phần riêng < G8 (L_OSFD ×0.83, rpn ×0.21, roi ×0.45, stage C2..C5 ×0.70 / 0.76 / 0.73 / 0.47) → **không ước lượng / thành phần nào TÁCH ĐƯỢC**. CONTENT −0.058 (cả δ_S lẫn δ_W ngược hướng high-pass của ảnh).
+- **Độ phẳng:** r(δ_S) 0.993 vs r(t*·δ_W) 0.977 (t* trung vị 0.5), Δ +0.016 [0.010, 0.023] < 0.10 → KHÔNG PHẲNG HƠN.
+- **Hồ sơ loss p_c = ΔL_c(δ_S) / ΔL_c(δ_W):** OSFD-C2 **0.83**, C3 0.61, C4 0.44, C5 0.41, rpn 0.29, roi 0.47, tổng 0.43 → KHÁC HỒ SƠ (C2) theo quy tắc.
+- **P1 = x + δ_W (mô tả):** G8 0.030 | 0.243; L_OSFD-C2 / C3 0.048 / 0.049 (≈ 1.6× G8) nhưng A_W cũng tăng (0.38 / 0.43).
+- **Đọc / caveat (chưa khóa, cần đối chứng trước khi theo dòng 3):** p_C2 cao có thể chỉ vì feature stage nông phản ứng gần như với MỌI nhiễu ±5 (gần tuyến tính) — hồ sơ chưa có δ ngẫu nhiên làm mốc. Gradient của L_OSFD-C2 nhỏ hơn ~10³× các thành phần khác (kiểm 2 ảnh) → C2 gần như không tham gia hướng attack hiện tại. Kết luận chính: tại ảnh sạch, gradient R50 căn với điểm cuối của chính nó ~4.5× hơn với δ_SwinT, và không ước lượng chỉ-R50 nào đã thử (IG, PGN, WP, tách thành phần) đổi được tỉ lệ đó.
