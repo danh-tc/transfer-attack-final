@@ -3671,3 +3671,34 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 96.0 / 92.2 / 83.9 / 
 Δ WPA − WP2: Swin-L **+2.8 [−0.1, +4.7]** (< 3, cận dưới < 0), CA3 +0.0 [−1.6, 1.3], R101 −0.8, YOLOX −0.4, ConvNeXt +0.8, Swin-T −0.3 → không nhánh GIÚP nào; không HẠI / TRÊN ĐƯỜNG → NGANG. Runtime cùng lần (dev10, ảnh 2–10, `results/runs/dev300_B36_eps5_limit12/attack_stats.jsonl`): WP2 3.67, WPA 3.70 s / ảnh (1.01×).
 **70 ảnh mới:** Swin-L +1.0 [−1.4, 3.2], CA3 −0.2 → lợi dev30 (+4.3) phần lớn KHÔNG tái lập. WP2 dev100 tái lập 10-22 (Swin-L 36.8 vs 36.4).
 **Đọc:** tích lũy θ' trong cùng bán kính không thêm gì đáng kể so với WP2; họ WP bão hòa ở ~37–40% Swin-L. Theo khai báo: đóng họ WP động, bỏ UNI, đưa **WP2** lên sàng lọc dev300 (entry riêng, khóa trước).
+
+---
+
+## 2026-10-23 — E19 "oracle-δ dissection": trên CHÍNH R50, cách ước lượng hướng nào (chỉ dùng R50) trỏ về δ_SwinT? (bước 0, rà literature 10-2026; user duyệt "approve") — MÔ TẢ, chỉ đo trên R50, khai báo TRƯỚC khi đo
+**Vì sao:** E16 — δ_SwinT (C2-OCT-1V, surrogate Swin-T, B41) phá R50 78.7% VÀ DINO-Swin-L 58.0%, gần trực giao δ_R50 (cos 0.06) → tồn tại δ trong quả cầu ε = 5 mà R50 "thấy", nhưng gradient ascent trên R50 không đi tới. δ_SwinT chỉ là **oracle để phân tích**; method cuối vẫn chỉ dùng R50 (như chẩn đoán đổi surrogate 10-21). Literature (10-2026): CNN → ViT ít người làm, detection / DINO gần như trống; ước lượng hướng kiểu IG (MIG, ICCV'23) và độ phẳng phía ĐẦU VÀO (PGN / CWA) repo chưa thử (đổi hướng gradient theo kiểu BPA / GLB / PD đã thử 10-21: NGANG / HẠI).
+**Đã chạy trước entry này (chỉ dựng lại oracle, không đo):** δ_SwinT dev100 sinh lại (PNG E16 mất khi đổi máy): `run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --surrogate swin_t --stage attack --methods C2-OCT-1V` (V100, 5.4 s / ảnh, log `results/e19/attack_swint.log`). **Sức khỏe H0 QUA:** L2 từng ảnh so lần chạy cũ (`attack_stats.jsonl` cùng run) lệch trung vị 0.1%, tối đa 0.5%.
+**Đo (script `scripts/e19_oracle_dissect.py`, dev100, R50 cố định fp32, không AMP; δ tính ở không gian ảnh GỐC như biến `noise` của attack):**
+- δ_S = PNG δ_SwinT − ảnh gốc; δ_W = PNG **C2-OCT-1V-WP2 B36** dev100 (method tốt nhất, có sẵn) − ảnh gốc (δ_R50 C2-OCT-1V B41 không còn trên máy → δ_W thay làm mốc R50).
+- Loss L = loss C2: L_OSFD (k = 3, feature sạch co-transform) + 4·(loss_rpn_cls + loss_cls), skip_mask, như C2-OCT-1V. **8 view OCT cố định mỗi ảnh** (elem {scale ln2/2, shift ph8}, nhiễu σ = 6, GT co-transform; RNG seed = SEED + seed_index như attack), dùng CHUNG cho mọi ước lượng.
+- **Độ căn hướng** A_S(h) = cos(sign h, δ_S), A_W(h) = cos(sign h, δ_W) (phẳng 3×H×W, theo ảnh; cos(h, ·) thô ghi mô tả). Điểm đo **P0 = ảnh sạch (δ = 0)** — điểm xuất phát chung của mọi attack. Ước lượng h, **cùng ngân sách 8 backward**:
+  - **G8 (đối chứng chính):** Σ_v g_v / mean|g_v| trên 8 view (gộp như MI). G1 = view 1 (mô tả).
+  - **WP4:** 4 view; mỗi view: ∇θ → θ' = cập nhật WP2 (ρ = 0.002, `core.wp_update`) → ∇x dưới θ' (feature sạch cũng trên θ').
+  - **IG-0 / IG-blur:** h = (x − b) ⊙ Σ_{k=1..8} ĝ(b + (k/8)(x − b)), điểm k dùng view k; b = ảnh đen | Gauss σ = 8 px của ảnh gốc.
+  - **PGN4 (kiểu PGN, không phải bản gốc):** 4 mẫu x' = x + U(−3ε, 3ε) (kẹp [0, 255]), g' = ∇ tại x' (view i), x* = x' − ε·sign(g'), g* = ∇ tại x* → h = Σ (0.5 ĝ' + 0.5 ĝ*).
+  - **Thành phần (phân rã CÙNG 8 view của G8, không phải ngân sách riêng):** chỉ L_OSFD; chỉ 4·loss_rpn_cls; chỉ 4·loss_cls RoI; L_OSFD riêng stage C2 / C3 / C4 / C5.
+  - **Mốc null:** δ_W (A_S(δ_W) = cos(δ_W, δ_S)); RAND = Rademacher (seed 2026 + img_id); CONTENT = x − Gauss_σ2(x) (tương quan với cấu trúc ảnh — chặn IG thắng chỉ nhờ nhân với x).
+- **Độ phẳng:** L̄(δ) = TB 8 view của L tại x + δ (không grad); Γ(δ) = L̄(δ) − L̄(0). Mốc R50 **cùng mức gain:** t*·δ_W, t* ∈ {0.1, …, 1.0} theo ảnh sao cho Γ gần Γ(δ_S) nhất. Giữ lại r(δ) = [TB_j L̄(δ + ξ_j) − L̄(0)] / Γ(δ), ξ_j Rademacher ±2 px, j = 1..4, **không kẹp về ε** (đo địa hình, không phải attack; kẹp sẽ thiên lệch giữa δ dạng sign và δ co giãn). Bỏ ảnh có Γ(δ_S) ≤ 0.05·Γ(δ_W) (ghi số ảnh). Mô tả: độ phân tán gain giữa 8 view (std / mean).
+- **Hồ sơ loss:** p_c = ΔL_c(δ_S) / ΔL_c(δ_W) (tỉ số của TB qua ảnh, c ∈ {rpn, roi, OSFD C2..C5}; δ_W đầy đủ), p_tot = Γ(δ_S) / Γ(δ_W). Mô tả: ‖F(x + δ) − F(x)‖ / ‖F(x)‖ từng stage, không view.
+- **Mô tả thêm (không thuộc quy tắc):** cùng các ước lượng tại **P1 = x + δ_W** trên dev30; **H1:** relative AP drop R50 / DINO-Swin-L của δ_S mới (inference_detector trên PNG như E16), kỳ vọng ≈ 78.7 / 58.0 (± 3; lệch hơn → ghi, vẫn đọc).
+**Quy tắc (dev100, paired bootstrap 1000 theo ảnh, BOOT_SEED 2026; Δ = A_S(h) − A_S(G8) cùng ảnh):**
+- **Sức khỏe:** |A_S(RAND)| < 0.005 VÀ A_S(G8) − A_S(RAND) cận dưới CI > 0; kiểm 2 ảnh: G8 khớp tổ hợp tuyến tính của gradient thành phần (cos ≥ 0.999), A_S(δ_S) = 1. Không qua → **KHÔNG ĐO ĐƯỢC**, sửa / user quyết, không đọc các dòng dưới.
+- **TÁCH ĐƯỢC** (cho h là ước lượng hoặc thành phần): A_S(h) ≥ 1.5·A_S(G8) VÀ Δ ≥ +0.01 VÀ cận dưới CI Δ > 0 VÀ cận dưới CI [A_S(h) − A_S(CONTENT)] > 0.
+- **PHẲNG HƠN:** r(δ_S) − r(t*·δ_W) ≥ +0.10 VÀ cận dưới CI > 0.
+- **KHÁC HỒ SƠ:** ∃ c: p_c ≥ 0.8 (cận dưới CI ≥ 0.6) VÀ p_tot ≤ 0.5.
+- **Ánh xạ sang method (theo thứ tự ưu tiên, khóa):**
+  1. Một ƯỚC LƯỢNG (WP4 / IG-0 / IG-blur / PGN4) TÁCH ĐƯỢC → thay gradient mỗi bước của C2-OCT-1V-WP2 bằng ước lượng có Δ lớn nhất, quick test dev30 **cùng thời gian WP2 B36** (B giảm theo chi phí đo), entry riêng khóa trước.
+  2. Không (1), PHẲNG HƠN → "dual-flat": WP2 + phẳng phía đầu vào kiểu PGN4, dev30 cùng thời gian, entry riêng.
+  3. Không (1)–(2), một THÀNH PHẦN TÁCH ĐƯỢC hoặc KHÁC HỒ SƠ → đặt lại trọng số loss theo thành phần đó (novelty thấp), dev30.
+  4. Không gì → **DỪNG**: không ước lượng nào chỉ dùng R50 trỏ được về vùng δ_SwinT; ghi kết luận âm (cho paper), user quyết.
+**Caveat (đọc kết quả với):** (a) Swin-T → DINO-Swin-L là transfer **cùng họ Swin**; δ_S phá R50 78.7% là chiều ViT → CNN (chiều dễ theo literature) → "R50 thấy δ_S" KHÔNG hàm ý gradient R50 tìm tới được; kỳ vọng trước: dòng (4) khá có thể. (b) P0 là gradient 1 điểm so với điểm cuối 41 bước MI + OCT của δ_S → A_S tuyệt đối sẽ nhỏ; quyết định dựa trên so tương đối với G8 cùng ngân sách. (c) 30 / 100 ảnh là dev30 (đã thấy). (d) Tham số ước lượng (T = 8, σ_blur = 8, ζ = 3, ±2 px) đặt trước, không tune.
+**Chi phí ước tính (V100):** ~88 backward + ~130 forward / ảnh ≈ 20 s → dev100 ~35 phút; P1 dev30 ~10 phút; H1 ~5 phút. Output `results/mechanism/e19_oracle_dissect.json`, thô `artifacts/e19/`, log `results/e19/run.log`.
