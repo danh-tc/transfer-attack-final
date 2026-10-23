@@ -3715,3 +3715,7 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 96.0 / 92.2 / 83.9 / 
 - **Hồ sơ loss p_c = ΔL_c(δ_S) / ΔL_c(δ_W):** OSFD-C2 **0.83**, C3 0.61, C4 0.44, C5 0.41, rpn 0.29, roi 0.47, tổng 0.43 → KHÁC HỒ SƠ (C2) theo quy tắc.
 - **P1 = x + δ_W (mô tả):** G8 0.030 | 0.243; L_OSFD-C2 / C3 0.048 / 0.049 (≈ 1.6× G8) nhưng A_W cũng tăng (0.38 / 0.43).
 - **Đọc / caveat (chưa khóa, cần đối chứng trước khi theo dòng 3):** p_C2 cao có thể chỉ vì feature stage nông phản ứng gần như với MỌI nhiễu ±5 (gần tuyến tính) — hồ sơ chưa có δ ngẫu nhiên làm mốc. Gradient của L_OSFD-C2 nhỏ hơn ~10³× các thành phần khác (kiểm 2 ảnh) → C2 gần như không tham gia hướng attack hiện tại. Kết luận chính: tại ảnh sạch, gradient R50 căn với điểm cuối của chính nó ~4.5× hơn với δ_SwinT, và không ước lượng chỉ-R50 nào đã thử (IG, PGN, WP, tách thành phần) đổi được tỉ lệ đó.
+
+### E19 — đối chứng hồ sơ loss bằng nhiễu ngẫu nhiên @ dev30 (user duyệt "Duyệt", 22:33 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** dòng (3) dev30 dựa trên p_C2 = 0.83; stage nông có thể phản ứng như nhau với mọi nhiễu ±5. **Đo (forward, dev30, cùng 8 view / seed như E19):** p_c(X) = ΔL_c(X) / ΔL_c(δ_W) cho X ∈ {δ_S, RAND} (RAND = Rademacher ±5, seed 2026 + img_id như mốc null E19), tính lại L(0), L(δ_W) cùng lần; paired bootstrap 1000 (BOOT_SEED 2026) trên d = p_C2(δ_S) − p_C2(RAND).
+**Quy tắc:** **C2 THẬT** nếu d ≥ 0.3 VÀ cận dưới CI > 0 → giữ dòng (3) (ứng viên: tăng trọng số L_OSFD-C2), entry riêng. Ngược lại **C2 ẢO** → E19 dev30 đọc là dòng (4) (DỪNG). Mô tả: p_c(RAND) mọi thành phần.
