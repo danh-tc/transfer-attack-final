@@ -3665,3 +3665,9 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 98.5 / 92.1 / 83.2 / 
 - Mô tả: **70 ảnh mới (dev100 \ dev30)**; từng target.
 - **GIÚP** → WPA thay WP2 làm ứng viên, sàng lọc dev300 so WP2 + C2-OCT-1V + OSFD cùng thời gian (+ đối chứng AWT-OD cho claim novelty), entry riêng. **Khác** → WP2 lên sàng lọc dev300 (như khai báo WPA dev30), đóng họ WP động.
 **Caveat:** 30 / 100 ảnh là dev30 (đã thấy) → đọc 70 ảnh mới; η không tune.
+
+### Kết quả WPA @ dev100 B36 (V100; `results/ablation/wpa_dev100/screen.json`, `results/runs/dev300_B36_eps5_limit100/{metrics,generalization}_wpa_dev100.json`, log `results/wpa/run_dev100.log`) — theo quy tắc: **NGANG**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 96.0 / 92.2 / 83.9 / 80.4 / 73.9 / 36.8 | 79.4; **WPA** 96.1 / 91.4 / 84.7 / 80.1 / 73.4 / **39.6** | 79.4.
+Δ WPA − WP2: Swin-L **+2.8 [−0.1, +4.7]** (< 3, cận dưới < 0), CA3 +0.0 [−1.6, 1.3], R101 −0.8, YOLOX −0.4, ConvNeXt +0.8, Swin-T −0.3 → không nhánh GIÚP nào; không HẠI / TRÊN ĐƯỜNG → NGANG. Runtime cùng lần (dev10, ảnh 2–10, `results/runs/dev300_B36_eps5_limit12/attack_stats.jsonl`): WP2 3.67, WPA 3.70 s / ảnh (1.01×).
+**70 ảnh mới:** Swin-L +1.0 [−1.4, 3.2], CA3 −0.2 → lợi dev30 (+4.3) phần lớn KHÔNG tái lập. WP2 dev100 tái lập 10-22 (Swin-L 36.8 vs 36.4).
+**Đọc:** tích lũy θ' trong cùng bán kính không thêm gì đáng kể so với WP2; họ WP bão hòa ở ~37–40% Swin-L. Theo khai báo: đóng họ WP động, bỏ UNI, đưa **WP2** lên sàng lọc dev300 (entry riêng, khóa trước).
