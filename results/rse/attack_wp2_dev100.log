@@ -1,0 +1,13 @@
+loading annotations into memory...
+Done (t=0.69s)
+creating index...
+index created!
+[run] dev300_B36_eps5_limit100: 100 ảnh (subset dev100), methods=['C2-OCT-1V-WP2']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack C2-OCT-1V-WP2] 40/100  4.2s/ảnh  còn ~4 phút
+[attack C2-OCT-1V-WP2] 50/100  4.0s/ảnh  còn ~3 phút
+[attack C2-OCT-1V-WP2] 60/100  4.0s/ảnh  còn ~3 phút
+[attack C2-OCT-1V-WP2] 70/100  4.1s/ảnh  còn ~2 phút
+[attack C2-OCT-1V-WP2] 80/100  4.1s/ảnh  còn ~1 phút
+[attack C2-OCT-1V-WP2] 90/100  4.0s/ảnh  còn ~1 phút
+[attack C2-OCT-1V-WP2] 100/100  4.0s/ảnh  còn ~0 phút

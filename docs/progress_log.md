@@ -3627,3 +3627,11 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.5
 - **KHÔNG QUA** nếu một trong hai không đạt → dừng RSE, không viết attack.
 - Mô tả: S3 = Spearman(Δr_R50, DINO xóa); Δr trung bình mỗi model / điều kiện (NOISE là mốc null); S1, S2 theo cỡ (nhỏ / vừa / lớn COCO) — kiểm nhiễu do cỡ object; 70 ảnh mới; S1–S3 trên XBG / XBGS / NOISE.
 **Caveat khai báo trước:** tương quan giữa object có thể do thuộc tính object chung (cỡ, độ tương phản nền) chứ không do δ → báo theo cỡ; đạt gate là điều kiện cần, không đủ (tối ưu Δr_R50 có thể đi theo hướng khác hướng mà δ WP2 tình cờ có). Smoke test 3 ảnh (chỉ kiểm code, không đọc số).
+
+### Kết quả E18 / Gate A @ dev100 (`results/mechanism/e18_rse_gate.json`, log `results/rse/e18.log`, raw `artifacts/e18/raw.json`; 137 s forward) — theo quy tắc: **KHÔNG QUA** (S1 đạt, S2 không) → dừng RSE, không viết attack
+639 object có đủ token O / B ở cả 2 model (537 DINO thấy khi sạch). Δr trung bình R50 / Swin-L | DINO xóa:
+- NOISE: −0.010 / −0.027 | 0.011; **WP2: −0.067 / −0.074 | 0.244**; XBG (dev30): −0.071 / −0.052 | 0.215; XBGS: −0.056 / −0.045 | 0.205.
+- **S1 (Δr R50 ~ Δr Swin-L), WP2: +0.335 [+0.242, +0.425]** ✓ (NOISE +0.118 [0.03, 0.21]; giữ ở mọi cỡ: nhỏ +0.34, vừa +0.29, lớn +0.38; 70 ảnh mới +0.33).
+- **S2 (Δr Swin-L ~ DINO xóa), WP2: −0.050 [−0.156, +0.058]** ✗ (nhỏ −0.13, vừa −0.09, lớn +0.00; 70 ảnh mới −0.02; XBG / XBGS cũng ≈ 0).
+- S3 (Δr R50 ~ DINO xóa), WP2: −0.101 [−0.194, −0.001].
+**Đọc:** (1) hiệu ứng của cùng δ lên quan hệ object–nền có đồng biến giữa R50 và Swin-L (S1 ≈ 3× mốc nhiễu, không do cỡ) — phần "coupling" mà đề xuất cần là có thật; (2) nhưng đại lượng đó KHÔNG liên quan tới việc DINO mất object (S2 ≈ 0 ở mọi cỡ, cả trên ảnh mới) → "object giống nền cục bộ hơn ở stage 3" không phải kênh mà δ transfer dùng để xóa object trên DINO-Swin-L; (3) Δr trung bình ÂM ở mọi δ đối kháng (object xa nền sạch HƠN, không gần hơn) dù R50 white-box xóa 92% → δ hiện tại không phá theo kiểu "hòa vào nền" ở cả 2 model; khớp E14: transfer chủ yếu hạ confidence phân loại. Theo quy tắc: dừng RSE. Giới hạn: tương quan trên δ có sẵn — không loại trừ tuyệt đối việc tối ưu thẳng Δr tạo kênh mới (WB E14c kéo token về μ nền CÓ xóa object), nhưng không có bằng chứng ủng hộ để tốn Phase 1.

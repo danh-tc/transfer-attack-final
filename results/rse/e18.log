@@ -1,0 +1,45 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.62s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.80s)
+creating index...
+index created!
+[E18] 10/100 (19s)
+[E18] 20/100 (39s)
+[E18] 30/100 (59s)
+[E18] 40/100 (70s)
+[E18] 50/100 (82s)
+[E18] 60/100 (93s)
+[E18] 70/100 (105s)
+[E18] 80/100 (116s)
+[E18] 90/100 (126s)
+[E18] 100/100 (137s)
+/workspace/transfer-attack-final/scripts/e18_rse_gate.py:167: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(spearmanr(t[ok, a], t[ok, b])[0]) if ok.sum() > 5 else float("nan")
+NOISE  n_obj  639 | Δr R50 -0.010 Swin-L -0.027 | DINO xóa 0.011
+   S1 (Δr R50 ~ Δr Swin-L) +0.118 [+0.028, +0.205] n=639
+   S2 (Δr Swin-L ~ xóa) +0.043 [-0.065, +0.123] n=537
+   S3 (Δr R50 ~ xóa) -0.083 [-0.159, +0.014] n=537
+WP2    n_obj  639 | Δr R50 -0.067 Swin-L -0.074 | DINO xóa 0.244
+   S1 (Δr R50 ~ Δr Swin-L) +0.335 [+0.242, +0.425] n=639
+   S2 (Δr Swin-L ~ xóa) -0.050 [-0.156, +0.058] n=537
+   S3 (Δr R50 ~ xóa) -0.101 [-0.194, -0.001] n=537
+XBG    n_obj  243 | Δr R50 -0.071 Swin-L -0.052 | DINO xóa 0.215
+   S1 (Δr R50 ~ Δr Swin-L) +0.291 [+0.090, +0.479] n=243
+   S2 (Δr Swin-L ~ xóa) -0.054 [-0.212, +0.097] n=205
+   S3 (Δr R50 ~ xóa) -0.103 [-0.276, +0.125] n=205
+XBGS   n_obj  243 | Δr R50 -0.056 Swin-L -0.045 | DINO xóa 0.205
+   S1 (Δr R50 ~ Δr Swin-L) +0.262 [+0.084, +0.443] n=243
+   S2 (Δr Swin-L ~ xóa) -0.010 [-0.134, +0.150] n=205
+   S3 (Δr R50 ~ xóa) -0.168 [-0.352, +0.044] n=205
+WP2 small   S1 +0.343 [+0.167, +0.488] n=181 | S2 -0.128 [-0.353, +0.091] n=139
+WP2 medium  S1 +0.285 [+0.126, +0.441] n=298 | S2 -0.085 [-0.220, +0.054] n=251
+WP2 large   S1 +0.379 [+0.200, +0.545] n=160 | S2 +0.002 [-0.163, +0.179] n=147
+WP2 70 ảnh mới  S1 +0.328 [+0.219, +0.443] n=396 | S2 -0.020 [-0.160, +0.122] n=332
+VERDICT {'S1_pass': True, 'S2_pass': False, 'GATE_A': 'KHÔNG QUA'}
