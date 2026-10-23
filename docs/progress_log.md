@@ -3635,3 +3635,17 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.5
 - **S2 (Δr Swin-L ~ DINO xóa), WP2: −0.050 [−0.156, +0.058]** ✗ (nhỏ −0.13, vừa −0.09, lớn +0.00; 70 ảnh mới −0.02; XBG / XBGS cũng ≈ 0).
 - S3 (Δr R50 ~ DINO xóa), WP2: −0.101 [−0.194, −0.001].
 **Đọc:** (1) hiệu ứng của cùng δ lên quan hệ object–nền có đồng biến giữa R50 và Swin-L (S1 ≈ 3× mốc nhiễu, không do cỡ) — phần "coupling" mà đề xuất cần là có thật; (2) nhưng đại lượng đó KHÔNG liên quan tới việc DINO mất object (S2 ≈ 0 ở mọi cỡ, cả trên ảnh mới) → "object giống nền cục bộ hơn ở stage 3" không phải kênh mà δ transfer dùng để xóa object trên DINO-Swin-L; (3) Δr trung bình ÂM ở mọi δ đối kháng (object xa nền sạch HƠN, không gần hơn) dù R50 white-box xóa 92% → δ hiện tại không phá theo kiểu "hòa vào nền" ở cả 2 model; khớp E14: transfer chủ yếu hạ confidence phân loại. Theo quy tắc: dừng RSE. Giới hạn: tương quan trên δ có sẵn — không loại trừ tuyệt đối việc tối ưu thẳng Δr tạo kênh mới (WB E14c kéo token về μ nền CÓ xóa object), nhưng không có bằng chứng ủng hộ để tốn Phase 1.
+
+---
+
+## 2026-10-23 — WPA: nhiễu trọng số R50 TÍCH LŨY, chiếu về bán kính ρ = 0.002: C2-OCT-1V-WPA @ dev30 B36 (user chọn "WPA trước, rồi mới dev300; không UNI") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lập luận (user):** họ WP là họ DUY NHẤT tới giờ tăng DINO-Swin-L với CI dương @ dev100; WP2 đặt lại θ' = θ0 − ρ·‖θ0‖·ĝ mỗi bước (nhớ 1 bước). Trục chưa thử: tích lũy / đa dạng hóa đường đi trong lân cận trọng số. Giữ threat model (1 R50, không dữ liệu phụ, không đổi protocol).
+**Ô `C2-OCT-1V-WPA` (`core.wp_update`, `geo_osfd_attack(weight_eta)`):** WP2 y nguyên trừ cập nhật θ' mỗi tensor conv backbone: Δ ← Δ − η·‖θ0‖·ĝ, rồi chiếu ‖Δ‖ ≤ ρ·‖θ0‖ (Δ = θ' − θ0; ĝ = ∇θ loss attack tại θ' hiện tại, cùng lần autograd như WP2). **ρ = 0.002 (= WP2, bán kính tổng KHÔNG tăng theo số bước — không thành WP5), η = ρ / 4 chọn trước** (trí nhớ ~4 bước: bước mới chỉ đóng góp ¼ bán kính). Một biến thể duy nhất, KHÔNG quét η / ρ trên DINO.
+**Kiểm:** `scripts/wpa_unit_test.py` — η = None trùng tuyệt đối WP2; 200 bước gradient ngẫu nhiên ‖Δ‖ ≤ bán kính; hướng cố định: ‖Δ‖ / bán kính 0.25 → 0.5 → 0.75 → 1 rồi trùng điểm WP2; sau khi gradient đổi hướng cos(−Δ, g_cũ) WPA 0.97 vs WP2 0.00. Sức khỏe white-box (ảnh 1–4 dev300, B36, chỉ R50): WP2 79% / 92%, **WPA 80% / 92%**. Thời gian: WP2 4.14, WPA 4.22 s / ảnh (1.02×) → **B36 = cùng thời gian**.
+**Chạy (V100, dev30; PNG WP2 B36 dev30 có sẵn từ hôm nay; `results/wpa/run.sh`, log `results/wpa/run.log`).**
+**Đọc (khai báo trước; so WP2 B36 cùng 30 ảnh; như TX / LN / XBG):**
+- **BƯỚC NHẢY** nếu ΔSwin-L ≥ +10 → lên dev100; mới cân nhắc UNI như thành phần bổ sung sau đó.
+- **CÓ TÍN HIỆU** nếu +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → chỉ lên dev100 (khóa entry), CHƯA gọi là method mới.
+- **KHÔNG** nếu ΔSwin-L < +3 → đóng họ WP động, bỏ UNI, đưa WP2 lên sàng lọc dev300 (khóa entry riêng).
+- Mô tả: Swin-T, R101, CNN; ‖Δ‖ / bán kính không log (unit test cho thấy bám biên khi gradient ngẫu nhiên).
+**Caveat:** dev30 đã dùng nhiều lần (không chọn tham số ở đây); GPU không tất định → đọc theo CI; n = 30.

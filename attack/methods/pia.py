@@ -403,7 +403,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
-                    ln_feat: bool = False, bn_inst=None, xbg=None):
+                    ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -691,7 +691,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         # C2-OCT-1V-WP (progress_log 2026-10-21): nhiễu trọng số conv backbone (chỉ tensor requires_grad — stage đóng băng
         # của mmdet giữ nguyên), core.run_iterative_attack(weight_perturb). Feature sạch co-transform cũng tính trên θ'.
         params = [m.weight for m in model.backbone.modules() if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
-        wp = (params, weight_rho, [p.detach().clone() for p in params])
+        # weight_eta (C2-OCT-1V-WPA, progress_log 2026-10-23): θ' tích lũy, chiếu về bán kính weight_rho (core.wp_update).
+        wp = (params, weight_rho, [p.detach().clone() for p in params], weight_eta)
     bn_saved = []
     if bn_inst is not None:
         # C2-OCT-1V-WP2-IN (progress_log 2026-10-22): BN backbone dùng thống kê của CHÍNH ảnh / view (bỏ running stats tạm

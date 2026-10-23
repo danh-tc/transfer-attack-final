@@ -47,6 +47,16 @@ LossFn = Callable[[torch.nn.Module, torch.Tensor, DetDataSample], torch.Tensor]
 ViewsFn = Callable[[torch.Tensor, DetDataSample, int, int], List[tuple]]
 
 
+def wp_update(p, p0, gp, rho: float, eta=None):
+    """θ' mới của 1 tensor (họ WP). eta = None (WP2): θ0 − rho·‖θ0‖·ĝ (đặt lại từ θ0 mỗi bước, chỉ nhớ 1 bước).
+    eta (WPA, progress_log 2026-10-23): Δ ← Δ − eta·‖θ0‖·ĝ rồi chiếu về quả cầu ‖Δ‖ ≤ rho·‖θ0‖ (Δ = θ' − θ0) -> θ' tích lũy
+    hướng của nhiều bước, bán kính tổng không vượt WP2."""
+    if eta is None:
+        return p0 - rho * p0.norm() * gp / (gp.norm() + 1e-12)
+    d = (p - p0) - eta * p0.norm() * gp / (gp.norm() + 1e-12)
+    return p0 + d * torch.clamp(rho * p0.norm() / (d.norm() + 1e-12), max=1.0)
+
+
 def run_iterative_attack(
     model: torch.nn.Module,
     orig_pixels: torch.Tensor,
@@ -163,12 +173,13 @@ def run_iterative_attack(
                 term = view_loss_fn(model, view_img, view_data_sample)
                 loss = term if loss is None else loss + term
             if weight_perturb is not None:
-                params, rho, base = weight_perturb
+                params, rho, base = weight_perturb[:3]
+                eta = weight_perturb[3] if len(weight_perturb) > 3 else None
                 gall = torch.autograd.grad(loss, [noise] + params)
                 g = gall[0]
                 with torch.no_grad():
                     for p, p0, gp in zip(params, base, gall[1:]):
-                        p.copy_(p0 - rho * p0.norm() * gp / (gp.norm() + 1e-12))
+                        p.copy_(wp_update(p, p0, gp, rho, eta))
             else:
                 g = torch.autograd.grad(loss, noise)[0]
             grad = g if grad is None else grad + g
