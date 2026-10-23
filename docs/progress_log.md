@@ -3702,3 +3702,8 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 96.0 / 92.2 / 83.9 / 
   4. Không gì → **DỪNG**: không ước lượng nào chỉ dùng R50 trỏ được về vùng δ_SwinT; ghi kết luận âm (cho paper), user quyết.
 **Caveat (đọc kết quả với):** (a) Swin-T → DINO-Swin-L là transfer **cùng họ Swin**; δ_S phá R50 78.7% là chiều ViT → CNN (chiều dễ theo literature) → "R50 thấy δ_S" KHÔNG hàm ý gradient R50 tìm tới được; kỳ vọng trước: dòng (4) khá có thể. (b) P0 là gradient 1 điểm so với điểm cuối 41 bước MI + OCT của δ_S → A_S tuyệt đối sẽ nhỏ; quyết định dựa trên so tương đối với G8 cùng ngân sách. (c) 30 / 100 ảnh là dev30 (đã thấy). (d) Tham số ước lượng (T = 8, σ_blur = 8, ζ = 3, ±2 px) đặt trước, không tune.
 **Chi phí ước tính (V100):** ~88 backward + ~130 forward / ảnh ≈ 20 s → dev100 ~35 phút; P1 dev30 ~10 phút; H1 ~5 phút. Output `results/mechanism/e19_oracle_dissect.json`, thô `artifacts/e19/`, log `results/e19/run.log`.
+
+### E19 — sửa khai báo (user, 22:22 GMT+7, TRƯỚC khi xem bất kỳ kết quả nào; đo đang chạy 9/100 ảnh): đọc dev30 trước
+- **Đọc sơ bộ trên dev30** (= 30 ảnh đầu theo thứ tự đo, `--analyze-only --limit 30`, bootstrap trên 30 ảnh): áp NGUYÊN quy tắc sức khỏe / TÁCH ĐƯỢC / PHẲNG HƠN / KHÁC HỒ SƠ / ánh xạ ở trên, không đổi ngưỡng. Báo user; user quyết bước tiếp theo từ kết quả dev30.
+- Tiến trình đo vẫn chạy tiếp tới 100 ảnh (không tốn thêm công; dừng nếu user muốn). Nếu dùng dev100: quy tắc như khai báo gốc; dev100 có thể lật kết luận dev30, khi đó **dev100 thắng**.
+- Caveat thêm: CI rộng hơn ~1.8× so dev100 → dễ ra "không tách được" dù có tín hiệu nhỏ; 30 ảnh đều là dev30 (đã thấy trong mọi pilot trước).
