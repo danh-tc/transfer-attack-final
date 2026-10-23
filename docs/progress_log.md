@@ -3719,3 +3719,7 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 96.0 / 92.2 / 83.9 / 
 ### E19 — đối chứng hồ sơ loss bằng nhiễu ngẫu nhiên @ dev30 (user duyệt "Duyệt", 22:33 GMT+7) — khóa TRƯỚC khi chạy
 **Vì sao:** dòng (3) dev30 dựa trên p_C2 = 0.83; stage nông có thể phản ứng như nhau với mọi nhiễu ±5. **Đo (forward, dev30, cùng 8 view / seed như E19):** p_c(X) = ΔL_c(X) / ΔL_c(δ_W) cho X ∈ {δ_S, RAND} (RAND = Rademacher ±5, seed 2026 + img_id như mốc null E19), tính lại L(0), L(δ_W) cùng lần; paired bootstrap 1000 (BOOT_SEED 2026) trên d = p_C2(δ_S) − p_C2(RAND).
 **Quy tắc:** **C2 THẬT** nếu d ≥ 0.3 VÀ cận dưới CI > 0 → giữ dòng (3) (ứng viên: tăng trọng số L_OSFD-C2), entry riêng. Ngược lại **C2 ẢO** → E19 dev30 đọc là dòng (4) (DỪNG). Mô tả: p_c(RAND) mọi thành phần.
+
+### Kết quả đối chứng nhiễu ngẫu nhiên @ dev30 (`results/mechanism/e19_rand_profile_dev30.json`, log `results/e19/rand_profile.log`) — theo quy tắc: **C2 THẬT (sát ngưỡng)** → giữ dòng (3)
+p_c δ_S | RAND: C2 0.83 | 0.50, C3 0.61 | 0.23, C4 0.44 | 0.07, C5 0.41 | 0.04, rpn 0.29 | 0.01, roi 0.47 | 0.02, tổng 0.43 | 0.05 (p_C2(δ_S) khớp lần đo chính). d = p_C2(δ_S) − p_C2(RAND) **+0.326 [0.292, 0.361]** ≥ 0.3, cận dưới > 0.
+**Đọc (mô tả):** ~60% của p_C2 là phản ứng chung với mọi nhiễu ±5; phần VƯỢT nhiễu ngẫu nhiên của δ_S gần ĐỀU ở mọi thành phần (+0.29 … +0.46: C3 +0.38, C4 +0.36, C5 +0.37, roi +0.46) → δ_S KHÔNG dồn riêng vào C2; C2 chỉ là thành phần duy nhất vượt mốc tuyệt đối 0.8. Bằng chứng cho "tăng trọng số L_OSFD-C2" yếu.

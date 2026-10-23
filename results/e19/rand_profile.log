@@ -1,0 +1,8 @@
+s0   p(δ_S) 0.827  p(RAND) 0.501
+s1   p(δ_S) 0.614  p(RAND) 0.230
+s2   p(δ_S) 0.437  p(RAND) 0.074
+s3   p(δ_S) 0.406  p(RAND) 0.035
+rpn  p(δ_S) 0.292  p(RAND) 0.005
+roi  p(δ_S) 0.473  p(RAND) 0.015
+tot  p(δ_S) 0.425  p(RAND) 0.052
+d = p_C2(δ_S) − p_C2(RAND) +0.326 [+0.292, +0.361]  C2 THẬT = True

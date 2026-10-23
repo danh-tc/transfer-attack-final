@@ -410,6 +410,37 @@ def analyze(limit=None):
     print("VERDICT", out["verdict"])
 
 
+def rand_profile(n=30):
+    """Đối chứng (progress_log 2026-10-23, khóa trước): p_c(X) = ΔL_c(X) / ΔL_c(δ_W), X ∈ {δ_S, RAND}, dev30."""
+    dev = "cuda:0"
+    model, data, pos, ids = setup(dev)
+    rows = []
+    for img_id in ids[:n]:
+        pr = Probe(model, data[pos[img_id]], pos[img_id], dev)
+        dS, dW = deltas(pr, img_id)
+        c = {k: pr.lbar(d)[1] for k, d in (("0", torch.zeros_like(dS)), ("S", dS), ("W", dW),
+                                           ("R", nulls(pr, img_id, dW)["RAND"]))}
+        rows.append(c)
+        del pr
+    nb = len(rows)
+    W = np.vstack([np.ones((1, nb)), bootstrap_indices(nb, N_BOOT, BOOT_SEED)])
+    wm = lambda a: W @ np.asarray(a, dtype=np.float64) / W.sum(1)
+    tot = lambda r, s: sum(r[s].values())
+    p = {}
+    for c in COMP + ("tot",):
+        get = (lambda r, s: tot(r, s)) if c == "tot" else (lambda r, s, c=c: r[s][c])
+        den = wm([get(r, "W") - get(r, "0") for r in rows])
+        p[c] = {x: wm([get(r, x) - get(r, "0") for r in rows]) / den for x in ("S", "R")}
+    d = summarize(*(lambda a: (a[0], a[1:]))(p["s0"]["S"] - p["s0"]["R"]))
+    out = {"n_images": nb, "p": {c: {x: summarize(v[0], v[1:]) for x, v in pc.items()} for c, pc in p.items()},
+           "d_C2_S_minus_RAND": d, "C2_THAT": bool(d["point"] >= 0.3 and d["ci95"][0] > 0)}
+    with open(os.path.join(REPO_ROOT, "results/mechanism/e19_rand_profile_dev30.json"), "w") as f:
+        json.dump(out, f, indent=2, ensure_ascii=False)
+    for c, pc in out["p"].items():
+        print(f"{c:<4} p(δ_S) {pc['S']['point']:.3f}  p(RAND) {pc['R']['point']:.3f}")
+    print(f"d = p_C2(δ_S) − p_C2(RAND) {d['point']:+.3f} [{d['ci95'][0]:+.3f}, {d['ci95'][1]:+.3f}]  C2 THẬT = {out['C2_THAT']}")
+
+
 def h1():
     """Mô tả: relative AP drop R50 / DINO-Swin-L của δ_S mới (inference_detector trên file, như E16; E16: 78.7 / 58.0)."""
     from mmdet.apis import inference_detector, init_detector
@@ -446,10 +477,13 @@ def main():
     p.add_argument("--check", action="store_true")
     p.add_argument("--analyze-only", action="store_true")
     p.add_argument("--h1", action="store_true")
+    p.add_argument("--rand-profile", action="store_true")
     p.add_argument("--limit", type=int, default=None)
     args = p.parse_args()
     if args.check:
         return check()
+    if args.rand_profile:
+        return rand_profile()
     if args.h1:
         return h1()
     if not args.analyze_only:
