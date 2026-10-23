@@ -3734,9 +3734,9 @@ p_c δ_S | RAND: C2 0.83 | 0.50, C3 0.61 | 0.23, C4 0.44 | 0.07, C5 0.41 | 0.04,
 ---
 
 ## 2026-10-23 — TẠM DỪNG (user, 22:55 GMT+7): mai chạy tiếp
-**Máy:** V100 16GB, trả máy. Không tiến trình nào đang chạy. Commit phiên này (và 10-22) **CHƯA push**; PNG CHƯA upload HF (chờ user đồng ý).
+**Máy:** V100 16GB, trả máy. Không tiến trình nào đang chạy. Commit đã push (user, 23:00); PNG đã upload HF (user duyệt).
 **Phiên này:** E19 oracle-δ dissection xong (dev30 sơ bộ + dev100 + đối chứng nhiễu ngẫu nhiên + H1). Kết quả theo quy tắc: **dòng (3)** (KHÁC HỒ SƠ ở L_OSFD-C2, sát ngưỡng), thực chất gần **dòng (4)**: không ước lượng hướng chỉ-R50 nào (IG / MIG ×1.04, PGN4, WP4, tách thành phần) trỏ về δ_SwinT tốt hơn G8; δ_SwinT không phẳng hơn trên R50. Số liệu thô dev100 đã chép vào `results/e19/raw_dev100.json` (git).
 **Việc mở — user quyết khi bắt đầu phiên mai:**
 - (A) Quick test dev30 "C2-OCT-1V-WP2 + tăng trọng số L_OSFD-C2" để đóng dòng (3) (kỳ vọng Swin-L 0 … +3; gradient C2 căn δ_S KÉM G8 ×0.69). Khóa quy tắc trước khi chạy.
 - (B) (Claude đề xuất) Bỏ dòng (3), ghi E19 như kết luận âm cho paper; quay lại kế hoạch: **WP2 lên sàng lọc dev300** (entry riêng, khóa trước).
-**Máy mới cần sinh lại (artifact mất khi trả máy):** δ_SwinT dev100 (lệnh ở entry E19, ~9 phút V100) nếu cần E19 tiếp; PNG WP2 B36 dev100 (`run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 36 --methods C2-OCT-1V-WP2 --stage attack`) cho (A) / (B).
+**Artifact đã upload HF (23:05 GMT+7, tag `_v100`):** `dev300_B36_eps5_limit100` (WP2 / WPA / XBG / XBGS B36 PNG dev100), `dev300_B41_eps5_limit100_sur-swin_t` (δ_SwinT dev100), `dev300_B30_eps5_limit100` (XBG / XBGS B30), `dev300_B36_eps5_limit{12,5}` (đo thời gian). Máy mới: `python scripts/sync_artifacts.py download <run> --tag _v100` (HF_TOKEN trong `.env`). Chưa upload: `artifacts/e18/` (17 MB, sinh lại được; số liệu ở `results/`).
