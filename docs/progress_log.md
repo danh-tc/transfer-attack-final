@@ -3594,3 +3594,20 @@ Swin-L INP − RNDBOX +1.3 [−1.5, 2.3]; CNN3 −0.4. Box chiếm 44% pixel; IN
 - (3) Khi chốt method: sàng lọc dev300 → GO @ n300 + held-out YOLOX-L / Swin-S; rà BFDA.
 **Code mới phiên này (mặc định giữ hành vi cũ):** `repair.{_size_weighted_mse, _ln_mse, roi_size_weight}`, `make_view_loss(size_w, ln_feat)`, `geo_osfd_attack(size_w, roi_size_w, tex_blur, ln_feat, bn_inst)`, `pia._blur`; ô `C2-OCT-1V-WP2-{SZ, R, SZR, SZC, TXC1..8, LN, INall, INs34}`; `scripts/{szc_unit_test, tx_calib, e17_inpaint_probe}.py`.
 **Artifact CHƯA upload (mất khi trả máy; sinh lại được):** `artifacts/runs/dev300_B{36,41,50,100}_eps5_limit100/`, `dev300_B{36,41,50}_eps8_limit100/`, `artifacts/e17/`. Số liệu + dets tổng hợp đã ở `results/` (git); dets thô ở `artifacts/` (không git).
+
+---
+
+## 2026-10-23 — Máy mới V100 16GB; cổng 2 "đích F_R50(x_bg)": C2-OCT-1V-WP2-XBG / -XBGS @ dev30 (user: "làm cổng 2 đi", việc mở (1) entry 10-22) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Máy:** Tesla V100-SXM2 16GB, bootstrap lại; đủ 11 checkpoint + COCO; KHÔNG có `.env` → không có PNG cũ, mốc WP2 B36 dev30 sinh lại cùng máy.
+**Lập luận:** WB trên Swin-L thắng nhờ HƯỚNG "token object → nền" (E14c / E15); BG-OCT (kéo về μ nền theo feature R50) âm vì "nền theo R50" ≠ "nền theo Swin-L"; E17: hướng pixel cố định về x_bg ở ±5 quá yếu (~2% mọi model) nhưng không bác bản TỐI ƯU theo đích. Ở đây đích là feature R50 của CHÍNH ảnh đã xóa object (ngữ nghĩa chung giữa 2 họ), δ được tối ưu để F_adv trong box tiến về đó.
+**Ô (`repair._xbg_mse`, `make_view_loss(xbg_feats, xbg_mode)`, `geo_osfd_attack(xbg)`):** gốc = WP2 (C2-OCT-1V, ρ = 0.002, L_cls λ = 4 không đổi). x_bg = ảnh gốc inpaint OpenCV Telea r = 5 trong mọi box GT (như E17; không model học → không thêm surrogate; GT-assisted), resize về khung model, đi kèm ảnh sạch qua CÙNG phép biến đổi OCT (companion 6 kênh); F_bg = backbone R50 (θ' của WP, no_grad) trên view x_bg → +1 forward / view. Mỗi stage backbone (cả 4, như L_OSFD; KHÔNG chọn stage), mặt nạ M = ô giao box GT của view, sq = mean_c (k·F_sạch − F_adv)², T = mean_{M} mean_c (F_bg − F_adv)², c = detach(frac_M · mean_M sq / T) (giá trị c·T = phần MSE gốc trong box, quy ước như LN / GLB, không tune):
+- `WP2-XBG` ("add"): L_feat = Σ_s [MSE gốc − c·T] — giữ đẩy OSFD khắp nơi, thêm kéo về F_bg trong box.
+- `WP2-XBGS` ("swap"): L_feat = Σ_s [phần MSE gốc NGOÀI box − c·T] — trong box chỉ kéo về F_bg (tránh 2 số hạng giằng nhau trong box).
+**Kiểm:** `scripts/xbg_unit_test.py` (không box = F.mse_loss; giá trị add / swap đúng công thức; gradient số hạng kéo chỉ trong box, cos(∇T, F_adv − F_bg) = 1.000). Ảnh x_bg nhìn bằng mắt (dev300 #4: object bị xóa thành vùng nhòe). Sức khỏe white-box (`scripts/tx_calib.py`, ảnh 1–4 dev300, B36, chỉ R50, KHÔNG đo target): |δ| = 5 / R50 xóa — WP2 79% / 92%; XBG 79% / 92%; XBGS 78% / 86% → đạt. **Thời gian (cùng lần, ảnh 1–4, `results/xbg/calib.log`):** WP2 4.14, XBG 5.01, XBGS 5.02 s / ảnh (1.21×) → **B30 = cùng thời gian WP2 B36** (36 / 1.21 = 29.7; làm tròn lên, lệch < 1% thời gian).
+**Chạy (V100, dev30; `results/xbg/run.sh`, log `results/xbg/run.log`; metrics `metrics_xbg_dev30.json`, dets `dets_xbg_dev30.json`):** WP2 B36 (mốc, sinh lại), XBG / XBGS B30 (quy tắc) và B36 (cùng số bước, mô tả).
+**Đọc (khai báo trước; so WP2 B36 cùng 30 ảnh; như TX / LN):**
+- **BƯỚC NHẢY** nếu ΔSwin-L ≥ +10 (ô B30) → lên dev100 ngay (khóa entry).
+- **CÓ TÍN HIỆU** nếu +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → xem biến thể (stage 3 riêng, inpaint tốt hơn) / dev100 (khóa entry).
+- **KHÔNG** nếu ΔSwin-L < +3 → đích "ảnh xóa object theo feature R50" không mở hướng mới; đóng hướng (1a).
+- Mô tả: Swin-T, R101, CNN; B36 − WP2 B36 (cùng số bước); tỉ lệ object bị xóa theo cỡ trên Swin-L / Swin-T.
+**Caveat khai báo trước:** Telea r = 5 thô — box lớn bị nhòe gần toàn bộ (vd dev300 #2: box chiếm 86% ảnh), đích ở đó gần "ảnh nhòe" hơn "nền thật"; dev30 đã dùng cho nhiều ô trước (không chọn tham số ở đây); GPU không tất định → đọc theo CI; n = 30.

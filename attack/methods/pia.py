@@ -403,7 +403,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
-                    ln_feat: bool = False, bn_inst=None):
+                    ln_feat: bool = False, bn_inst=None, xbg=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -453,7 +453,25 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert not bg_only or bg_weight > 0
     assert feat_stages is None or (cls_weight == 0.0 and bg_weight == 0.0 and rapa_p is None and feature)
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
-    pd_gen = torch.Generator().manual_seed(torch.initial_seed() + 7) if patch_drop is not None else None
+    xbg_pixels = None
+    if xbg is not None:
+        # C2-OCT-1V-WP2-XBG / -XBGS (progress_log 2026-10-23): x_bg = ảnh gốc inpaint (OpenCV Telea r = 5, như E17) trong mọi
+        # box GT (khung model / scale_factor -> ảnh gốc); resize về khung model như ảnh sạch, rồi đi kèm ảnh sạch qua CÙNG phép
+        # biến đổi view (companion 6 kênh). Feature F_R50(view x_bg) là đích kéo về trong box (repair._xbg_mse).
+        assert xbg in ("add", "swap") and geo == "elem" and cls_weight > 0 and feature and co_transform and dual is None
+        assert not (patch_drop or tex_blur or size_w or ln_feat or stage_pool or fia_views or ilpd_gamma is not None)
+        import cv2
+        import numpy as np
+        x = orig_pixels.permute(1, 2, 0).round().clamp(0, 255).byte().cpu().numpy()
+        m = np.zeros(x.shape[:2], np.uint8)
+        sx, sy = data_sample.metainfo["scale_factor"]
+        gb = data_sample.gt_instances.bboxes
+        for x1, y1, x2, y2 in (gb.tensor if hasattr(gb, "tensor") else gb).float().tolist():
+            m[int(y1 / sy):int(np.ceil(y2 / sy)), int(x1 / sx):int(np.ceil(x2 / sx))] = 1
+        xb = torch.from_numpy(cv2.inpaint(x, m, 5, cv2.INPAINT_TELEA)).permute(2, 0, 1).float().to(orig_pixels.device)
+        xbg_pixels = resize_to_model(xb, tuple(data_sample.img_shape))
+        xbg_box_frac = float(m.mean())
+    pd_gen =torch.Generator().manual_seed(torch.initial_seed() + 7) if patch_drop is not None else None
     tx_rng = random.Random(torch.initial_seed() + 9) if tex_blur is not None else None
     mask_head = None
     if skip_mask:
@@ -463,6 +481,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             del data_sample.gt_instances.masks
         mask_head, model.roi_head.mask_head = model.roi_head.mask_head, None
     log = {"forward_no_grad": 0, "modes": [], "gt_kept": [], "disp": [], "grgd": [], "morgd2": [], "pia_factors": []}
+    if xbg_pixels is not None:
+        log["xbg_box_frac"] = xbg_box_frac
     if cls_auto is not None:
         assert cls_weight > 0 and feature and co_transform and cls_mode == "c2"
         with torch.autocast("cuda", dtype=torch.float16, enabled=amp):
@@ -570,6 +590,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                             _view_loss(tuple(f.float() for f in fc), k, feat_stages)))
             return out
         comp = clean_pixels if co_transform else None
+        if xbg_pixels is not None:
+            comp = torch.cat([clean_pixels, xbg_pixels])  # 6 kênh: CÙNG lưới warp cho ảnh sạch và x_bg
         if geo == "rrb":
             triples = [(v, c, ds) for v, _, c in rrb_views(img, ds, with_gt=True, companion=comp, **rrb_kw)]
         elif geo == "pia":
@@ -609,6 +631,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                   gt_log=log["gt_kept"])
         out = []
         for v, c, dsv in triples:
+            cb = None
+            if xbg_pixels is not None:
+                c, cb = c[:3], c[3:]
             if patch_drop is not None:
                 # C2-OCT-1V-PD (progress_log 2026-10-21): che ngẫu nhiên patch ps×ps (xác suất p) bằng trung bình kênh của view
                 # sạch, CÙNG mask cho adv và sạch; RNG riêng (seed + 7) -> chuỗi view OCT trùng ô gốc. Box GT giữ nguyên.
@@ -639,7 +664,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             if co_transform:
                 with torch.no_grad(), ctx():
                     fc = tuple(f.detach() for f in extract_features(model, c, ds))
-                log["forward_no_grad"] += 1
+                    fb = tuple(f.detach() for f in extract_features(model, cb, ds)) if cb is not None else None
+                log["forward_no_grad"] += 1 if cb is None else 2
             else:
                 fc = feats_fixed
             if bg_weight > 0:
@@ -652,7 +678,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             elif cls_weight > 0:
                 lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
                                     fab_weight=fab_weight, obj_weight=obj_weight, split=dual == "exact", stage_pool=stage_pool,
-                                    size_w=size_w, ln_feat=ln_feat)
+                                    size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add")
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))

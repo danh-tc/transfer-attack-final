@@ -266,10 +266,38 @@ def _size_weighted_mse(target, fa, stage, data_sample, size_w):
     return (w * sq).sum() / w.sum()
 
 
+def _box_mask(fa, stage, data_sample):
+    """[H, W] bool ở stage `stage`: ô stride 4·2^stage giao ≥ 1 box GT của view (khung view)."""
+    gb = data_sample.gt_instances.bboxes
+    gb = (gb.tensor if hasattr(gb, "tensor") else gb).float()
+    m = torch.zeros(fa.shape[-2:], device=fa.device, dtype=torch.bool)
+    stride = 4 * 2 ** stage
+    for x1, y1, x2, y2 in gb.tolist():
+        m[max(0, int(y1 // stride)):int(-(-y2 // stride)), max(0, int(x1 // stride)):int(-(-x2 // stride))] = True
+    return m
+
+
+def _xbg_mse(target, fbg, fa, stage, data_sample, mode):
+    """C2-OCT-1V-WP2-XBG / -XBGS (progress_log 2026-10-23): số hạng feature của 1 stage khi có đích F_R50(x_bg).
+    sq = (k·F_sạch − F_adv)², T = mean trong box của (F_bg − F_adv)² (trung bình kênh; F_bg = feature của view ảnh đã xóa
+    object, co-transform). "add": MSE gốc − c·T; "swap": phần MSE gốc NGOÀI box − c·T (trong box chỉ còn kéo về F_bg).
+    c detach để GIÁ TRỊ c·T bằng phần MSE gốc trong box (giữ cân bằng với L_cls như LN / GLB, không tune). Không box -> MSE gốc."""
+    m = _box_mask(fa, stage, data_sample)
+    sq = (target.float() - fa.float()).pow(2).mean(1)[0]
+    full = sq.mean()
+    if not m.any():
+        return full
+    frac = m.float().mean()
+    t = (fbg.float() - fa.float()).pow(2).mean(1)[0][m].mean()
+    pull = t * (frac * sq[m].mean()).detach() / t.detach().clamp_min(1e-12)
+    base = full if mode == "add" else sq[~m].sum() / sq.numel()
+    return base - pull
+
+
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
                    ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
                    obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False, stage_pool=None, size_w=None,
-                   ln_feat: bool = False):
+                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add"):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -281,7 +309,8 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
     gộp avg-pool kernel×kernel (stride = kernel) | toàn cục, nhân hệ số (detach) để GIÁ TRỊ bằng MSE từng điểm -> chỉ đổi hướng.
     ln_feat (C2-OCT-1V-WP2-LN, progress_log 2026-10-22): L_OSFD từng stage trong không gian LayerNorm theo kênh (_ln_mse).
     size_w = (a, thr) (C2-OCT-1V-WP2-SZ, progress_log 2026-10-22): L_OSFD từng stage = mean(w·(k·F_sạch − F_adv)²) / mean(w),
-    w = 1 + a trong box GT của view có diện tích quy về ảnh gốc ≥ thr (px²), 1 ngoài -> dồn đẩy feature vào object lớn."""
+    w = 1 + a trong box GT của view có diện tích quy về ảnh gốc ≥ thr (px²), 1 ngoài -> dồn đẩy feature vào object lớn.
+    xbg_feats (C2-OCT-1V-WP2-XBG / -XBGS, progress_log 2026-10-23): feature backbone của view ảnh đã xóa object -> _xbg_mse."""
     assert ilpd_gamma is None or (repair_feats is None and feats_clean is not None)
 
     def loss_fn(model, pixel_tensor, data_sample):
@@ -337,6 +366,9 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
         elif size_w is not None:
             feat = sum(_size_weighted_mse(k * fc, fa, s, data_sample, size_w)
                        for s, (fc, fa) in enumerate(zip(feats_clean, cap["f"])))
+        elif xbg_feats is not None:
+            feat = sum(_xbg_mse(k * fc, fb, fa, s, data_sample, xbg_mode)
+                       for s, (fc, fb, fa) in enumerate(zip(feats_clean, xbg_feats, cap["f"])))
         else:
             feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
         if split:
