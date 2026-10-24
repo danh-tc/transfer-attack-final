@@ -3822,3 +3822,22 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3:
 **Quỹ đạo DINO-Swin-L (B0 = δ_S 59.3), WP2-IS | OTSV50-IS:** B1 57.2 | 57.2; B4 48.8 | 48.6; B12 35.5 | 35.1; **B36 39.8 | 44.0**. Δ (OTSV − WP2-IS) B36: Swin-L **+4.2 [−0.1, +5.8]**, CA3 **−2.3 [−4.1, −0.3]** (ConvNeXt −2.4, Swin-T −3.2, YOLOX −1.3), R101 +0.8; B12 −0.4, B4 −0.2, B1 0.0.
 **δ:** cos(δ, δ_S) B1 0.992 / B4 0.885 / B12 0.316 / B36 0.218 (WP2-IS 0.992 / 0.884 / 0.314 / 0.216); cos(δ_OTSV, δ_WP2-IS) B4 0.973, B12 0.809, B36 0.646.
 **Đọc:** B36 44.0 < 48 → DỪNG. OTSV KHÔNG giữ vùng δ_S (sụp cùng tốc độ WP2 tới B12, cùng mức "nhớ" δ_S ở B36); khác biệt chỉ ở pha hồi B12 → B36, và đổi lấy CNN (CA3 −2.3, CI < 0) → cùng đường đánh đổi CNN ↔ Swin-L. Phân rã 44.0 = 35.5 (WP2 từ 0) + 4.3 (oracle init, ngoài threat model) + 4.2 (OTSV, CI chạm 0). Mô tả: Swin-L hình chữ U (sụp tới B12 rồi hồi) ở cả 2 ô.
+
+---
+
+## 2026-10-24 — E22: WP2 thắng nhờ CÁI GÌ? Chẩn đoán hướng + vị trí nhiễu trọng số @ dev30 B36 (user: "phân tích thật kỹ vì sao C2-OCT-1V-WP2 thành công, rồi improve") — MÔ TẢ / sinh cơ chế, khai báo TRƯỚC khi chạy
+**Bối cảnh:** literature — AWT (arXiv 2408.09469, classification): surrogate GIẢM loss trên AE (min-max kiểu SAM, tích lũy), CNN → ViT +8–10 → WP2 ≈ bản rẻ của AWT cho detection → novelty phải đến từ hiểu biết cơ chế đặc thù detection. WP2 đã biết: lợi tập trung ở DINO-Swin-L (+6.2 dev100), KHÔNG ở Mask R-CNN Swin-T; ρ = 0.005 mất lợi; tích lũy (WPA) không thêm; 42 tensor conv layer2 (13) / layer3 (19) / layer4 (10).
+**Giả thuyết H_def ("surrogate phòng thủ ≈ target biết SỬA"):** DINO-Swin-L "sửa" distortion vừa phải (encoder dập cosd 0.42 → 0.07, 10-03) còn FPN của Mask R-CNN Swin-T khuếch đại → δ tối ưu chống một R50 đang tự chỉnh để giảm loss chính là δ bền trước phép sửa → lợi riêng ở DINO. Dự đoán: (i) hướng PHÒNG THỦ quan trọng (ngẫu nhiên / đồng lõa không thay được); (ii) nếu sửa diễn ra ở tầng tổng hợp ngữ nghĩa, phòng thủ ở HEAD phân loại (đường L_cls — đòn bẩy Swin-L) có thể thêm lợi.
+**Ô (gốc C2-OCT-1V-WP2, ρ = 0.002, B36 = cùng thời gian; `core.run_iterative_attack(weight_perturb mode)`, `geo_osfd_attack(weight_scope, weight_mode)`):**
+- `WP2-RAND`: hướng ngẫu nhiên Gauss chuẩn hóa từng tensor, cùng bán kính ρ‖θ0‖, rút mới mỗi bước (RNG CUDA riêng seed + 13) — đối chứng "đa dạng mô hình" (họ RaPA / Gauss).
+- `WP2-ASC`: đổi dấu, θ' = θ0 + ρ‖θ0‖ĝ (surrogate ĐỒNG LÕA với attacker).
+- `WP2-L3`: phòng thủ chỉ trên layer3 (19 tensor, C4 — nút thắt E14); `WP2-noL3`: chỉ layer2 + layer4 (23 tensor).
+- `WPH`: phòng thủ chỉ trên head đường phân loại (rpn_conv, rpn_cls, shared_fcs.0 / .1, fc_cls; chỉ weight), KHÔNG backbone; `WP2+H`: backbone + head. ρ = 0.002 cho head (không tune).
+- Mốc: WP2 B36 (PNG sáng nay), C2-OCT-1V B41 (sinh lại hôm nay, cùng thời gian).
+**Sức khỏe (ảnh 1–4 dev300, `tx_calib`):** R50 xóa ≥ 0.8 × WP2 và bão hòa ≥ 0.95 × WP2; ô trượt → ghi, không chạy dev30.
+**Đọc (khai báo trước, dev30, mô tả — claim cần dev100):**
+- H_def (i) ỦNG HỘ nếu WP2 − RAND ≥ +3 VÀ WP2 − ASC ≥ +3 (Swin-L); BÁC nếu RAND ≥ WP2 − 1 (→ WP2 = đa dạng mô hình, không phải min-max).
+- Vị trí: L3 giữ ≥ 75% lợi Swin-L của WP2 so C2-OCT-1V (cùng ngày) → "phòng thủ ở C4 đủ"; noL3 giữ ≥ 75% → không đặc thù C4; cả hai / không → phân tán.
+- Head (ứng viên cải tiến): WP2+H hoặc WPH có ΔSwin-L ≥ +3 so WP2 VÀ ΔCA3 ≥ −3 → dev100 (khóa entry riêng).
+**Caveat:** 6 ô trên 30 ảnh (so sánh bội) → chỉ sinh giả thuyết; dev30 đã dùng nhiều lần; GPU không tất định.
+**Chạy:** `results/e22/run.sh`, log `results/e22/run.log`; metrics `metrics_e22_dev30.json`, dets `dets_e22_dev30.json`, pair_screen tag `e22_dev30`.
