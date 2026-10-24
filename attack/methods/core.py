@@ -216,6 +216,25 @@ def run_iterative_attack(
                         for p, p0 in zip(params, base):
                             p.copy_(p0)
                     g = gacc / K
+                elif isinstance(mode, tuple) and mode[0] == "wspike":
+                    # E28 (progress_log 2026-10-24): LIF trên TRỌNG SỐ — M tích lũy ∇θ chuẩn hóa per-tensor; element
+                    # |M| ≥ θ_fire phát xung (nhiễu phòng thủ θ'= θ0 − ρ‖θ0‖·d/‖d‖, d = sign(M)·fire), reset M = 0.
+                    _, theta_fire, mem = mode
+                    gall = torch.autograd.grad(loss, [noise] + params)
+                    g = gall[0]
+                    if not mem:
+                        mem.extend(torch.zeros_like(p) for p in params)
+                    with torch.no_grad():
+                        for i, (p, p0, gp) in enumerate(zip(params, base, gall[1:])):
+                            mem[i].add_(gp / (gp.abs().mean() + 1e-12))
+                            fire = mem[i].abs() >= theta_fire
+                            d = torch.sign(mem[i]) * fire
+                            dn = d.norm()
+                            if float(dn) > 0:
+                                p.copy_(p0 - rho * p0.norm() * d / (dn + 1e-12))
+                            else:
+                                p.copy_(p0)
+                            mem[i].mul_(~fire)
                 elif isinstance(mode, tuple):
                     g = torch.autograd.grad(loss, noise)[0]
                     with torch.no_grad():
