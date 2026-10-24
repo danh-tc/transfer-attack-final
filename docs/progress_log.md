@@ -3740,3 +3740,24 @@ p_c δ_S | RAND: C2 0.83 | 0.50, C3 0.61 | 0.23, C4 0.44 | 0.07, C5 0.41 | 0.04,
 - (A) Quick test dev30 "C2-OCT-1V-WP2 + tăng trọng số L_OSFD-C2" để đóng dòng (3) (kỳ vọng Swin-L 0 … +3; gradient C2 căn δ_S KÉM G8 ×0.69). Khóa quy tắc trước khi chạy.
 - (B) (Claude đề xuất) Bỏ dòng (3), ghi E19 như kết luận âm cho paper; quay lại kế hoạch: **WP2 lên sàng lọc dev300** (entry riêng, khóa trước).
 **Artifact đã upload HF (23:05 GMT+7, tag `_v100`):** `dev300_B36_eps5_limit100` (WP2 / WPA / XBG / XBGS B36 PNG dev100), `dev300_B41_eps5_limit100_sur-swin_t` (δ_SwinT dev100), `dev300_B30_eps5_limit100` (XBG / XBGS B30), `dev300_B36_eps5_limit{12,5}` (đo thời gian). Máy mới: `python scripts/sync_artifacts.py download <run> --tag _v100` (HF_TOKEN trong `.env`). Chưa upload: `artifacts/e18/` (17 MB, sinh lại được; số liệu ở `results/`).
+
+---
+
+## 2026-10-24 — Máy mới V100 16GB; việc mở (A) entry 10-23: C2-OCT-1V-WP2 + tăng trọng số L_OSFD-C2 (C2W03 / C2W1) @ dev30 B36 (user chọn "A") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Máy:** Tesla V100-SXM2 16GB, bootstrap lại; KHÔNG có `.env` → không có PNG cũ, mốc WP2 B36 dev30 sinh lại cùng máy.
+**Lập luận:** E19 dòng (3): p_C2 = ΔL_OSFD-C2(δ_SwinT) / ΔL_OSFD-C2(δ_W) ≈ 0.82 (C2 THẬT sát ngưỡng sau đối chứng nhiễu ngẫu nhiên), trong khi gradient của L_OSFD-C2 nhỏ hơn ~10³× các thành phần khác → C2 gần như không tham gia hướng attack hiện tại. Quick test để đóng dòng (3). Kỳ vọng trước: Swin-L 0 … +3 (gradient riêng C2 căn δ_S KÉM G8, ×0.69).
+**Ô (`make_view_loss(stage_w)`, `geo_osfd_attack(stage_w)`):** gốc = WP2 (C2-OCT-1V, ρ = 0.002, L_cls λ = 4), L_OSFD = w_C2·MSE_C2 + MSE_C3 + MSE_C4 + MSE_C5. **w_C2 = a·R**, R = trung vị mean|∇ₓ L_rest| / mean|∇ₓ L_OSFD-C2| tại δ = 0, ảnh không biến đổi, θ0, 5 ảnh đầu dev100 (`scripts/c2w_calib.py`, cùng cách chọn λ = 4 / thang MRG; L_rest = Σ_{C3..C5} MSE + 4·cls). **a = 0.3 (`C2W03`) | 1 (`C2W1`, gradient C2 ngang phần còn lại)**, chọn trước, không quét thêm. Chi phí tính không đổi (cùng forward / backward) → **B36 = cùng thời gian WP2 B36** (ghi runtime thực để kiểm).
+**Kiểm:** stage_w = (1, 1, 1, 1) trùng loss gốc (sai số số học); sức khỏe white-box (`scripts/tx_calib.py`, ảnh 1–4 dev300, B36, chỉ R50): |δ| = 5 VÀ R50 xóa ≥ 80% mức WP2, không đạt → ghi lại, ô đó không chạy.
+**Chạy (V100, dev30; `results/c2w/run.sh`, log `results/c2w/run.log`; metrics `metrics_c2w_dev30.json`, dets `dets_c2w_dev30.json`):** WP2 B36 (mốc, sinh lại), C2W03 / C2W1 B36.
+**Đọc (khai báo trước; so WP2 B36 cùng 30 ảnh; như XBG / WPA), mỗi ô:**
+- **BƯỚC NHẢY** nếu ΔSwin-L ≥ +10 → lên dev100 ngay (khóa entry).
+- **CÓ TÍN HIỆU** nếu +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → chỉ lên dev100 (khóa entry), CHƯA gọi là method mới.
+- **KHÔNG** nếu cả 2 ô ΔSwin-L < +3 (hoặc ΔCA3 < −3) → đóng dòng (3) của E19; E19 ghi là kết luận âm cho paper; WP2 lên sàng lọc dev300 (entry riêng, khóa trước).
+- Mô tả: Swin-T, R101, ConvNeXt, YOLOX; cos(∇C2, ∇rest) trong hiệu chỉnh.
+**Caveat:** dev30 đã dùng nhiều lần (không chọn tham số ở đây); GPU không tất định → đọc theo CI; n = 30.
+
+### Kết quả C2W @ dev30 B36 (V100; `results/ablation/c2w_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/{metrics,generalization}_c2w_dev30.json`, log `results/c2w/run.log`) — theo khai báo: **KHÔNG** (cả 2 ô ΔSwin-L < +3)
+**Hiệu chỉnh:** R = 476.3 (5 ảnh: 578.6 / 519.6 / 476.3 / 431.9 / 472.8; cos(∇C2, ∇rest) +0.01 … +0.07 — gần trực giao) → w_C2 = 142.9 (C2W03) | 476.3 (C2W1). **Sức khỏe QUA:** |δ| = 5 / R50 xóa — WP2 80% / 92%, C2W03 82% / 92%, C2W1 85% / 89%. Runtime 4.0 / 3.9 / 4.0 s / ảnh → cùng thời gian.
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.8 / 91.4 / 82.7 / 82.6 / 77.1 / 35.5 | 80.8 (10-23: 37.5 | 80.5); **C2W03** 98.5 / 92.2 / 84.0 / 82.7 / 76.9 / 35.6 | 81.2; **C2W1** 97.0 / 91.0 / 83.3 / 74.9 / 69.1 / 35.9 | 75.8.
+Δ so WP2: C2W03 Swin-L **+0.1 [−2.2, +4.5]**, CA3 +0.4; C2W1 Swin-L **+0.4 [−3.0, +3.0]**, CA3 **−5.0 [−6.6, −0.3]** (YOLOX −8.0, Swin-T −7.7).
+**Đọc:** dồn gradient vào L_OSFD-C2 không tăng DINO-Swin-L ở cả 2 liều; liều ngang (C2W1) hại Swin-T / YOLOX. Khớp kỳ vọng trước (0 … +3) và E19 (gradient C2 căn δ_SwinT kém G8). Theo khai báo: **đóng dòng (3) của E19; E19 ghi là kết luận âm** (không ước lượng / trọng số thành phần chỉ-R50 nào trỏ về δ_SwinT); bước tiếp theo khai báo: **WP2 lên sàng lọc dev300** (entry riêng, khóa trước) — chờ user.

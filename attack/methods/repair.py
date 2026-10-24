@@ -297,7 +297,7 @@ def _xbg_mse(target, fbg, fa, stage, data_sample, mode):
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
                    ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
                    obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False, stage_pool=None, size_w=None,
-                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add"):
+                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add", stage_w=None):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -310,7 +310,8 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
     ln_feat (C2-OCT-1V-WP2-LN, progress_log 2026-10-22): L_OSFD từng stage trong không gian LayerNorm theo kênh (_ln_mse).
     size_w = (a, thr) (C2-OCT-1V-WP2-SZ, progress_log 2026-10-22): L_OSFD từng stage = mean(w·(k·F_sạch − F_adv)²) / mean(w),
     w = 1 + a trong box GT của view có diện tích quy về ảnh gốc ≥ thr (px²), 1 ngoài -> dồn đẩy feature vào object lớn.
-    xbg_feats (C2-OCT-1V-WP2-XBG / -XBGS, progress_log 2026-10-23): feature backbone của view ảnh đã xóa object -> _xbg_mse."""
+    xbg_feats (C2-OCT-1V-WP2-XBG / -XBGS, progress_log 2026-10-23): feature backbone của view ảnh đã xóa object -> _xbg_mse.
+    stage_w (C2-OCT-1V-WP2-C2W, progress_log 2026-10-24): tuple trọng số từng stage của L_OSFD (C2..C5); None ≡ (1, 1, 1, 1)."""
     assert ilpd_gamma is None or (repair_feats is None and feats_clean is not None)
 
     def loss_fn(model, pixel_tensor, data_sample):
@@ -369,6 +370,8 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
         elif xbg_feats is not None:
             feat = sum(_xbg_mse(k * fc, fb, fa, s, data_sample, xbg_mode)
                        for s, (fc, fb, fa) in enumerate(zip(feats_clean, xbg_feats, cap["f"])))
+        elif stage_w is not None:
+            feat = sum(w * F.mse_loss(k * fc, fa) for w, fc, fa in zip(stage_w, feats_clean, cap["f"]))
         else:
             feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
         if split:

@@ -1,0 +1,227 @@
+
+[bootstrap] ===== 1/5 Dựng môi trường Python (venv, torch, mmcv, mmdet) =====
+
+[bootstrap] .venv đã dùng được (torch + CUDA + mmdet) — bỏ qua setup_env.sh.
+
+[bootstrap] ===== 2/5 Tải checkpoint: Controlled + Generalization Panel + model chẩn đoán (--gen) =====
+
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_r50_fpn_mstrain-poly_3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_r50_fpn_mstrain-poly_3x_coco...
+mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_r50_fpn_mstrain-poly_3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_r101_fpn_ms-poly-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_r101_fpn_ms-poly-3x_coco...
+mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_r101_fpn_ms-poly-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco...
+mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco...
+mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco...
+fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: detr_r50_8xb2-150e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing detr_r50_8xb2-150e_coco...
+detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped detr_r50_8xb2-150e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: yolox_s_8x8_300e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing yolox_s_8x8_300e_coco...
+yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped yolox_s_8x8_300e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: yolox_l_8x8_300e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing yolox_l_8x8_300e_coco...
+yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped yolox_l_8x8_300e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: dino-5scale_swin-l_8xb2-36e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing dino-5scale_swin-l_8xb2-36e_coco...
+dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped dino-5scale_swin-l_8xb2-36e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: dino-4scale_r50_8xb2-12e_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing dino-4scale_r50_8xb2-12e_coco...
+downloading ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 251.0/251.0 MiB 4.9 MB/s eta 0:00:00
+Successfully downloaded dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth to /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped dino-4scale_r50_8xb2-12e_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Tải checkpoint cho config: mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mim/commands/list.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+processing mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco...
+mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco_20210903_104808-b92c91f1.pth exists in /workspace/transfer-attack-final/checkpoints
+/usr/lib/python3.10/importlib/__init__.py:169: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  _bootstrap._exec(spec, module)
+Successfully dumped mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py to /workspace/transfer-attack-final/checkpoints
+
+[download_checkpoints] Xong. Checkpoint nằm tại /workspace/transfer-attack-final/checkpoints (không commit — xem .gitignore).
+total 3125240
+drwxr-xr-x  2 root root      4096 Oct 24 00:51 .
+drwxr-xr-x 13 root root      4096 Oct 24 00:40 ..
+-rw-r--r--  1 root root     16430 Oct 24 00:50 detr_r50_8xb2-150e_coco.py
+-rw-r--r--  1 root root 592227862 Oct 24 00:49 detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth
+-rw-r--r--  1 root root     16429 Oct 24 00:54 dino-4scale_r50_8xb2-12e_coco.py
+-rw-r--r--  1 root root 263220833 Oct 24 00:54 dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+-rw-r--r--  1 root root 877492835 Oct 24 00:51 dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+-rw-r--r--  1 root root     17086 Oct 24 00:51 dino-5scale_swin-l_8xb2-36e_coco.py
+-rw-r--r--  1 root root 129472355 Oct 24 00:44 fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+-rw-r--r--  1 root root      7226 Oct 24 00:50 fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py
+-rw-r--r--  1 root root     19694 Oct 24 00:50 mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py
+-rw-r--r--  1 root root     11338 Oct 24 00:50 mask-rcnn_r101_fpn_ms-poly-3x_coco.py
+-rw-r--r--  1 root root     11336 Oct 24 00:50 mask-rcnn_r50_fpn_mstrain-poly_3x_coco.py
+-rw-r--r--  1 root root     19886 Oct 24 00:54 mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py
+-rw-r--r--  1 root root     19883 Oct 24 00:50 mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py
+-rw-r--r--  1 root root 192446607 Oct 24 00:42 mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+-rw-r--r--  1 root root 254096423 Oct 24 00:41 mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+-rw-r--r--  1 root root 177868694 Oct 24 00:41 mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+-rw-r--r--  1 root root 222086144 Oct 24 00:54 mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco_20210903_104808-b92c91f1.pth
+-rw-r--r--  1 root root 191464891 Oct 24 00:43 mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+-rw-r--r--  1 root root     13694 Oct 24 00:51 yolox_l_8x8_300e_coco.py
+-rw-r--r--  1 root root 217289556 Oct 24 00:51 yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+-rw-r--r--  1 root root     13694 Oct 24 00:51 yolox_s_8x8_300e_coco.py
+-rw-r--r--  1 root root  36078190 Oct 24 00:49 yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth
+
+[bootstrap] ===== 3/5 Tải dataset COCO val2017 =====
+
+
+[download_dataset] Tải annotations_trainval2017.zip (~252MB)...
+
+[download_dataset] Giải nén annotations...
+
+[download_dataset] Tải val2017.zip (~815MB)...
+
+[download_dataset] Giải nén val2017...
+
+[download_dataset] Xong. data/coco/ chứa 5000 ảnh val2017 + annotations.
+
+[bootstrap] ===== 4/5 Chốt danh sách ảnh n=300/n=1000 (idempotent — bỏ qua nếu đã khóa từ trước) =====
+
+/workspace/transfer-attack-final/data/image_lists/meta.json đã tồn tại — danh sách coi như đã khóa, bỏ qua (script tất định 100% với cùng seed/pool nên chạy lại cũng ra kết quả giống hệt, nhưng không tự ghi đè để tránh lẫn lộn nếu ai đó sửa script sau này; xóa data/image_lists/ thủ công nếu thật sự muốn tạo lại).
+
+[bootstrap] ===== 5/5 Ảnh adv baseline n300 từ HF (cần HF_TOKEN trong .env — gitignored) =====
+
+[bootstrap] Không có .env/HF_TOKEN — bỏ qua (chỉ cần cho GO @ n300; ảnh dev300 chưa từng lên HF).
+
+[bootstrap] ===== Xong toàn bộ bootstrap. =====
+
+Nhắc: kích hoạt venv trong shell hiện tại bằng: source .venv/bin/activate
+Nhắc: máy mới chưa có git identity — đặt cho repo: git config user.name/user.email (theo tác giả commit cũ).
+Nhắc: nếu data/image_lists/ mới được tạo lần đầu (chưa từng commit), commit + push ngay để khóa lại.
