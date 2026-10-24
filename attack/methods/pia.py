@@ -405,7 +405,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
-                    weight_def=None, weight_ens=None):
+                    weight_def=None, weight_ens=None, cls_sched=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -436,6 +436,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     cls_auto = c (progress_log 2026-10-18): thay cls_weight bằng c · λ_ảnh (calib_cls_weight, đo tại δ = 0; +2 backward / ảnh).
     ilpd_gamma = γ (progress_log 2026-10-18): ILPD trên đường head ở stage 3 (stride 16), repair.make_view_loss; cần cls_weight > 0."""
     assert ilpd_gamma is None or (cls_weight > 0 and feature and co_transform)
+    assert cls_sched is None or (cls_sched in ("up", "down", "step") and cls_weight > 0 and feature and co_transform
+                                 and dual is None and weight_def is None)
     # fia_views = n (progress_log 2026-10-18): L_OSFD trọng số kênh 50% đều + 50% |∂L_cls/∂F| (fia_channel_weights, +n backward / ảnh).
     # roi_pos / roi_cap: loss_cls RoI chỉ trên RoI dương | + bỏ RoI dương có p(lớp đúng) < roi_cap (repair.roi_cls_filter).
     assert not fia_views or (geo == "elem" and cls_weight > 0 and feature and co_transform)
@@ -591,7 +593,20 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 cache.append((grid, fc))
         log["forward_no_grad"] += cache_views
 
+    def cls_weight_at(step_idx, total):
+        # E26 (progress_log 2026-10-24): λ(t) theo bước, λ_TB = cls_weight. t ∈ [0, total−1].
+        if cls_sched is None or total <= 1:
+            return cls_weight
+        f = step_idx / (total - 1)
+        if cls_sched == "up":    # 0.5·λ → 1.5·λ (TB λ)
+            return cls_weight * (0.5 + f)
+        if cls_sched == "down":  # 1.5·λ → 0.5·λ (TB λ)
+            return cls_weight * (1.5 - f)
+        assert cls_sched == "step"  # 0 nửa đầu, 2·λ nửa sau (TB λ)
+        return cls_weight * (0.0 if step_idx < total / 2 else 2.0)
+
     def views_fn(img, ds, step_idx, total):
+        cw = cls_weight_at(step_idx, total)
         if cache is not None:
             out = []
             for _ in range(n_views):
@@ -692,7 +707,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 lfe = _view_loss(fc, k)
                 out.append((v, dsv, lambda m, p, d, lfe=lfe: (lfe(m, p, d), None)))
             elif cls_weight > 0:
-                lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
+                lf = make_view_loss(fc, k, cls_mode, cw, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
                                     fab_weight=fab_weight, obj_weight=obj_weight,
                                     split=dual == "exact" or weight_def is not None, stage_pool=stage_pool,
                                     size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w)

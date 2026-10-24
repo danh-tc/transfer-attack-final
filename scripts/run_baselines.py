@@ -325,6 +325,9 @@ _E22 = {"C2-OCT-1V-WP2-RAND": dict(weight_mode="rand"), "C2-OCT-1V-WP2-ASC": dic
         "C2-OCT-1V-WPH": dict(weight_scope="head"), "C2-OCT-1V-WP2+H": dict(weight_scope="backbone+head")}
 # E23 (progress_log 2026-10-24): min-max tách mục tiêu — defender chỉ chống λ·L_cls | L_OSFD; attacker giữ nguyên.
 _E22.update({"C2-OCT-1V-WP2-DEFCLS": dict(weight_def="cls"), "C2-OCT-1V-WP2-DEFFEAT": dict(weight_def="feat")})
+# E26 (progress_log 2026-10-24): λ-schedule cho L_cls (λ_TB = 4 = WP2), lịch theo bước.
+for _n, _s in (("C2-OCT-1V-WP2-LUP", "up"), ("C2-OCT-1V-WP2-LSTEP", "step"), ("C2-OCT-1V-WP2-LDOWN", "down")):
+    _E22[_n] = dict(cls_sched=_s)
 # E25 (progress_log 2026-10-24): WP-Ensemble — K bản R50 phòng thủ song song, trung bình ∇ₓ; -IS = δ init từ δ_SwinT.
 for _n, _ens in (("C2-OCT-1V-WP2-ENS", (3, 0.5)),):
     _E22[_n] = dict(weight_ens=_ens)
