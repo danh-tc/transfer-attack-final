@@ -4008,3 +4008,10 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 **Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi ô ΔSwin-L < +3. Mô tả: ΔSwin-T, YOLOX, R101; tỉ lệ kênh bị triệt TB.
 **Caveat:** COGO验证 ViT→ViT (giả định "corr cao = đặc thù" cho CNN→Transformer OD chưa kiểm); gần họ FIA (ngang) nhưng logic ngược; bỏ MI (chỉ corr); β/α/N/stage theo paper + chọn trước; dev30.
 **Chạy:** `results/e30/run.sh`, log `results/e30/run.log`.
+
+### Kết quả E30 @ dev30 (V100; `results/ablation/e30_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/*_e30_dev30.json`, log `results/e30/run.log`) — theo quy tắc: **KHÔNG**
+Sức khỏe (ảnh 1–4): IS3/34 R50 xóa 92%, bão hòa 79–80% (= WP2). Runtime 3.86/3.75 (= WP2).
+R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 | 80.8; IS3 98.8/92.1/84.4/83.5/78.1/35.4 | 82.0; IS34 98.7/92.5/84.6/82.4/77.9/35.8 | 81.6.
+Δ so WP2: IS3 Swin-L −0.0 [−2.5, 2.1], CA3 +1.2 [−0.3, 2.4] (ConvNeXt +1.7, YOLOX +1.0); IS34 Swin-L +0.3, CA3 +0.9.
+**Đọc:** Swin-L không đổi → KHÔNG. KHÁC các đòn trước: IS cho cải thiện CNN đồng đều RẤT NHỎ (CA3 +1, mọi target dương nhẹ), KHÔNG trượt đánh đổi — triệt kênh gradient dư thừa làm δ bớt đặc thù R50 một chút, lợi đều trên CNN nhưng không chạm Swin-L. Giả thuyết "kênh gradient corr cao = đặc thù R50, triệt đi lộ hướng chung" KHÔNG đúng cho Swin-L (khớp E24: hướng phá Swin-L không nằm trong không gian KÊNH gradient R50 mà thao tác kênh chạm tới). Lợi COGO classification không giữ sang OD.
+**Trạng thái:** gradient-space (E30 IS, cùng WP-family E22/E25/E28, SGM/BPA/ILPD/Season) đều không chạm Swin-L; forward-space (OTSV/PFA/FPA) đóng; toolbox classification port hết (chỉ weight-tuning=WP2 giữ lợi). E19–E30 (12 thí nghiệm) đều âm cho Swin-L ≥ 50. WP2 chốt.
