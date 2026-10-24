@@ -3936,3 +3936,19 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 Δ so WP2 (Swin-L | CA3): LUP +1.3 [−2.7, +3.9] | −1.1; LDOWN +1.1 [−1.7, +4.5] | +1.0; LSTEP −5.6 [−11.2, −0.4] | −1.9. **LUP − LDOWN: Swin-L −0.1 [−2.9, +4.5]** (CHIỀU KHÔNG QUAN TRỌNG).
 **Đọc:** không lịch nào ΔSwin-L ≥ +3 → KHÔNG. LUP ≈ LDOWN → giả thuyết "dồn cls về cuối theo xói mòn E25" BÁC: hình dạng lịch không quan trọng, chỉ λ_TB ≈ 4. LSTEP hại (λ = 0 nửa đầu thiếu đòn bẩy Swin-L, không bù kịp). → λ phân bổ ĐỀU (WP2) là tốt nhất; bậc tự do theo-bước của L_cls đã đóng.
 **Trạng thái:** E19–E26 đều ÂM/KHÔNG. L_cls (đòn bẩy Swin-L) cạn mọi bậc tự do (mức λ, dạng, lịch theo bước). WP2 vẫn là tốt nhất (Swin-L ~36–37 dev100). Mọi hướng 1-R50 ở ε = 5 đã thử. User quyết định vị: (1) SOTA + cơ chế + trần (dev300 + AWT-OD/RaPA/BSR) | (2) surrogate thứ 2.
+
+---
+
+## 2026-10-24 — E27: SPIKE-WP2 — quy tắc cập nhật δ kiểu phát-xung (LIF event-driven) @ dev30 B36 (user: "Thiết kế và run thử đi", ~20:30 GMT+7) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Ý tưởng (user):** áp nguyên lý SNN vào ĐỘNG LỰC cập nhật δ (không phải forward surrogate): cập nhật rời rạc, có ngưỡng, thưa; thời điểm phát xung mang thông tin. Khác momentum (dày, mọi pixel mỗi bước), khác consensus/VC (đồng thuận giữa view — đã thử NO-GO), khác λ-schedule (E26).
+**Cơ chế (`core.run_iterative_attack(spike=θ_fire)`):** thay cập nhật MI thường bằng LIF trên δ:
+- điện thế màng V (per-pixel, per-channel) tích lũy gradient chuẩn hóa: V ← μ·V + g/mean|g| (như momentum, μ = 1).
+- phát xung tại pixel |V| ≥ θ_fire: δ ← clamp(δ + α·sign(V), ±ε); reset V ← 0 tại pixel đã phát. Pixel dưới ngưỡng GIỮ V (tích lũy tiếp), δ không đổi.
+- θ_fire = 0 trùng MI thường (mọi pixel phát mỗi bước, V luôn reset) — nhưng reset làm mất momentum → KHÔNG trùng WP2; nên WP2 là mốc riêng, không phải giới hạn θ→0.
+- WP (nhiễu trọng số ρ = 0.002) giữ nguyên, dùng cùng gradient.
+**Chọn θ_fire CHỈ theo sức khỏe white-box (ảnh 1–4 dev300, `tx_calib`, KHÔNG nhìn target):** θ_fire ∈ {1.0, 2.0} (so độ lớn V ~ O(1) sau chuẩn hóa mean|g|); chọn θ lớn nhất còn: R50 xóa ≥ 0.8 × WP2 VÀ bão hòa ≥ 0.7 × WP2 (thưa hơn nên nới ngưỡng bão hòa; mô tả tỉ lệ pixel |δ|=5). Không θ nào đạt → ghi, chọn θ nhỏ nhất đã thử, đánh dấu caveat.
+**Chi phí:** = WP2 (chỉ đổi phép cập nhật vô hướng, không thêm forward) → B36 cùng thời gian; đo lại s/ảnh để chắc.
+**Kiểm:** `scripts/spike_unit_test.py` — θ_fire = 0 cho mọi pixel phát mỗi bước (δ đổi mọi bước); θ cao → thưa hơn (đếm % pixel phát/bước giảm); V reset đúng; L∞ ≤ ε; θ=0 không WP so MI thường (chỉ khác reset momentum — ghi).
+**Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi θ ΔSwin-L < +3. Mô tả: tỉ lệ pixel phát/bước, R101/YOLOX, δ thưa đến đâu.
+**Caveat (khai báo trước):** đổi quy tắc cập nhật, không đổi hướng gradient (E22: RAND vô dụng, WP giúp; E24: nút thắt là hướng) → kỳ vọng thấp; δ thưa có tiền lệ âm (PD hại); dev30, n=30, GPU không tất định. Giá trị chính = thành phần novelty / ablation.
+**Chạy:** `results/e27/run.sh`, log `results/e27/run.log`.
