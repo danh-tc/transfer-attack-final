@@ -303,7 +303,15 @@ METHODS["C2-OCT-1V-WPA"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_
 # WP2-C2W (progress_log 2026-10-24, đóng dòng (3) E19): L_OSFD-C2 nhân w_C2 = a·R, R = 476.3 (scripts/c2w_calib.py), a = 0.3 | 1.
 METHODS["C2-OCT-1V-WP2-C2W03"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002, stage_w=(0.3 * 476.3, 1.0, 1.0, 1.0)), 1)
 METHODS["C2-OCT-1V-WP2-C2W1"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002, stage_w=(476.3, 1.0, 1.0, 1.0)), 1)
-GEO_METHODS_1V = {"C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
+# E20 basin test (progress_log 2026-10-24): WP2 y nguyên, δ khởi tạo = PNG của run --init-from (δ_SwinT) − ảnh gốc.
+METHODS["C2-OCT-1V-WP2-IS"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002), 1)
+INIT_METHODS = {"C2-OCT-1V-WP2-IS": "C2-OCT-1V"}  # ô -> tên method của PNG khởi tạo trong run --init-from
+# PFA (progress_log 2026-10-24): attention không tham số (cửa sổ 7×7, τ = 0.1) chèn vào đầu ra layer3 R50, F' = (1 − α)F + α·A(F).
+_PFA_ALPHAS = (0.25, 0.5, 0.75)
+for _a in _PFA_ALPHAS:
+    METHODS[f"C2-OCT-1V-WP2-PFA{int(_a * 100)}"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002,
+                                                                       pfa=(_a, 0.1, 7)), 1)
+GEO_METHODS_1V = {"C2-OCT-1V-WP2-IS", *(f"C2-OCT-1V-WP2-PFA{int(_a * 100)}" for _a in _PFA_ALPHAS), "C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
                   "C2-OCT-1V-LA05", "C2-OCT-1V-LA1", "C2-OCT-1V-LA2", "C2-OCT-1V-ILPD05", "C2-OCT-1V-ILPD075"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
@@ -352,6 +360,10 @@ def stage_attack(args, dataset, surrogate, adv_dir, stats_path, device):
                 kw = {"repair_seed": seed, "info": info}
             if name in GEO_METHODS:
                 kw = {"info": info}
+            if name in INIT_METHODS:
+                assert args.init_from, f"{name} cần --init-from"
+                init_png = os.path.join(REPO_ROOT, "artifacts/runs", args.init_from, "adv", INIT_METHODS[name], f"{img_id}.png")
+                kw["init_noise"] = img_tensor(init_png, device) - orig
             snap_recs = []
             if args.snapshots:
                 # Đường bão hòa theo B (progress_log 2026-10-20): noise sau k bước = lần chạy steps=k -> ghi PNG + stats
@@ -577,6 +589,8 @@ def main():
                    help="kiểm tổng quát surrogate (progress_log 2026-10-08); khác r50 -> run riêng *_sur-<key>")
     p.add_argument("--snapshots", type=int, nargs="*", default=[],
                    help="mốc B < --budget: ghi δ sau từng mốc vào run B tương ứng (đường bão hòa, progress_log 2026-10-20)")
+    p.add_argument("--init-from", default=None,
+                   help="run chứa PNG khởi tạo δ cho ô INIT_METHODS (E20, progress_log 2026-10-24)")
     args = p.parse_args()
     assert all(b < args.budget for b in args.snapshots)
 

@@ -403,7 +403,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
-                    ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None):
+                    ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
+                    init_noise=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -471,6 +472,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         xb = torch.from_numpy(cv2.inpaint(x, m, 5, cv2.INPAINT_TELEA)).permute(2, 0, 1).float().to(orig_pixels.device)
         xbg_pixels = resize_to_model(xb, tuple(data_sample.img_shape))
         xbg_box_frac = float(m.mean())
+    # pfa = (α, τ, w) (C2-OCT-1V-WP2-PFA, progress_log 2026-10-24): pfa_hook trên layer3 suốt lần attack; lệch cửa sổ rút
+    # đều mỗi view (RNG riêng seed + 11 -> chuỗi view OCT trùng ô gốc), CÙNG lệch cho feature sạch và adv của view.
+    assert pfa is None or (n_views == 1 and backward_per_step == 1 and not cache_views)
+    pfa_state = {"off": (0, 0)}
+    pfa_rng = random.Random(torch.initial_seed() + 11) if pfa is not None else None
     pd_gen =torch.Generator().manual_seed(torch.initial_seed() + 7) if patch_drop is not None else None
     tx_rng = random.Random(torch.initial_seed() + 9) if tex_blur is not None else None
     mask_head = None
@@ -631,6 +637,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                   gt_log=log["gt_kept"])
         out = []
         for v, c, dsv in triples:
+            if pfa_rng is not None:
+                pfa_state["off"] = (pfa_rng.randrange(pfa[2]), pfa_rng.randrange(pfa[2]))
             cb = None
             if xbg_pixels is not None:
                 c, cb = c[:3], c[3:]
@@ -706,11 +714,13 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             m.running_mean, m.running_var = None, None
     try:
         # cache_enabled=False khi nhiễu trọng số: bản fp16 cache từ forward no_grad (feature sạch) không có liên kết tới θ.
-        with torch.autocast("cuda", dtype=torch.float16, enabled=amp, cache_enabled=wp is None):
+        with torch.autocast("cuda", dtype=torch.float16, enabled=amp, cache_enabled=wp is None), \
+                (pfa_hook(model, *pfa, pfa_state) if pfa is not None else contextlib.nullcontext()):
             noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                          on_step=on_step, backward_per_step=backward_per_step,
-                                         season_sigma=season_sigma, dual=dual, weight_perturb=wp)
+                                         season_sigma=season_sigma, dual=dual, weight_perturb=wp,
+                                         init_noise=init_noise)
     finally:
         if mask_head is not None:
             model.roi_head.mask_head = mask_head
@@ -730,6 +740,37 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     if info is not None:
         info.update(log)
     return noise
+
+
+def pfa_mix(f: torch.Tensor, alpha: float, tau: float, w: int, off=(0, 0)) -> torch.Tensor:
+    """PFA (progress_log 2026-10-24): F' = (1 − α)·F + α·A(F), A = attention KHÔNG tham số trong cửa sổ không chồng w × w,
+    lưới cửa sổ lệch off = (oy, ox) token; trọng số softmax_j(cos(f_i, f_j) / τ), value = F; token pad không làm key.
+    f [B, C, H, W]; tính fp32, trả về dtype của f."""
+    if alpha == 0.0:
+        return f
+    b, c, h, wd = f.shape
+    oy, ox = off
+    hp, wp = -(-(h + oy) // w) * w, -(-(wd + ox) // w) * w
+    pad = (ox, wp - wd - ox, oy, hp - h - oy)
+    t = F.pad(f.float(), pad).view(b, c, hp // w, w, wp // w, w).permute(0, 2, 4, 3, 5, 1).reshape(-1, w * w, c)
+    valid = F.pad(torch.ones(1, 1, h, wd, device=f.device), pad).view(1, hp // w, w, wp // w, w)
+    valid = valid.permute(0, 1, 3, 2, 4).reshape(-1, w * w).repeat(b, 1).bool()
+    q = F.normalize(t, dim=-1)
+    s = (q @ q.transpose(1, 2) / tau).masked_fill(~valid[:, None, :], float("-inf"))
+    o = s.softmax(-1) @ t
+    o = o.view(b, hp // w, wp // w, w, w, c).permute(0, 5, 1, 3, 2, 4).reshape(b, c, hp, wp)
+    o = o[:, :, oy:oy + h, ox:ox + wd]
+    return ((1 - alpha) * f.float() + alpha * o).to(f.dtype)
+
+
+@contextlib.contextmanager
+def pfa_hook(model, alpha: float, tau: float, w: int, state: dict):
+    """Gắn PFA vào đầu ra backbone.layer3 (C4, stride 16) trong khối with; state["off"] = lệch cửa sổ hiện tại."""
+    h = model.backbone.layer3.register_forward_hook(lambda m, i, o: pfa_mix(o, alpha, tau, w, state["off"]))
+    try:
+        yield
+    finally:
+        h.remove()
 
 
 def _with_ctx(loss_fn, ctx):

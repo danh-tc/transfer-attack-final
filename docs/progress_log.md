@@ -3789,3 +3789,7 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.8
 - Mô tả bắt buộc: ΔSwin-T (claim "CNN → Transformer" cần Swin-T cũng tăng, ≥ +2), R101, ConvNeXt, YOLOX.
 **Caveat:** PFA đổi hàm của surrogate (AP sạch giảm) → gradient có thể của một model "hỏng"; τ / w / vị trí C4 đặt trước theo cơ sở E14, không quét; dev30 nhiễu.
 **Chạy:** `results/pfa/run.sh`, log `results/pfa/run.log`; metrics `metrics_pfa_dev30.json`, dets `dets_pfa_dev30.json`, pair_screen tag `pfa_dev30` / `e20_dev30`.
+
+### PFA — đính chính cổng H2 (16:00 GMT+7, TRƯỚC khi có bất kỳ số transfer nào của PFA / E20)
+Lỗi chép quy tắc: H2 ghi "|δ| = 5 ≥ 80% pixel", nhưng ý định (như C2W / XBG: "|δ| = 5 VÀ R50 xóa ≥ 80% mức WP2") là sức khỏe SO VỚI WP2; chính mốc WP2 chỉ có 79.51% pixel chạm ±5 (ảnh 1–4) → đọc nguyên văn thì mọi ô kể cả mốc đều trượt. Áp: L∞ = 5, tỉ lệ bão hòa ≥ 0.95 × WP2, R50 xóa ≥ 0.8 × WP2. Quyết định KHÔNG phụ thuộc cách đọc: mọi ô trùng WP2.
+**Cổng sức khỏe (`results/pfa/health_h1.json`, `scripts/tx_calib.py`, log `results/pfa/h2_attack.log`):** H1 AP sạch R50 dev30: thường 40.8; α 0.25 / 0.5 / 0.75 → 41.0 / 41.3 / 42.5 (100–104%) QUA. H2 (B36, ảnh 1–4): bão hòa WP2 79.51%, PFA25 79.64%, PFA50 79.52%, PFA75 79.48%; R50 xóa 92% (34/37) ở cả 4 → QUA. Unit test `scripts/pfa_unit_test.py` ĐẠT (khớp vòng lặp ngây thơ ≤ 5e-7; α = 0 trùng R50). Thời gian ảnh 1–4 (s / ảnh): WP2 3.83, PFA25 3.97, PFA50 3.79, PFA75 3.82 → **B36 = cùng thời gian**. Theo quy tắc: chạy 2 α lớn nhất qua cổng: **PFA75, PFA50**.

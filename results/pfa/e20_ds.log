@@ -1,0 +1,9 @@
+loading annotations into memory...
+Done (t=0.57s)
+creating index...
+index created!
+[run] dev300_B41_eps5_limit100_sur-swin_t: 30 ảnh (subset dev30), methods=['C2-OCT-1V']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+[attack C2-OCT-1V] 10/30  6.1s/ảnh  còn ~2 phút
+[attack C2-OCT-1V] 20/30  6.1s/ảnh  còn ~1 phút
+[attack C2-OCT-1V] 30/30  5.9s/ảnh  còn ~0 phút

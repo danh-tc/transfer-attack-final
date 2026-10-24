@@ -74,6 +74,7 @@ def run_iterative_attack(
     season_sigma: Optional[float] = None,
     dual: Optional[str] = None,
     weight_perturb=None,
+    init_noise: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -114,13 +115,17 @@ def run_iterative_attack(
     weight_perturb = (params, rho) (C2-OCT-1V-WP, progress_log 2026-10-21; họ AWT / SAM phía model): trong CÙNG lần
     autograd.grad lấy thêm ∇θ của loss attack; trước bước sau đặt θ' = θ − rho·‖θ_t‖·∇θ_t / ‖∇θ_t‖ (từng tensor) -> surrogate
     "chống lại" δ hiện tại, gradient ảnh bước sau tính trên θ' (trễ 1 bước, không forward thêm). Caller khôi phục θ gốc.
+
+    init_noise (E20 basin test, progress_log 2026-10-24): δ khởi tạo (cùng shape orig_pixels, kẹp [−ε, ε]) thay cho 0;
+    momentum vẫn khởi tạo 0. None = trùng tuyệt đối bản cũ.
     """
     assert combine in ("sum", "consensus")
     assert dual in (None, "exact", "alt")
     assert dual is None or (momentum > 0.0 and season_sigma is None and backward_per_step == 1 and grad_transform is None)
     m_dual = [torch.zeros_like(orig_pixels), torch.zeros_like(orig_pixels)]
     model_size = tuple(data_sample.img_shape)
-    noise = torch.zeros_like(orig_pixels)
+    noise = (torch.zeros_like(orig_pixels) if init_noise is None
+             else torch.clamp(init_noise.detach().to(orig_pixels), min=-epsilon, max=epsilon))
     accumulated_grad = torch.zeros_like(orig_pixels)
     if season_sigma is not None:
         assert momentum > 0.0
