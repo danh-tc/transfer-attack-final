@@ -3990,3 +3990,9 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 **Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi ô ΔSwin-L < +3. Mô tả: ΔSwin-T, R101, YOLOX.
 **Caveat:** cùng tinh thần "làm R50 giống ViT" (OTSV/PFA âm) nhưng khác cơ chế (permutation-diversity); lợi classification +20 có thể không giữ sang detection (như Season mất lợi); γ/p/stage theo paper không tune; dev30.
 **Chạy:** `results/e29/run.sh`, log `results/e29/run.log`.
+
+### Kết quả E29 @ dev30 (V100; `results/ablation/e29_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/*_e29_dev30.json`, log `results/e29/run.log`) — theo quy tắc: **KHÔNG**
+Sức khỏe (ảnh 1–4): FPA2/34 R50 xóa 92–95%, bão hòa 79% (= WP2). Runtime 4.0/3.9 (~WP2 3.83).
+R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 | 80.8; FPA2 .../92.0/.../.../77.8/34.0; FPA34 .../92.6/.../.../73.4/37.8.
+Δ so WP2: FPA2 Swin-L +0.7 [−1.7, 3.9] (YOLOX −1.5); **FPA34 Swin-L +2.3 [−3.3, 6.4]** (YOLOX **−3.7** [−7.4, −1.0]).
+**Đọc:** không ô nào ΔSwin-L ≥ +3 → KHÔNG. FPA2 (đúng stage paper) không giúp; FPA34 nhích Swin-L +2.3 nhưng đổi YOLOX −3.7 (CI < 0) → lại trượt đường đánh đổi CNN↔Swin-L. Lợi classification FPA (+20 CNN→ViT) KHÔNG giữ sang detection — giống Season (frequency), OTSV/PFA (attention): kỹ thuật "làm R50 giống ViT" ở classification mất lợi ở OD vì gap OD là HƯỚNG trực giao (E14/E24), không phải locality/phổ đơn thuần. Củng cố kết luận cơ chế.
