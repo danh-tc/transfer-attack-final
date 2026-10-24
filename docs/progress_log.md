@@ -3971,3 +3971,10 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 **Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3..+10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi θ ΔSwin-L < +3. Mô tả: % element phát, R101/YOLOX.
 **Caveat:** cùng họ WP đã plateau; dev30; GPU không tất định. ĐÒN CUỐI — sau E28 dừng tối ưu bất kể kết quả.
 **Chạy:** `results/e28/run.sh`, log `results/e28/run.log`.
+
+### Kết quả E28 @ dev30 (V100; `results/ablation/e28_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/*_e28_dev30.json`, log `results/e28/run.log`) — theo quy tắc: **KHÔNG** (đòn cuối tối ưu WP2)
+Sức khỏe (ảnh 1–4): WSPK1/2 R50 xóa 92%, bão hòa 80% (= WP2, δ dày — khác E27). Runtime 4.6 (1.2×, chạy B36 = ưu ái).
+R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 | 80.8; WSPK1 98.5/92.5/81.5/80.1/76.3/35.9 | 79.3; WSPK2 98.8/92.4/81.3/81.8/77.7/35.8 | 80.3.
+Δ so WP2: WSPK1 Swin-L +0.4 [−2.4, +3.0], CA3 −1.5; WSPK2 Swin-L +0.3 [−2.0, +2.7], CA3 −0.5.
+**Đọc:** cả 2 ≈ WP2 (ΔSwin-L ≈ 0) → KHÔNG. Phát xung thưa trên trọng số hội tụ về WP2 → trong họ WP, "element nào / khi nào nhiễu" KHÔNG quan trọng, chỉ hướng phòng thủ (củng cố E22). Theo cam kết: **DỪNG tối ưu WP2**.
+**KẾT CHUỖI E19–E28 (10 thí nghiệm, tất cả ÂM/KHÔNG):** mục tiêu (E24), khởi tạo (E20), forward (OTSV/PFA), phòng thủ vị trí (E22) / ensemble (E25) / tách mục tiêu (E23) / spiking trọng số (E28), lịch λ (E26), spiking δ (E27), OCT, feature loss — không gì vượt WP2 (Swin-L ~36–37 dev100). Trần transfer 1-R50 ở ε = 5 có bằng chứng. **WP2 = method chốt.** Bước tiếp: định vị SOTA + cơ chế (dev300 + baseline AWT-OD/RaPA/BSR + held-out) HOẶC nới threat model 2-surrogate. Chưa push E20–E28.
