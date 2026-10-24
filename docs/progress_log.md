@@ -3816,3 +3816,9 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3:
 - Mô tả quỹ đạo: rơi ở B1–B4 = trường gradient sai cơ bản; giữ tới B12 rồi rơi = forward ảo có tác dụng nhưng bị forward gốc / momentum lấn.
 **Không làm bây giờ:** LPAA / H-LPA, AES (snapshot soup), RaPA (bản đúng paper CVPR'26, phân biệt với RaPA hiện có trong repo), BSR (chỉ loss feature) → để bảng dev300.
 **Chạy:** `results/otsv/run.sh`, log `results/otsv/run.log`.
+
+### Kết quả E21 @ dev30 (V100; `results/otsv/health.json`, `results/ablation/otsv_gate_dev30/screen.json`, `results/runs/dev300_B{1,4,12,36}_eps5_limit100/*_otsv_dev30.json`, `results/otsv/delta_move.json`, log `results/otsv/{run,h2_attack}.log`) — theo quy tắc: **DỪNG**
+**Chọn β:** H1 / H3a / H3b — β 0.25: AP 101%, ΔC4 0.127, cos 0.914 QUA; **β 0.5: 97%, 0.254, 0.847 QUA**; β 1.0: 84%, 0.508, 0.618 TRƯỢT (H1). H2 (B36, ảnh 1–4): OTSV50 bão hòa 80% (= WP2), R50 xóa 92% QUA; 3.9 s / ảnh ≈ WP2 → **β = 0.5**.
+**Quỹ đạo DINO-Swin-L (B0 = δ_S 59.3), WP2-IS | OTSV50-IS:** B1 57.2 | 57.2; B4 48.8 | 48.6; B12 35.5 | 35.1; **B36 39.8 | 44.0**. Δ (OTSV − WP2-IS) B36: Swin-L **+4.2 [−0.1, +5.8]**, CA3 **−2.3 [−4.1, −0.3]** (ConvNeXt −2.4, Swin-T −3.2, YOLOX −1.3), R101 +0.8; B12 −0.4, B4 −0.2, B1 0.0.
+**δ:** cos(δ, δ_S) B1 0.992 / B4 0.885 / B12 0.316 / B36 0.218 (WP2-IS 0.992 / 0.884 / 0.314 / 0.216); cos(δ_OTSV, δ_WP2-IS) B4 0.973, B12 0.809, B36 0.646.
+**Đọc:** B36 44.0 < 48 → DỪNG. OTSV KHÔNG giữ vùng δ_S (sụp cùng tốc độ WP2 tới B12, cùng mức "nhớ" δ_S ở B36); khác biệt chỉ ở pha hồi B12 → B36, và đổi lấy CNN (CA3 −2.3, CI < 0) → cùng đường đánh đổi CNN ↔ Swin-L. Phân rã 44.0 = 35.5 (WP2 từ 0) + 4.3 (oracle init, ngoài threat model) + 4.2 (OTSV, CI chạm 0). Mô tả: Swin-L hình chữ U (sụp tới B12 rồi hồi) ở cả 2 ô.
