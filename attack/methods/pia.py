@@ -404,7 +404,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
-                    init_noise=None):
+                    init_noise=None, otsv=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -477,6 +477,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert pfa is None or (n_views == 1 and backward_per_step == 1 and not cache_views)
     pfa_state = {"off": (0, 0)}
     pfa_rng = random.Random(torch.initial_seed() + 11) if pfa is not None else None
+    # otsv = β (C2-OCT-1V-WP2-OTSV, E21, progress_log 2026-10-24): bước lẻ forward ảo OTSV (otsv_hook trên layer3, box GT
+    # co-transform của view), bước chẵn forward R50 gốc (lịch 1 : 1); feature sạch của view qua CÙNG chế độ forward.
+    assert otsv is None or (n_views == 1 and backward_per_step == 1 and not cache_views and cls_weight > 0 and pfa is None)
+    otsv_state = {"on": False, "boxes": None}
     pd_gen =torch.Generator().manual_seed(torch.initial_seed() + 7) if patch_drop is not None else None
     tx_rng = random.Random(torch.initial_seed() + 9) if tex_blur is not None else None
     mask_head = None
@@ -639,6 +643,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         for v, c, dsv in triples:
             if pfa_rng is not None:
                 pfa_state["off"] = (pfa_rng.randrange(pfa[2]), pfa_rng.randrange(pfa[2]))
+            if otsv is not None:
+                gtb = dsv.gt_instances.bboxes
+                otsv_state.update(on=step_idx % 2 == 1, boxes=gtb.tensor if hasattr(gtb, "tensor") else gtb)
             cb = None
             if xbg_pixels is not None:
                 c, cb = c[:3], c[3:]
@@ -715,7 +722,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     try:
         # cache_enabled=False khi nhiễu trọng số: bản fp16 cache từ forward no_grad (feature sạch) không có liên kết tới θ.
         with torch.autocast("cuda", dtype=torch.float16, enabled=amp, cache_enabled=wp is None), \
-                (pfa_hook(model, *pfa, pfa_state) if pfa is not None else contextlib.nullcontext()):
+                (pfa_hook(model, *pfa, pfa_state) if pfa is not None else contextlib.nullcontext()), \
+                (otsv_hook(model, otsv, otsv_state) if otsv is not None else contextlib.nullcontext()):
             noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                          on_step=on_step, backward_per_step=backward_per_step,
@@ -767,6 +775,35 @@ def pfa_mix(f: torch.Tensor, alpha: float, tau: float, w: int, off=(0, 0)) -> to
 def pfa_hook(model, alpha: float, tau: float, w: int, state: dict):
     """Gắn PFA vào đầu ra backbone.layer3 (C4, stride 16) trong khối with; state["off"] = lệch cửa sổ hiện tại."""
     h = model.backbone.layer3.register_forward_hook(lambda m, i, o: pfa_mix(o, alpha, tau, w, state["off"]))
+    try:
+        yield
+    finally:
+        h.remove()
+
+
+def otsv_mix(f: torch.Tensor, boxes: torch.Tensor, beta: float, stride: int = 16) -> torch.Tensor:
+    """OTSV (E21, progress_log 2026-10-24): F' = F + β·reshape(A·V). Z = LayerNorm theo kênh (không affine) của F; key
+    object t_j = trung bình RoIAlign 7×7 của Z tại box GT j (khung view), value v_j = cùng phép trên F; A_ij =
+    softmax_j(z_i · t_j / √C). Không box -> F. f [1, C, H, W]; tính fp32, trả về dtype của f."""
+    from torchvision.ops import roi_align
+    if beta == 0.0 or boxes is None or len(boxes) == 0:
+        return f
+    x = f.float()
+    c = x.shape[1]
+    z = F.layer_norm(x.permute(0, 2, 3, 1), (c,)).permute(0, 3, 1, 2)
+    rois = [boxes.float().to(x.device)]
+    t = roi_align(z, rois, 7, 1.0 / stride, 2, True).mean((2, 3))  # [N, C]
+    v = roi_align(x, rois, 7, 1.0 / stride, 2, True).mean((2, 3))
+    a = (z.flatten(2)[0].t() @ t.t() / c ** 0.5).softmax(-1)  # [HW, N]
+    out = (a @ v).t().reshape(1, c, *x.shape[-2:])
+    return (x + beta * out).to(f.dtype)
+
+
+@contextlib.contextmanager
+def otsv_hook(model, beta: float, state: dict):
+    """Gắn OTSV vào đầu ra backbone.layer3 khi state["on"]; state["boxes"] = box GT khung view hiện tại."""
+    h = model.backbone.layer3.register_forward_hook(
+        lambda m, i, o: otsv_mix(o, state["boxes"], beta) if state["on"] else o)
     try:
         yield
     finally:

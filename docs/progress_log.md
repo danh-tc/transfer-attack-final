@@ -3790,6 +3790,29 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.8
 **Caveat:** PFA đổi hàm của surrogate (AP sạch giảm) → gradient có thể của một model "hỏng"; τ / w / vị trí C4 đặt trước theo cơ sở E14, không quét; dev30 nhiễu.
 **Chạy:** `results/pfa/run.sh`, log `results/pfa/run.log`; metrics `metrics_pfa_dev30.json`, dets `dets_pfa_dev30.json`, pair_screen tag `pfa_dev30` / `e20_dev30`.
 
-### PFA — đính chính cổng H2 (16:00 GMT+7, TRƯỚC khi có bất kỳ số transfer nào của PFA / E20)
+### PFA — đính chính cổng H2 (~15:25 GMT+7, TRƯỚC khi có bất kỳ số transfer nào của PFA / E20)
 Lỗi chép quy tắc: H2 ghi "|δ| = 5 ≥ 80% pixel", nhưng ý định (như C2W / XBG: "|δ| = 5 VÀ R50 xóa ≥ 80% mức WP2") là sức khỏe SO VỚI WP2; chính mốc WP2 chỉ có 79.51% pixel chạm ±5 (ảnh 1–4) → đọc nguyên văn thì mọi ô kể cả mốc đều trượt. Áp: L∞ = 5, tỉ lệ bão hòa ≥ 0.95 × WP2, R50 xóa ≥ 0.8 × WP2. Quyết định KHÔNG phụ thuộc cách đọc: mọi ô trùng WP2.
 **Cổng sức khỏe (`results/pfa/health_h1.json`, `scripts/tx_calib.py`, log `results/pfa/h2_attack.log`):** H1 AP sạch R50 dev30: thường 40.8; α 0.25 / 0.5 / 0.75 → 41.0 / 41.3 / 42.5 (100–104%) QUA. H2 (B36, ảnh 1–4): bão hòa WP2 79.51%, PFA25 79.64%, PFA50 79.52%, PFA75 79.48%; R50 xóa 92% (34/37) ở cả 4 → QUA. Unit test `scripts/pfa_unit_test.py` ĐẠT (khớp vòng lặp ngây thơ ≤ 5e-7; α = 0 trùng R50). Thời gian ảnh 1–4 (s / ảnh): WP2 3.83, PFA25 3.97, PFA50 3.79, PFA75 3.82 → **B36 = cùng thời gian**. Theo quy tắc: chạy 2 α lớn nhất qua cổng: **PFA75, PFA50**.
+
+### Kết quả E20 + PFA @ dev30 (V100; `results/ablation/{e20_dev30,pfa_dev30}/screen.json`, `results/runs/dev300_B{12,36}_eps5_limit100/*_e20pfa_dev30.json`, `results/runs/dev300_B41_eps5_limit100_sur-swin_t/*_e20pfa_dev30.json`, log `results/pfa/run.log`)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3:
+- WP2 B36 (mốc): 98.8 / 91.4 / 82.7 / 82.6 / 77.1 / **35.5** | 80.8
+- δ_S = B0 (sur Swin-T B41): 83.3 / 79.6 / 88.2 / 96.4 / 71.5 / **59.3** | 85.4
+- WP2-IS B12: 96.5 / 86.5 / 84.9 / 84.9 / 74.4 / **35.5** | 81.4
+- WP2-IS B36: 99.3 / 94.1 / 91.4 / 90.9 / 84.1 / **39.8** | 88.8 (Δ so WP2: Swin-L +4.3 [−1.9, +9.6], CA3 +8.0 [+5.5, +13.6])
+- PFA50: Swin-L 36.0 (Δ +0.5 [−2.0, +2.6]); PFA75: Swin-L 33.9 (Δ −1.6 [−4.6, +1.8]); YOLOX −0.5 / +1.2; CNN ≈ WP2.
+**Đọc theo quy tắc:** E20 = **RỜI VÙNG** (IS B36 Swin-L 39.8 ≤ 42): 12 bước R50 đã kéo Swin-L 59.3 → 35.5 (= mốc từ 0), sau đó R50 đạt 99 mà Swin-L chỉ hồi 39.8. PFA = **KHÔNG** (cả 2 ô ΔSwin-L < +3). Theo khai báo: kết luận DỪNG (gradient ascent trên R50 cố định chặn trần Swin-L ~37–40 ở ε = 5). Mô tả: khởi tạo từ δ_S cho CNN +8 (ngoài threat model — dùng surrogate Swin-T).
+
+---
+
+## 2026-10-24 — E21: OTSV (object-token surrogate virtualization) — cổng ORACLE-RETENTION trước mọi attack từ 0 (user duyệt đề xuất kèm chỉnh sửa, 15:40 GMT+7) — khóa TRƯỚC khi chạy
+**Lý do:** đề xuất ngoài (OTSV) + phản biện của Claude: PFA (cùng họ "tái tổ hợp feature R50") vừa KHÔNG, E20 cho thấy trường gradient R50 chủ động đẩy δ khỏi vùng chung → OTSV chỉ đáng attack từ 0 nếu landscape của nó GIỮ được δ_S. Cổng căn hướng tại P0 (E19) bị bỏ: phản ví dụ WP4 < G8 nhưng WP2 thắng. Kỳ vọng trước (user + Claude): qua cổng ~10–20%.
+**Phép toán (`pia.otsv_mix` / `otsv_hook`, `geo_osfd_attack(otsv=β)`):** tại đầu ra `backbone.layer3` (C4, stride 16): Z = LayerNorm kênh (không affine) của F; key t_j = trung bình RoIAlign 7×7 (aligned, sampling 2) của Z tại box GT j (co-transform của view); value v_j = cùng phép trên F (khác đề xuất gốc dùng T từ Z — chọn value trong không gian F để residual cùng thang, quyết định TRƯỚC khi đo); A_ij = softmax_j(z_i·t_j / √C); F' = F + β·A·V. Lịch 1 : 1 — bước lẻ forward ảo, bước chẵn R50 gốc; feature sạch co-transform qua CÙNG chế độ. Gốc = WP2 (ρ = 0.002, λ = 4, OCT 1V). Không box → đồng nhất. Lưu ý: ảnh 1 box → mọi token cộng cùng β·v (suy biến). Unit test `scripts/otsv_unit_test.py` ĐẠT.
+**Chọn β (target-free, `scripts/otsv_health.py` + `scripts/tx_calib.py`), β ∈ {0.25, 0.5, 1.0}: β LỚN NHẤT đạt đồng thời** H1 AP sạch R50 (forward ảo, dev30) ≥ 90% R50 thường; H3a ‖F' − F‖ / ‖F‖ tại C4 ≥ 0.05; H3b cos(∇ₓ loss attack ảo, ∇ₓ gốc) tại δ = 0 ≤ 0.95 (ảnh 1–4 dev300); H2 white-box OTSV-WP2 từ 0 (B36, ảnh 1–4): bão hòa ≥ 0.95 × WP2, R50 xóa ≥ 85%. Không β nào → OTSV dừng ở cổng sức khỏe. Đúng 1 β đi tiếp.
+**Cổng oracle-retention (dev30, cùng ảnh / seed / RNG OCT với WP2-IS của E20):** `C2-OCT-1V-WP2-OTSV<β>-IS` = δ khởi tạo δ_S, B36, snapshot B1 / B4 / B12; đối chứng WP2-IS bổ sung B1 / B4 (chạy lại B4, snapshot B1).
+- **QUA** nếu B36: Swin-L ≥ 52 VÀ ≥ WP2-IS B36 + 10 (≥ 49.8) VÀ R50 drop(B36) > R50 drop(B0 = 83.3) VÀ δ thực sự di chuyển: cos(δ_B36, δ_B0) ≤ 0.95 (trung bình ảnh; báo kèm L2 tương đối và giá trị của WP2-IS) → attack từ 0 dev30 cùng thời gian WP2 (entry riêng, ngưỡng +10 / +3).
+- **XÁM** nếu 48 ≤ Swin-L B36 < 52 (các điều kiện khác đạt): chỉ attack từ 0 nếu quỹ đạo B12 → B36 không giảm (Swin-L B36 ≥ B12 − 1); ngược lại dừng.
+- **DỪNG** nếu Swin-L B36 < 48, hoặc tụt kiểu WP2 về ~40.
+- Mô tả quỹ đạo: rơi ở B1–B4 = trường gradient sai cơ bản; giữ tới B12 rồi rơi = forward ảo có tác dụng nhưng bị forward gốc / momentum lấn.
+**Không làm bây giờ:** LPAA / H-LPA, AES (snapshot soup), RaPA (bản đúng paper CVPR'26, phân biệt với RaPA hiện có trong repo), BSR (chỉ loss feature) → để bảng dev300.
+**Chạy:** `results/otsv/run.sh`, log `results/otsv/run.log`.

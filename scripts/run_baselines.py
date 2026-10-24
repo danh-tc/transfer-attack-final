@@ -311,7 +311,15 @@ _PFA_ALPHAS = (0.25, 0.5, 0.75)
 for _a in _PFA_ALPHAS:
     METHODS[f"C2-OCT-1V-WP2-PFA{int(_a * 100)}"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002,
                                                                        pfa=(_a, 0.1, 7)), 1)
-GEO_METHODS_1V = {"C2-OCT-1V-WP2-IS", *(f"C2-OCT-1V-WP2-PFA{int(_a * 100)}" for _a in _PFA_ALPHAS), "C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
+# OTSV (E21, progress_log 2026-10-24): object token GT (RoIAlign trên C4 LayerNorm) -> attention không tham số, F' = F + β·A·V,
+# bước lẻ forward ảo / bước chẵn R50 gốc; -IS: δ khởi tạo từ δ_SwinT (cổng oracle-retention).
+_OTSV_BETAS = (0.25, 0.5, 1.0)
+for _b in _OTSV_BETAS:
+    _n = f"C2-OCT-1V-WP2-OTSV{int(_b * 100)}"
+    METHODS[_n] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002, otsv=_b), 1)
+    METHODS[_n + "-IS"] = METHODS[_n]
+    INIT_METHODS[_n + "-IS"] = "C2-OCT-1V"
+GEO_METHODS_1V = {*(f"C2-OCT-1V-WP2-OTSV{int(_b * 100)}{s}" for _b in _OTSV_BETAS for s in ("", "-IS")), "C2-OCT-1V-WP2-IS", *(f"C2-OCT-1V-WP2-PFA{int(_a * 100)}" for _a in _PFA_ALPHAS), "C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
                   "C2-OCT-1V-LA05", "C2-OCT-1V-LA1", "C2-OCT-1V-LA2", "C2-OCT-1V-ILPD05", "C2-OCT-1V-ILPD075"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
