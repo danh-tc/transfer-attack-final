@@ -75,6 +75,7 @@ def run_iterative_attack(
     dual: Optional[str] = None,
     weight_perturb=None,
     init_noise: Optional[torch.Tensor] = None,
+    spike: Optional[float] = None,
 ) -> torch.Tensor:
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -126,6 +127,7 @@ def run_iterative_attack(
     model_size = tuple(data_sample.img_shape)
     noise = (torch.zeros_like(orig_pixels) if init_noise is None
              else torch.clamp(init_noise.detach().to(orig_pixels), min=-epsilon, max=epsilon))
+    v_mem = torch.zeros_like(orig_pixels)  # E27: điện thế màng LIF (spike)
     accumulated_grad = torch.zeros_like(orig_pixels)
     if season_sigma is not None:
         assert momentum > 0.0
@@ -258,6 +260,19 @@ def run_iterative_attack(
                 s = torch.clamp(epsilon / ((d_lo + d_hi).abs() + 1e-12), max=1.0)
                 d_lo, d_hi = d_lo * s, d_hi * s
                 noise = torch.clamp(d_lo + d_hi, min=-epsilon, max=epsilon)
+            if on_step is not None:
+                on_step(step_idx + 1, noise.detach())
+            continue
+
+        if spike is not None:
+            # E27 (progress_log 2026-10-24): LIF trên δ — V tích lũy gradient chuẩn hóa; pixel |V| ≥ θ_fire phát xung
+            # (δ += α·sign(V)), reset V = 0; pixel dưới ngưỡng giữ V, δ không đổi.
+            with torch.no_grad():
+                g = grad / (grad.abs().mean() + 1e-12)
+                v_mem = momentum * v_mem + g
+                fire = v_mem.abs() >= spike
+                noise = torch.clamp(noise + alpha * torch.sign(v_mem) * fire, min=-epsilon, max=epsilon)
+                v_mem = v_mem * (~fire)
             if on_step is not None:
                 on_step(step_idx + 1, noise.detach())
             continue
