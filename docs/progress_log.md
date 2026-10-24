@@ -3930,3 +3930,9 @@ Chi phí = WP2 (chỉ đổi hệ số vô hướng, không thêm forward) → B
 **Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry). Mô tả: LUP vs LDOWN (chiều có quan trọng không — nếu LUP > LDOWN rõ thì "dồn cls về cuối" là cơ chế thật); R101, YOLOX.
 **Caveat:** dev30; 3 ô so sánh bội; λ_TB giữ 4 nên nếu λ cao hơn mới giúp thì E26 không bắt được (đó là câu hỏi khác — mức, đã thử); GPU không tất định.
 **Chạy:** `results/e26/run.sh`, log `results/e26/run.log`.
+
+### Kết quả E26 @ dev30 (V100; `results/ablation/e26_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/*_e26_dev30.json`, log `results/e26/run.log`) — theo quy tắc: **KHÔNG**
+R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 | 80.8; LUP 98.9/91.2/81.1/81.8/76.3/36.8 | 79.7; LSTEP 98.4/91.2/82.7/81.2/72.8/29.9 | 78.9; LDOWN 98.6/91.0/85.0/83.1/77.3/36.6 | 81.8.
+Δ so WP2 (Swin-L | CA3): LUP +1.3 [−2.7, +3.9] | −1.1; LDOWN +1.1 [−1.7, +4.5] | +1.0; LSTEP −5.6 [−11.2, −0.4] | −1.9. **LUP − LDOWN: Swin-L −0.1 [−2.9, +4.5]** (CHIỀU KHÔNG QUAN TRỌNG).
+**Đọc:** không lịch nào ΔSwin-L ≥ +3 → KHÔNG. LUP ≈ LDOWN → giả thuyết "dồn cls về cuối theo xói mòn E25" BÁC: hình dạng lịch không quan trọng, chỉ λ_TB ≈ 4. LSTEP hại (λ = 0 nửa đầu thiếu đòn bẩy Swin-L, không bù kịp). → λ phân bổ ĐỀU (WP2) là tốt nhất; bậc tự do theo-bước của L_cls đã đóng.
+**Trạng thái:** E19–E26 đều ÂM/KHÔNG. L_cls (đòn bẩy Swin-L) cạn mọi bậc tự do (mức λ, dạng, lịch theo bước). WP2 vẫn là tốt nhất (Swin-L ~36–37 dev100). Mọi hướng 1-R50 ở ε = 5 đã thử. User quyết định vị: (1) SOTA + cơ chế + trần (dev300 + AWT-OD/RaPA/BSR) | (2) surrogate thứ 2.
