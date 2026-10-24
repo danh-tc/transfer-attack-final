@@ -404,7 +404,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
-                    init_noise=None, otsv=None):
+                    init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def"):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -705,9 +705,25 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     if weight_rho is not None:
         # C2-OCT-1V-WP (progress_log 2026-10-21): nhiễu trọng số conv backbone (chỉ tensor requires_grad — stage đóng băng
         # của mmdet giữ nguyên), core.run_iterative_attack(weight_perturb). Feature sạch co-transform cũng tính trên θ'.
-        params = [m.weight for m in model.backbone.modules() if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
+        # weight_scope (E22, progress_log 2026-10-24): "backbone" (mặc định) | "layer3" | "nolayer3" (layer2 + layer4) |
+        # "head" (rpn_conv, rpn_cls, shared_fcs, fc_cls — đường phân loại, chỉ weight) | "backbone+head".
+        assert weight_scope in ("backbone", "layer3", "nolayer3", "head", "backbone+head")
+        params = []
+        if weight_scope != "head":
+            named = [(n, m.weight) for n, m in model.backbone.named_modules()
+                     if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
+            params = [p for n, p in named if weight_scope in ("backbone", "backbone+head")
+                      or (weight_scope == "layer3") == n.startswith("layer3.")]
+        if weight_scope in ("head", "backbone+head"):
+            bh, rh = model.roi_head.bbox_head, model.rpn_head
+            params += [rh.rpn_conv.weight, rh.rpn_cls.weight, bh.shared_fcs[0].weight, bh.shared_fcs[1].weight,
+                       bh.fc_cls.weight]
         # weight_eta (C2-OCT-1V-WPA, progress_log 2026-10-23): θ' tích lũy, chiếu về bán kính weight_rho (core.wp_update).
-        wp = (params, weight_rho, [p.detach().clone() for p in params], weight_eta)
+        assert weight_mode in ("def", "asc", "rand") and (weight_mode == "def" or weight_eta is None)
+        mode = weight_mode
+        if weight_mode == "rand":
+            mode = ("rand", torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 13))
+        wp = (params, weight_rho, [p.detach().clone() for p in params], weight_eta, mode)
     bn_saved = []
     if bn_inst is not None:
         # C2-OCT-1V-WP2-IN (progress_log 2026-10-22): BN backbone dùng thống kê của CHÍNH ảnh / view (bỏ running stats tạm

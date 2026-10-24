@@ -180,11 +180,21 @@ def run_iterative_attack(
             if weight_perturb is not None:
                 params, rho, base = weight_perturb[:3]
                 eta = weight_perturb[3] if len(weight_perturb) > 3 else None
-                gall = torch.autograd.grad(loss, [noise] + params)
-                g = gall[0]
-                with torch.no_grad():
-                    for p, p0, gp in zip(params, base, gall[1:]):
-                        p.copy_(wp_update(p, p0, gp, rho, eta))
+                # mode (E22, progress_log 2026-10-24): "def" (mặc định, WP2) | "asc" (đổi dấu: θ0 + ρ‖θ0‖ĝ) |
+                # ("rand", gen): hướng Gauss ngẫu nhiên chuẩn hóa từng tensor, cùng bán kính, không cần ∇θ.
+                mode = weight_perturb[4] if len(weight_perturb) > 4 else "def"
+                if isinstance(mode, tuple):
+                    g = torch.autograd.grad(loss, noise)[0]
+                    with torch.no_grad():
+                        for p, p0 in zip(params, base):
+                            r = torch.randn(p0.shape, generator=mode[1], device=p0.device, dtype=p0.dtype)
+                            p.copy_(p0 + rho * p0.norm() * r / (r.norm() + 1e-12))
+                else:
+                    gall = torch.autograd.grad(loss, [noise] + params)
+                    g = gall[0]
+                    with torch.no_grad():
+                        for p, p0, gp in zip(params, base, gall[1:]):
+                            p.copy_(wp_update(p, p0, -gp if mode == "asc" else gp, rho, eta))
             else:
                 g = torch.autograd.grad(loss, noise)[0]
             grad = g if grad is None else grad + g
