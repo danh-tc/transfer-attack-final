@@ -325,6 +325,9 @@ _E22 = {"C2-OCT-1V-WP2-RAND": dict(weight_mode="rand"), "C2-OCT-1V-WP2-ASC": dic
         "C2-OCT-1V-WPH": dict(weight_scope="head"), "C2-OCT-1V-WP2+H": dict(weight_scope="backbone+head")}
 # E23 (progress_log 2026-10-24): min-max tách mục tiêu — defender chỉ chống λ·L_cls | L_OSFD; attacker giữ nguyên.
 _E22.update({"C2-OCT-1V-WP2-DEFCLS": dict(weight_def="cls"), "C2-OCT-1V-WP2-DEFFEAT": dict(weight_def="feat")})
+# E29 (progress_log 2026-10-24): FPA-N — hoán vị vị trí feature (port classification FPA) trên L_OSFD, giữ WP + cls.
+_E22["C2-OCT-1V-WP2-FPA2"] = dict(fpa=(0.6, 0.5, frozenset({1})))      # stage 2 (chỉ số 1)
+_E22["C2-OCT-1V-WP2-FPA34"] = dict(fpa=(0.6, 0.5, frozenset({2, 3})))  # stage 3+4
 # E28 (progress_log 2026-10-24): SPIKE-WP — phát xung áp vào nhiễu trọng số (phía gradient), θ_fire ∈ {1,2}.
 for _n, _th in (("C2-OCT-1V-WSPK1", 1.0), ("C2-OCT-1V-WSPK2", 2.0)):
     _E22[_n] = dict(weight_spike=_th)

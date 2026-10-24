@@ -294,10 +294,27 @@ def _xbg_mse(target, fbg, fa, stage, data_sample, mode):
     return base - pull
 
 
+def _fpa_mse(fc_tgt, fa, gamma: float, p: float):
+    """FPA-N (E29): FP layer trong forward của ADV — mỗi bước xác suất p hoán vị vị trí CHỈ F_adv (đổi mỗi pixel với
+    1 trong 4 láng giềng) trên tỉ lệ gamma kênh ngẫu nhiên; đích k·F_cln GIỮ NGUYÊN -> MSE(k·F_cln, perm(F_adv)) tạo
+    mismatch chéo vị trí, gradient ép F_adv[nb] về k·F_cln -> nơ-ron dùng thông tin ngoài receptive field (giống ViT).
+    torch.roll (biên vòng) differentiable. p = 0 -> F.mse_loss thường."""
+    if p <= 0 or float(torch.rand(1)) >= p:
+        return F.mse_loss(fc_tgt, fa)
+    c = fa.shape[1]
+    sel = (torch.rand(c, device=fa.device) < gamma)[None, :, None, None]
+    dirs = torch.randint(0, 4, fa.shape[-2:], device=fa.device)
+    rolls = [torch.roll(fa, 1, 2), torch.roll(fa, -1, 2), torch.roll(fa, 1, 3), torch.roll(fa, -1, 3)]
+    fa_p = fa
+    for kk in range(4):
+        fa_p = torch.where(sel & (dirs[None, None] == kk), rolls[kk], fa_p)
+    return F.mse_loss(fc_tgt, fa_p)
+
+
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
                    ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
                    obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False, stage_pool=None, size_w=None,
-                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add", stage_w=None):
+                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add", stage_w=None, fpa=None):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -372,6 +389,10 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
                        for s, (fc, fb, fa) in enumerate(zip(feats_clean, xbg_feats, cap["f"])))
         elif stage_w is not None:
             feat = sum(w * F.mse_loss(k * fc, fa) for w, fc, fa in zip(stage_w, feats_clean, cap["f"]))
+        elif fpa is not None:
+            # E29 (progress_log 2026-10-24): FPA-N — hoán vị vị trí feature ở các stage fpa[2], CÙNG mask cho k·fc và fa.
+            feat = sum(_fpa_mse(k * fc, fa, fpa[0], fpa[1]) if s in fpa[2] else F.mse_loss(k * fc, fa)
+                       for s, (fc, fa) in enumerate(zip(feats_clean, cap["f"])))
         else:
             feat = sum(F.mse_loss(k * fc, fa) for fc, fa in zip(feats_clean, cap["f"]))
         if split:

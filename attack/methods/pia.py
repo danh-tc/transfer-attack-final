@@ -405,7 +405,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
-                    weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None):
+                    weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -710,7 +710,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 lf = make_view_loss(fc, k, cls_mode, cw, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
                                     fab_weight=fab_weight, obj_weight=obj_weight,
                                     split=dual == "exact" or weight_def is not None, stage_pool=stage_pool,
-                                    size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w)
+                                    size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w,
+                                    fpa=fpa)
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
