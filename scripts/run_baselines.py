@@ -323,6 +323,8 @@ for _b in _OTSV_BETAS:
 _E22 = {"C2-OCT-1V-WP2-RAND": dict(weight_mode="rand"), "C2-OCT-1V-WP2-ASC": dict(weight_mode="asc"),
         "C2-OCT-1V-WP2-L3": dict(weight_scope="layer3"), "C2-OCT-1V-WP2-noL3": dict(weight_scope="nolayer3"),
         "C2-OCT-1V-WPH": dict(weight_scope="head"), "C2-OCT-1V-WP2+H": dict(weight_scope="backbone+head")}
+# E23 (progress_log 2026-10-24): min-max tách mục tiêu — defender chỉ chống λ·L_cls | L_OSFD; attacker giữ nguyên.
+_E22.update({"C2-OCT-1V-WP2-DEFCLS": dict(weight_def="cls"), "C2-OCT-1V-WP2-DEFFEAT": dict(weight_def="feat")})
 for _n, _kw in _E22.items():
     METHODS[_n] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002, **_kw), 1)
 GEO_METHODS_1V = {*_E22, *(f"C2-OCT-1V-WP2-OTSV{int(_b * 100)}{s}" for _b in _OTSV_BETAS for s in ("", "-IS")), "C2-OCT-1V-WP2-IS", *(f"C2-OCT-1V-WP2-PFA{int(_a * 100)}" for _a in _PFA_ALPHAS), "C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",

@@ -170,12 +170,17 @@ def run_iterative_attack(
                     noise = torch.clamp(noise + alpha * torch.sign(m_dual[0] + m_dual[1]), min=-epsilon, max=epsilon)
                 break
             loss = None
+            def_loss = None  # E23: thành phần loss surrogate phòng thủ (weight_perturb[5]); None = toàn bộ loss
             for view in views:
                 # Phần tử thứ 3 (tùy chọn) = loss riêng của view — pilot KG: view cặp so với
                 # feature sạch của CHÍNH vùng crop (attack/methods/kg_pair.py).
                 view_img, view_data_sample = view[0], view[1]
                 view_loss_fn = view[2] if len(view) > 2 else loss_fn
                 term = view_loss_fn(model, view_img, view_data_sample)
+                if isinstance(term, tuple):  # (L_feat, L_cls) từ make_view_loss(split=True)
+                    dt = term[weight_perturb[5]]
+                    def_loss = dt if def_loss is None else def_loss + dt
+                    term = term[0] + term[1]
                 loss = term if loss is None else loss + term
             if weight_perturb is not None:
                 params, rho, base = weight_perturb[:3]
@@ -190,7 +195,11 @@ def run_iterative_attack(
                             r = torch.randn(p0.shape, generator=mode[1], device=p0.device, dtype=p0.dtype)
                             p.copy_(p0 + rho * p0.norm() * r / (r.norm() + 1e-12))
                 else:
-                    gall = torch.autograd.grad(loss, [noise] + params)
+                    if def_loss is not None:  # E23: attacker theo toàn bộ loss, defender chống 1 thành phần
+                        g = torch.autograd.grad(loss, noise, retain_graph=True)[0]
+                        gall = (g,) + torch.autograd.grad(def_loss, params)
+                    else:
+                        gall = torch.autograd.grad(loss, [noise] + params)
                     g = gall[0]
                     with torch.no_grad():
                         for p, p0, gp in zip(params, base, gall[1:]):

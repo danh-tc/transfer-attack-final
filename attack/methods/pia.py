@@ -404,7 +404,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
-                    init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def"):
+                    init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
+                    weight_def=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -692,7 +693,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 out.append((v, dsv, lambda m, p, d, lfe=lfe: (lfe(m, p, d), None)))
             elif cls_weight > 0:
                 lf = make_view_loss(fc, k, cls_mode, cls_weight, ilpd_gamma=ilpd_gamma, feat_chw=feat_chw, roi_ctx=roi_ctx,
-                                    fab_weight=fab_weight, obj_weight=obj_weight, split=dual == "exact", stage_pool=stage_pool,
+                                    fab_weight=fab_weight, obj_weight=obj_weight,
+                                    split=dual == "exact" or weight_def is not None, stage_pool=stage_pool,
                                     size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w)
                 out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
             elif rapa is not None:
@@ -723,7 +725,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         mode = weight_mode
         if weight_mode == "rand":
             mode = ("rand", torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 13))
-        wp = (params, weight_rho, [p.detach().clone() for p in params], weight_eta, mode)
+        # weight_def (E23, progress_log 2026-10-24): "feat" | "cls" — surrogate chỉ phòng thủ chống L_OSFD | λ·L_cls.
+        assert weight_def is None or (weight_def in ("feat", "cls") and weight_mode == "def" and dual is None
+                                      and cls_weight > 0 and feature)
+        wp = (params, weight_rho, [p.detach().clone() for p in params], weight_eta, mode,
+              None if weight_def is None else ("feat", "cls").index(weight_def))
     bn_saved = []
     if bn_inst is not None:
         # C2-OCT-1V-WP2-IN (progress_log 2026-10-22): BN backbone dùng thống kê của CHÍNH ảnh / view (bỏ running stats tạm
