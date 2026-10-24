@@ -27,7 +27,7 @@ from torch.nn.utils.stateless import _reparametrize_module
 
 from attack.methods.box_transforms import get_gt
 from attack.methods.core import run_iterative_attack
-from attack.methods.repair import make_view_loss
+from attack.methods.repair import is_backward_hook, make_view_loss
 from attack.methods.rrb import gaussian_blur, rrb_views
 from attack.preprocess import extract_features, resize_to_model
 
@@ -405,7 +405,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
-                    weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None):
+                    weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
+                    is_supp=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -770,7 +771,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         # cache_enabled=False khi nhiễu trọng số: bản fp16 cache từ forward no_grad (feature sạch) không có liên kết tới θ.
         with torch.autocast("cuda", dtype=torch.float16, enabled=amp, cache_enabled=wp is None), \
                 (pfa_hook(model, *pfa, pfa_state) if pfa is not None else contextlib.nullcontext()), \
-                (otsv_hook(model, otsv, otsv_state) if otsv is not None else contextlib.nullcontext()):
+                (otsv_hook(model, otsv, otsv_state) if otsv is not None else contextlib.nullcontext()), \
+                (is_backward_hook(model, is_supp[0], is_supp[1], is_supp[2], is_supp[3],
+                                  torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 21))
+                 if is_supp is not None else contextlib.nullcontext()):
             noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                          on_step=on_step, backward_per_step=backward_per_step,

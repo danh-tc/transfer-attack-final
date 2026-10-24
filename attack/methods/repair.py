@@ -294,6 +294,47 @@ def _xbg_mse(target, fbg, fa, stage, data_sample, mode):
     return base - pull
 
 
+def _is_reweight(g, n_pairs, beta, alpha, gen):
+    """IS (E30, COGO): g [1,C,H,W] gradient output tầng; triệt kênh gradient TƯƠNG QUAN cao (dư thừa = đặc thù surrogate).
+    Rút n_pairs cặp kênh, |Pearson corr|; τ = beta·mean; cặp ≥ τ -> cả 2 kênh +1 dư thừa; w = clamp(1 − alpha·count, 0, 1)."""
+    c = g.shape[1]
+    if n_pairs <= 0 or c < 2:
+        return g
+    gf = g[0].reshape(c, -1).float()
+    gf = gf - gf.mean(1, keepdim=True)
+    norm = gf.norm(dim=1) + 1e-12
+    ii = torch.randint(0, c, (n_pairs,), generator=gen, device=g.device)
+    jj = torch.randint(0, c, (n_pairs,), generator=gen, device=g.device)
+    valid = ii != jj
+    corr = (gf[ii] * gf[jj]).sum(1).abs() / (norm[ii] * norm[jj])
+    corr = corr * valid
+    tau = beta * corr.sum() / (valid.sum() + 1e-12)
+    red = corr >= tau
+    count = torch.zeros(c, device=g.device)
+    count.index_add_(0, ii[red & valid], torch.ones(int((red & valid).sum()), device=g.device))
+    count.index_add_(0, jj[red & valid], torch.ones(int((red & valid).sum()), device=g.device))
+    w = (1 - alpha * count).clamp(0, 1).to(g.dtype)
+    return g * w.view(1, c, 1, 1)
+
+
+@contextlib.contextmanager
+def is_backward_hook(model, stages, beta, alpha, n_pairs, gen):
+    """Gắn grad-hook lên output các layer backbone trong `stages` ({2:layer3, 3:layer4}) để IS reweight gradient."""
+    layers = {2: model.backbone.layer3, 3: model.backbone.layer4}
+    handles = []
+    def mk_fwd():
+        def fwd(m, i, o):
+            if o.requires_grad:  # bỏ qua forward no_grad (feature sạch co-transform)
+                handles.append(o.register_hook(lambda g: _is_reweight(g, n_pairs, beta, alpha, gen)))
+        return fwd
+    fh = [layers[s].register_forward_hook(mk_fwd()) for s in stages]
+    try:
+        yield
+    finally:
+        for h in fh + handles:
+            h.remove()
+
+
 def _fpa_mse(fc_tgt, fa, gamma: float, p: float):
     """FPA-N (E29): FP layer trong forward của ADV — mỗi bước xác suất p hoán vị vị trí CHỈ F_adv (đổi mỗi pixel với
     1 trong 4 láng giềng) trên tỉ lệ gamma kênh ngẫu nhiên; đích k·F_cln GIỮ NGUYÊN -> MSE(k·F_cln, perm(F_adv)) tạo
