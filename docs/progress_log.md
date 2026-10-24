@@ -3841,3 +3841,12 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3:
 - Head (ứng viên cải tiến): WP2+H hoặc WPH có ΔSwin-L ≥ +3 so WP2 VÀ ΔCA3 ≥ −3 → dev100 (khóa entry riêng).
 **Caveat:** 6 ô trên 30 ảnh (so sánh bội) → chỉ sinh giả thuyết; dev30 đã dùng nhiều lần; GPU không tất định.
 **Chạy:** `results/e22/run.sh`, log `results/e22/run.log`; metrics `metrics_e22_dev30.json`, dets `dets_e22_dev30.json`, pair_screen tag `e22_dev30`.
+
+### Kết quả E22 @ dev30 B36 (V100; `results/ablation/e22_dev30/screen.json`, `results/runs/dev300_B{36,41}_eps5_limit100/*_e22_dev30.json`, log `results/e22/run.log`)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: C2-OCT-1V B41 99.3 / 93.5 / 82.8 / 80.6 / 62.0 / 30.2 | 75.1; **WP2** 98.8 / 91.4 / 82.7 / 82.6 / 77.1 / 35.5 | 80.8; RAND 99.4 / 94.4 / 82.9 / 78.2 / 62.7 / 31.6 | 74.6; ASC 98.7 / 90.7 / 76.1 / 74.6 / 59.2 / 23.7 | 70.0; L3 99.1 / 92.5 / 83.7 / 80.6 / 74.6 / 33.3 | 79.6; noL3 99.1 / 91.7 / 81.6 / 84.4 / 75.8 / 36.0 | 80.6; WPH 99.3 / 93.7 / 80.5 / 80.9 / 62.1 / 29.8 | 74.5; WP2+H 98.5 / 92.8 / 81.0 / 81.8 / 77.5 / 37.5 | 80.1.
+Δ so WP2 (Swin-L | CA3 | YOLOX): RAND −3.9 [−7.0, +1.2] | −6.2 | −14.4; ASC −11.8 [−16.4, −6.1] | −10.8 | −17.9; L3 −2.2 | −1.2 | −2.5; noL3 +0.5 | −0.2 | −1.2; WPH −5.7 [−7.8, −0.8] | −6.3 | −15.0; WP2+H +2.0 [−1.2, +5.5] | −0.7 | +0.4. WP2 − C2-OCT-1V (hôm nay): Swin-L +5.3 [−0.5, +7.9], YOLOX +15.1.
+**Đọc theo khai báo:**
+- **H_def (i) ỦNG HỘ:** WP2 − RAND = +3.9 ≥ 3 VÀ WP2 − ASC = +11.8 ≥ 3 → lợi của WP2 đến từ HƯỚNG PHÒNG THỦ, không phải đa dạng mô hình; RAND ≈ C2-OCT-1V (không thêm gì), ASC (đồng lõa) hại mạnh mọi target. Mô tả: YOLOX là nơi hướng phòng thủ tạo chênh lớn nhất (+15 so C2 / RAND / WPH).
+- **Vị trí:** L3 giữ 3.1 / 5.3 = 58% (< 75%); noL3 giữ 5.7 / 5.3 ≈ 108% (≥ 75%) → **không đặc thù C4**; layer2 + layer4 đủ.
+- **Head:** WPH HẠI (≈ C2-OCT-1V: phòng thủ chỉ ở head không thay được backbone); WP2+H +2.0 < +3 → không phải ứng viên cải tiến.
+**Hệ quả:** WP2 = min-max PHÒNG THỦ ở backbone (cùng nguyên lý AWT), không phải augmentation; phòng thủ ở head phân loại không thêm lợi đáng kể. Giả thuyết "phòng thủ ở head mô phỏng phép sửa của DINO" KHÔNG được ủng hộ.
