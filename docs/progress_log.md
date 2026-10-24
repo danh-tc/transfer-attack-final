@@ -3867,3 +3867,23 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: C2-OCT-1V B41 99.3 /
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: WP2 B36 98.8 / 91.4 / 82.7 / 82.6 / 77.1 / 35.5 | 80.8; DEFCLS B33 98.4 / 91.8 / 83.4 / 84.3 / 69.7 / 36.8 | 79.1; DEFFEAT B34 98.8 / 92.2 / 85.3 / 82.2 / 73.5 / 30.5 | 80.3.
 Δ so WP2: DEFCLS Swin-L +1.3 [−3.5, +5.5], CA3 −1.7, YOLOX −7.4 [−11.4, −0.7]; DEFFEAT Swin-L −5.0 [−7.6, −0.2], CA3 −0.5, ConvNeXt +2.6.
 **Đọc:** cả 2 ô ΔSwin-L < +3 → KHÔNG. Phòng thủ chống TOÀN BỘ loss (WP2) tốt nhất; chống riêng L_OSFD làm mất lợi Swin-L, chống riêng L_cls làm mất lợi YOLOX → mỗi thành phần phòng thủ "giữ" lợi ở kênh của thành phần KIA (dự đoán tách kênh bị đảo / không đứng). Theo khai báo: bước kế = ý phụ (phòng thủ trong không gian BN affine) — chờ user (Claude đề xuất cân nhắc dừng vòng cải tiến: WP5 / WPA / head / tách mục tiêu đều không vượt WP2).
+
+---
+
+## 2026-10-24 — E24: có THƯỚC ĐO chỉ-dùng-R50 nào xếp δ theo mức phá DINO-Swin-L không? (điều kiện cần cho mọi method 1-R50 đạt Swin-L ≥ 50; user duyệt "Approve E24") — MÔ TẢ / sinh cơ chế, forward-only trên PNG có sẵn, khóa TRƯỚC khi chạy
+**Lập luận:** E20/E21 — bộ tối ưu không phải vấn đề (đặt δ trong vùng tốt, gradient R50 vẫn kéo ra); vấn đề là MỤC TIÊU. Mọi method 1-R50 (bất kể bộ tối ưu / khởi tạo / biến đổi đầu vào) chỉ đạt Swin-L cao nếu TỒN TẠI đại lượng φ(x+δ) tính chỉ từ R50 mà ĐỒNG BIẾN với mức phá DINO-Swin-L qua nhiều δ. E19 đã bác các φ trên R50 GỐC θ0 (hồ sơ loss δ_S/δ_W mọi thành phần < 1; độ phẳng đầu vào không phân biệt) — E24 mở rộng sang R50 BIẾN ĐỔI (phòng thủ / nhiễu trọng số lớn / biến đổi đầu vào mạnh / đo theo HƯỚNG) + kiểm trên ~20 δ thay vì 2 điểm (sửa điểm yếu E19). Khác E18 (cổng RSE, đo "object↔nền"): E24 đo trực tiếp giá trị dùng làm LOSS.
+**Dữ liệu (đã có PNG + dets DINO-Swin-L dev30, KHÔNG attack mới):** 23 δ / ảnh — C2-OCT-1V (B41), δ_SwinT (sur Swin-T B41), WP2 / RAND / ASC / L3 / noL3 / WPH / WP2+H / C2W03 / C2W1 / PFA50 / PFA75 (B36), DEFCLS (B33), DEFFEAT (B34), WP2-IS & OTSV50-IS (B1/B4/B12/B36 — quỹ đạo chữ U: Swin-L 57→35→44). y = suppression DINO-Swin-L theo ảnh (`attack.mechanism.per_image_transfer`, trên GT DINO thấy khi sạch).
+**Thước đo φ (mỗi δ, mỗi ảnh; chỉ R50; trung bình n_mc mẫu khi ngẫu nhiên; forward trên PNG → feature R50):**
+- `L_plain`: L_OSFD(k=3) + 4·L_cls trên θ0 (đối chứng âm — E19 kỳ vọng ρ ≤ 0).
+- `L_def1`: trên θ' = θ0 − ρ‖θ0‖ĝ 1 bước (WP). `L_def3`: 3 bước tích lũy.
+- `L_rand`: trung bình trên 8 mẫu cắt tham số Gauss lớn (ρ = 0.01, 0.02).
+- `L_octbig`: trung bình 8 view co giãn ±1 octave + làm mờ σ ∈ {0,2,4} (bền trước biến đổi đầu vào mạnh).
+- `cosd_C45`: 1 − cos(F_adv, F_sạch) trung bình C4, C5 (ĐO HƯỚNG thay vì MSE — E14 nút thắt là hướng).
+- `L_cls_only`: chỉ 4·L_cls trên θ0.
+**Quy tắc (dev30, 23 δ × 30 ảnh; Spearman theo ảnh giữa φ và suppression Swin-L, gộp mọi δ; paired bootstrap 1000 ảnh, BOOT_SEED 2026):**
+- **ĐỐI CHỨNG:** báo ρ(L_plain). Thước đo "hơn hẳn" nếu ρ(φ) − ρ(L_plain) > 0 cận dưới CI > 0.
+- **ỨNG VIÊN MỤC TIÊU** nếu ρ(φ) > 0 CI loại trừ 0 VÀ hơn hẳn L_plain VÀ trên RIÊNG quỹ đạo IS (B1→B12, Swin-L sụp 57→35) φ GIẢM theo (Spearman(φ, B) theo mốc < 0) — tức φ bắt được pha sụp.
+- **ÂM** nếu không φ nào đạt → bằng chứng định lượng: không mục tiêu chỉ-R50 nào (đã thử) trỏ về vùng phá Swin-L → method 1-R50 đạt Swin-L ≥ 50 không khả thi theo nghĩa này; kết luận cho paper + user quyết (surrogate thứ 2 / định vị SOTA + cơ chế).
+- Mô tả: ρ cho ConvNeXt / Swin-T / YOLOX (φ có đồng biến target khác không); thứ hạng δ theo φ tốt nhất (δ_S đứng đâu).
+**Caveat:** tương quan quan sát trên δ CÓ SẴN (không chứng minh tối ưu thẳng φ sẽ đạt — đó là bước sau, điều kiện đủ); 23 δ không độc lập (nhiều biến thể WP2); suppression bão hòa; GPU không tất định; dev30. Tham số (ρ, octave, σ, n_mc = 8) đặt trước, không tune.
+**Chạy:** `scripts/e24_target_probe.py` → `results/mechanism/e24_target_probe.json`, log `results/e24/run.log`.
