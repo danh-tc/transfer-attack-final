@@ -3761,3 +3761,31 @@ p_c δ_S | RAND: C2 0.83 | 0.50, C3 0.61 | 0.23, C4 0.44 | 0.07, C5 0.41 | 0.04,
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / Swin-L | CA3: WP2 B36 (sinh lại) 98.8 / 91.4 / 82.7 / 82.6 / 77.1 / 35.5 | 80.8 (10-23: 37.5 | 80.5); **C2W03** 98.5 / 92.2 / 84.0 / 82.7 / 76.9 / 35.6 | 81.2; **C2W1** 97.0 / 91.0 / 83.3 / 74.9 / 69.1 / 35.9 | 75.8.
 Δ so WP2: C2W03 Swin-L **+0.1 [−2.2, +4.5]**, CA3 +0.4; C2W1 Swin-L **+0.4 [−3.0, +3.0]**, CA3 **−5.0 [−6.6, −0.3]** (YOLOX −8.0, Swin-T −7.7).
 **Đọc:** dồn gradient vào L_OSFD-C2 không tăng DINO-Swin-L ở cả 2 liều; liều ngang (C2W1) hại Swin-T / YOLOX. Khớp kỳ vọng trước (0 … +3) và E19 (gradient C2 căn δ_SwinT kém G8). Theo khai báo: **đóng dòng (3) của E19; E19 ghi là kết luận âm** (không ước lượng / trọng số thành phần chỉ-R50 nào trỏ về δ_SwinT); bước tiếp theo khai báo: **WP2 lên sàng lọc dev300** (entry riêng, khóa trước) — chờ user.
+
+---
+
+## 2026-10-24 — Định hướng (user duyệt "approve", 15:00 GMT+7): E20 basin test + method PFA (chèn attention KHÔNG tham số vào R50) @ dev30 — khóa TRƯỚC khi code / chạy
+**Lý do (tổng hợp dữ liệu, chi tiết ở trả lời Claude 10-24):** mọi núm phía đầu vào / loss trượt 1 đường đánh đổi; chỉ phía model (WP2) tách được Swin-L (+6) nhưng bão hòa ~37–40; E19: không ước lượng hướng chỉ-R50 nào trỏ về δ_SwinT; δ_SwinT không phẳng hơn trên R50 (loại RAP / PGN). Mục tiêu user: Swin-L ≥ 50 ở ε = 5, chỉ R50 cố định, novelty. Literature 10-2026: RaPA (CVPR'26, arXiv 2504.18594, tỉa tham số ngẫu nhiên, training-free) = rủi ro novelty cho họ WP → bắt buộc làm baseline ở dev300; chưa thấy công trình chèn attention không tham số vào surrogate CNN để transfer sang ViT (gần nhất: FPR CVPR'25, PNA — đều surrogate ViT).
+
+### E20 — basin test: gradient R50 GIỮ hay PHÁ vùng chung δ_SwinT? (MÔ TẢ / cổng định hướng, không phải method)
+**Ô:** δ_S = C2-OCT-1V, `--surrogate swin_t`, B41, dev30 (sinh lại; run `dev300_B41_eps5_limit100_sur-swin_t`). `C2-OCT-1V-WP2-IS` = WP2 y nguyên (ρ = 0.002, B36) nhưng δ khởi tạo = PNG δ_S − ảnh gốc (thay cho 0; momentum MI khởi tạo 0) — chỉ dùng để phân tích (dùng surrogate Swin-T, NGOÀI threat model). Snapshot B12; B0 = chính δ_S.
+**Đo (dev30, so mốc WP2 B36 sinh sáng nay, cùng máy):** R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L ở B0 / B12 / B36; cos(δ_IS, δ_S), cos(δ_IS, δ_W) (mô tả).
+**Đọc (khai báo trước):**
+- **GIỮ ĐƯỢC** nếu IS B36: Swin-L ≥ 52 VÀ R50 ≥ 95 → vùng chung là nơi R50 "ở lại được"; vấn đề là ĐƯỜNG VÀO (khởi tạo / tìm kiếm toàn cục) → đáng đầu tư method; PFA vẫn chạy.
+- **RỜI VÙNG** nếu IS B36: Swin-L ≤ 42 → chính gradient R50 kéo δ khỏi vùng chung → mọi method chỉ sửa đầu vào / loss bị chặn trần; chỉ còn đường đổi trường gradient của surrogate (PFA). PFA cũng KHÔNG → đề xuất user dừng đuổi Swin-L ≥ 50 ở ε = 5 với chỉ R50.
+- Còn lại → XÁM (mô tả, PFA vẫn chạy).
+**Caveat:** δ_S tối ưu trên Swin-T (cùng họ Swin-L, khác detector / pretrain); n = 30, dev30 đã dùng nhiều lần; GPU không tất định.
+
+### PFA — Parameter-Free Attention injection vào R50 lúc attack (ứng viên method)
+**Cơ sở:** E14 / E14b — nút thắt Swin-L = HƯỚNG distortion ở token object stage 3 (stride 16); 10-03: encoder DINO dập distortion vừa; R-a (10-04) trượt vì R50 không có đường "sửa" nào; E7: δ_R50 là mẫu tần cao khớp nội dung cục bộ. Token Swin = trung bình có trọng số các token tương tự trong cửa sổ → δ chỉ tạo phản ứng cục bộ rời rạc bị trung bình hóa. PFA cho R50 một đường trộn kiểu attention (không tham số, không huấn luyện) để gradient phải tạo distortion NHẤT QUÁN trên vùng object. Đổi trường gradient của surrogate (loại duy nhất đã tách Swin-L: WP).
+**Phép toán (`pia.pfa_hook`, `geo_osfd_attack(pfa=(α, τ, w))`):** tại đầu ra `backbone.layer3` (C4, stride 16, 1024 kênh) — đầu ra này đi cả vào L_OSFD (stage C4) lẫn layer4 → C5 → FPN → head: F' = (1 − α)·F + α·A(F); A trong cửa sổ không chồng w × w = 7 × 7 token, lưới cửa sổ lệch (oy, ox) ∈ {0..6}² rút đều MỖI VIEW (RNG riêng seed + 11 → chuỗi view OCT trùng WP2), CÙNG lệch cho feature sạch co-transform và adv của view; token pad ngoài ảnh không làm key; trọng số softmax_j(cos(f_i, f_j) / τ), value = F (không chiếu), **τ = 0.1 cố định** (không tune). Gốc = WP2 (C2-OCT-1V, ρ = 0.002, λ = 4). θ R50 không đổi; hook gỡ sau mỗi ảnh.
+**Kiểm:** α = 0 trùng WP2 (sai số số học); A với τ → 0 ≈ đồng nhất; θ khôi phục; unit test cửa sổ / pad / lệch.
+**Chọn α CHỈ theo sức khỏe (KHÔNG nhìn target), α ∈ {0.25, 0.5, 0.75}:** (H1) AP sạch R50 có PFA (lệch 0) trên dev30 ≥ 85% AP sạch R50 thường; (H2) white-box (`scripts/tx_calib.py`, ảnh 1–4 dev300, B36, đo trên R50 THƯỜNG): |δ| = 5 ≥ 80% pixel VÀ R50 xóa ≥ 0.8 × mức WP2. Chạy **2 α lớn nhất qua cả H1, H2** (`C2-OCT-1V-WP2-PFA<α×100>`); chỉ 1 qua → 1 ô; không α nào → ghi lại, PFA dừng ở cổng sức khỏe.
+**B:** đo s / ảnh (ảnh 1–4) → B = ⌈36 / tỉ lệ thời gian so WP2⌉ = cùng thời gian WP2 B36; ghi runtime thực.
+**Đọc (dev30, so WP2 B36 cùng 30 ảnh, như TX / XBG / C2W), mỗi ô:**
+- **BƯỚC NHẢY** nếu ΔSwin-L ≥ +10 → dev100 ngay (khóa entry).
+- **CÓ TÍN HIỆU** nếu +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → dev100 (khóa entry), chưa gọi method mới.
+- **KHÔNG** nếu mọi ô ΔSwin-L < +3 (hoặc ΔCA3 < −3).
+- Mô tả bắt buộc: ΔSwin-T (claim "CNN → Transformer" cần Swin-T cũng tăng, ≥ +2), R101, ConvNeXt, YOLOX.
+**Caveat:** PFA đổi hàm của surrogate (AP sạch giảm) → gradient có thể của một model "hỏng"; τ / w / vị trí C4 đặt trước theo cơ sở E14, không quét; dev30 nhiễu.
+**Chạy:** `results/pfa/run.sh`, log `results/pfa/run.log`; metrics `metrics_pfa_dev30.json`, dets `dets_pfa_dev30.json`, pair_screen tag `pfa_dev30` / `e20_dev30`.
