@@ -1,0 +1,40 @@
+loading annotations into memory...
+Done (t=0.57s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.83s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+dev300_B41_eps5_limit100:C2-OCT-1V: y(sup Swin-L) 0.244
+dev300_B41_eps5_limit100_sur-swin_t:C2-OCT-1V: y(sup Swin-L) 0.372
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2: y(sup Swin-L) 0.274
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-RAND: y(sup Swin-L) 0.250
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-ASC: y(sup Swin-L) 0.203
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-L3: y(sup Swin-L) 0.258
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-noL3: y(sup Swin-L) 0.297
+dev300_B36_eps5_limit100:C2-OCT-1V-WPH: y(sup Swin-L) 0.261
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2+H: y(sup Swin-L) 0.262
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-C2W03: y(sup Swin-L) 0.299
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-C2W1: y(sup Swin-L) 0.254
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-PFA50: y(sup Swin-L) 0.305
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-PFA75: y(sup Swin-L) 0.258
+dev300_B33_eps5_limit100:C2-OCT-1V-WP2-DEFCLS: y(sup Swin-L) 0.315
+dev300_B34_eps5_limit100:C2-OCT-1V-WP2-DEFFEAT: y(sup Swin-L) 0.257
+dev300_B1_eps5_limit100:C2-OCT-1V-WP2-IS: y(sup Swin-L) 0.352
+dev300_B1_eps5_limit100:C2-OCT-1V-WP2-OTSV50-IS: y(sup Swin-L) 0.355
+dev300_B4_eps5_limit100:C2-OCT-1V-WP2-IS: y(sup Swin-L) 0.328
+dev300_B4_eps5_limit100:C2-OCT-1V-WP2-OTSV50-IS: y(sup Swin-L) 0.329
+dev300_B12_eps5_limit100:C2-OCT-1V-WP2-IS: y(sup Swin-L) 0.240
+dev300_B12_eps5_limit100:C2-OCT-1V-WP2-OTSV50-IS: y(sup Swin-L) 0.268
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-IS: y(sup Swin-L) 0.353
+dev300_B36_eps5_limit100:C2-OCT-1V-WP2-OTSV50-IS: y(sup Swin-L) 0.371
+rho(L_plain, sup Swin-L) = 0.172 [-0.116, 0.427]
+rho(L_def1, sup Swin-L) = 0.148 [-0.135, 0.415]
+rho(L_def3, sup Swin-L) = 0.158 [-0.124, 0.422]
+rho(L_rand, sup Swin-L) = 0.174 [-0.116, 0.428]
+rho(L_octbig, sup Swin-L) = 0.028 [-0.263, 0.325]
+rho(cosd_C45, sup Swin-L) = 0.055 [-0.147, 0.237]
+rho(L_cls_only, sup Swin-L) = 0.340 [0.062, 0.546]
+saved /workspace/transfer-attack-final/results/mechanism/e24_target_probe.json
