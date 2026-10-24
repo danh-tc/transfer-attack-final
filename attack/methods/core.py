@@ -188,7 +188,33 @@ def run_iterative_attack(
                 # mode (E22, progress_log 2026-10-24): "def" (mặc định, WP2) | "asc" (đổi dấu: θ0 + ρ‖θ0‖ĝ) |
                 # ("rand", gen): hướng Gauss ngẫu nhiên chuẩn hóa từng tensor, cùng bán kính, không cần ∇θ.
                 mode = weight_perturb[4] if len(weight_perturb) > 4 else "def"
-                if isinstance(mode, tuple):
+                if isinstance(mode, tuple) and mode[0] == "ens":
+                    # E25 (progress_log 2026-10-24): K bản θ' tỏa quanh hướng phòng thủ ĝ_θ (từ θ0 bước này);
+                    # ∇ₓL qua từng bản (feature sạch co-transform cũng trên θ'_k), trung bình -> cập nhật δ.
+                    _, K, spread, gen = mode
+                    gall = torch.autograd.grad(loss, [noise] + params)
+                    with torch.no_grad():
+                        ghat = [gp / (gp.norm() + 1e-12) for gp in gall[1:]]
+                    gacc = torch.zeros_like(gall[0])
+                    for _k in range(K):
+                        with torch.no_grad():
+                            for p, p0, gh in zip(params, base, ghat):
+                                xi = torch.randn(p0.shape, generator=gen, device=p0.device, dtype=p0.dtype)
+                                d = gh + spread * xi / (xi.norm() + 1e-12)
+                                p.copy_(p0 - rho * p0.norm() * d / (d.norm() + 1e-12))
+                        adv_k = resize_to_model(torch.clamp(orig_pixels + noise, 0.0, 255.0), model_size)
+                        vk = views_fn(adv_k, data_sample, step_idx, steps)
+                        lk = None
+                        for view in vk:
+                            t = (view[2] if len(view) > 2 else loss_fn)(model, view[0], view[1])
+                            t = t[0] + t[1] if isinstance(t, tuple) else t
+                            lk = t if lk is None else lk + t
+                        gacc = gacc + torch.autograd.grad(lk, noise)[0]
+                    with torch.no_grad():
+                        for p, p0 in zip(params, base):
+                            p.copy_(p0)
+                    g = gacc / K
+                elif isinstance(mode, tuple):
                     g = torch.autograd.grad(loss, noise)[0]
                     with torch.no_grad():
                         for p, p0 in zip(params, base):

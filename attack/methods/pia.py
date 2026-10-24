@@ -405,7 +405,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
-                    weight_def=None):
+                    weight_def=None, weight_ens=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -725,6 +725,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         mode = weight_mode
         if weight_mode == "rand":
             mode = ("rand", torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 13))
+        if weight_ens is not None:
+            # E25 (progress_log 2026-10-24): (K, spread) — phòng thủ K bản song song; K=1,spread=0 trùng WP2.
+            assert weight_eta is None and weight_def is None and weight_mode == "def"
+            mode = ("ens", weight_ens[0], weight_ens[1],
+                    torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 17))
         # weight_def (E23, progress_log 2026-10-24): "feat" | "cls" — surrogate chỉ phòng thủ chống L_OSFD | λ·L_cls.
         assert weight_def is None or (weight_def in ("feat", "cls") and weight_mode == "def" and dual is None
                                       and cls_weight > 0 and feature)

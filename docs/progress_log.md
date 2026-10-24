@@ -3908,3 +3908,5 @@ Spearman(φ, suppression DINO-Swin-L) qua 23 δ × 30 ảnh (bootstrap ảnh, pa
 **(2) TỪ 0 (chỉ chạy nếu cổng (1) QUA; khóa entry riêng):** `C2-OCT-1V-WP2-ENS` từ 0, dev30, so WP2 B36 cùng thời gian. BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3; CÓ TÍN HIỆU +3..+10 → quét K ∈ {2,5}, spread.
 **Caveat:** dev30; K/spread/ρ đặt trước; GPU không tất định; cổng (1) dùng δ ngoài threat model (chỉ chẩn đoán).
 **Chạy:** `results/e25/run.sh`, log `results/e25/run.log`.
+
+### E25 đính chính B + sức khỏe (TRƯỚC khi có số transfer): ENS ~4× / bước (1 fwd ∇θ + K=3 bản), B12 = 5.28 s/ảnh → cùng thời gian WP2 B36 (3.83) là **B9**. Bão hòa B12 70% < 0.95×WP2 (76%), R50 xóa 89% ≥ 0.8×WP2 — trung bình K gradient làm δ LOÃNG (bất lợi cho từ-0; cổng retention init δ_SwinT đã bão hòa nên vẫn chạy). Cổng retention chụp CẢ B9 (cùng thời gian) và B36 (cùng số bước, 4× thời gian, mô tả) trong 1 lần (snapshot B9).
