@@ -3996,3 +3996,15 @@ Sức khỏe (ảnh 1–4): FPA2/34 R50 xóa 92–95%, bão hòa 79% (= WP2). Ru
 R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 | 80.8; FPA2 .../92.0/.../.../77.8/34.0; FPA34 .../92.6/.../.../73.4/37.8.
 Δ so WP2: FPA2 Swin-L +0.7 [−1.7, 3.9] (YOLOX −1.5); **FPA34 Swin-L +2.3 [−3.3, 6.4]** (YOLOX **−3.7** [−7.4, −1.0]).
 **Đọc:** không ô nào ΔSwin-L ≥ +3 → KHÔNG. FPA2 (đúng stage paper) không giúp; FPA34 nhích Swin-L +2.3 nhưng đổi YOLOX −3.7 (CI < 0) → lại trượt đường đánh đổi CNN↔Swin-L. Lợi classification FPA (+20 CNN→ViT) KHÔNG giữ sang detection — giống Season (frequency), OTSV/PFA (attention): kỹ thuật "làm R50 giống ViT" ở classification mất lợi ở OD vì gap OD là HƯỚNG trực giao (E14/E24), không phải locality/phổ đơn thuần. Củng cố kết luận cơ chế.
+
+---
+
+## 2026-10-24 — E30: IS-WP2 — Individuality Suppression (port COGO, gradient-space) @ dev30 B36 (user: "Duyệt luôn", ~22:45 GMT+7) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lý do (user: tìm ý gradient-space):** COGO (arXiv 2506.06992, 2025) IS — single-surrogate, backward, training-free: tại tầng backbone, xét cặp kênh gradient (i,j), tính MI + Pearson corr; cặp tương quan cao (vượt ngưỡng thích nghi) = dư thừa = **đặc thù surrogate (overfit)** → giảm trọng số kênh đó; kênh độc lập = tổng quát → giữ. Nhắm thẳng cơ chế E20 (hướng đặc thù R50 xói mòn vùng chung). ĐÚNG không gian gradient (forward-space PFA/OTSV/FPA đã đóng); KHÁC WP (trọng số), KHÁC FIA (FIA khuếch đại kênh quan trọng; IS TRIỆT kênh dư thừa — ngược). Bỏ CE của COGO (= frequency DCT, ta đã thử Season → hại).
+**Cơ chế (`repair.is_backward_hook`, `make_view_loss(is_supp=)`):** hook backward trên đầu ra backbone layer (chọn). Khi có grad_output g [1,C,H,W]: rút N=10 cặp kênh (i,j) ngẫu nhiên (RNG seed+21); tính |Pearson corr| giữa g_i, g_j (phẳng hóa spatial) [bỏ MI — ước lượng MI tốn/nhiễu ở C,H,W nhỏ, dùng |corr| như proxy chính, khai báo lệch paper]; τ = β·mean(|corr| các cặp), β = 1.0; cặp |corr| ≥ τ → cả i, j +1 chỉ số dư thừa; w_c = clamp(1 − α·(số lần c dư thừa), min=0), α = 0.3; nhân grad_output kênh c với w_c. Áp trên gradient (không đổi forward). θ/WP giữ nguyên.
+**Stage áp:** thử **s3 (stride 16, nút thắt E14)** và **s34** → 2 ô. Gốc WP2 (ρ=0.002, OCT 1V, cls λ=4).
+**Kiểm:** `scripts/is_unit_test.py` — α=0 (hoặc N=0) ≡ WP2 (không reweight); w_c ∈ [0,1]; kênh tương quan cao bị giảm (dựng cặp giả corr=1 → w giảm); hook gỡ sau mỗi lần; L∞=5; θ khôi phục. Sức khỏe (ảnh 1–4): R50 xóa ≥ 0.8×WP2, bão hòa ≥ 0.95×WP2.
+**Ô:** `C2-OCT-1V-WP2-IS3` (layer3), `C2-OCT-1V-WP2-IS34` (layer3+4). Chi phí thêm = N corr/bước (rẻ) → B36, đo s/ảnh.
+**Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi ô ΔSwin-L < +3. Mô tả: ΔSwin-T, YOLOX, R101; tỉ lệ kênh bị triệt TB.
+**Caveat:** COGO验证 ViT→ViT (giả định "corr cao = đặc thù" cho CNN→Transformer OD chưa kiểm); gần họ FIA (ngang) nhưng logic ngược; bỏ MI (chỉ corr); β/α/N/stage theo paper + chọn trước; dev30.
+**Chạy:** `results/e30/run.sh`, log `results/e30/run.log`.
