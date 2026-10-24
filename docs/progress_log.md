@@ -3952,3 +3952,10 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 **Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi θ ΔSwin-L < +3. Mô tả: tỉ lệ pixel phát/bước, R101/YOLOX, δ thưa đến đâu.
 **Caveat (khai báo trước):** đổi quy tắc cập nhật, không đổi hướng gradient (E22: RAND vô dụng, WP giúp; E24: nút thắt là hướng) → kỳ vọng thấp; δ thưa có tiền lệ âm (PD hại); dev30, n=30, GPU không tất định. Giá trị chính = thành phần novelty / ablation.
 **Chạy:** `results/e27/run.sh`, log `results/e27/run.log`.
+
+### Kết quả E27 @ dev30 (V100; `results/ablation/e27_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/*_e27_dev30.json`, log `results/e27/run.log`) — theo quy tắc: **KHÔNG**
+Sức khỏe (ảnh 1–4): SPK1/SPK2 R50 xóa 92% (= WP2) nhưng bão hòa 30%/21% (δ thưa — < 0.7×WP2; caveat khai báo). Runtime SPK1 4.23 / SPK2 3.98 (~WP2 3.83).
+R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 | 80.8; SPK1 98.8/92.7/84.9/84.7/76.1/31.9 | 81.9; SPK2 98.1/90.8/85.2/81.6/65.7/37.9 | 77.5.
+Δ so WP2: SPK1 Swin-L −3.6 [−9.8, +3.0], CA3 +1.1; SPK2 Swin-L +2.4 [−3.8, +8.4], CA3 −3.3, **YOLOX −11.4** [−16.7, 0.0].
+**Đọc:** không ô nào (ΔSwin-L ≥ +3 VÀ ΔCA3 ≥ −3) → KHÔNG. SPK1 ≠ SPK2 ngược chiều Swin-L (không cơ chế ổn định); SPK2 thưa hơn đổi chút Swin-L lấy YOLOX −11.4 (δ thưa hại CNN, khớp tiền lệ PD). Khớp caveat: đổi quy tắc cập nhật không chạm nút thắt hướng (E22/E24). Event-driven LIF đóng như thành phần ablation/novelty âm.
+**Trạng thái:** E19–E27 đều ÂM/KHÔNG. WP2 vẫn tốt nhất. Quy tắc cập nhật (SPIKE), lịch (E26), mục tiêu (E24), phòng thủ-ensemble (E25), tách mục tiêu (E23), vị trí WP (E22), OCT, feature loss — tất cả không vượt WP2. User quyết định vị (dev300 + baseline) hoặc nới threat model.
