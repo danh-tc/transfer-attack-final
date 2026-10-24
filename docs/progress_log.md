@@ -3850,3 +3850,14 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: C2-OCT-1V B41 99.3 /
 - **Vị trí:** L3 giữ 3.1 / 5.3 = 58% (< 75%); noL3 giữ 5.7 / 5.3 ≈ 108% (≥ 75%) → **không đặc thù C4**; layer2 + layer4 đủ.
 - **Head:** WPH HẠI (≈ C2-OCT-1V: phòng thủ chỉ ở head không thay được backbone); WP2+H +2.0 < +3 → không phải ứng viên cải tiến.
 **Hệ quả:** WP2 = min-max PHÒNG THỦ ở backbone (cùng nguyên lý AWT), không phải augmentation; phòng thủ ở head phân loại không thêm lợi đáng kể. Giả thuyết "phòng thủ ở head mô phỏng phép sửa của DINO" KHÔNG được ủng hộ.
+
+---
+
+## 2026-10-24 — E23: min-max TÁCH MỤC TIÊU — surrogate chỉ phòng thủ chống MỘT thành phần loss (DEF-CLS / DEF-FEAT) @ dev30 B36 (user duyệt, ~17:35 GMT+7) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Cơ sở:** E22 — lợi WP2 = hướng PHÒNG THỦ (RAND −3.9, ASC −11.8); WP2 phòng thủ chống CHÍNH loss attack L = L_OSFD + 4·L_cls. Hai thành phần gần trực giao (cos ∇ ≈ −0.08, 10-18) và phục vụ target khác nhau (L_cls → DINO-Swin-L; L_OSFD → CNN / YOLOX). Câu hỏi: surrogate chống thành phần nào thì δ "tôi luyện" ở kênh đó?
+**Literature (search 10-24):** AWT (2408.09469): defender cùng loss với attacker (+ loss sạch), classification. BMAT (2608.11815): bilevel-minimax trên trọng số, classification + segmentation, abstract không nói tách loss → baseline / trích dẫn bắt buộc. Chưa thấy defender dùng thành phần loss khác attacker, chưa thấy cho detection.
+**Ô (gốc WP2: ρ = 0.002, backbone, B36; `make_view_loss(split=True)`, `core.run_iterative_attack` thêm thành phần phòng thủ):** attacker luôn tăng L_OSFD + 4·L_cls (y nguyên); θ' = θ0 − ρ‖θ0‖·ĝ_c với g_c = ∇θ của:
+- `WP2-DEFCLS`: chỉ 4·L_cls; `WP2-DEFFEAT`: chỉ L_OSFD.
+**Kiểm:** split trùng tổng (sai số số học); DEF với cả 2 thành phần ≡ WP2. Sức khỏe (ảnh 1–4 dev300, `tx_calib`): R50 xóa ≥ 0.8 × WP2, bão hòa ≥ 0.95 × WP2. Thời gian đo trên ảnh 1–4 → B = ⌈36 / tỉ lệ⌉ (2 lần autograd.grad trên cùng graph).
+**Đọc (so WP2 B36 cùng 30 ảnh, như các ô trước):** BƯỚC NHẢY ΔSwin-L ≥ +10; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 VÀ ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu cả 2 ô ΔSwin-L < +3 → chạy ý phụ (phòng thủ trong không gian BN affine, entry riêng). Mô tả: DEF-FEAT có tăng CNN / YOLOX không (dự đoán của giả thuyết tách kênh).
+**Caveat:** dev30, n = 30, GPU không tất định; máy đang chậm bất thường (xung GPU thấp từ ~16:30) → thời gian đo lại trước khi chạy.
