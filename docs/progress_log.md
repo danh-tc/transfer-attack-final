@@ -3915,3 +3915,18 @@ Spearman(φ, suppression DINO-Swin-L) qua 23 δ × 30 ảnh (bootstrap ảnh, pa
 ENS-IS (init δ_SwinT, Swin-L gốc 59): **B9 (cùng thời gian WP2) Swin-L 46.0** (R101 91.1, YOLOX 79.1); **B36 (cùng số bước, 4× thời gian) 44.8** (R101 96.5, YOLOX 85.5). So cùng init: WP2-IS 39.8, OTSV-IS 44.0.
 **Đọc:** ENS-IS 45–46 < 52 → DỪNG. Phòng thủ K bản giữ được thêm ~+5 so WP2-IS nhưng vẫn tuột 59 → 45; B9 (46.0) > B36 (44.8) → càng nhiều bước R50 càng xói mòn vùng chung (khớp E20/E24). WP-Ensemble KHÔNG định hình lại landscape đủ để giữ vùng tốt → không chạy từ 0 (kỳ vọng từ 0 còn thấp hơn: δ loãng, bão hòa 70%). Lưu ý: pair_screen lỗi (dets WP2 không cùng file) — không cần, quyết định theo tuyệt đối. Literature (search 10-24): khởi tạo δ từ surrogate khác KHÔNG có tiền lệ như method (vô nghĩa nếu đã có surrogate kia) — ở đây chỉ là PROBE chẩn đoán (planted-solution / basin), không phải method.
 **Trạng thái:** E19–E25 đều ÂM. WP-Ensemble là biến thể cuối của họ phòng thủ. Mọi hướng 1-R50 đã cạn. Ứng viên SOTA vẫn là WP2 (Swin-L ~36–37 dev100, +11 so OSFD). User quyết: (1) surrogate thứ 2 (đổi câu hỏi) | (2) định vị SOTA + cơ chế + trần có bằng chứng (dev300 + baseline AWT/BMAT/RaPA/LPAA).
+
+---
+
+## 2026-10-24 — E26: λ-schedule cho L_cls (curriculum theo bước) @ dev30 B36 (user duyệt, ~19:30 GMT+7) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Lý do:** L_cls là đòn bẩy DUY NHẤT từng tăng Swin-L (cls-only 32.5 vs OSFD 25.3; C2 thêm cls = bước nhảy đầu). Mọi DẠNG của L_cls đã thử (λ 2/4/8, margin CW, roi_pos, vanish, rpn) — chưa thử bậc tự do THEO BƯỚC. E25: thành phần chung hai họ xói mòn dần theo bước; literature (search 10-24): scheduled step-size thấy I-FGSM transfer giảm khi bước tăng → nửa sau có thể là lúc dồn đòn bẩy Swin-L. Novelty: lịch TRỌNG SỐ LOSS theo bước chưa có tiền lệ trong transfer attack (search: chỉ có scheduled step-size, ILA tĩnh, λ cố định).
+**Thiết kế (tách hình dạng lịch khỏi mức λ TB — cả 3 ô λ_TB = 4 = WP2):** attacker + defender dùng cùng L = L_OSFD + λ(t)·L_cls, λ(t) theo step_idx t ∈ [0, B−1]:
+- `WP2-LUP`: λ tuyến tính 2 → 6 (TB 4) — dồn cls về cuối.
+- `WP2-LSTEP`: λ = 0 nửa đầu, 8 nửa sau (TB 4) — tách pha rõ.
+- `WP2-LDOWN`: λ tuyến tính 6 → 2 (TB 4) — ĐỐI CHỨNG chiều (dồn cls về đầu).
+Chi phí = WP2 (chỉ đổi hệ số vô hướng, không thêm forward) → B36 cùng thời gian, không đo lại.
+**Ô (`geo_osfd_attack(cls_sched=)`, `run_iterative_attack` truyền step_idx → make_view_loss(cls_weight=cls_weight·sched(t))):** gốc WP2 (ρ = 0.002, OCT 1V, k = 3). `cls_sched` ∈ {"up", "step", "down"}.
+**Kiểm:** sched ≡ 1 (λ hằng 4) trùng WP2 (sai số số học); λ(t) đúng công thức mỗi bước (in 3 mốc); λ_TB = 4 cả 3.
+**Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry). Mô tả: LUP vs LDOWN (chiều có quan trọng không — nếu LUP > LDOWN rõ thì "dồn cls về cuối" là cơ chế thật); R101, YOLOX.
+**Caveat:** dev30; 3 ô so sánh bội; λ_TB giữ 4 nên nếu λ cao hơn mới giúp thì E26 không bắt được (đó là câu hỏi khác — mức, đã thử); GPU không tất định.
+**Chạy:** `results/e26/run.sh`, log `results/e26/run.log`.
