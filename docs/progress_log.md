@@ -3959,3 +3959,15 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 Δ so WP2: SPK1 Swin-L −3.6 [−9.8, +3.0], CA3 +1.1; SPK2 Swin-L +2.4 [−3.8, +8.4], CA3 −3.3, **YOLOX −11.4** [−16.7, 0.0].
 **Đọc:** không ô nào (ΔSwin-L ≥ +3 VÀ ΔCA3 ≥ −3) → KHÔNG. SPK1 ≠ SPK2 ngược chiều Swin-L (không cơ chế ổn định); SPK2 thưa hơn đổi chút Swin-L lấy YOLOX −11.4 (δ thưa hại CNN, khớp tiền lệ PD). Khớp caveat: đổi quy tắc cập nhật không chạm nút thắt hướng (E22/E24). Event-driven LIF đóng như thành phần ablation/novelty âm.
 **Trạng thái:** E19–E27 đều ÂM/KHÔNG. WP2 vẫn tốt nhất. Quy tắc cập nhật (SPIKE), lịch (E26), mục tiêu (E24), phòng thủ-ensemble (E25), tách mục tiêu (E23), vị trí WP (E22), OCT, feature loss — tất cả không vượt WP2. User quyết định vị (dev300 + baseline) hoặc nới threat model.
+
+---
+
+## 2026-10-24 — E28: SPIKE-WP — cơ chế phát-xung áp vào NHIỄU TRỌNG SỐ (phía gradient) @ dev30 B36 (user chọn "1", ~21:00 GMT+7) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy; ĐÒN CUỐI của tối ưu WP2
+**Lý do:** E27 đặt spiking ở OUTPUT (cập nhật δ) = sai phía (nhóm budget — E22 RAND vô dụng, E24 nút thắt là hướng). Đặt spiking vào WP (nhóm TRƯỜNG GRADIENT — chỗ DUY NHẤT từng đẩy Swin-L). Chưa thử trong họ WP (WPA/scope/ensemble đều plateau ~36–45). Kỳ vọng thấp (cùng họ đã chạm trần); chạy vì khác cơ chế + đặt đúng phía. Dù kết quả gì → DỪNG tối ưu WP2 sau E28.
+**Cơ chế (`core.run_iterative_attack(weight_perturb` mode `("wspike", θ_fire, [])`)`):** mỗi tensor conv backbone có điện thế M (per-element). Mỗi bước: M ← M + ∇θ/mean|∇θ| (chuẩn hóa per-tensor); phát xung tại |M| ≥ θ_fire; θ'_i = θ0_i − ρ‖θ0_i‖·d_i/‖d_i‖ với d = sign(M)·fire (giữ ‖θ'−θ0‖ = ρ‖θ0‖ như WP, bất kể bao nhiêu element phát); reset M = 0 tại element phát; element dưới ngưỡng giữ M (không nhiễu). ρ = 0.002. Phòng thủ THƯA + theo thời điểm: chỉ filter "chịu áp lực nhất" phản ứng.
+**Chọn θ_fire (sức khỏe white-box, ảnh 1–4 dev300): θ_fire ∈ {1, 2};** chọn θ lớn nhất còn R50 xóa ≥ 0.8 × WP2 VÀ bão hòa ≥ 0.95 × WP2 (WP làm δ dày như WP2, không thưa như E27 — ngưỡng chặt lại). Không đạt → θ nhỏ nhất, caveat.
+**Chi phí:** = WP2 (chỉ đổi quy tắc nhiễu θ, không thêm forward) → B36; đo lại s/ảnh.
+**Kiểm:** `scripts/wspike_unit_test.py` — θ khôi phục; θ_fire cao → ít element phát hơn; ‖θ'−θ0‖ ≈ ρ‖θ0‖ khi có phát; θ_fire = 0 (mọi element phát mỗi bước) ≈ WP2 (sign thay unit-direction — ghi khác).
+**Đọc (so WP2 B36 cùng 30 ảnh):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3..+10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu mọi θ ΔSwin-L < +3. Mô tả: % element phát, R101/YOLOX.
+**Caveat:** cùng họ WP đã plateau; dev30; GPU không tất định. ĐÒN CUỐI — sau E28 dừng tối ưu bất kể kết quả.
+**Chạy:** `results/e28/run.sh`, log `results/e28/run.log`.
