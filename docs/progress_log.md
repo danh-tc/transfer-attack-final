@@ -4042,3 +4042,21 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 **Sức khỏe (ảnh 1–4, `tx_calib --run dev300_B36_eps5_limit5`):** WP2 bão hòa 80%, xóa 92% (34/37); **AWT bão hòa 67% (< 0.95 × 80 = 76), xóa 68% (25/37; < 0.8 × 92 = 74)** → **TRƯỢT cả hai tiêu chí** → theo quy tắc khóa: ghi nhận, không chạy dev30. β / lr KHÔNG tune (caveat khóa).
 **Đọc (mô tả):** θ tích lũy gần tuyến tính (unit test) → sau 36 bước ‖θ − θ0‖ ước ~0.07‖θ0‖, gấp ~14× WP5 (ρ = 0.005, đã sát ngưỡng) và vượt vùng dao động ρ = 0.01 (10-21) → surrogate trôi khỏi R50, δ tối ưu cho model khác. Phù hợp WPA (tích lũy, âm, 10-23). Thang lr = 0.002‖θ0‖/bước là cách dịch của thiết kế, không phải đúng nguyên văn paper (paper dùng lr tuyệt đối trên trọng số classification).
 **Việc mở — user quyết:** (a) kết thúc E31, sang dev300 như đã khóa (AWT-OD làm baseline novelty cần cấu hình khỏe); (b) entry mới khóa trước: AWT với bán kính tích lũy bị chặn (chiếu ‖θ − θ0‖ ≤ ρ‖θ0‖, ρ = 0.002 như WP2) hoặc lr chia T — đây là biến thể, không còn là AWT nguyên bản.
+
+---
+
+## 2026-10-25 — E32: WP2 thắng nhờ TÍNH CHẤT gì của δ? So δ_WP2 B36 vs δ_C2 B41 trên dev100, forward-only (user duyệt "duyệt đo thử", ~11:20 GMT+7) — MÔ TẢ / sinh cơ chế, khóa TRƯỚC khi chạy
+**Vì sao:** E22/E23 chỉ là can thiệp (hướng phòng thủ là lý do, chống toàn bộ loss, không đặc thù stage); CHƯA đo δ_WP2 khác δ_C2 ở tính chất nào, vì sao lợi rơi vào DINO-Swin-L chứ không Swin-T.
+**Dữ liệu (HF, không attack mới):** δ_W = `dev300_B36_eps5_limit100` tag `_v100` / `C2-OCT-1V-WP2` (10-23); δ_C = `dev300_B41_eps5_limit100` (không tag) / `C2-OCT-1V` (10-18, V100); δ_S = `dev300_B41_eps5_limit100_sur-swin_t` tag `_v100`. Dets 6 model có sẵn (`dets_wpa_dev100` / `dets_c2_1v_dev100`, `gen_dets/`). **Caveat mốc:** δ_C là bản 10-18, không phải bản 10-22 của quy tắc GIÚP (chưa từng upload): DINO-Swin-L drop C 32.1 / W 36.4 → Δ **+4.3** (10-22: +6.2); suppression Swin-L 0.259 → 0.274 (+1.5 điểm).
+**Đo (script `scripts/e32_wp2_dissect.py`, dev100, fp32, mọi δ = PNG − ảnh gốc; mỗi ảnh, X ∈ {C, W}):**
+- **(a) Độ phẳng trong weight-space trên R50:** G(θ; X) = L(x + δ_X; θ) − L(x; θ), L = L_OSFD (k = 3, feature sạch tính tại CÙNG θ) + 4·(loss_rpn_cls + loss_cls) GT, 1 view không biến đổi. Giữ lại r_ρ(X) = TB_ξ G(θ0 + ρ‖θ0‖ξ̂) / G(θ0), ξ Gauss chuẩn hóa từng tensor conv backbone, ρ ∈ {0.002, 0.005, 0.01, 0.02}, 4 mẫu / ρ (CÙNG ξ cho C và W, RNG seed 2026 + img_id). r_def(X): G tại θ' = WP2 phòng thủ 1 bước (ρ = 0.002, ∇θ của L tại δ_X). Mô tả: G trên R101 cùng công thức (tỉ số W / C).
+- **(b) D_k = ‖f_k(adv) − f_k(sạch)‖ / ‖f_k(sạch)‖** backbone stage 1–4 trên R50, R101, ConvNeXt-T, Swin-T, DINO-Swin-L (test pipeline, như `mech_a2_features` / `mech_swinl`). Chỉ số chuyển giao T_k(m) = D_k(m) / D_k(R50).
+- **(c) DINO-Swin-L "sửa":** cosd = 1 − cos ở backbone 1–4, neck 5 mức, memory encoder; A_enc = cosd_enc / cosd_bb4 (như `mech_swinl_geo`).
+- **(d) Tính chất δ + loại lỗi:** năng lượng 3 dải tần (thấp / trung / cao như A4); cos(δ_W, δ_C), cos(δ_X, δ_S); năng lượng trong box GT / tỉ lệ diện tích. Loại lỗi (CPU, dets có sẵn, như `err_profile`): recall@0.3 theo cỡ, conf_ratio, FP/ảnh trên Swin-T, YOLOX-S, DINO-Swin-L.
+**Quy tắc đọc (paired bootstrap 1000 theo ảnh, BOOT_SEED 2026; Δ = W − C cùng ảnh):**
+- **H_flat (WP2 = δ phẳng hơn trong weight-space) ỦNG HỘ** nếu ∃ ρ ∈ {0.005, 0.01, 0.02}: Δr_ρ ≥ 0.05 VÀ cận dưới CI > 0. **DỰ ĐOÁN TRANSFER** (ứng viên mục tiêu, entry riêng) nếu thêm Spearman theo ảnh (Δr_ρ*, Δsuppression Swin-L) > 0 CI loại 0 (ρ* = ρ có Δr lớn nhất). Ngược lại BÁC.
+- **H_feat (WP2 đẩy distortion sang Swin-L nhiều hơn sang R50):** ∃ k: ΔT_k(Swin-L) ≥ 0.05 VÀ cận dưới CI > 0 → ỦNG HỘ; mô tả cùng chỉ số cho Swin-T (dự đoán: không tăng, khớp lợi chỉ ở DINO).
+- **H_repair (δ_W sống sót qua encoder DINO tốt hơn):** ΔA_enc > 0 VÀ cận dưới CI > 0 VÀ Δcosd_enc ≥ 0.01 → ỦNG HỘ.
+- (d) mô tả, không quy tắc. Đây là E mô tả: không đổi method, không quyết định GO; kết quả chỉ chọn hướng (entry riêng khóa trước).
+**Caveat:** 30 / 100 ảnh là dev30 (đã thấy); 1 cặp δ (n = 100), mốc C khác ngày; tham số ρ / số mẫu đặt trước, không tune; GPU không tất định.
+**Chạy:** `python scripts/e32_wp2_dissect.py` → `results/mechanism/e32_wp2_dissect.json`, log `results/e32/run.log`.
