@@ -1,0 +1,317 @@
+loading annotations into memory...
+Done (t=0.80s)
+creating index...
+index created!
+[run] dev300_B24_eps5_limit100: 30 ảnh (subset dev30), methods=['C2-OCT-1V-CAPWP-IS']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[attack C2-OCT-1V-CAPWP-IS] 10/30  8.0s/ảnh  còn ~3 phút
+[attack C2-OCT-1V-CAPWP-IS] 20/30  7.8s/ảnh  còn ~1 phút
+[attack C2-OCT-1V-CAPWP-IS] 30/30  7.8s/ảnh  còn ~0 phút
+loading annotations into memory...
+Done (t=0.77s)
+creating index...
+index created!
+[run] dev300_B4_eps5_limit100: 30 ảnh (subset dev30), methods=['C2-OCT-1V-CAPWP-IS']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.77s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (57s)
+
+=== bbox AP (n=30, B=4, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          40.8 [ 34.1, 49.0]   40.5 [ 34.0, 49.0]   45.6 [ 39.3, 54.5]   46.0 [ 38.3, 55.5]
+C2-OCT-1V-CAPWP-IS    4.8 [  4.0,  8.6]    8.3 [  6.0, 13.5]    6.8 [  4.6, 12.0]    3.2 [  2.0,  6.7]
+
+=== relative AP drop % [95% CI] ===
+C2-OCT-1V-CAPWP-IS   88.1 [ 78.7, 90.2]   79.5 [ 68.3, 85.4]   85.1 [ 73.8, 90.2]   93.0 [ 85.2, 95.7]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+C2-OCT-1V-CAPWP-IS CrossAvg  89.1 [ 80.4, 92.7]  gap→ConvNeXt  -5.6 [-11.5, -0.3]  gap→Swin -13.5 [-20.2, -8.2]  gap→avg  -9.5 [-15.0, -5.2]
+
+=== runtime === {'C2-OCT-1V-CAPWP-IS': 1.4}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B4_eps5_limit100/metrics_capwp_is.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.54s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  dino_swin_l: 59.7
+
+=== relative AP drop % [95% CI] ===
+                             r101          dino_swin_l
+C2-OCT-1V-CAPWP-IS   79.5 [ 68.3, 85.4]   51.4 [ 40.4, 57.0]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V-CAPWP-IS   28.1 [ 17.2, 37.3]
+
+=== method_diff ===
+                                dino_swin_l
+saved: /workspace/transfer-attack-final/results/runs/dev300_B4_eps5_limit100/generalization_capwp_is.json
+loading annotations into memory...
+Done (t=0.79s)
+creating index...
+index created!
+[run] dev300_B12_eps5_limit100: 30 ảnh (subset dev30), methods=['C2-OCT-1V-CAPWP-IS']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.78s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (51s)
+
+=== bbox AP (n=30, B=12, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          40.8 [ 34.1, 49.0]   40.5 [ 34.0, 49.0]   45.6 [ 39.3, 54.5]   46.0 [ 38.3, 55.5]
+C2-OCT-1V-CAPWP-IS    1.5 [  1.1,  3.9]    6.6 [  4.7, 11.7]    8.4 [  5.8, 14.0]    5.6 [  4.0, 10.3]
+
+=== relative AP drop % [95% CI] ===
+C2-OCT-1V-CAPWP-IS   96.4 [ 90.6, 97.4]   83.8 [ 72.7, 88.6]   81.6 [ 70.4, 87.7]   87.8 [ 77.2, 91.6]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+C2-OCT-1V-CAPWP-IS CrossAvg  84.7 [ 74.2, 89.3]  gap→ConvNeXt   2.2 [ -2.1,  5.3]  gap→Swin  -3.9 [-10.3,  1.9]  gap→avg  -0.9 [ -5.7,  2.8]
+
+=== runtime === {'C2-OCT-1V-CAPWP-IS': 4.0}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B12_eps5_limit100/metrics_capwp_is.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  dino_swin_l: 59.7
+
+=== relative AP drop % [95% CI] ===
+                             r101          dino_swin_l
+C2-OCT-1V-CAPWP-IS   83.8 [ 72.7, 88.6]   36.7 [ 29.1, 44.0]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V-CAPWP-IS   47.1 [ 33.1, 53.4]
+
+=== method_diff ===
+                                dino_swin_l
+saved: /workspace/transfer-attack-final/results/runs/dev300_B12_eps5_limit100/generalization_capwp_is.json
+loading annotations into memory...
+Done (t=0.62s)
+creating index...
+index created!
+[run] dev300_B24_eps5_limit100: 30 ảnh (subset dev30), methods=['C2-OCT-1V-CAPWP-IS']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.72s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (66s)
+
+=== bbox AP (n=30, B=24, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          40.8 [ 34.1, 49.0]   40.5 [ 34.0, 49.0]   45.6 [ 39.3, 54.5]   46.0 [ 38.3, 55.5]
+C2-OCT-1V-CAPWP-IS    1.0 [  0.4,  2.2]    3.9 [  2.8,  7.7]    6.7 [  4.1, 11.6]    5.6 [  3.8, 10.4]
+
+=== relative AP drop % [95% CI] ===
+C2-OCT-1V-CAPWP-IS   97.6 [ 94.6, 99.1]   90.3 [ 81.9, 93.1]   85.3 [ 75.2, 91.2]   87.9 [ 77.1, 91.9]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+C2-OCT-1V-CAPWP-IS CrossAvg  86.6 [ 77.2, 91.3]  gap→ConvNeXt   5.0 [  0.2,  9.2]  gap→Swin   2.4 [ -2.6,  8.1]  gap→avg   3.7 [ -0.5,  7.9]
+
+=== runtime === {'C2-OCT-1V-CAPWP-IS': 7.8}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B24_eps5_limit100/metrics_capwp_is.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  dino_swin_l: 59.7
+
+=== relative AP drop % [95% CI] ===
+                             r101          dino_swin_l
+C2-OCT-1V-CAPWP-IS   90.3 [ 81.9, 93.1]   39.8 [ 31.7, 45.0]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V-CAPWP-IS   50.4 [ 41.0, 56.8]
+
+=== method_diff ===
+                                dino_swin_l
+saved: /workspace/transfer-attack-final/results/runs/dev300_B24_eps5_limit100/generalization_capwp_is.json
+
+=== E35 CỔNG CAP-WP-IS (init δ_SwinT) @ dev30 ===
+   B  R50 drop  Swin-L drop
+   4      88.1         51.4
+  12      96.4         36.7
+  24      97.6         39.8
+Mốc: δ_SwinT B0 ~59; WP2-IS B12 39.8 (E20); ENS-IS 45-46 (E25). Cổng B12: ≥52 QUA / 47-52 xám / ≤45 DỪNG
+[e35] XONG 2026-10-25 12:16:28

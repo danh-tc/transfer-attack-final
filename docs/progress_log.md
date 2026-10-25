@@ -4245,3 +4245,8 @@ relative AP drop % | A:fcos/dino_r50 | B:yolov3/yolox | C:dino_sl | Avg5 | AvgB+
 - **DỪNG**: B12 Swin-L ≤ 45 → clean-anchor cũng không giữ vùng chung; tăng K vô ích.
 **Kiểm trước khi chạy cổng:** unit test (θ khôi phục torch.equal; ‖θ−θ0‖≤ρ‖θ0‖ từng tensor; β=0 & η=0 ≈ không đổi θ; L∞=ε); sức khỏe white-box ảnh 1–4 (R50 xóa ≥ 0.8×WP2). Ràng buộc: thao tác weight lúc attack từng ảnh, khôi phục θ0 — KHÔNG fine-tune bằng dữ liệu (như WP2/AWT).
 **Chạy:** code `core` mode ("capwp",K,η,β_clip,stages) + `pia.geo_osfd_attack(weight_capwp=)`; ô `C2-OCT-1V-CAPWP` / `-IS`. Cổng: `results/e35/run.sh`.
+
+### Kết quả E35 cổng CAP-WP @ dev30 (V100, xong 19:16 GMT+7; `results/runs/dev300_B{4,12,24}_eps5_limit100/*_capwp_is.json`, log `results/e35/run.log`) — theo quy tắc: **DỪNG** (cổng không qua)
+CAP-WP-IS (init δ_SwinT, Swin-L B0 ~58) — R50 drop / Swin-L drop: B4 88.1 / 51.4; **B12 96.4 / 36.7**; B24 97.6 / 39.8.
+**B12 Swin-L = 36.7 ≤ 45 → DỪNG.** CAP-WP KHÔNG giữ δ_SwinT đã cắm — xói mòn như WP2-IS (B12 ~35–40) / ENS-IS (45–46). Clean-anchor + inner-optimization projected KHÔNG ngăn được trường gradient R50 kéo δ khỏi vùng chung (khớp E20/E24/E25). B4 51.4 (xói chậm hơn chút lúc đầu) nhưng B12 sụp = đúng pha sụp E20. Giả thuyết "surrogate = clean-preserving repairer → δ repair-robust" BÁC ở cổng; không chạy from-zero. Timing 7.8–8.5 s/ảnh (~3.2×/bước, clean-anchor forward đắt).
+**KẾT: họ weight-space (WP2 1-bước / WPA tích lũy / ENS / spike / AWT đầy đủ / scope / CAP-WP bilevel+anchor) — CHỈ WP2 1-bước đạt ~37 Swin-L, mọi biến thể "giải defender kỹ hơn" đều KHÔNG giữ vùng chung. Trần single-R50 ε=5 ~37 vững qua E19–E35.** WP2 = method chốt; bước tiếp = dev300 panel A/B/C đầy đủ + baseline (AWT-OD/BSR) để chắc SOTA.
