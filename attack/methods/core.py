@@ -116,6 +116,7 @@ def run_iterative_attack(
     weight_perturb = (params, rho) (C2-OCT-1V-WP, progress_log 2026-10-21; họ AWT / SAM phía model): trong CÙNG lần
     autograd.grad lấy thêm ∇θ của loss attack; trước bước sau đặt θ' = θ − rho·‖θ_t‖·∇θ_t / ‖∇θ_t‖ (từng tensor) -> surrogate
     "chống lại" δ hiện tại, gradient ảnh bước sau tính trên θ' (trễ 1 bước, không forward thêm). Caller khôi phục θ gốc.
+    mode ("awt", β, lr) (E31 AWT-OD): θ tích lũy kiểu SAM 2 bước, +1 forward/backward θ mỗi bước (rho không dùng).
 
     init_noise (E20 basin test, progress_log 2026-10-24): δ khởi tạo (cùng shape orig_pixels, kẹp [−ε, ε]) thay cho 0;
     momentum vẫn khởi tạo 0. None = trùng tuyệt đối bản cũ.
@@ -216,6 +217,26 @@ def run_iterative_attack(
                         for p, p0 in zip(params, base):
                             p.copy_(p0)
                     g = gacc / K
+                elif isinstance(mode, tuple) and mode[0] == "awt":
+                    # E31 AWT-OD (progress_log 2026-10-24, arXiv 2408.09469): θ_t TÍCH LŨY (không đặt lại từ θ0). ∇ₓ, ∇θ cùng
+                    # 1 lần grad tại θ_t; θ̂ = θ_t + β‖θ0‖ĝθ (ascend, per-tensor); +1 forward/backward CÙNG view (ảnh detach,
+                    # feature sạch giữ từ θ_t, KHÔNG rút view mới) tại θ̂; θ_{t+1} = θ_t − lr‖θ0‖·ĝθ(θ̂). Caller khôi phục θ0.
+                    _, beta, lr = mode
+                    gall = torch.autograd.grad(loss, [noise] + params)
+                    g = gall[0]
+                    with torch.no_grad():
+                        cur = [p.detach().clone() for p in params]
+                        for p, p0, gp in zip(params, base, gall[1:]):
+                            p.add_(beta * p0.norm() * gp / (gp.norm() + 1e-12))
+                    lh = None
+                    for view in views:
+                        t = (view[2] if len(view) > 2 else loss_fn)(model, view[0].detach(), view[1])
+                        t = t[0] + t[1] if isinstance(t, tuple) else t
+                        lh = t if lh is None else lh + t
+                    gh = torch.autograd.grad(lh, params)
+                    with torch.no_grad():
+                        for p, c, p0, gp in zip(params, cur, base, gh):
+                            p.copy_(c - lr * p0.norm() * gp / (gp.norm() + 1e-12))
                 elif isinstance(mode, tuple) and mode[0] == "wspike":
                     # E28 (progress_log 2026-10-24): LIF trên TRỌNG SỐ — M tích lũy ∇θ chuẩn hóa per-tensor; element
                     # |M| ≥ θ_fire phát xung (nhiễu phòng thủ θ'= θ0 − ρ‖θ0‖·d/‖d‖, d = sign(M)·fire), reset M = 0.
