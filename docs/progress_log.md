@@ -4130,3 +4130,9 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: WP2 98.5 / 92.1 / 83
 - Mô tả: YOLOX / Swin-T / ConvNeXt riêng; so C2-SCL25 cũ (cùng ý "gỡ khóa kích thước").
 **Caveat:** dev30 đã dùng nhiều; mốc C2 PNG 10-18 khác ngày (GPU không tất định); r đặt trước, không tune; RJ chỉ chạm loss_cls RoI (loss_rpn_cls không đổi).
 **Chạy:** `results/e34/run.sh`, log `results/e34/run.log`; metrics `metrics_e34_dev30.json`, dets `dets_e34_dev30.json`, tag `e34_dev30`.
+
+### Kết quả E34 @ dev30 B41 (V100, xong 13:53 GMT+7; `results/ablation/e34_dev30/screen.json`, `results/runs/dev300_B41_eps5_limit100/*_e34_dev30.json`, log `results/e34/run.log`) — theo quy tắc: **KHÔNG** (cả 2 ô)
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: C2-OCT-1V 99.4 / 93.6 / 82.7 / 81.4 / 69.9 / 32.6 | 78.0; RJ30 98.7 / 92.2 / 82.5 / 80.9 / 67.1 / 30.3 | 76.9; RJ60 96.9 / 90.1 / 79.0 / 79.6 / 68.4 / 33.6 | 75.7.
+Δ so C2-OCT-1V (Swin-L | CA3): RJ30 −2.3 [−4.6, +1.2] | −1.1; **RJ60 +1.0 [−2.4, +2.7] | −2.3** (ConvNeXt −3.6, R101 −3.5). Liều RJ60 − RJ30: Swin-L +3.3, CA3 −1.2.
+**Đọc:** không ô nào đạt (ΔCA3 ≥ 2 hoặc ΔSwin-L ≥ 3 với CI > 0) → KHÔNG. RJ30 ≈ C2-OCT-1V (hơi âm); RJ60 liều cao bắt đầu loãng δ (R50 WB 96.9, R101 −3.5, CA3 −2.3) đổi lấy Swin-L +1.0 (CI chứa 0) — cùng mẫu trượt đường đánh đổi như LVX nhưng nhẹ hơn (RJ không rescale ảnh nên loãng ít hơn). Khớp dự đoán: khóa thang kích thước gần cạn sau SCL25 (bão hòa). **Jitter thang RoI KHÔNG thêm lợi.**
+**KẾT: đào lại C2 (RJ) + WP2 (E33) hôm nay đều KHÔNG. C2-OCT-1V + WP2 là cặp method chốt. Chuyển sang dev300 (định vị SOTA + cơ chế).**
