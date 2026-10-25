@@ -4158,3 +4158,22 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: OSFD B50 98.2 / 93.2
 - **200 ảnh mới (dev300 \ dev100):** WP2 − C2 Swin-L +4.7 [+1.5, +6.4], Swin-T +2.1 [+0.1, +4.3] → lợi WP2 LẶP LẠI ngoài dev100 (dev100 Swin-L +6.2, Swin-T −0.0 → ở 300 ảnh Swin-T cũng nhích).
 **Đọc:** lợi WP2 trên DINO-Swin-L giữ vững ở 300 ảnh (+4.8 so C2-OCT-1V, +13.8 so OSFD; tuyệt đối 37.3). Khác dev100: Swin-T cũng dương nhỏ (+2.0) — WP2 giúp họ Transformer rộng hơn chút, không chỉ DINO. Bộ ba method chốt cho bảng cuối: **OSFD (baseline) < C2-OCT-1V < C2-OCT-1V-WP2**, tăng đơn điệu trên mọi target khác họ. Trần Swin-L ~37 (1-R50, ε=5) khớp E19–E34.
 **Bước tiếp:** bảng baseline đầy đủ (MI, M-DI²) @ dev300; verify clean AP Generalization Panel (model_registry trống); rồi cân nhắc n300/n1000 + ε=8. Push + upload HF.
+
+---
+
+## 2026-10-25 — CHỐT panel đánh giá A/B/C (user confirm qua thảo luận + đối chiếu papers/2602.16494 benchmark) — khóa định nghĩa panel
+**Mục tiêu (user):** attack được CẢ nhóm A/B/C với 1 surrogate CNN duy nhất. Đây là **panel generalization/đánh giá cuối**, nhóm theo QUAN HỆ họ backbone với surrogate (khác panel Controlled của RQ1 — giữ nguyên, không bỏ).
+**Đối chiếu benchmark 2602.16494 (papers/):** benchmark dùng YOLOv3(DarkNet-53), Faster R-CNN(R50), FCOS(R50), DETR(R50), YOLOX(CSPNet), Mask R-CNN(Swin), DINO(Swin); chốt "cross-architecture CNN→ViT, đặc biệt DINO" là frontier (mọi attack fail transfer sang DINO). Panel dưới phủ FCOS/DINO/YOLOX/Swin/DarkNet của benchmark; xoáy DINO-Swin-L = đúng frontier.
+**Surrogate (khóa):** **Mask R-CNN R50** (checkpoint `mask-rcnn_r50_fpn_ms-poly-3x`, đã verify 40.9). Trong attack `skip_mask=True` → mask head KHÔNG dùng → tương đương Faster R-CNN two-stage về gradient. Mô tả paper: "Mask R-CNN R50, mask head unused in attack". KHÔNG relabel thành Faster R-CNN R50 (trọng số khác checkpoint FRC độc lập; đổi = phải chạy lại tất cả).
+**Panel A/B/C (6 target) — user confirm 2026-10-25:**
+| Nhóm | Định nghĩa | Model | Checkpoint / verify |
+|---|---|---|---|
+| A | backbone R50 (= surrogate), KHÁC detector head | FCOS-R50 | có, verified-pending-fill |
+| A | | **DINO-R50** (thay deformable_detr — user chọn; ghép cặp DINO-Swin-L cô lập backbone) | có (dino-4scale_r50), đã verify clean 53.1 |
+| B | backbone CNN KHÁC R50 | **YOLOv3-DarkNet53** (user thêm — phủ DarkNet của benchmark) | **THIẾU — cần tải + verify** |
+| B | | **YOLOX-S** (thay yolox_l — clean AP 40.5 ≈ surrogate, công bằng) | có, cần verify |
+| C | backbone Transformer | Mask R-CNN Swin-T | có, verified 46.0 |
+| C | | DINO-Swin-L (frontier) | có |
+**Giữ riêng — Controlled Panel (RQ1, không đổi):** Mask R-CNN R50 → R101 (same-family) / ConvNeXt-T (cross-CNN) / Swin-T (Transformer) — giữ detector cố định để cô lập backbone-family (benchmark không làm được điều này → điểm mạnh phương pháp).
+**Caveat khóa:** (1) DINO-R50 khác DINO-Swin-L ở lịch train (12e vs 36e) + scale (4 vs 5) ngoài backbone; (2) YOLOv3 clean AP (~33.7 nếu bản 608-ms) thấp hơn surrogate → relative drop đọc kèm clean AP; (3) DINO-Swin-L lệch capacity/pretrain (đã ghi protocol_lock).
+**Việc cần làm để dùng panel này:** (a) tải checkpoint YOLOv3 (mmdet v3, đề xuất `yolov3_d53_8xb8-ms-608-273e_coco`) + thêm vào `GEN_PANEL`/`targets.GEN`; (b) verify clean AP full val2017 cho YOLOv3 + YOLOX-S (+ FCOS-R50, DINO-R50 điền vào model_registry — hiện trống); (c) bỏ DINO-R50 khỏi `DIAG_ONLY` khi vào panel chính thức; (d) eval mọi method (OSFD, C2-OCT-1V, WP2, MI, M-DI²) trên 6 target A/B/C tại dev300 (forward trên PNG có sẵn, không attack lại). ~30–40 phút tải+verify + eval.
