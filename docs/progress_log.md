@@ -4149,3 +4149,12 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: C2-OCT-1V 99.4 / 93.
 - Báo cả WP2 − OSFD (so SOTA) + C2-OCT-1V − OSFD (tái lập mốc 10-18: CA3 +7.0, Swin-L +9.0). 200 ảnh mới (dev300 \ dev100) mô tả riêng.
 **Caveat:** mốc OSFD / C2-OCT-1V là PNG 10-18 (cùng V100, cùng seed); WP2 B36 sinh hôm nay (GPU không tất định → đọc CI); ρ = 0.002 không tune.
 **Chạy:** `results/screen_wp2_dev300/run.sh`, log `.../run.log`; metrics/dets/gen `*_screen_dev300.json`, tag `screen_wp2_dev300`.
+
+### Kết quả sàng lọc WP2 @ dev300 (V100, xong 14:52 GMT+7; `results/ablation/screen_wp2_dev300/screen.json`, `results/runs/dev300_B36_eps5_limit300/*_screen_dev300.json`, log `results/screen_wp2_dev300/run.log`) — theo quy tắc: **XÁC NHẬN WP2**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: OSFD B50 98.2 / 93.2 / 78.9 / 74.8 / 68.0 / 23.5 | 73.9; C2-OCT-1V B41 98.7 / 95.7 / 86.9 / 80.6 / 75.2 / 32.4 | 80.9; **WP2 B36 98.4 / 94.3 / 86.0 / 82.6 / 75.6 / 37.3 | 81.4**.
+- **WP2 − C2-OCT-1V: Swin-L +4.8 [+2.7, +6.7]** (≥ 3, CI > 0 ✓) VÀ R101 −1.3 [−2.3, 0.0] (≥ −3 ✓) VÀ CA3 +0.5 [−0.4, +1.8] (≥ −1 ✓) → **XÁC NHẬN**. Swin-T +2.0 [+0.1, +3.5] (DƯƠNG, CI > 0 — khác dev100 nơi Swin-T ≈ 0); ConvNeXt −0.8, YOLOX +0.3 (CI chứa 0).
+- WP2 − OSFD: **Swin-L +13.8 [+9.5, +15.7]**, CA3 +7.5 [+4.2, +8.5], mọi target khác họ > 0 CI loại 0 (ConvNeXt +7.2, Swin-T +7.8, YOLOX +7.6), R101 +1.1.
+- C2-OCT-1V − OSFD: tái lập mốc 10-18 (CA3 +7.0, Swin-L +9.0) — khớp.
+- **200 ảnh mới (dev300 \ dev100):** WP2 − C2 Swin-L +4.7 [+1.5, +6.4], Swin-T +2.1 [+0.1, +4.3] → lợi WP2 LẶP LẠI ngoài dev100 (dev100 Swin-L +6.2, Swin-T −0.0 → ở 300 ảnh Swin-T cũng nhích).
+**Đọc:** lợi WP2 trên DINO-Swin-L giữ vững ở 300 ảnh (+4.8 so C2-OCT-1V, +13.8 so OSFD; tuyệt đối 37.3). Khác dev100: Swin-T cũng dương nhỏ (+2.0) — WP2 giúp họ Transformer rộng hơn chút, không chỉ DINO. Bộ ba method chốt cho bảng cuối: **OSFD (baseline) < C2-OCT-1V < C2-OCT-1V-WP2**, tăng đơn điệu trên mọi target khác họ. Trần Swin-L ~37 (1-R50, ε=5) khớp E19–E34.
+**Bước tiếp:** bảng baseline đầy đủ (MI, M-DI²) @ dev300; verify clean AP Generalization Panel (model_registry trống); rồi cân nhắc n300/n1000 + ε=8. Push + upload HF.
