@@ -117,6 +117,8 @@ def run_iterative_attack(
     autograd.grad lấy thêm ∇θ của loss attack; trước bước sau đặt θ' = θ − rho·‖θ_t‖·∇θ_t / ‖∇θ_t‖ (từng tensor) -> surrogate
     "chống lại" δ hiện tại, gradient ảnh bước sau tính trên θ' (trễ 1 bước, không forward thêm). Caller khôi phục θ gốc.
     mode ("awt", β, lr) (E31 AWT-OD): θ tích lũy kiểu SAM 2 bước, +1 forward/backward θ mỗi bước (rho không dùng).
+    mode ("capwp", K, η, β_clip) (E35 CAP-WP): inner-optimization bilevel first-order K bước trong ρ-ball + clean-anchor;
+    views mang (c, fc) ở phần tử 4; θ reset θ0 mỗi outer step.
 
     init_noise (E20 basin test, progress_log 2026-10-24): δ khởi tạo (cùng shape orig_pixels, kẹp [−ε, ε]) thay cho 0;
     momentum vẫn khởi tạo 0. None = trùng tuyệt đối bản cũ.
@@ -217,6 +219,49 @@ def run_iterative_attack(
                         for p, p0 in zip(params, base):
                             p.copy_(p0)
                     g = gacc / K
+                elif isinstance(mode, tuple) and mode[0] == "capwp":
+                    # E35 CAP-WP (progress_log 2026-10-25): inner-optimization bilevel first-order. Mỗi outer step: θ từ θ0,
+                    # K inner bước giải min_θ [L_adv + β·D_clean] trong ρ-ball (chiếu từng tensor); β balancing tại θ1 (β=0 ở
+                    # inner 1 vì ∇D_clean≈0 tại θ0). g_x tại θ*. views carry (c, fc) ở phần tử 4 cho D_clean. θ0 khôi phục cuối step.
+                    from attack.preprocess import extract_features
+                    _, K, eta_c, beta_clip = mode
+
+                    def _ladv():  # L_adv tại θ hiện tại (recompute, fc cố định θ0 trong closure view[2])
+                        L = None
+                        for vw in views:
+                            t = vw[2](model, vw[0], vw[1])
+                            t = t[0] + t[1] if isinstance(t, tuple) else t
+                            L = t if L is None else L + t
+                        return L
+
+                    def _dclean():  # Σ_l [1 − cos(F_l(c;θ), sg fc_l)], fc = clean feature tại θ0
+                        D = None
+                        for vw in views:
+                            c_img, fc0 = vw[3]
+                            for fa, f0 in zip(extract_features(model, c_img, vw[1]), fc0):
+                                d = 1 - torch.nn.functional.cosine_similarity(fa.flatten(), f0.flatten(), dim=0)
+                                D = d if D is None else D + d
+                        return D
+
+                    def _proj_step(gcomb_list, from_cur):  # cập nhật θ (từ cur nếu from_cur, else từ θ0) + chiếu ρ-ball
+                        with torch.no_grad():
+                            for p, p0, gc in zip(params, base, gcomb_list):
+                                u = (p - p0 if from_cur else torch.zeros_like(p0)) - eta_c * p0.norm() * gc / (gc.norm() + 1e-12)
+                                u = u * torch.clamp(rho * p0.norm() / (u.norm() + 1e-12), max=1.0)
+                                p.copy_(p0 + u)
+                    # inner 1: dùng loss đã tính ở θ0 (β=0)
+                    _proj_step(torch.autograd.grad(loss, params), from_cur=False)
+                    for _k in range(1, K):
+                        la = _ladv(); ga = torch.autograd.grad(la, params, retain_graph=True)
+                        dc = _dclean(); gd = torch.autograd.grad(dc, params)
+                        ma = sum(float(g.abs().mean()) for g in ga) / len(ga)
+                        md = sum(float(g.abs().mean()) for g in gd) / len(gd)
+                        beta = min(max(ma / (md + 1e-12), beta_clip[0]), beta_clip[1])
+                        _proj_step([a + beta * d for a, d in zip(ga, gd)], from_cur=True)
+                    g = torch.autograd.grad(_ladv(), noise)[0]
+                    with torch.no_grad():
+                        for p, p0 in zip(params, base):
+                            p.copy_(p0)
                 elif isinstance(mode, tuple) and mode[0] == "awt":
                     # E31 AWT-OD (progress_log 2026-10-24, arXiv 2408.09469): θ_t TÍCH LŨY (không đặt lại từ θ0). ∇ₓ, ∇θ cùng
                     # 1 lần grad tại θ_t; θ̂ = θ_t + β‖θ0‖ĝθ (ascend, per-tensor); +1 forward/backward CÙNG view (ảnh detach,

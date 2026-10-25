@@ -406,7 +406,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
-                    is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None):
+                    is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
+                    weight_capwp=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -718,7 +719,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                     split=dual == "exact" or weight_def is not None, stage_pool=stage_pool,
                                     size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w,
                                     fpa=fpa)
-                out.append((v, dsv, _with_ctx(lf, ctx) if rapa_cls is not None else lf))
+                lf2 = _with_ctx(lf, ctx) if rapa_cls is not None else lf
+                out.append((v, dsv, lf2, (c, fc)) if weight_capwp is not None else (v, dsv, lf2))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
             else:
@@ -726,6 +728,20 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         return out
 
     wp = None
+    if weight_capwp is not None:
+        # E35 CAP-WP (progress_log 2026-10-25): inner-optimization + clean-anchor, chỉ conv backbone (weight_scope).
+        assert (geo == "elem" and cls_weight > 0 and feature and co_transform and n_views == 1
+                and backward_per_step == 1 and weight_rho is None and weight_awt is None and dual is None
+                and not cache_views and weight_scope in ("backbone", "nolayer3", "layer4"))
+        named = [(n, m.weight) for n, m in model.backbone.named_modules()
+                 if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
+        if weight_scope == "layer4":
+            named = [(n, p) for n, p in named if n.startswith("layer4.")]
+        elif weight_scope == "nolayer3":
+            named = [(n, p) for n, p in named if not n.startswith("layer3.")]
+        params = [p for _, p in named]
+        K, eta_c, rho_c, beta_clip = weight_capwp  # (K, η, ρ, (β_lo, β_hi))
+        wp = (params, rho_c, [p.detach().clone() for p in params], None, ("capwp", K, eta_c, beta_clip), None)
     if weight_rho is not None or weight_awt is not None:
         # C2-OCT-1V-WP (progress_log 2026-10-21): nhiễu trọng số conv backbone (chỉ tensor requires_grad — stage đóng băng
         # của mmdet giữ nguyên), core.run_iterative_attack(weight_perturb). Feature sạch co-transform cũng tính trên θ'.
