@@ -4217,3 +4217,11 @@ relative AP drop % | A:fcos / dino_r50 | B:yolov3 / yolox | C:dino_sl | Avg5 | A
 - M-DI² B50:  97.4 / 97.6 | 80.9 / 76.1 | 55.2 | 81.4 | 70.7
 - WP2 B36:    99.3 / 98.6 | 93.8 / 91.9 | 57.9 | 88.3 | **81.2**
 **So ε=5 vs ε=10 (AvgB+C, dev30):** WP2−OSFD +6.3 (ε=5) → **−1.0 (ε=10)**; WP2−M-DI² +15.5 → +10.5. DINO-Swin-L ε=10 hòa (OSFD 57.4 / WP2 57.9). → Trên panel A/B/C cũng xác nhận: ưu thế method chỉ ở ε NHỎ (ε=5, native OSFD), ε=10 OSFD bão hòa bắt kịp (ε=10 ngoài native OSFD ε=5 — xem check paper 2026-10-25). WP2 luôn hơn M-DI². Mốc chuẩn báo cáo = ε=5.
+
+---
+
+## 2026-10-25 — Quick test k của L_OSFD (k=1/2 vs WP2 k=3) @ dev30 panel A/B/C (user: "approve") — CHỈ MÔ TẢ
+**Giả thuyết:** ablation cũ k=5≈k=3 (không phải nguyên liệu cho OSFD thuần); k=1 CHƯA test. OBJ note (10-18): k=3 tạo gradient feature NGƯỢC L_cls (cos tới −0.56) → k nhỏ có thể giảm xung đột, giúp kênh cls (DINO-Swin-L) dù yếu hơn cho feature (CNN/YOLOX). λ=4 GIỮ NGUYÊN (không tune lại cho k mới) để tách riêng hiệu ứng k.
+**Ô (gốc C2-OCT-1V-WP2, B36, chỉ đổi k):** K1 (k=1), K2 (k=2); mốc WP2 (k=3, PNG abc_dev30 có sẵn). **Sức khỏe (ảnh 1–4):** bão hòa/R50 xóa — WP2 80/92, K1 77/89, K2 79/92 (≥0.8×WP2) QUA; 4.0 s/ảnh ≈ WP2.
+**Đọc (so WP2 k=3 cùng 30 ảnh, panel A/B/C):** nếu DINO-Swin-L TĂNG khi k↓ VÀ CA3/B+C không sụp → xác nhận giả thuyết xung đột, cân nhắc dev100; CNN/YOLOX dự kiến giảm (feature yếu hơn). Mô tả, không quy tắc GO.
+**Chạy:** `results/ksweep_dev30/run.sh` (tmux).
