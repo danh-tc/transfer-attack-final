@@ -4136,3 +4136,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: C2-OCT-1V 99.4 / 93.
 Δ so C2-OCT-1V (Swin-L | CA3): RJ30 −2.3 [−4.6, +1.2] | −1.1; **RJ60 +1.0 [−2.4, +2.7] | −2.3** (ConvNeXt −3.6, R101 −3.5). Liều RJ60 − RJ30: Swin-L +3.3, CA3 −1.2.
 **Đọc:** không ô nào đạt (ΔCA3 ≥ 2 hoặc ΔSwin-L ≥ 3 với CI > 0) → KHÔNG. RJ30 ≈ C2-OCT-1V (hơi âm); RJ60 liều cao bắt đầu loãng δ (R50 WB 96.9, R101 −3.5, CA3 −2.3) đổi lấy Swin-L +1.0 (CI chứa 0) — cùng mẫu trượt đường đánh đổi như LVX nhưng nhẹ hơn (RJ không rescale ảnh nên loãng ít hơn). Khớp dự đoán: khóa thang kích thước gần cạn sau SCL25 (bão hòa). **Jitter thang RoI KHÔNG thêm lợi.**
 **KẾT: đào lại C2 (RJ) + WP2 (E33) hôm nay đều KHÔNG. C2-OCT-1V + WP2 là cặp method chốt. Chuyển sang dev300 (định vị SOTA + cơ chế).**
+
+---
+
+## 2026-10-25 — Sàng lọc C2-OCT-1V-WP2 @ dev300 (user: "Approve, run luôn") — khóa TRƯỚC khi chạy
+**Mục đích:** xác nhận lợi WP2 ở dev100 (Swin-L +6.2 so C2-OCT-1V, +11.5 so OSFD) có giữ ở 300 ảnh không — bước định vị cho paper. KHÔNG phải GO/NO-GO method mới (WP2 đã chốt); đây là mở rộng tập.
+**Dùng lại (KHÔNG chạy lại):** OSFD B50 (`dev300_B50_eps5_limit300`) + C2-OCT-1V B41 (`dev300_B41_eps5_limit300`) — PNG + dets đã có trên HF (sàng lọc 10-18, cùng V100). Chỉ kéo dets + gen_dets về.
+**Chạy mới:** `C2-OCT-1V-WP2` **B36** (= cùng thời gian OSFD B50 trên V100, nhất quán dev100), run `dev300_B36_eps5_limit300`, attack + eval 6 model (Controlled Panel qua run_baselines, yolox_s + dino_swin_l qua eval_generalization), dets cùng tên `dets_screen_dev300.json` để pair_screen gộp 3 run.
+**Quy tắc đọc (dev300, paired bootstrap 1000, BOOT_SEED 2026; như dev100):**
+- **XÁC NHẬN WP2** (vào bảng cuối làm method Swin-L) nếu ΔSwin-L(WP2 − C2-OCT-1V) ≥ 3 VÀ cận dưới CI > 0 VÀ ΔR101 ≥ −3 VÀ ΔCA3 ≥ −1.
+- **KHÔNG tái lập** nếu ΔSwin-L < 3 hoặc CI chứa 0 → ghi nhận lợi dev100 không giữ ở 300 ảnh; WP2 vẫn báo cáo nhưng không claim; user quyết.
+- Báo cả WP2 − OSFD (so SOTA) + C2-OCT-1V − OSFD (tái lập mốc 10-18: CA3 +7.0, Swin-L +9.0). 200 ảnh mới (dev300 \ dev100) mô tả riêng.
+**Caveat:** mốc OSFD / C2-OCT-1V là PNG 10-18 (cùng V100, cùng seed); WP2 B36 sinh hôm nay (GPU không tất định → đọc CI); ρ = 0.002 không tune.
+**Chạy:** `results/screen_wp2_dev300/run.sh`, log `.../run.log`; metrics/dets/gen `*_screen_dev300.json`, tag `screen_wp2_dev300`.
