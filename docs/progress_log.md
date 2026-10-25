@@ -4187,3 +4187,13 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: OSFD B50 98.2 / 93.2
 **Đọc:** mô tả relative AP drop 5 target × 5 method; chú ý nhóm A (fcos/dino_r50 — backbone R50 giống surrogate, kỳ vọng drop cao), B (yolov3/yolox — CNN khác, vừa), C (dino_swin_l — thấp). KHÔNG quy tắc quyết định; chỉ xem WP2/C2 có giữ thứ hạng trên panel mới không.
 **Caveat:** n=30 nhiễu lớn; clean AP target tính trên 30 ảnh (không phải verify full val2017 — để sau); YOLOv3/DINO-R50 chưa điền model_registry.
 **Chạy:** `results/abc_dev30/run.sh` (tmux), log `.../run.log`.
+
+### Kết quả quick panel A/B/C @ dev30 (V100, xong 16:31 GMT+7; `results/runs/*/generalization_abc_dev30.json`, log `results/abc_dev30/run.log`) — MÔ TẢ
+clean AP (n=30): fcos_r50 37.9 / dino_r50 49.5 / yolov3_d53 36.0 / yolox_s 40.0 / dino_swin_l 59.7.
+relative AP drop % — | A: fcos_r50 / dino_r50 | B: yolov3 / yolox_s | C: dino_swin_l |:
+- OSFD B50:        92.3 / 95.8 | 74.6 / 73.7 | 22.6
+- MI-FGSM B50:     77.7 / 92.2 | 36.7 / 35.4 | 16.2
+- M-DI²-FGSM B50:  92.8 / 94.0 | 62.0 / 56.7 | 24.8
+- C2-OCT-1V B41:   94.1 / 95.2 | 76.8 / 69.9 | 32.6
+- **C2-OCT-1V-WP2 B36: 90.6 / 94.2 | 77.2 / 75.2 | 37.5**
+**Đọc (mô tả, n=30 nhiễu):** thứ hạng giữ trên panel mới — nhóm **A** (backbone R50 = surrogate) mọi method cao 90s (dino_r50 94–96 tất cả; fcos: MI thấp 77.7, còn lại ~92–94). Nhóm **B** (CNN khác): **WP2 ≥ C2 > OSFD > M-DI² > MI** (yolov3 77 / yolox 75 cho WP2; MI sụp 37/35). Nhóm **C** DINO-Swin-L: **WP2 37.5 > C2 32.6 > M-DI² 24.8 ≈ OSFD 22.6 > MI 16.2**. → Panel mới tái lập đúng câu chuyện: our method dẫn ở mọi nhóm khác họ, WP2 tốt nhất ca khó. YOLOv3 (DarkNet) hành xử như yolox (CNN khác). Số paper vẫn cần dev300.
