@@ -4067,3 +4067,25 @@ R50/R101/ConvNeXt/Swin-T/YOLOX/Swin-L | CA3: WP2 98.8/91.4/82.7/82.6/77.1/35.5 |
 - **(c)** cosd DINO-Swin-L bb4 0.326 → 0.346, neck 2–4 tăng ~0.015, encoder 0.044 → 0.049 (Δ +0.005 < 0.01); A_enc Δ +0.006 [0.002, 0.010] → **H_repair BÁC** (encoder vẫn dập ~7×, như C).
 - **(d)** cos(δ_W, δ_C) **0.50** [0.48, 0.52] (WP2 đổi hướng δ đáng kể dù cùng loss / view); cos(δ, δ_S) 0.064 → 0.068 (+0.003); năng lượng dải thấp +1.2 điểm, cao −0.7; box_ratio ~1.0 cả hai. Loại lỗi (recall@0.3 nhỏ / vừa / lớn; FP nền / ảnh): **DINO-Swin-L** C .368/.635/.856, W .343/.597/.839, conf_ratio .889 = .890, FP nền 2.65 → 3.12 → lợi Swin-L đến từ **MẤT object** (mọi cỡ), không từ hạ score object còn sống. YOLOX / Swin-T: W ít FP nền hơn (10.3 → 7.0 / 21.0 → 16.9) + recall thấp hơn → WP2 dời lỗi từ "tạo FP" sang "xóa object".
 **Đọc:** không giả thuyết khóa nào đứng. Mô tả nhất quán: δ_WP2 (i) giữ gain trước R50 phòng thủ có hướng tốt hơn (+0.067, gần như theo định nghĩa của WP2), (ii) gain white-box THẤP hơn 13% nhưng transfer cao hơn (ít overfit R50), (iii) chỉ nửa trùng hướng δ_C2, dời distortion về stage 4 (mạnh nhất ở Swin-L), (iv) chuyển kiểu lỗi sang xóa object. KHÔNG thấy tiến về δ_SwinT (+0.003) hay vượt phép sửa encoder → khớp trần ~37 (E20/E24). Caveat: mốc C 10-18; r_def gần như vòng tròn (WP2 tối ưu đúng đại lượng đó) — chưa kiểm r_def có dự đoán transfer theo ảnh.
+
+---
+
+## 2026-10-25 — Chẩn đoán đổi surrogate (2): C2-OCT-1V với surrogate **DINO-R50** @ dev100 B41 (user duyệt "approve a", ~11:40 GMT+7) — khóa TRƯỚC khi chạy
+**Câu hỏi:** gap R50 → DINO-Swin-L (~32%) có một phần do **khác kiểu detector** giữa surrogate (Mask R-CNN) và target (DINO) không? Bổ trợ 2 chẩn đoán cũ: target DINO-R50 bị R50 phá 97.3% (09-23, phía target); surrogate Swin-T Mask R-CNN → Swin-L 58.0 (10-21, cùng họ backbone, khác detector). Ở đây: **cùng detector DINO, backbone CNN (R50)**. Chỉ PHÂN TÍCH — threat model vẫn khóa surrogate Mask R-CNN R50.
+**Ô `C2-OCT-1V-DETR` (surrogate `dino_r50` = `dino-4scale_r50_8xb2-12e_coco`):** C2-OCT-1V y nguyên (OCT 1 view, MI, AMP, ε = 5, B41), trừ: L_OSFD trên 3 stage backbone R50 của DINO (out_indices 1–3); L_cls = tổng 7 số hạng `*loss_cls` không-dn (enc + 6 decoder; `repair.cls_term("detr")`, train mode với BN / Dropout eval — dropout = 0, BN đóng băng); skip_mask tắt (không có mask head). **λ = 0.1 theo ĐÚNG quy tắc chọn λ = 4 cũ** (median 5 ảnh đầu dev300 của mean|∇ₓL_feat| / mean|∇ₓL_cls| tại δ = 0): R50 tái lập 3.78 ≈ 4; DINO-R50 0.10 (0.25 / 0.11 / 0.10 / 0.08 / 0.06). Khung ảnh DINO-R50 trùng R50 (kiểm dev10).
+**Sức khỏe (ảnh 1–4 dev300, B41, đã đo):** L∞ 5, bão hòa 76%; DINO-R50 white-box xóa 33 / 36 = 92%. 12.1 s / ảnh (~3× R50; cùng số bước, KHÔNG cùng thời gian — như chẩn đoán Swin-T).
+**Mốc:** sur R50 = `dev300_B41_eps5_limit100` / `C2-OCT-1V` (PNG + dets 10-18, HF); sur Swin-T = số 10-21 (58.0, không chạy lại).
+**Chạy (log `results/sur_dino/run.log`):**
+```bash
+python scripts/run_baselines.py --split dev300 --subset dev100 --limit 100 --budget 41 --surrogate dino_r50 --methods C2-OCT-1V-DETR --out metrics_c2_1v_dev100.json
+python scripts/eval_generalization.py --run dev300_B41_eps5_limit100_sur-dino_r50 --subset dev100 --models yolox_s dino_swin_l dino_r50 --methods C2-OCT-1V-DETR --dets dets_c2_1v_dev100.json --out generalization_surdino_dev100.json
+python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev100 --dets dets_c2_1v_dev100.json --tag sur_dino_dev100 --exclude dev30 \
+  --pairs C2-OCT-1V-DETR@dev300_B41_eps5_limit100_sur-dino_r50:C2-OCT-1V
+```
+**Quy tắc (dev100, paired bootstrap 1000, BOOT_SEED 2026; Δ = drop_Swin-L(sur DINO-R50) − drop_Swin-L(sur R50 Mask R-CNN), cùng ảnh):**
+- **Hợp lệ** chỉ khi white-box drop DINO-R50 (surrogate) ≥ 80%. Không đạt → KHÔNG HỢP LỆ.
+- **DETECTOR GÓP PHẦN** nếu Δ ≥ +10 VÀ cận dưới CI > 0 → một phần gap do khác kiểu detector; hướng method mới (vd surrogate R50 + "đầu" kiểu DETR / loss query-based) — entry riêng, user quyết threat model.
+- **CHỈ BACKBONE** nếu Δ < +5 (điểm) → gap gần như hoàn toàn do họ backbone (củng cố 09-23 + 10-21; câu chắc cho paper).
+- Còn lại → XÁM (mô tả, user quyết).
+- Mô tả: chiều DINO-R50 → Mask R-CNN R50 (cùng backbone, khác detector) / R101 / ConvNeXt / Swin-T / YOLOX; tỉ lệ Δ so với +26 của sur Swin-T; 70 ảnh mới (dev100 \ dev30); runtime.
+**Caveat khai báo trước:** DINO-R50 khác DINO-Swin-L ở lịch train (12e vs 36e), số scale (4 vs 5) ngoài backbone; R50 của DINO-R50 khác trọng số R50 của Mask R-CNN (cùng kiến trúc + pretrain IN-1k, fine-tune khác); λ theo quy tắc cũ, liều OCT giữ nguyên (không tune); mốc R50 là PNG 10-18 (GPU không tất định).

@@ -90,6 +90,14 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
     if cls == "c2":
         losses = model.loss(batch_inputs, batch_data_samples)
         return sum_loss_dict({t: losses[t] for t in C2_TERMS})
+    if cls == "detr":  # surrogate DINO (chẩn đoán progress_log 2026-10-25): mọi *loss_cls không-dn (enc + 6 lớp decoder)
+        from attack.targets import _loss_mode, select_terms  # tránh import vòng
+        _loss_mode(model, "dino")  # loss DINO cần train mode; BN / Dropout giữ eval (dropout = 0, BN đóng băng)
+        try:
+            losses = model.loss(batch_inputs, batch_data_samples)
+        finally:
+            model.eval()
+        return sum_loss_dict(select_terms(losses, "dino", "cls"))
     if cls == "rpn":  # chỉ loss_rpn_cls (progress_log 2026-10-08): bỏ sinh proposal + RoI head; nhãn GT -> 0 như two_stage.loss
         rpn_ds = copy.deepcopy(batch_data_samples)
         for d in rpn_ds:

@@ -42,6 +42,7 @@ from attack.methods.pia import geo_osfd_attack
 from attack.methods.repair import repair_robust_attack
 from attack.methods.sgm import GAMMAS, sgm_osfd_attack
 from attack.models import CONTROLLED_PANEL, SURROGATE_KEY, load_model
+from attack.targets import load_any
 from attack.preprocess import pipeline_resize, predict, to_adv_image
 
 ANN_FILE = os.path.join(REPO_ROOT, "data/coco/annotations/instances_val2017.json")
@@ -349,7 +350,11 @@ for _n, _kw in _E22.items():
     METHODS[_n] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_rho=0.002, **_kw), 1)
 # E31 AWT-OD (progress_log 2026-10-24): thay khối WP bằng AWT đầy đủ (SAM 2 bước, θ tích lũy), β = 0.005, lr = 0.002 (× ‖θ0‖).
 METHODS["C2-OCT-1V-AWT"] = (functools.partial(geo_osfd_attack, **_C2OCT, weight_awt=(0.005, 0.002)), 1)
-GEO_METHODS_1V = {*_E22, "C2-OCT-1V-AWT",*(f"C2-OCT-1V-WP2-OTSV{int(_b * 100)}{s}" for _b in _OTSV_BETAS for s in ("", "-IS")), "C2-OCT-1V-WP2-IS", *(f"C2-OCT-1V-WP2-PFA{int(_a * 100)}" for _a in _PFA_ALPHAS), "C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
+# Chẩn đoán surrogate DINO-R50 (progress_log 2026-10-25): C2-OCT-1V y nguyên, L_cls = mọi *loss_cls không-dn của DINO
+# (enc + 6 decoder), λ = 0.1 theo đúng quy tắc chọn λ = 4 của R50 (median 5 ảnh mean|∇L_feat| / mean|∇L_cls| tại δ = 0).
+METHODS["C2-OCT-1V-DETR"] = (functools.partial(geo_osfd_attack, **{**_C2OCT, "skip_mask": False, "cls_weight": 0.1},
+                                              cls_mode="detr"), 1)
+GEO_METHODS_1V = {*_E22, "C2-OCT-1V-AWT", "C2-OCT-1V-DETR",*(f"C2-OCT-1V-WP2-OTSV{int(_b * 100)}{s}" for _b in _OTSV_BETAS for s in ("", "-IS")), "C2-OCT-1V-WP2-IS", *(f"C2-OCT-1V-WP2-PFA{int(_a * 100)}" for _a in _PFA_ALPHAS), "C2-OCT-1V-WP2-C2W03", "C2-OCT-1V-WP2-C2W1", "C2-OCT-1V-WPA","C2-OCT-1V-WP2-XBG", "C2-OCT-1V-WP2-XBGS", "C2-OCT-1V-WP2-LN", "C2-OCT-1V-WP2-INall", "C2-OCT-1V-WP2-INs34", *(f"C2-OCT-1V-WP2-TXC{_s}" for _s in (1, 2, 3, 4, 6, 8)), "C2-OCT-1V-WP2-SZC", "C2-OCT-1V-WP2-SZ", "C2-OCT-1V-WP2-R", "C2-OCT-1V-WP2-SZR", "C2-OCT-1V-WP2", "C2-OCT-1V-WP5", "C2-OCT-1V-PD16", "C2-OCT-1V-PD32", "C2-OCT-1V-GLB7", "C2-OCT-1V-GLBG", "C2-OCT-1V-BPA", "C2-OCT-1V-BPA34", "C2-OCT-1V-MRG", "C2-OCT-1V-MRGF", "C2-OCT-1V-DM", "C2-OCT-1V-DMA", "C2-OCT-1V-OBJ15", "C2-OCT-1V-OBJ45", "C2-OCT-1V-FAB4", "C2-OCT-1V-FAB8", "C2-OCT-1V-FIA", "C2-OCT-1V-POS", "C2-OCT-1V-POS-CAP", "C2-OCT-1V-noCT", "C2-OCT-1V", "C2-PIA-1V", "C2-OCT-1V-w2", "C2-OCT-1V-w8", "C2-OCT-1V-RaPA", "C2-OCT-1V-RaPA005", "C2-OCT-1V-RaPA02",
                   "C2-OCT-1V-LA05", "C2-OCT-1V-LA1", "C2-OCT-1V-LA2", "C2-OCT-1V-ILPD05", "C2-OCT-1V-ILPD075"}
 ELEM_CELLS_C2 = {"OCT-1V-SEA", "OCT-1V-S", "OCT-1V", "OCT-fast", "OCT-fast-V4", "OCT-C4", "OCT-C34", "BG-OCT", "OCT+BG", "OCT-cache", "CLS-OCT-RaPA01-BB", "CLS-OCT-RaPA01-HEAD", "CLS-OCT-RaPA05", "CLS-OCT-RaPA01", "PH8R", "OCT", "C2-OCTR-fast", "C2-LVX-fast", "C2-PH8", "C2-SCL25", "C2-ANI25", "C2-SCL50", "C2-OCT", "C2-OCTS", "C2-OCT-fast", "CLS-OCT-fast", "RPN-OCT-fast"}
 GEO_METHODS = {"GEO-C0", "PIA", "PIA-d0.3", "PIA-aff", "PIA-N20", "C2-PIA", "PIA-noCT", "C2-MORGD", "C2-SMOOTH", "MORGD", "SMOOTH", "MORGD-RaPA",
@@ -623,7 +628,7 @@ def main():
     p.add_argument("--subset", default=None,
                    help="chỉ chạy các ảnh của data/image_lists/<subset>.csv bên trong split (vd dev100 trong "
                         "dev300); seed vẫn theo chỉ số trong split -> nối thêm ảnh sau không phải chạy lại")
-    p.add_argument("--surrogate", default=SURROGATE_KEY, choices=list(CONTROLLED_PANEL),
+    p.add_argument("--surrogate", default=SURROGATE_KEY, choices=list(CONTROLLED_PANEL) + ["dino_r50"],
                    help="kiểm tổng quát surrogate (progress_log 2026-10-08); khác r50 -> run riêng *_sur-<key>")
     p.add_argument("--snapshots", type=int, nargs="*", default=[],
                    help="mốc B < --budget: ghi δ sau từng mốc vào run B tương ứng (đường bão hòa, progress_log 2026-10-20)")
@@ -656,7 +661,7 @@ def main():
     print(f"[run] {run}: {len(dataset)} ảnh{' (subset ' + args.subset + ')' if args.subset else ''}, "
           f"methods={args.methods}", flush=True)
 
-    surrogate = load_model(args.surrogate, device)
+    surrogate = load_any(args.surrogate, device)  # dino_r50: chẩn đoán progress_log 2026-10-25
     stats = load_stats(stats_path)
     if args.stage in ("all", "attack"):
         stats = stage_attack(args, dataset, surrogate, adv_dir, stats_path, device)
