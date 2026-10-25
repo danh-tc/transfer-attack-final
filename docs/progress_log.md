@@ -4205,3 +4205,8 @@ relative AP drop % — | A: fcos_r50 / dino_r50 | B: yolov3 / yolox_s | C: dino_
 **Budget:** OSFD B50, M-DI² B50, WP2 B36 (cùng thời gian V100; runtime độc lập ε). **Eval:** cross-family + DINO-Swin-L (r101, ConvNeXt-T, Swin-T controlled; yolox_s, dino_swin_l gen).
 **Đọc (mô tả, n=30):** bảng drop ε=10 cho 3 method; WP2−OSFD và WP2−M-DI² (pair_screen CI); so tuyệt đối Swin-L với ε=5 (WP2 dev30 37.5). KHÔNG quy tắc quyết định — ε=10 ngoài plan, chỉ thăm dò; nếu hứa hẹn thì user quyết có đưa vào không.
 **Chạy:** `results/eps10_dev30/run.sh` (tmux), log `.../run.log`.
+
+### Kết quả quick test ε=10 @ dev30 (V100, xong 17:00 GMT+7; `results/ablation/eps10_dev30/screen.json`, `results/runs/dev300_B{50,36}_eps10_limit100/*_eps10_dev30.json`, log `results/eps10_dev30/run.log`) — MÔ TẢ
+R50/R101/ConvNeXt/Swin-T/YOLOX/DINO-Swin-L | Cross3: OSFD B50 99.4/98.2/96.4/97.0/93.8/**57.4**|95.8; M-DI² B50 99.3/98.0/90.8/88.5/76.1/55.2|85.1; **WP2 B36 100.0/98.5/97.0/95.5/91.9/57.9**|94.8.
+Δ: **WP2 − OSFD: Swin-L +0.4 [−8.1,+7.1], Cross3 −1.0** (NGANG — ưu thế biến mất); WP2 − M-DI²: Cross3 +9.7 [5.1,13.5], YOLOX +15.8, Swin-L +2.7; M-DI² − OSFD: Cross3 −10.7.
+**Đọc:** (1) ε=10 đẩy DINO-Swin-L ~57–58 cho CẢ WP2 lẫn OSFD → vượt 50 là do EPSILON, không do method. (2) **Ưu thế WP2 vs OSFD (ε=5: +13.8 Swin-L dev300) BIẾN MẤT ở ε=10** — ε lớn thì OSFD tự transfer tốt, mọi attack bão hòa (CNN ~96–100). Khớp quan sát ε=8 cũ (WP2−C2 +1.2). (3) WP2 vẫn hơn M-DI² rõ. **Hệ quả paper:** giá trị method nằm ở ε NHỎ (budget siết → overfit surrogate là nút thắt); ủng hộ chọn ε=5 primary; KHÔNG claim "Swin-L>50 ở ε=10" là đóng góp method (OSFD cũng 57).
