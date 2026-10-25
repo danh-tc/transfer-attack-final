@@ -4197,3 +4197,11 @@ relative AP drop % — | A: fcos_r50 / dino_r50 | B: yolov3 / yolox_s | C: dino_
 - C2-OCT-1V B41:   94.1 / 95.2 | 76.8 / 69.9 | 32.6
 - **C2-OCT-1V-WP2 B36: 90.6 / 94.2 | 77.2 / 75.2 | 37.5**
 **Đọc (mô tả, n=30 nhiễu):** thứ hạng giữ trên panel mới — nhóm **A** (backbone R50 = surrogate) mọi method cao 90s (dino_r50 94–96 tất cả; fcos: MI thấp 77.7, còn lại ~92–94). Nhóm **B** (CNN khác): **WP2 ≥ C2 > OSFD > M-DI² > MI** (yolov3 77 / yolox 75 cho WP2; MI sụp 37/35). Nhóm **C** DINO-Swin-L: **WP2 37.5 > C2 32.6 > M-DI² 24.8 ≈ OSFD 22.6 > MI 16.2**. → Panel mới tái lập đúng câu chuyện: our method dẫn ở mọi nhóm khác họ, WP2 tốt nhất ca khó. YOLOv3 (DarkNet) hành xử như yolox (CNN khác). Số paper vẫn cần dev300.
+
+---
+
+## 2026-10-25 — Quick test ε=10 @ dev30: WP2 / M-DI² / OSFD (user: "Dev30, epsilon 10 thử") — CHỈ MÔ TẢ, thăm dò ngoài idea.md (primary ε=5, secondary ε=8)
+**Mục đích:** xem ε=10 có đẩy DINO-Swin-L lên không và WP2 còn dẫn không (so quick test ε=8 dev10 cũ: WP2 Swin-L 50.6 nhưng WP2−C2 chỉ +1.2). PNG ε=5 KHÔNG dùng lại được → attack mới cả 3.
+**Budget:** OSFD B50, M-DI² B50, WP2 B36 (cùng thời gian V100; runtime độc lập ε). **Eval:** cross-family + DINO-Swin-L (r101, ConvNeXt-T, Swin-T controlled; yolox_s, dino_swin_l gen).
+**Đọc (mô tả, n=30):** bảng drop ε=10 cho 3 method; WP2−OSFD và WP2−M-DI² (pair_screen CI); so tuyệt đối Swin-L với ε=5 (WP2 dev30 37.5). KHÔNG quy tắc quyết định — ε=10 ngoài plan, chỉ thăm dò; nếu hứa hẹn thì user quyết có đưa vào không.
+**Chạy:** `results/eps10_dev30/run.sh` (tmux), log `.../run.log`.
