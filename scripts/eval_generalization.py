@@ -49,6 +49,7 @@ GEN_PANEL = {
     "dino_swin_l": ("dino/dino-5scale_swin-l_8xb2-36e_coco.py", "dino-5scale_swin-l*"),
     # Chẩn đoán post hoc (progress_log 2026-09-23), KHÔNG thuộc panel định trước: tách hiệu ứng
     # kiểu detector DINO khỏi backbone Swin-L. Chỉ bản 12e có checkpoint chính thức.
+    "yolov3_d53": ("yolo/yolov3_d53_8xb8-ms-608-273e_coco.py", "yolov3_d53_mstrain-608*"),
     "dino_r50": ("dino/dino-4scale_r50_8xb2-12e_coco.py", "dino-4scale_r50_8xb2-12e*"),
     # Chẩn đoán post hoc: config GIỐNG HỆT Swin-T của Controlled Panel, chỉ khác depths
     # [2,2,18,2] (capacity) — cùng pretrain IN-1k 224, cùng lịch 3x.

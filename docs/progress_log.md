@@ -4177,3 +4177,13 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: OSFD B50 98.2 / 93.2
 **Giữ riêng — Controlled Panel (RQ1, không đổi):** Mask R-CNN R50 → R101 (same-family) / ConvNeXt-T (cross-CNN) / Swin-T (Transformer) — giữ detector cố định để cô lập backbone-family (benchmark không làm được điều này → điểm mạnh phương pháp).
 **Caveat khóa:** (1) DINO-R50 khác DINO-Swin-L ở lịch train (12e vs 36e) + scale (4 vs 5) ngoài backbone; (2) YOLOv3 clean AP (~33.7 nếu bản 608-ms) thấp hơn surrogate → relative drop đọc kèm clean AP; (3) DINO-Swin-L lệch capacity/pretrain (đã ghi protocol_lock).
 **Việc cần làm để dùng panel này:** (a) tải checkpoint YOLOv3 (mmdet v3, đề xuất `yolov3_d53_8xb8-ms-608-273e_coco`) + thêm vào `GEN_PANEL`/`targets.GEN`; (b) verify clean AP full val2017 cho YOLOv3 + YOLOX-S (+ FCOS-R50, DINO-R50 điền vào model_registry — hiện trống); (c) bỏ DINO-R50 khỏi `DIAG_ONLY` khi vào panel chính thức; (d) eval mọi method (OSFD, C2-OCT-1V, WP2, MI, M-DI²) trên 6 target A/B/C tại dev300 (forward trên PNG có sẵn, không attack lại). ~30–40 phút tải+verify + eval.
+
+---
+
+## 2026-10-25 — Quick run panel A/B/C @ dev30 (user: "Approve", xem nhanh xu hướng trên panel mới) — MÔ TẢ, không quyết định
+**Mục đích:** nhìn nhanh 5 method (MI, M-DI², OSFD, C2-OCT-1V, WP2) trên 5 target generalization MỚI gộp [A: fcos_r50, dino_r50 | B: yolov3_d53, yolox_s | C: dino_swin_l] @ dev30. CHỈ mô tả (n=30 nhiễu); số paper cần dev300.
+**Dùng lại:** OSFD B50 (`dev300_B50_eps5_limit300`), C2-OCT-1V B41 (`dev300_B41_eps5_limit100`, dets_c2_1v_dev100), WP2 B36 (`dev300_B36_eps5_limit100`, dets_wpa_dev100). **Attack mới:** MI-FGSM, M-DI²-FGSM B50 trên dev30. **YOLOv3** mới tải (`yolov3_d53_mstrain-608`, DarkNet-53, clean AP ~33.7) + wire GEN_PANEL/targets; smoke infer OK.
+**Budget:** OSFD/MI/M-DI² B50, C2-OCT-1V B41, WP2 B36 (cùng thời gian V100). ε=5.
+**Đọc:** mô tả relative AP drop 5 target × 5 method; chú ý nhóm A (fcos/dino_r50 — backbone R50 giống surrogate, kỳ vọng drop cao), B (yolov3/yolox — CNN khác, vừa), C (dino_swin_l — thấp). KHÔNG quy tắc quyết định; chỉ xem WP2/C2 có giữ thứ hạng trên panel mới không.
+**Caveat:** n=30 nhiễu lớn; clean AP target tính trên 30 ảnh (không phải verify full val2017 — để sau); YOLOv3/DINO-R50 chưa điền model_registry.
+**Chạy:** `results/abc_dev30/run.sh` (tmux), log `.../run.log`.

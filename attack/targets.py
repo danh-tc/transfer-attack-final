@@ -22,6 +22,7 @@ CKPT = os.path.join(REPO_ROOT, "checkpoints")
 GEN = {
     "yolox_s": ("yolox/yolox_s_8xb8-300e_coco.py", "yolox_s_8x8*"),
     "dino_swin_l": ("dino/dino-5scale_swin-l_8xb2-36e_coco.py", "dino-5scale_swin-l*"),
+    "yolov3_d53": ("yolo/yolov3_d53_8xb8-ms-608-273e_coco.py", "yolov3_d53_mstrain-608*"),
     "dino_r50": ("dino/dino-4scale_r50_8xb2-12e_coco.py", "dino-4scale_r50_8xb2-12e*"),
 }
 
