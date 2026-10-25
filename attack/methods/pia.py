@@ -406,7 +406,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
-                    is_supp=None, weight_awt=None):
+                    is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -726,13 +726,17 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         # của mmdet giữ nguyên), core.run_iterative_attack(weight_perturb). Feature sạch co-transform cũng tính trên θ'.
         # weight_scope (E22, progress_log 2026-10-24): "backbone" (mặc định) | "layer3" | "nolayer3" (layer2 + layer4) |
         # "head" (rpn_conv, rpn_cls, shared_fcs, fc_cls — đường phân loại, chỉ weight) | "backbone+head".
-        assert weight_scope in ("backbone", "layer3", "nolayer3", "head", "backbone+head")
-        params = []
+        # "layer4" (E33, progress_log 2026-10-25): chỉ layer4.
+        assert weight_scope in ("backbone", "layer3", "nolayer3", "layer4", "head", "backbone+head")
+        params, names = [], []
         if weight_scope != "head":
             named = [(n, m.weight) for n, m in model.backbone.named_modules()
                      if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
-            params = [p for n, p in named if weight_scope in ("backbone", "backbone+head")
-                      or (weight_scope == "layer3") == n.startswith("layer3.")]
+            if weight_scope == "layer4":
+                named = [(n, p) for n, p in named if n.startswith("layer4.")]
+            elif weight_scope not in ("backbone", "backbone+head"):
+                named = [(n, p) for n, p in named if (weight_scope == "layer3") == n.startswith("layer3.")]
+            params, names = [p for _, p in named], [n for n, _ in named]
         if weight_scope in ("head", "backbone+head"):
             bh, rh = model.roi_head.bbox_head, model.rpn_head
             params += [rh.rpn_conv.weight, rh.rpn_cls.weight, bh.shared_fcs[0].weight, bh.shared_fcs[1].weight,
@@ -759,7 +763,17 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         # weight_def (E23, progress_log 2026-10-24): "feat" | "cls" — surrogate chỉ phòng thủ chống L_OSFD | λ·L_cls.
         assert weight_def is None or (weight_def in ("feat", "cls") and weight_mode == "def" and dual is None
                                       and cls_weight > 0 and feature)
-        wp = (params, weight_rho, [p.detach().clone() for p in params], weight_eta, mode,
+        rho = weight_rho
+        if weight_rho_l4 is not None:
+            # E33 WP2-L4x: ρ riêng cho tensor layer4 (backbone scope), còn lại weight_rho.
+            assert weight_scope == "backbone" and mode == "def" and weight_eta is None and weight_def is None
+            rho = [weight_rho_l4 if n.startswith("layer4.") else weight_rho for n in names]
+        if weight_rho_sched is not None:
+            # E33 WP2-RS: ρ tuyến tính (đầu, cuối) theo bước t = 0..T−1 (weight_rho không dùng).
+            assert weight_rho_l4 is None and mode == "def" and weight_eta is None
+            r0, r1 = weight_rho_sched
+            rho = lambda t, T: r0 + (r1 - r0) * t / max(1, T - 1)
+        wp = (params, rho, [p.detach().clone() for p in params], weight_eta, mode,
               None if weight_def is None else ("feat", "cls").index(weight_def))
     bn_saved = []
     if bn_inst is not None:

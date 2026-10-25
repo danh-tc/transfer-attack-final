@@ -4097,3 +4097,18 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh:
 **Quy tắc:** white-box 99.0 ≥ 80 → HỢP LỆ. Δ_Swin-L = **−2.9 [−8.8, −0.5]** < +5 → **CHỈ BACKBONE**. 70 ảnh mới: −3.8 [−9.3, −0.3].
 **Mô tả:** surrogate DINO-R50 transfer KÉM HƠN ở mọi target: CA3 −18.1 [−22.5, −14.6], R101 −20.7, Swin-T −20.3, YOLOX −17.0, ConvNeXt −16.9; kể cả Mask R-CNN R50 (cùng kiến trúc backbone) chỉ 86.8. Bất đối xứng: R50 Mask R-CNN → DINO-R50 97.3% (09-23, n300) nhưng DINO-R50 → R50 Mask R-CNN 86.8%. DINO-Swin-L ~30 bất kể surrogate là Mask R-CNN hay DINO (cùng backbone CNN); chỉ đổi họ backbone (sur Swin-T, 10-21) mới đẩy lên 58.
 **Đọc:** ba chẩn đoán độc lập (target DINO-R50 09-23; sur Swin-T 10-21; sur DINO-R50 hôm nay) cùng chỉ: **bức tường R50 → DINO-Swin-L là họ backbone, không phải kiểu detector**; khớp cả encoder "sửa" lẫn query-based loss đều KHÔNG giúp khi backbone surrogate vẫn là CNN. Hướng "đổi / khớp kiến trúc detector của surrogate" đóng. Caveat: λ theo quy tắc cũ, liều OCT không tune cho DINO; DINO-R50 khác DINO-Swin-L cả lịch train / số scale.
+
+---
+
+## 2026-10-25 — E33: dồn phòng thủ WP về layer4 + lịch ρ @ dev30 B36 (user: "ưu tiên rẻ, xác định lại dựa trên suy luận về data hiện có") — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Chọn lọc từ data (bỏ trước khi code):** WP2-AS (ASAM từng phần tử) — E28 cho thấy chọn phần tử / thời điểm không quan trọng; WP2-BN (phòng thủ γ/β BN) — họ "bất biến biên độ / kênh" âm 3 lần (LN, IN, C2W); WP2-RAP (phẳng phía input, DRAP arXiv 2504.16474) — E19: δ_SwinT không phẳng hơn phía input, và tốn thêm forward. LTA (latent VAE, arXiv 2603.06311) cần thêm mạng VAE + ε = 16 mềm → không làm.
+**Cơ sở (data có sẵn):** E22 noL3 (layer2 + 4) giữ 108% lợi, L3 chỉ 58%; E32 WP2 dời distortion về stage 4, ΔT₄ Swin-L +0.031 (gấp đôi Swin-T); WP5 (ρ 0.005 toàn backbone) mất lợi + hại R101 / Swin-T → giả thuyết: liều cao chỉ hại ở layer nông, tăng liều CỤC BỘ ở layer4 giữ lợi. Literature hỗ trợ diễn giải WP2 = robust hóa surrogate lúc attack ("Defense That Attacks", arXiv 2512.02830: surrogate AT transfer CNN→ViT tốt hơn hẳn; không có bản không-train).
+**Ô (gốc C2-OCT-1V-WP2, B36, cùng chi phí — không thêm forward; code `pia.geo_osfd_attack(weight_scope="layer4", weight_rho_l4, weight_rho_sched)`, `core` ρ list / callable):**
+- `C2-OCT-1V-WP-L4`: phòng thủ CHỈ layer4 (10 tensor), ρ = 0.002 — layer4 có tự gánh lợi không.
+- `C2-OCT-1V-WP2-L4x`: toàn backbone ρ = 0.002, riêng layer4 ρ = 0.005 — ứng viên cải tiến.
+- `C2-OCT-1V-WP2-RS`: ρ tuyến tính 0.004 → 0 theo bước (TB 0.002) — lợi đến sớm hay muộn (kỳ vọng thấp: pha sụp E20 là với init δ_SwinT).
+**Kiểm:** `scripts/e33_unit_test.py` QUA (ρ float = list hằng = callable hằng trùng tuyệt đối; list → ‖Δθ‖ = ρ_i‖θ0‖; lịch đúng; scope layer4 chỉ chạm layer4; θ khôi phục torch.equal; L∞ 5). **Sức khỏe (ảnh 1–4, B36):** bão hòa / R50 xóa — WP2 80% / 92%; WP-L4 79% / 95%; L4x 80% / 92%; RS 80% / 92% → QUA cả 3; 3.6 s / ảnh (= WP2).
+**Mốc:** WP2 B36 dev30 = PNG 10-23 (HF `_v100`, cùng run dir) — eval lại cùng lần.
+**Đọc (so WP2 B36 cùng 30 ảnh, như E27 / E28):** BƯỚC NHẢY ΔSwin-L ≥ +10 & ΔCA3 ≥ −3 → dev100; CÓ TÍN HIỆU +3 ≤ ΔSwin-L < +10 & ΔCA3 ≥ −3 → dev100 (khóa entry); KHÔNG nếu ΔSwin-L < +3. Mô tả: WP-L4 giữ bao nhiêu % lợi của WP2 so C2-OCT-1V (mốc C2 dev30 = PNG 10-18 cùng dets dev100); R101 / YOLOX / Swin-T.
+**Caveat:** dev30 đã dùng nhiều lần; 3 ô so sánh bội; mốc WP2 khác ngày (GPU không tất định); ρ = 0.005 / lịch đặt trước, không tune.
+**Chạy:** `results/e33/run.sh`, log `results/e33/run.log`; metrics `metrics_e33_dev30.json`, dets `dets_e33_dev30.json`, pair_screen tag `e33_dev30`.

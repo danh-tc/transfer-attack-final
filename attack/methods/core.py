@@ -269,9 +269,13 @@ def run_iterative_attack(
                     else:
                         gall = torch.autograd.grad(loss, [noise] + params)
                     g = gall[0]
+                    # E33 (progress_log 2026-10-25): rho có thể là list theo tensor (liều riêng layer4) | callable(step, steps)
+                    # (lịch ρ, θ' tính ở bước t dùng ở bước t + 1). float = như cũ.
+                    rho_t = rho(step_idx, steps) if callable(rho) else rho
+                    rhos = rho_t if isinstance(rho_t, (list, tuple)) else [rho_t] * len(params)
                     with torch.no_grad():
-                        for p, p0, gp in zip(params, base, gall[1:]):
-                            p.copy_(wp_update(p, p0, -gp if mode == "asc" else gp, rho, eta))
+                        for p, p0, gp, r in zip(params, base, gall[1:], rhos):
+                            p.copy_(wp_update(p, p0, -gp if mode == "asc" else gp, r, eta))
             else:
                 g = torch.autograd.grad(loss, noise)[0]
             grad = g if grad is None else grad + g
