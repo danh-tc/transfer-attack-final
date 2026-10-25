@@ -4232,3 +4232,16 @@ relative AP drop % | A:fcos/dino_r50 | B:yolov3/yolox | C:dino_sl | Avg5 | AvgB+
 - K2 k=2:  88.0/91.8 | 77.2/77.9 | 34.8 | 73.9 | 63.3
 - K1 k=1:  93.0/92.4 | 74.9/71.1 | 34.7 | 73.2 | 60.2
 **Đọc:** DINO-Swin-L k=3 (37.5) > k=2 (34.8) ≈ k=1 (34.7) → k nhỏ KHÔNG giúp kênh cls (giả thuyết xung đột gradient OBJ-note BÁC); AvgB+C k=3=k=2>k=1 (k=1 hại feature, khớp OSFD gốc k=3>k=1). Chênh nhỏ (dev30 nhiễu) nhưng xu hướng rõ: **k=3 tối ưu, giữ nguyên.** Đóng câu hỏi k (cùng ablation cũ k=5≈k=3).
+
+---
+
+## 2026-10-25 — E35: CAP-WP (Clean-Anchored Projected WP) — CỔNG oracle-retention trước (user duyệt đề xuất paste) — khóa TRƯỚC khi code
+**Ý tưởng (đề xuất user):** thay WP2 (1 bước phòng thủ trễ) bằng inner-optimization bilevel: mỗi outer step giải θ* = argmin_θ [L_adv(x+δ;θ) + β·D_clean(x;θ,θ0)] trong ρ-ball (chiếu từng tensor ‖θ_l−θ0_l‖≤ρ‖θ0_l‖), rồi g_x tại θ*. **Mới so họ WP cũ:** (a) inner-descent nhiều bước có chiếu (sửa drift của AWT-OD E31); (b) **clean-anchor** D_clean = Σ_l[1−cos(F_l(T(x);θ), sg F_l(T(x);θ0))] — ép surrogate thành "repairer giữ hành vi sạch", nối E32 (H_repair BÁC: δ_WP2 KHÔNG qua được phép sửa encoder DINO) + nhánh Repair-Robust (10-04).
+**Vì sao cổng trước:** đắt (1.7–2.2×, B16–21 cùng thời gian); họ WP (WPA/ENS/spike/scope/AWT/schedule) tới giờ đều ≤ WP2; chỉ clean-anchor là đòn bẩy mới. E25 ENS fail cổng này (retention 45). Test landscape "defended+clean-anchored" có GIỮ được vùng δ chung mà gradient ascent xói mòn (E20/E24) không.
+**Cấu hình (khóa, KHÔNG quét):** K=2 inner; ρ=0.002 (kế thừa WP2); η=0.001/inner (2 bước → bán kính ≤ 0.002 trước chiếu); clean-anchor backbone **toàn bộ** (vòng đầu kiểm giả thuyết; tối ưu layer2+4 để sau); β = balancing per-ảnh tại θ1 (sau inner step 1, vì tại θ0 ∇D_clean≈0), clip [0.1, 10], **KHÔNG chọn theo Swin-L**; first-order bilevel (detach θ sau mỗi inner, không second-order). Reuse CÙNG OCT view suốt inner loop (không EOT). Khôi phục θ0 cuối mỗi outer step + cuối ảnh.
+**Cổng oracle-retention (dev30, init δ = δ_SwinT, Swin-L B0 ~59; snapshot B4/B12/B24; so WP2-IS B12 39.8 (E20), ENS-IS 45–46 (E25)):**
+- **QUA** (đáng chạy từ-zero): B12 Swin-L **≥ 52 VÀ R50 ≥ 95**.
+- **XÁM** (thử from-zero dev10): B12 Swin-L 47–52.
+- **DỪNG**: B12 Swin-L ≤ 45 → clean-anchor cũng không giữ vùng chung; tăng K vô ích.
+**Kiểm trước khi chạy cổng:** unit test (θ khôi phục torch.equal; ‖θ−θ0‖≤ρ‖θ0‖ từng tensor; β=0 & η=0 ≈ không đổi θ; L∞=ε); sức khỏe white-box ảnh 1–4 (R50 xóa ≥ 0.8×WP2). Ràng buộc: thao tác weight lúc attack từng ảnh, khôi phục θ0 — KHÔNG fine-tune bằng dữ liệu (như WP2/AWT).
+**Chạy:** code `core` mode ("capwp",K,η,β_clip,stages) + `pia.geo_osfd_attack(weight_capwp=)`; ô `C2-OCT-1V-CAPWP` / `-IS`. Cổng: `results/e35/run.sh`.
