@@ -1,0 +1,35 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.85s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[e32] 10/100  r_0.01 C 1.002 W 1.001
+[e32] 20/100  r_0.01 C 1.004 W 1.001
+[e32] 30/100  r_0.01 C 1.006 W 1.000
+[e32] 40/100  r_0.01 C 1.004 W 0.999
+[e32] 50/100  r_0.01 C 1.002 W 1.000
+[e32] 60/100  r_0.01 C 1.001 W 1.000
+[e32] 70/100  r_0.01 C 1.001 W 1.000
+[e32] 80/100  r_0.01 C 1.001 W 1.001
+[e32] 90/100  r_0.01 C 1.001 W 1.001
+[e32] 100/100  r_0.01 C 1.000 W 1.001
+saved /workspace/transfer-attack-final/results/mechanism/e32_wp2_dissect.json
+(a) r_0.002: C 1.000 W 1.000 Δ +0.000 [-0.002, +0.002] | r_0.005: C 1.000 W 1.001 Δ +0.001 [-0.001, +0.003] | r_0.01: C 1.000 W 1.001 Δ +0.001 [-0.002, +0.003] | r_0.02: C 1.000 W 1.001 Δ +0.001 [-0.002, +0.004] | r_def: C 0.765 W 0.832 Δ +0.067 [+0.057, +0.077] | G0: C 15.640 W 13.599 Δ -2.041 [-2.318, -1.803] | G_r101: C 12.794 W 12.086 Δ -0.707 [-0.838, -0.569]
+(b) r50: D1 C 0.334 W 0.333 ΔT +0.000 [+0.000, +0.000] | D2 C 0.708 W 0.715 ΔT +0.000 [+0.000, +0.000] | D3 C 1.058 W 1.058 ΔT +0.000 [+0.000, +0.000] | D4 C 1.202 W 1.178 ΔT +0.000 [+0.000, +0.000]
+(b) r101: D1 C 0.215 W 0.214 ΔT -0.002 [-0.002, -0.001] | D2 C 0.623 W 0.629 ΔT -0.000 [-0.001, +0.000] | D3 C 0.981 W 0.983 ΔT +0.002 [+0.001, +0.004] | D4 C 1.067 W 1.058 ΔT +0.011 [+0.008, +0.014]
+(b) convnext_t: D1 C 0.462 W 0.463 ΔT +0.005 [+0.004, +0.006] | D2 C 0.365 W 0.369 ΔT +0.002 [+0.001, +0.003] | D3 C 0.568 W 0.568 ΔT +0.001 [-0.002, +0.004] | D4 C 0.676 W 0.676 ΔT +0.011 [+0.008, +0.014]
+(b) swin_t: D1 C 0.339 W 0.338 ΔT -0.003 [-0.003, -0.002] | D2 C 0.542 W 0.546 ΔT -0.001 [-0.002, -0.000] | D3 C 0.787 W 0.796 ΔT +0.009 [+0.007, +0.011] | D4 C 0.573 W 0.580 ΔT +0.014 [+0.012, +0.017]
+(b) dino_swin_l: D1 C 0.364 W 0.362 ΔT -0.002 [-0.003, -0.002] | D2 C 0.441 W 0.443 ΔT -0.002 [-0.003, -0.001] | D3 C 0.657 W 0.673 ΔT +0.015 [+0.012, +0.017] | D4 C 0.801 W 0.824 ΔT +0.031 [+0.027, +0.036]
+(c) cosd DINO: cosd_dino_swin_l_bb0: C 0.068 W 0.067 | cosd_dino_swin_l_bb1: C 0.099 W 0.100 | cosd_dino_swin_l_bb2: C 0.219 W 0.230 | cosd_dino_swin_l_bb3: C 0.326 W 0.346 | cosd_dino_swin_l_neck0: C 0.096 W 0.096 | cosd_dino_swin_l_neck1: C 0.184 W 0.187 | cosd_dino_swin_l_neck2: C 0.246 W 0.261 | cosd_dino_swin_l_neck3: C 0.263 W 0.282 | cosd_dino_swin_l_neck4: C 0.160 W 0.177 | cosd_dino_swin_l_enc0: C 0.044 W 0.049 | A_enc Δ +0.006 [+0.002, +0.010]
+(d) band_lo: C 0.344 W 0.356 | band_mid: C 0.359 W 0.354 | band_hi: C 0.297 W 0.290 | cos_S: C 0.064 W 0.068 | box_ratio: C 1.010 W 1.005 | l2: C 4282.500 W 4275.358 | cos_WC +0.498 [+0.480, +0.516]
+sup Swin-L 0.259165403535995 0.2736884897221305 | verdict {"H_flat": "BÁC", "rho_star": 0.02, "spearman_dr_dsup": {"point": 0.004834228721816078, "ci95": [-0.16718857309873045, 0.1908900191843337], "excludes_0": false, "n": 97}, "H_flat_predicts": false, "H_feat": "BÁC", "H_repair": "BÁC"}
