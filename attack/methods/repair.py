@@ -166,6 +166,32 @@ def roi_size_weight(model, thr_model: float, w_large: float):
 
 
 @contextlib.contextmanager
+def roi_jitter(model, r: float, gen):
+    """C2-OCT-1V-RJ (progress_log 2026-10-25): đa dạng THANG RoI tách rời rescale ảnh. Trước RoIAlign, co giãn mỗi RoI
+    (pos + neg) quanh tâm theo hệ số log-uniform s = exp(U(−r, r)) -> classifier RoI head được đánh giá ở nhiều thang pooling
+    (mức FPN + lưới 7×7 khác nhau) thay vì đúng một thang của R50; nhãn GT (gán từ proposal gốc) KHÔNG đổi, δ / ảnh / L_OSFD
+    KHÔNG đổi (khác LVX: không rescale ảnh nên không làm loãng δ). loss_rpn_cls KHÔNG đổi (RPN trước extractor)."""
+    ext = model.roi_head.bbox_roi_extractor
+    orig = ext.forward
+
+    def fwd(feats, rois, roi_scale_factor=None):
+        if r and len(rois):
+            j = rois.clone()
+            cx, cy = (j[:, 1] + j[:, 3]) / 2, (j[:, 2] + j[:, 4]) / 2
+            hw, hh = (j[:, 3] - j[:, 1]) / 2, (j[:, 4] - j[:, 2]) / 2
+            s = torch.exp((torch.rand(len(j), generator=gen, device=j.device, dtype=j.dtype) * 2 - 1) * r)
+            j[:, 1], j[:, 3] = cx - hw * s, cx + hw * s
+            j[:, 2], j[:, 4] = cy - hh * s, cy + hh * s
+            rois = j
+        return orig(feats, rois, roi_scale_factor)
+    ext.forward = fwd
+    try:
+        yield
+    finally:
+        ext.forward = orig
+
+
+@contextlib.contextmanager
 def roi_margin(model, mode: str, scale: float):
     """C2-OCT-1V-MRG / -MRGF (progress_log 2026-10-20, kiểu CW): thay CE của RoI head bằng margin KHÔNG chặn trên RoI DƯƠNG:
     L = scale · mean_{RoI dương} (max_{c ≠ đúng} z_c − z_đúng); mode "all": c chạy mọi logit khác lớp đúng (kể cả nền),

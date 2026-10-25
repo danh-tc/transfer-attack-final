@@ -4117,3 +4117,16 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh:
 R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: WP2 98.5 / 92.1 / 83.2 / 83.2 / 75.2 / 37.5 | 80.5; WP-L4 99.1 / 92.6 / 83.4 / 80.2 / 76.2 / 34.7 | 80.0; WP2-L4x 98.7 / 90.2 / 80.9 / 82.6 / 75.4 / 34.7 | 79.6; WP2-RS 98.9 / 91.5 / 80.2 / 77.7 / 76.7 / 32.8 | 78.2.
 Δ so WP2 (Swin-L | CA3): WP-L4 −2.8 [−6.0, +1.9] | −0.6; L4x −2.8 [−6.5, +1.3] | −0.9; **RS −4.7 [−6.5, −2.2]** | −2.3 (Swin-T −5.5).
 **Đọc:** không ô nào ΔSwin-L ≥ +3 → KHÔNG. (i) Tăng liều cục bộ layer4 KHÔNG thêm lợi (L4x ≈ WP-L4 < WP2) → giả thuyết "liều cao chỉ hại ở layer nông" BÁC. (ii) Chỉ layer4 giữ ~60% lợi Swin-L (34.7 vs WP2 37.5, mốc C2 dev30 ~30.2 ngày 10-24 — khác ngày, chỉ ước lượng); cùng E22 (L3 58%, noL3 108%) → lợi PHÂN TÁN trên các stage, không stage nào đủ một mình. (iii) Lịch ρ giảm dần HẠI (CI loại 0) → phòng thủ cần ở CẢ các bước cuối; ρ hằng là tốt nhất trong các dạng đã thử. Họ WP (liều, cộng dồn, AWT, ensemble, spike, scope, lịch, liều theo stage) đều ≤ WP2.
+
+---
+
+## 2026-10-25 — E34: RJ — jitter THANG RoI (tách rời rescale ảnh) @ dev30 B41 (user: "duyệt, run dev30", đào lại C2) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Cơ sở (data + search):** khóa thang kích thước của L_cls mới gỡ ~80% bằng co giãn ảnh (C2-SCL25 r = 0.81), SCL50 bão hòa; LVX (đẩy object qua ranh giới mức FPN) ÂM vì rescale ảnh làm δ loãng (R50 WB 99→92). Search (10-25): bất biến scale ở mức ảnh = SIM/SI-NI-FGSM (classification) = thứ SCL/OCT đã làm; KHÔNG thấy prior art jitter thang RoI tách rời rescale ảnh cho transfer detection → RJ là núm chưa động + có novelty. Kỳ vọng thấp–vừa (SCL bão hòa → khóa RoI có thể gần cạn).
+**Ô (gốc C2-OCT-1V, B41 = cùng thời gian OSFD; `pia.geo_osfd_attack(roi_jit=r)`, `repair.roi_jitter`):** trước RoIAlign, co giãn ĐẲNG HƯỚNG mỗi RoI (pos + neg) quanh tâm theo s = exp(U(−r, r)); nhãn GT (gán từ proposal gốc) KHÔNG đổi; ảnh / δ / L_OSFD / loss_rpn_cls KHÔNG đổi (RPN trước extractor) → classifier RoI head bị ép bền trước nhiều thang pooling (mức FPN + lưới 7×7), KHÁC LVX (không rescale ảnh → không loãng δ). `C2-OCT-1V-RJ30` (r = 0.3), `C2-OCT-1V-RJ60` (r = 0.6). Gen riêng seed + 23.
+**Kiểm:** `scripts/rj_unit_test.py` QUA (trên tensor rois cố định vì R50+amp không tất định): r = 0 no-op; r = 0.3 batch_idx + tâm giữ, |log s| ≤ 0.3 có phương sai, đẳng hướng; attack L∞ = 5 hữu hạn. **Sức khỏe (ảnh 1–4, B41):** bão hòa / R50 WB — RJ30 80% / 95%, RJ60 80% / 89% (≥ 0.8 × C2-OCT-1V 92%) QUA; 4.2 / 3.9 s/ảnh ≈ C2-OCT-1V B41 (cùng thời gian).
+**Mốc:** C2-OCT-1V B41 dev30 = PNG `dev300_B41_eps5_limit100` (HF, 10-18) — eval cùng lần.
+**Đọc (so C2-OCT-1V B41 cùng 30 ảnh, paired bootstrap 1000, BOOT_SEED 2026):**
+- **GO dev100** nếu [(ΔCA3 ≥ 2 VÀ cận dưới CI > 0) HOẶC (ΔSwin-L ≥ 3 VÀ cận dưới CI > 0 VÀ ΔCA3 ≥ −1)] VÀ ΔR101 ≥ −3. **KHÔNG** nếu cả hai nhánh trượt. Liều: RJ60 − RJ30 (mô tả). Chọn ô Δ lớn hơn nếu GO.
+- Mô tả: YOLOX / Swin-T / ConvNeXt riêng; so C2-SCL25 cũ (cùng ý "gỡ khóa kích thước").
+**Caveat:** dev30 đã dùng nhiều; mốc C2 PNG 10-18 khác ngày (GPU không tất định); r đặt trước, không tune; RJ chỉ chạm loss_cls RoI (loss_rpn_cls không đổi).
+**Chạy:** `results/e34/run.sh`, log `results/e34/run.log`; metrics `metrics_e34_dev30.json`, dets `dets_e34_dev30.json`, tag `e34_dev30`.

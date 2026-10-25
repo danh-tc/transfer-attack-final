@@ -406,7 +406,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
-                    is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None):
+                    is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -552,6 +552,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         from attack.methods.repair import roi_size_weight
         sx, sy = data_sample.metainfo["scale_factor"]
         roi_ctx = lambda: roi_size_weight(model, roi_size_w[0] * sx * sy, roi_size_w[1])
+    if roi_jit is not None:  # C2-OCT-1V-RJ (progress_log 2026-10-25): jitter thang RoI trước RoIAlign (gen riêng seed + 23)
+        assert roi_ctx is None and cls_weight > 0 and cls_mode == "c2" and dual is None
+        from attack.methods.repair import roi_jitter
+        _rj_gen = torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 23)
+        roi_ctx = lambda: roi_jitter(model, roi_jit, _rj_gen)
     if geo.startswith("grgd") or geo.endswith("2"):
         rng_xi = random.Random(torch.initial_seed() + 1)
         rng_c = random.Random(torch.initial_seed() + 2)
