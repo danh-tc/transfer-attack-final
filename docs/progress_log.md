@@ -4210,3 +4210,10 @@ relative AP drop % — | A: fcos_r50 / dino_r50 | B: yolov3 / yolox_s | C: dino_
 R50/R101/ConvNeXt/Swin-T/YOLOX/DINO-Swin-L | Cross3: OSFD B50 99.4/98.2/96.4/97.0/93.8/**57.4**|95.8; M-DI² B50 99.3/98.0/90.8/88.5/76.1/55.2|85.1; **WP2 B36 100.0/98.5/97.0/95.5/91.9/57.9**|94.8.
 Δ: **WP2 − OSFD: Swin-L +0.4 [−8.1,+7.1], Cross3 −1.0** (NGANG — ưu thế biến mất); WP2 − M-DI²: Cross3 +9.7 [5.1,13.5], YOLOX +15.8, Swin-L +2.7; M-DI² − OSFD: Cross3 −10.7.
 **Đọc:** (1) ε=10 đẩy DINO-Swin-L ~57–58 cho CẢ WP2 lẫn OSFD → vượt 50 là do EPSILON, không do method. (2) **Ưu thế WP2 vs OSFD (ε=5: +13.8 Swin-L dev300) BIẾN MẤT ở ε=10** — ε lớn thì OSFD tự transfer tốt, mọi attack bão hòa (CNN ~96–100). Khớp quan sát ε=8 cũ (WP2−C2 +1.2). (3) WP2 vẫn hơn M-DI² rõ. **Hệ quả paper:** giá trị method nằm ở ε NHỎ (budget siết → overfit surrogate là nút thắt); ủng hộ chọn ε=5 primary; KHÔNG claim "Swin-L>50 ở ε=10" là đóng góp method (OSFD cũng 57).
+
+### ε=10 @ dev30 trên panel A/B/C đầy đủ (bổ sung fcos/dino_r50/yolov3 từ PNG ε=10 có sẵn; `results/eps10_dev30/eval_abc.log`) — MÔ TẢ
+relative AP drop % | A:fcos / dino_r50 | B:yolov3 / yolox | C:dino_sl | Avg5 | AvgB+C:
+- OSFD B50:   98.3 / 99.2 | 95.5 / 93.8 | 57.4 | 88.8 | **82.2**
+- M-DI² B50:  97.4 / 97.6 | 80.9 / 76.1 | 55.2 | 81.4 | 70.7
+- WP2 B36:    99.3 / 98.6 | 93.8 / 91.9 | 57.9 | 88.3 | **81.2**
+**So ε=5 vs ε=10 (AvgB+C, dev30):** WP2−OSFD +6.3 (ε=5) → **−1.0 (ε=10)**; WP2−M-DI² +15.5 → +10.5. DINO-Swin-L ε=10 hòa (OSFD 57.4 / WP2 57.9). → Trên panel A/B/C cũng xác nhận: ưu thế method chỉ ở ε NHỎ (ε=5, native OSFD), ε=10 OSFD bão hòa bắt kịp (ε=10 ngoài native OSFD ε=5 — xem check paper 2026-10-25). WP2 luôn hơn M-DI². Mốc chuẩn báo cáo = ε=5.
