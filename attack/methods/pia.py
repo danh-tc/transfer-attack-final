@@ -407,7 +407,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
-                    weight_capwp=None):
+                    weight_capwp=None, hardview=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -480,6 +480,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     # pfa = (α, τ, w) (C2-OCT-1V-WP2-PFA, progress_log 2026-10-24): pfa_hook trên layer3 suốt lần attack; lệch cửa sổ rút
     # đều mỗi view (RNG riêng seed + 11 -> chuỗi view OCT trùng ô gốc), CÙNG lệch cho feature sạch và adv của view.
     assert pfa is None or (n_views == 1 and backward_per_step == 1 and not cache_views)
+    assert hardview is None or (geo == "elem" and cls_weight > 0 and feature and co_transform
+                                and n_views == 1 and backward_per_step == 1 and not cache_views and pfa is None)
     pfa_state = {"off": (0, 0)}
     pfa_rng = random.Random(torch.initial_seed() + 11) if pfa is not None else None
     # otsv = β (C2-OCT-1V-WP2-OTSV, E21, progress_log 2026-10-24): bước lẻ forward ảo OTSV (otsv_hook trên layer3, box GT
@@ -614,6 +616,28 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
 
     def views_fn(img, ds, step_idx, total):
         cw = cls_weight_at(step_idx, total)
+        if hardview is not None:
+            # E37 HardBank/CVaR-OCT (progress_log 2026-10-25): bank cố định n_scale×n_phase; chọn view L_adv THẤP NHẤT
+            # (hardest = δ phá kém nhất), chỉ view đó backward. 1 backward + bank forward no-grad / bước.
+            from attack.methods.elem import elem_views
+            n_sc, n_ph = hardview
+            a_sc = elem["scale"]
+            us = [(-a_sc + 2 * a_sc * i / (n_sc - 1)) if n_sc > 1 else 0.0 for i in range(n_sc)]
+            phases = [(0, 0), (2, 2), (1, 3), (3, 1)][:n_ph]
+            bank = [(u, dx, dy) for u in us for (dx, dy) in phases]
+            trs = elem_views(img, len(bank), elem, sigma, companion=clean_pixels, data_sample=ds, fixed=bank)
+            best, best_l = None, None
+            with torch.no_grad():
+                for v, c, dsv in trs:
+                    fcj = tuple(f.detach() for f in extract_features(model, c, ds))
+                    lj = make_view_loss(fcj, k, cls_mode, cw)(model, v, dsv)
+                    lj = float(lj[0] + lj[1] if isinstance(lj, tuple) else lj)
+                    if best_l is None or lj < best_l:
+                        best_l, best = lj, (v, c, dsv)
+            v, c, dsv = best
+            with torch.no_grad():
+                fc = tuple(f.detach() for f in extract_features(model, c, ds))
+            return [(v, dsv, make_view_loss(fc, k, cls_mode, cw))]
         if cache is not None:
             out = []
             for _ in range(n_views):
