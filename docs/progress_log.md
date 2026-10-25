@@ -4225,3 +4225,10 @@ relative AP drop % | A:fcos / dino_r50 | B:yolov3 / yolox | C:dino_sl | Avg5 | A
 **Ô (gốc C2-OCT-1V-WP2, B36, chỉ đổi k):** K1 (k=1), K2 (k=2); mốc WP2 (k=3, PNG abc_dev30 có sẵn). **Sức khỏe (ảnh 1–4):** bão hòa/R50 xóa — WP2 80/92, K1 77/89, K2 79/92 (≥0.8×WP2) QUA; 4.0 s/ảnh ≈ WP2.
 **Đọc (so WP2 k=3 cùng 30 ảnh, panel A/B/C):** nếu DINO-Swin-L TĂNG khi k↓ VÀ CA3/B+C không sụp → xác nhận giả thuyết xung đột, cân nhắc dev100; CNN/YOLOX dự kiến giảm (feature yếu hơn). Mô tả, không quy tắc GO.
 **Chạy:** `results/ksweep_dev30/run.sh` (tmux).
+
+### Kết quả k-sweep @ dev30 A/B/C (V100, xong 18:45 GMT+7; `results/runs/dev300_B36_eps5_limit100/generalization_k_dev30.json`, log `results/ksweep_dev30/run.log`) — MÔ TẢ: **giả thuyết BÁC, giữ k=3**
+relative AP drop % | A:fcos/dino_r50 | B:yolov3/yolox | C:dino_sl | Avg5 | AvgB+C:
+- WP2 k=3: 90.6/94.2 | 77.2/75.2 | **37.5** | 74.9 | 63.3
+- K2 k=2:  88.0/91.8 | 77.2/77.9 | 34.8 | 73.9 | 63.3
+- K1 k=1:  93.0/92.4 | 74.9/71.1 | 34.7 | 73.2 | 60.2
+**Đọc:** DINO-Swin-L k=3 (37.5) > k=2 (34.8) ≈ k=1 (34.7) → k nhỏ KHÔNG giúp kênh cls (giả thuyết xung đột gradient OBJ-note BÁC); AvgB+C k=3=k=2>k=1 (k=1 hại feature, khớp OSFD gốc k=3>k=1). Chênh nhỏ (dev30 nhiễu) nhưng xu hướng rõ: **k=3 tối ưu, giữ nguyên.** Đóng câu hỏi k (cùng ablation cũ k=5≈k=3).
