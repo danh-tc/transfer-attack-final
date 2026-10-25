@@ -1,0 +1,9 @@
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+[run] dev300_B41_eps5_limit5_sur-dino_r50: 5 ảnh, methods=['C2-OCT-1V-DETR']
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+[attack C2-OCT-1V-DETR] 5/5  12.1s/ảnh  còn ~0 phút

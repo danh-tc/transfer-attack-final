@@ -4089,3 +4089,11 @@ python scripts/pair_screen.py --run dev300_B41_eps5_limit100 --subset dev100 --d
 - Còn lại → XÁM (mô tả, user quyết).
 - Mô tả: chiều DINO-R50 → Mask R-CNN R50 (cùng backbone, khác detector) / R101 / ConvNeXt / Swin-T / YOLOX; tỉ lệ Δ so với +26 của sur Swin-T; 70 ảnh mới (dev100 \ dev30); runtime.
 **Caveat khai báo trước:** DINO-R50 khác DINO-Swin-L ở lịch train (12e vs 36e), số scale (4 vs 5) ngoài backbone; R50 của DINO-R50 khác trọng số R50 của Mask R-CNN (cùng kiến trúc + pretrain IN-1k, fine-tune khác); λ theo quy tắc cũ, liều OCT giữ nguyên (không tune); mốc R50 là PNG 10-18 (GPU không tất định).
+
+### Kết quả @ dev100 B41 (V100, xong 12:06 GMT+7; `results/ablation/sur_dino_dev100/screen.json`, `results/runs/dev300_B41_eps5_limit100_sur-dino_r50/{metrics_c2_1v,generalization_surdino}_dev100.json`, log `results/sur_dino/run.log`) — theo quy tắc: **HỢP LỆ, CHỈ BACKBONE**
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh:
+- sur R50 (10-18): 96.9 / 93.2 / 82.4 / 78.4 / 70.6 / **32.1** | 77.2 | ~4
+- sur DINO-R50: 86.8 / 72.4 / 65.5 / 58.1 / 53.7 / **29.2** | 59.1 | 11.9 (~3×); DINO-R50 white-box **99.0**
+**Quy tắc:** white-box 99.0 ≥ 80 → HỢP LỆ. Δ_Swin-L = **−2.9 [−8.8, −0.5]** < +5 → **CHỈ BACKBONE**. 70 ảnh mới: −3.8 [−9.3, −0.3].
+**Mô tả:** surrogate DINO-R50 transfer KÉM HƠN ở mọi target: CA3 −18.1 [−22.5, −14.6], R101 −20.7, Swin-T −20.3, YOLOX −17.0, ConvNeXt −16.9; kể cả Mask R-CNN R50 (cùng kiến trúc backbone) chỉ 86.8. Bất đối xứng: R50 Mask R-CNN → DINO-R50 97.3% (09-23, n300) nhưng DINO-R50 → R50 Mask R-CNN 86.8%. DINO-Swin-L ~30 bất kể surrogate là Mask R-CNN hay DINO (cùng backbone CNN); chỉ đổi họ backbone (sur Swin-T, 10-21) mới đẩy lên 58.
+**Đọc:** ba chẩn đoán độc lập (target DINO-R50 09-23; sur Swin-T 10-21; sur DINO-R50 hôm nay) cùng chỉ: **bức tường R50 → DINO-Swin-L là họ backbone, không phải kiểu detector**; khớp cả encoder "sửa" lẫn query-based loss đều KHÔNG giúp khi backbone surrogate vẫn là CNN. Hướng "đổi / khớp kiến trúc detector của surrogate" đóng. Caveat: λ theo quy tắc cũ, liều OCT không tune cho DINO; DINO-R50 khác DINO-Swin-L cả lịch train / số scale.
