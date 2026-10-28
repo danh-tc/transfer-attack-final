@@ -1,0 +1,26 @@
+{
+ "yolov3_d53": {
+  "drop_RD_minus_OSFD": [
+   5.4,
+   -3.3,
+   15.0
+  ],
+  "ASR_RD_minus_OSFD": [
+   -6.6,
+   -15.6,
+   2.0
+  ]
+ },
+ "yolox_l": {
+  "drop_RD_minus_OSFD": [
+   -0.6,
+   -7.1,
+   7.6
+  ],
+  "ASR_RD_minus_OSFD": [
+   -10.0,
+   -20.4,
+   -1.3
+  ]
+ }
+}

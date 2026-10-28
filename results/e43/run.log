@@ -1,0 +1,165 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.57s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: yolov3_d53
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: yolox_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  yolov3_d53: 36.0  yolox_l: 49.8
+
+=== relative AP drop % [95% CI] ===
+                             r101           yolov3_d53              yolox_l
+C2-OCT-1V      92.9 [ 84.3, 95.9]   76.4 [ 64.5, 81.0]   61.3 [ 50.4, 69.6]
+C2-OCT-1V-WP2   92.3 [ 84.5, 95.1]   76.0 [ 63.0, 82.0]   71.9 [ 59.6, 76.8]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V      16.6 [ 11.7, 24.3]   31.6 [ 21.1, 39.1]
+C2-OCT-1V-WP2   16.3 [ 10.4, 25.6]   20.4 [ 14.7, 28.5]
+
+=== method_diff ===
+                                 yolov3_d53              yolox_l
+C2-OCT-1V-WP2 - C2-OCT-1V   -0.3 [ -5.5,  4.3]   10.6 [  1.6, 14.0]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B36_eps5_limit100/generalization_e43a_dev30.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.52s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: yolov3_d53
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: yolox_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  yolov3_d53: 36.0  yolox_l: 49.8
+
+=== relative AP drop % [95% CI] ===
+                             r101           yolov3_d53              yolox_l
+C2-OCT-1V-WP2-RD   92.1 [ 83.1, 94.9]   79.7 [ 68.4, 85.7]   72.2 [ 58.8, 77.8]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V-WP2-RD   12.4 [  6.3, 18.5]   19.8 [ 14.0, 28.4]
+
+=== method_diff ===
+                                 yolov3_d53              yolox_l
+saved: /workspace/transfer-attack-final/results/runs/dev300_B36_eps5_limit100/generalization_e43b_dev30.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.58s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: yolov3_d53
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: yolox_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  yolov3_d53: 36.0  yolox_l: 49.8
+
+=== relative AP drop % [95% CI] ===
+                             r101           yolov3_d53              yolox_l
+OSFD           91.2 [ 82.1, 95.5]   74.3 [ 59.8, 82.8]   72.8 [ 55.4, 80.0]
+
+=== headroom = drop(R101) − drop(model) ===
+OSFD           16.9 [  7.6, 27.7]   18.4 [ 11.1, 31.3]
+
+=== method_diff ===
+                                 yolov3_d53              yolox_l
+
+=== model_diff (OSFD) ===
+  yolov3_d53 - yolox_l           1.5 [ -5.3, 11.3]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B50_eps5_limit100/generalization_e43_dev30.json

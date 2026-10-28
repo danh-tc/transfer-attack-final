@@ -4407,3 +4407,13 @@ Clean AP (n = 30): DETR-R50 36.4, DINO-R50 49.5. Relative drop % (AP adv) — DE
 ## 2026-10-28 — E43: nhóm B panel chốt — eval YOLOv3-D53 + YOLOX-L trên PNG dev30 có sẵn (user: "1 thôi", ~22:35 GMT+7) — CHỈ MÔ TẢ
 PNG: run B36 (C2-OCT-1V, WP2 — E38; RD — E39), run B50 (OSFD — E40). Báo relative AP drop + ASR (suppression, `per_image_transfer`). YOLOX-L lần đầu được eval (trước là held-out). Không quyết định method.
 **Chạy:** `results/e43/run.sh`, log `results/e43/run.log`.
+
+### Kết quả E43 @ dev30 (V100, ~22:55 GMT+7; `results/runs/dev300_B36_eps5_limit100/generalization_e43{a,b}_dev30.json`, `results/runs/dev300_B50_eps5_limit100/generalization_e43_dev30.json`, `results/e43/{summary,pair_rd_osfd}.json`, log `results/e43/run.log`) — MÔ TẢ
+Clean AP (n = 30): YOLOv3 36.0, YOLOX-L 49.8. Relative AP drop % / ASR % — YOLOv3 | YOLOX-L:
+- OSFD B50: 74.3 / 71.3 | 72.8 / 61.6
+- C2-OCT-1V B36: 76.4 / 62.6 | 61.3 / 50.0
+- WP2 B36: 76.0 / 65.5 | 71.9 / 56.7
+- **RD B36: 79.7 / 64.7 | 72.2 / 51.6**
+RD − OSFD (paired bootstrap 1000, BOOT_SEED 2026): YOLOv3 drop +5.4 [−3.3, +15.0], ASR −6.6 [−15.6, +2.0]; **YOLOX-L drop −0.6 [−7.1, +7.6], ASR −10.0 [−20.4, −1.3]**.
+**Đọc:** (1) Nhóm B mới KHÔNG lặp lại lợi thế đã thấy ở YOLOX-S (dev300 WP2 − OSFD +7.6): trên **YOLOX-L RD ≈ OSFD về AP drop**, YOLOv3 nhỉnh hơn nhưng CI chứa 0. (2) **ASR nghiêng về OSFD** ở cả hai (YOLOX-L CI loại 0): OSFD làm MẤT object nhiều hơn; RD hạ AP qua đường khác (lệch định vị / sai lớp / box giả — cần err_profile để tách). (3) WP giúp rõ trên YOLOX-L so C2-OCT-1V (61.3 → 71.9) nhưng chỉ đưa về ngang OSFD. (4) Hệ quả cho claim: "hơn OSFD ở mọi target khác họ" ĐÚNG với YOLOX-S / ConvNeXt / Swin-T / DINO-Swin-L, CHƯA đúng với YOLOX-L (dev30, n nhỏ) — phải kiểm ở dev300 trước khi viết; báo cả 2 metric. Caveat: dev30, bootstrap CI rộng; YOLOX-L lần đầu được eval nên không có thiên lệch chọn method.
+(Ghi chú thực thi: lần bootstrap đầu khởi tạo lại CocoImageEval mỗi mẫu → chậm, dừng; chạy lại khởi tạo 1 lần.)
