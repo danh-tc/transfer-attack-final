@@ -4448,3 +4448,24 @@ Drop / ASR % (T8 = TB 8 target hộp đen):
 RD-V − RD: **ASR_T8 +6.7 [+2.2, +11.7]** ✓; drop_T8 **−2.8** [−4.3, +1.5] (< −1 ✗); **DINO-Swin-L drop −8.1 [−11.3, −3.1]** (< −2 ✗) → **ĐÁNH ĐỔI**. OSFD − RD: ASR_T8 +6.6 [+2.5, +11.8], drop_T8 −3.5, Swin-L −15.4.
 RD-V so OSFD: ASR ≥ OSFD 2 / 8 target (YOLOv3, DINO-Swin-L; còn lại thua 0.1–2.1); drop ≥ OSFD 5 / 8; T8 drop 77.1 vs 76.5, ASR 71.1 vs 71.0 (≈ ngang); DINO-Swin-L 29.9 vs 22.6 (+7.3).
 **Đọc:** (1) Loss cls CE RoI (đẩy KHỎI lớp đúng) là nguồn của CẢ lợi DINO-Swin-L LẪN ASR thấp; thay bằng vanishing kéo ASR về ngang OSFD (+6.7) nhưng mất 8 điểm DINO-Swin-L (38 → 30) và ~3 điểm drop T8 → **đánh đổi ASR ↔ AP drop / Swin-L thật sự**, cùng kiểu đường biên hai kênh đã thấy (λ, noCT, OBJ). Khớp ghi nhận POS-CAP (10-18): lợi Swin-L của L_cls đến từ đẩy object ĐÃ sai trên R50 đi xa hơn khỏi lớp đúng. (2) RD-V ≈ OSFD trên T8 (cả drop lẫn ASR) + hơn OSFD ở DINO-Swin-L +7.3 → "OSFD-cấp ASR, hơn ở Transformer". (3) Không có ô nào hơn OSFD đồng thời cả ASR lẫn drop ở mọi target.
+
+---
+
+## 2026-10-28 — TẠM DỪNG (user, ~22:55 GMT+7, trả máy): tổng kết phiên + việc mở
+**Máy:** V100 16GB. Không tiến trình chạy. **KHÔNG có `.env` → PNG + dets phiên này CHƯA lên HF và MẤT khi trả máy** (artifacts/runs dev300_B{36,50,75,100}_eps5_limit100, ~320 MB; dets nén ~23 MB không commit theo quy ước). Số tổng hợp (metrics / generalization / screen / panel_dev30 json) ĐÃ commit trong `results/`. Sinh lại được bằng `results/e3{8,9}/run.sh`, `results/e4{0..5}/run.sh` (GPU không tất định → lệch nhỏ).
+**Phiên này (E38–E45 + chốt panel):**
+- E38 quét ρ: đỉnh transfer ρ = 0.002 (chữ U ngược mọi target); đánh đổi "mượt ↔ tương đồng gradient" (S&P'24) chỉ thấy ở R101 / Swin-T, KHÔNG ở DINO-Swin-L (Sim ~0.012 phẳng theo ρ).
+- E39 **RD** (bỏ loss_rpn_cls + stage C2, λ = 6 theo quy tắc): GỌN ĐƯỢC (≈ WP2, Swin-L 38.0 dev30).
+- E40 quét B: DINO-Swin-L bão hòa từ B36 (37–39 đến B100), CNN ~B75; B cùng thời gian OSFD B50 ≈ 37.
+- E41: nhiễu ±5 ngẫu nhiên phá Swin-L −2.3 → thiệt hại do HƯỚNG, không do năng lượng (bác lập luận "trần do năng lượng" của Claude); bão hòa ±ε không giúp.
+- E42 (đặt cạnh AugTrans): DETR-R50 / DINO-R50 bão hòa ~94–96% mọi method kể cả OSFD → setting "CNN → detector Transformer cùng R50" không phân biệt method; ca khó là đổi họ backbone.
+- **CHỐT panel** (entry "CHỐT panel A/B/C cuối"): surrogate Mask R-CNN R50; A FCOS-R50 / DINO-R50; B YOLOv3-D53 / **YOLOX-L**; C Mask R-CNN Swin-T / DINO-Swin-L; Controlled R101 / ConvNeXt-T / Swin-T; phụ YOLOX-S, DETR-R50; held-out Swin-S; metric AP drop + ASR. YOLOv3 đã tải + vào download_checkpoints.sh.
+- E43 + bảng panel dev30: **AP drop RD ≥ OSFD trừ DINO-R50 / YOLOX-L; ASR: OSFD cao hơn RD ở 7/8 target hộp đen** (chỉ DINO-Swin-L RD hơn).
+- E45 **RD-V** (loss cls vanishing, λ = 0.3 theo quy tắc): ĐÁNH ĐỔI — ASR_T8 +6.7 (≈ OSFD 71.1 vs 71.0), drop_T8 77.1 ≈ OSFD 76.5, nhưng DINO-Swin-L 38.0 → 29.9 (vẫn +7.3 so OSFD).
+**Code mới:** `scripts/e38_rho_tradeoff.py`, `scripts/rd_calib.py` (argv cls_mode), `scripts/e41_saturate.py`, **`scripts/panel_table.py`** (bảng drop + ASR panel chốt, paired bootstrap, T8); `repair.cls_term("roi")`; ô `C2-OCT-1V-WP1 / -WP10 / -WP2-RD / -RD4 / -RDV / -RD-SAT / RAND5`; `eval_generalization.PANEL_GEN` (mặc định panel chốt).
+**VIỆC MỞ — user quyết khi bắt đầu phiên mai:**
+1. **Định vị method:** (a) **RD** — ưu tiên AP drop + Transformer (DINO-Swin-L +15.4 so OSFD), thua ASR 7/8; (b) **RD-V** — ≈ OSFD trên T8 cả drop lẫn ASR, DINO-Swin-L +7.3; (c) quick test ô kết hợp CE + vanishing (kỳ vọng nằm giữa a và b, theo các đường biên hai kênh trước).
+2. **Định nghĩa ASR:** hiện = TB theo ảnh (macro, `per_image_transfer`); báo cáo gửi thầy ghi "% object không detect được" → cân nhắc gộp theo object (micro) hoặc báo cả hai (sửa `panel_table.py`, chạy CPU trên dets — lưu ý dets phiên này mất, cần sinh lại).
+3. Sau khi chốt (1)–(2): verify clean AP full val2017 panel A/B/C (FCOS, DINO-R50, YOLOv3, YOLOX-L, DINO-Swin-L); method chốt + OSFD + MI + M-DI² (+ RaPA) @ dev300 panel đầy đủ; kiểm surrogate FRC-R50; n300 GO; n1000; ε = 8.
+4. Cần báo thầy: surrogate Mask R-CNN R50 (thay Faster R-CNN, vì Controlled Panel); DINO-R50 thay Deformable DETR (ghép cặp DINO-Swin-L); YOLOX-L vào lại nhóm B; ASR nghiêng OSFD ngoài nhóm C.
+5. Máy mới: tạo `.env` (HF_TOKEN) để upload PNG từ đầu phiên.
