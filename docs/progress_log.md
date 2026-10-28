@@ -4404,11 +4404,11 @@ Clean AP (n = 30): DETR-R50 36.4, DINO-R50 49.5. Relative drop % (AP adv) — DE
 
 ---
 
-## 2026-10-28 — E43: nhóm B panel chốt — eval YOLOv3-D53 + YOLOX-L trên PNG dev30 có sẵn (user: "1 thôi", ~22:35 GMT+7) — CHỈ MÔ TẢ
+## 2026-10-28 — E43: nhóm B panel chốt — eval YOLOv3-D53 + YOLOX-L trên PNG dev30 có sẵn (user: "1 thôi", ~22:15 GMT+7) — CHỈ MÔ TẢ
 PNG: run B36 (C2-OCT-1V, WP2 — E38; RD — E39), run B50 (OSFD — E40). Báo relative AP drop + ASR (suppression, `per_image_transfer`). YOLOX-L lần đầu được eval (trước là held-out). Không quyết định method.
 **Chạy:** `results/e43/run.sh`, log `results/e43/run.log`.
 
-### Kết quả E43 @ dev30 (V100, ~22:55 GMT+7; `results/runs/dev300_B36_eps5_limit100/generalization_e43{a,b}_dev30.json`, `results/runs/dev300_B50_eps5_limit100/generalization_e43_dev30.json`, `results/e43/{summary,pair_rd_osfd}.json`, log `results/e43/run.log`) — MÔ TẢ
+### Kết quả E43 @ dev30 (V100, xong 22:27 GMT+7; `results/runs/dev300_B36_eps5_limit100/generalization_e43{a,b}_dev30.json`, `results/runs/dev300_B50_eps5_limit100/generalization_e43_dev30.json`, `results/e43/{summary,pair_rd_osfd}.json`, log `results/e43/run.log`) — MÔ TẢ
 Clean AP (n = 30): YOLOv3 36.0, YOLOX-L 49.8. Relative AP drop % / ASR % — YOLOv3 | YOLOX-L:
 - OSFD B50: 74.3 / 71.3 | 72.8 / 61.6
 - C2-OCT-1V B36: 76.4 / 62.6 | 61.3 / 50.0
