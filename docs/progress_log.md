@@ -4437,3 +4437,14 @@ Relative AP drop % / ASR % (AP điểm, không bootstrap; ASR = suppression GT d
 **Quy tắc (dev30, điểm; CI mô tả):** **ĐẠT** (RD-V thay RD làm method chốt, xác nhận dev300 ở entry riêng) nếu ΔASR_T8(RDV − RD) ≥ +3 VÀ Δdrop_T8 ≥ −1 VÀ Δdrop DINO-Swin-L ≥ −2. **KHÔNG** nếu ΔASR_T8 < +3. Còn lại (ASR lên nhưng drop / Swin-L tụt quá ngưỡng) → **ĐÁNH ĐỔI** (ghi nhận, user quyết). Mô tả: số target hộp đen mà RDV ≥ OSFD về ASR / về drop.
 **Caveat:** dev30; λ theo quy tắc, không tune; GPU không tất định.
 **Chạy:** `results/e45/run.sh`, log `results/e45/run.log`.
+
+### Kết quả E45 @ dev30 B36 (V100, xong 22:50 GMT+7; `results/e45/panel_dev30.json`, `results/runs/dev300_B36_eps5_limit100/*_e45_dev30.json`, log `results/e45/run.log`) — theo quy tắc: **ĐÁNH ĐỔI**
+Drop / ASR % (T8 = TB 8 target hộp đen):
+| | R101 | ConvNeXt | Swin-T | FCOS | DINO-R50 | YOLOv3 | YOLOX-L | DINO-Swin-L | T8 |
+|---|---|---|---|---|---|---|---|---|---|
+| OSFD B50 | 91.2 / 88.8 | 81.7 / 71.1 | 80.8 / 71.4 | 92.3 / 90.2 | 96.0 / 91.7 | 74.3 / 71.3 | 72.8 / 61.6 | 22.6 / 22.0 | 76.5 / 71.0 |
+| RD B36 | 92.1 / 78.0 | 84.7 / 65.3 | 85.2 / 62.6 | 93.1 / 82.7 | 94.6 / 81.1 | 79.7 / 64.7 | 72.2 / 51.6 | **38.0** / 29.0 | **80.0** / 64.4 |
+| **RD-V B36** | 93.2 / 87.0 | 78.3 / 70.5 | 81.2 / 69.3 | 95.3 / 89.1 | 93.2 / 91.6 | 76.4 / 75.8 | 69.5 / 59.5 | 29.9 / 26.4 | 77.1 / **71.1** |
+RD-V − RD: **ASR_T8 +6.7 [+2.2, +11.7]** ✓; drop_T8 **−2.8** [−4.3, +1.5] (< −1 ✗); **DINO-Swin-L drop −8.1 [−11.3, −3.1]** (< −2 ✗) → **ĐÁNH ĐỔI**. OSFD − RD: ASR_T8 +6.6 [+2.5, +11.8], drop_T8 −3.5, Swin-L −15.4.
+RD-V so OSFD: ASR ≥ OSFD 2 / 8 target (YOLOv3, DINO-Swin-L; còn lại thua 0.1–2.1); drop ≥ OSFD 5 / 8; T8 drop 77.1 vs 76.5, ASR 71.1 vs 71.0 (≈ ngang); DINO-Swin-L 29.9 vs 22.6 (+7.3).
+**Đọc:** (1) Loss cls CE RoI (đẩy KHỎI lớp đúng) là nguồn của CẢ lợi DINO-Swin-L LẪN ASR thấp; thay bằng vanishing kéo ASR về ngang OSFD (+6.7) nhưng mất 8 điểm DINO-Swin-L (38 → 30) và ~3 điểm drop T8 → **đánh đổi ASR ↔ AP drop / Swin-L thật sự**, cùng kiểu đường biên hai kênh đã thấy (λ, noCT, OBJ). Khớp ghi nhận POS-CAP (10-18): lợi Swin-L của L_cls đến từ đẩy object ĐÃ sai trên R50 đi xa hơn khỏi lớp đúng. (2) RD-V ≈ OSFD trên T8 (cả drop lẫn ASR) + hơn OSFD ở DINO-Swin-L +7.3 → "OSFD-cấp ASR, hơn ở Transformer". (3) Không có ô nào hơn OSFD đồng thời cả ASR lẫn drop ở mọi target.
