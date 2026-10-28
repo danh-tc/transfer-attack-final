@@ -131,8 +131,8 @@ def main():
     gfile = os.path.join(REPO_ROOT, "results/runs", RUN, "generalization_e38_dev30.json")
     drop = None
     if os.path.exists(gfile):
-        g = json.load(open(gfile))["relative_ap_drop"]["dino_swin_l"]
-        drop = {r: g[m]["point"] for r, m in CELLS.items() if m in g}
+        g = json.load(open(gfile))["relative_ap_drop"]  # {method: {model: ...}}
+        drop = {r: g[m]["dino_swin_l"]["point"] for r, m in CELLS.items() if m in g}
     c1 = d_sm["point"] > 0 and d_sm["ci95"][0] > 0 and sp_sm >= 0.9
     c2 = d_sim_hi["point"] < 0 and d_sim_hi["ci95"][1] < 0
     c3 = drop is not None and len(drop) == len(RHOS) and max(drop, key=drop.get) in (0.001, 0.002, 0.005)

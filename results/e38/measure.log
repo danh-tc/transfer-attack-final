@@ -1,0 +1,73 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.62s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.91s)
+creating index...
+index created!
+[e38] target grads dino_swin_l xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.84s)
+creating index...
+index created!
+[e38] target grads swin_t xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.82s)
+creating index...
+index created!
+[e38] target grads r101 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+[e38] 5/30  P1 Sm 0.0:0.664 0.001:0.661 0.002:0.665 0.005:0.711 0.01:0.738 | Sim_DINO 0.0:0.0120 0.001:0.0072 0.002:0.0077 0.005:0.0111 0.01:0.0129
+[e38] 10/30  P1 Sm 0.0:0.699 0.001:0.695 0.002:0.693 0.005:0.711 0.01:0.739 | Sim_DINO 0.0:0.0142 0.001:0.0144 0.002:0.0157 0.005:0.0180 0.01:0.0186
+[e38] 15/30  P1 Sm 0.0:0.697 0.001:0.695 0.002:0.693 0.005:0.713 0.01:0.738 | Sim_DINO 0.0:0.0167 0.001:0.0166 0.002:0.0159 0.005:0.0203 0.01:0.0195
+[e38] 20/30  P1 Sm 0.0:0.675 0.001:0.672 0.002:0.678 0.005:0.712 0.01:0.749 | Sim_DINO 0.0:0.0122 0.001:0.0125 0.002:0.0131 0.005:0.0168 0.01:0.0165
+[e38] 25/30  P1 Sm 0.0:0.672 0.001:0.674 0.002:0.680 0.005:0.713 0.01:0.746 | Sim_DINO 0.0:0.0120 0.001:0.0123 0.002:0.0127 0.005:0.0156 0.01:0.0154
+[e38] 30/30  P1 Sm 0.0:0.668 0.001:0.671 0.002:0.679 0.005:0.713 0.01:0.748 | Sim_DINO 0.0:0.0120 0.001:0.0115 0.002:0.0112 0.005:0.0137 0.01:0.0140
+saved /workspace/transfer-attack-final/results/mechanism/e38_rho_tradeoff.json
+P1 Sm: 0.0:0.6681 0.001:0.6708 0.002:0.6785 0.005:0.7129 0.01:0.7475
+P1 Sim_dino_swin_l: 0.0:0.0120 0.001:0.0115 0.002:0.0112 0.005:0.0137 0.01:0.0140
+P1 Sim_swin_t: 0.0:0.0472 0.001:0.0571 0.002:0.0695 0.005:0.0773 0.01:0.0655
+P1 Sim_r101: 0.0:0.1052 0.001:0.1206 0.002:0.1270 0.005:0.1054 0.01:0.0715
+P1 Sgn_dino_swin_l: 0.0:0.5009 0.001:0.5010 0.002:0.5011 0.005:0.5014 0.01:0.5012
+P1 Sgn_swin_t: 0.0:0.5067 0.001:0.5083 0.002:0.5096 0.005:0.5101 0.01:0.5086
+P1 Sgn_r101: 0.0:0.5195 0.001:0.5221 0.002:0.5230 0.005:0.5198 0.01:0.5144
+  Δ Sm|P1|0.01-0: +0.0794 [+0.0540, +0.1043]
+  Δ Sm|P1|0.01-0.002: +0.0690 [+0.0480, +0.0911]
+  Δ Sm|P1|0.002-0: +0.0104 [-0.0001, +0.0201]
+  Δ Sim_dino_swin_l|P1|0.01-0: +0.0020 [-0.0027, +0.0065]
+  Δ Sim_dino_swin_l|P1|0.01-0.002: +0.0028 [+0.0004, +0.0053]
+  Δ Sim_dino_swin_l|P1|0.002-0: -0.0008 [-0.0050, +0.0031]
+  Δ Sim_swin_t|P1|0.01-0: +0.0182 [+0.0034, +0.0330]
+  Δ Sim_swin_t|P1|0.01-0.002: -0.0040 [-0.0199, +0.0093]
+  Δ Sim_swin_t|P1|0.002-0: +0.0223 [+0.0097, +0.0333]
+  Δ Sim_r101|P1|0.01-0: -0.0337 [-0.0509, -0.0158]
+  Δ Sim_r101|P1|0.01-0.002: -0.0555 [-0.0715, -0.0386]
+  Δ Sim_r101|P1|0.002-0: +0.0218 [+0.0043, +0.0388]
+P0 Sm: 0.0:0.6089 0.001:0.5506 0.002:0.5377 0.005:0.5430 0.01:0.5599
+P0 Sim_dino_swin_l: 0.0:0.0167 0.001:0.0136 0.002:0.0118 0.005:0.0050 0.01:0.0013
+P0 Sim_swin_t: 0.0:0.1046 0.001:0.0745 0.002:0.0465 0.005:0.0140 0.01:0.0073
+P0 Sim_r101: 0.0:0.1910 0.001:0.1230 0.002:0.0692 0.005:0.0222 0.01:0.0129
+P0 Sgn_dino_swin_l: 0.0:0.5005 0.001:0.5006 0.002:0.5004 0.005:0.5004 0.01:0.5004
+P0 Sgn_swin_t: 0.0:0.5037 0.001:0.5027 0.002:0.5021 0.005:0.5010 0.01:0.5006
+P0 Sgn_r101: 0.0:0.5080 0.001:0.5056 0.002:0.5033 0.005:0.5009 0.01:0.5001
+  Δ Sm|P0|0.01-0: -0.0491 [-0.0878, -0.0148]
+  Δ Sm|P0|0.01-0.002: +0.0222 [-0.0080, +0.0522]
+  Δ Sm|P0|0.002-0: -0.0712 [-0.0952, -0.0462]
+  Δ Sim_dino_swin_l|P0|0.01-0: -0.0154 [-0.0249, -0.0074]
+  Δ Sim_dino_swin_l|P0|0.01-0.002: -0.0106 [-0.0143, -0.0070]
+  Δ Sim_dino_swin_l|P0|0.002-0: -0.0048 [-0.0139, +0.0029]
+  Δ Sim_swin_t|P0|0.01-0: -0.0974 [-0.1186, -0.0757]
+  Δ Sim_swin_t|P0|0.01-0.002: -0.0393 [-0.0552, -0.0255]
+  Δ Sim_swin_t|P0|0.002-0: -0.0581 [-0.0808, -0.0355]
+  Δ Sim_r101|P0|0.01-0: -0.1781 [-0.2180, -0.1394]
+  Δ Sim_r101|P0|0.01-0.002: -0.0563 [-0.0850, -0.0295]
+  Δ Sim_r101|P0|0.002-0: -0.1218 [-0.1624, -0.0850]
+verdict {"H_tradeoff": "BÁC", "c1_smooth_up": true, "spearman_rho_Sm": 0.9999999999999999, "c2_sim_drops_high": false, "c3_peak_in_mid": true, "drop_dino_swin_l": {"0.0": 31.183642926286925, "0.001": 34.13921705973194, "0.002": 36.20289175712281, "0.005": 29.813583948722908, "0.01": 13.495317698765373}, "H_sim": "BÁC"}
