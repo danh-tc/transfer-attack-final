@@ -4285,3 +4285,22 @@ REL (phá affinity token–token R50, C4/C5 GT-box) | Swin-L drop %: **oracle δ
 HardBank-IS (init δ_SwinT B0 ~58) — R50 / Swin-L drop: B4 87.8 / 49.3; **B12 94.2 / 29.0**.
 **B12 Swin-L = 29.0** < 50 VÀ < 46.7 ngưỡng → FAIL; thấp hơn CAP-WP-IS (36.7) và WP2-IS (~37) → worst-view XÓI NHANH HƠN, không chậm hơn. Cơ chế: tập trung view "hard" (R50 chưa vỡ) đẩy gradient R50 mạnh nhất đúng chỗ δ chưa khớp R50 → kéo δ về hướng đặc-thù-R50 nhanh nhất → xói thành phần Swin-chung nhanh nhất. Không chạy Gate B.
 **CHỐT CUỐI RQ3 (E19–E37):** hai trục đều đóng — **E36 (measure):** mọi thước đo chỉ-R50 (loss/phẳng/quan hệ) nghịch/không biến transfer Swin-L; **E37 (dynamics):** đổi động lực tối ưu (worst-view) xói vùng chung nhanh hơn. Trần single-R50 ε=5 ~37 có bằng chứng TOÀN DIỆN. **DỪNG method search (cam kết đã khóa). Method chốt = C2-OCT-1V-WP2.** Chuyển hẳn sang hoàn thiện paper: (1) dev300 panel A/B/C đầy đủ (eval 3 target mới trên PNG có sẵn); (2) baseline 2024–26 (AWT-OD/BSR); (3) verify clean AP Generalization Panel + báo mAP (so benchmark/OSFD); (4) định vị SOTA (ε=5 native OSFD) + cơ chế hai khóa + trần có bằng chứng (chuỗi E19–E37) + 3 chẩn đoán "tường = backbone-family".
+
+---
+
+## 2026-10-28 — E38: quét liều ρ của WP — WP2 có nằm ở đỉnh đánh đổi "mượt ↔ tương đồng gradient" không? @ dev30 B36 (user: "approve, run dev30", ~19:30 GMT+7) — khóa TRƯỚC khi chạy
+**Máy:** V100 16GB (đủ 11 checkpoint + COCO; KHÔNG có `.env` → không kéo PNG HF, mọi ô sinh lại hôm nay).
+**Vì sao (literature 10-28 + data):** "Why Does Little Robustness Help?" (S&P'24, arXiv 2307.07873): robust hóa surrogate tăng ĐỘ MƯỢT nhưng (quá liều) giảm TƯƠNG ĐỒNG GRADIENT với target → transfer đạt đỉnh ở robust NHỎ. Bound 2504.16474: rủi ro target ≤ surrogate + sharpness + độ khác biệt model (độ phẳng không chạm số hạng khác biệt). Data mình: liều ρ = 0.002 tốt, 0.005 mất lợi + hại R101 / Swin-T, cộng dồn (WPA / AWT) không thêm / trôi. Giả thuyết **H_tradeoff:** WP2 = robust hóa cục bộ không cần train, nằm ở đỉnh đánh đổi; trần ~37 = số hạng khác biệt model mà 1 R50 không chạm. Mục đích: cơ chế cho paper (KHÔNG tìm method mới).
+**Attack (dev30, B36 mọi ô = cùng số bước, ε = 5, seed như cũ; ô mới `C2-OCT-1V-WP1` / `-WP10` trong `run_baselines.py`):** ρ ∈ {0 (= `C2-OCT-1V`), 0.001 (WP1), 0.002 (WP2), 0.005 (WP5), 0.01 (WP10)}; eval 6 model (Controlled 4 + yolox_s + dino_swin_l). Run `dev300_B36_eps5_limit100`, tag `e38_dev30`.
+**Đo (script `scripts/e38_rho_tradeoff.py`, fp32, dev30):** điểm chung P1 = PNG của ô ρ = 0 (cùng mọi ρ → tách hình học surrogate khỏi δ); mô tả thêm P0 = ảnh sạch. Mỗi ảnh, mỗi ρ: θ'_ρ = θ0 − ρ‖θ0‖·∇θL/‖∇θL‖ (từng tensor conv backbone, ∇θ của L tại P, đúng `core.wp_update`; ρ = 0 → θ0); L = L_OSFD (k = 3, feature sạch tại CÙNG θ') + 4·C2 cls, view đồng nhất (không OCT), RoI seed cố định. g_ρ = ∇ theo ẢNH GỐC (resize khả vi).
+- **Sm(ρ)** (độ mượt) = TB 2 mẫu cos(g_ρ(P + ξ), g_ρ(P)), ξ Rademacher ±2 mức xám ảnh gốc (seed 2026 + img_id, CÙNG ξ mọi ρ), θ'_ρ giữ cố định.
+- **Sim(ρ)** = cos(g_ρ(P), g_T(P)), g_T = ∇ theo ảnh gốc của loss cls GT của target (`targets.target_grads`, như E1): **DINO-Swin-L (quy tắc)**; Swin-T, R101 (mô tả). Mô tả thêm tỉ lệ trùng dấu.
+**Quy tắc (paired bootstrap 1000 theo ảnh, BOOT_SEED 2026; tại P1):**
+- (i) MƯỢT TĂNG: Sm(0.01) − Sm(0) > 0 với cận dưới CI > 0 VÀ Spearman(ρ, TB Sm) qua 5 liều ≥ 0.9.
+- (ii) TƯƠNG ĐỒNG GIẢM Ở LIỀU CAO: Sim_DINO(0.01) − Sim_DINO(0.002) < 0 với cận trên CI < 0.
+- (iii) ĐỈNH TRANSFER: argmax_ρ drop DINO-Swin-L (điểm) ∈ {0.001, 0.002, 0.005}.
+- **H_tradeoff ỦNG HỘ** nếu (i) ∧ (ii) ∧ (iii). **BÁC** nếu ¬(i) HOẶC Sim_DINO(0.01) ≥ Sim_DINO(0.002) (điểm). Còn lại **XÁM**.
+- **H_sim (mô tả, cơ chế phụ):** WP2 tăng TRỰC TIẾP tương đồng với Swin-L nếu Sim_DINO(0.002) − Sim_DINO(0) > 0, cận dưới CI > 0 VÀ ≥ 10% Sim_DINO(0).
+- Mô tả: bảng drop 6 model × 5 liều (pair_screen so WP2), Sm / Sim theo ρ ở P0, Swin-T, R101.
+**Caveat (khai báo trước):** dev30 đã dùng nhiều; phòng thủ 1 bước tại điểm cố định ≠ phòng thủ trễ 1 bước dọc quỹ đạo; view đồng nhất ≠ OCT; Sim dùng gradient target CHỈ để phân tích (không vào attack); 5 liều ít điểm; ρ = 0.01 có thể làm δ yếu (đọc kèm R50 white-box); GPU không tất định. E19 đã thấy WP4 KHÔNG tăng căn hướng với δ_SwinT → kỳ vọng H_sim BÁC.
+**Chạy:** `results/e38/run.sh`, log `results/e38/run.log`; kết quả đo `results/mechanism/e38_rho_tradeoff.json`.
