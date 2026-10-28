@@ -4341,3 +4341,14 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh: WP2 98.6 /
 **Đọc (mô tả, điểm + CI paired bootstrap):** **bão hòa** ở bước B_k → B_{k+1} nếu ΔSwin-L < 1 VÀ ΔCA3 < 1 (điểm); B bão hòa = B nhỏ nhất thỏa. Báo s/ảnh RD và OSFD B50 CÙNG lần → B_cùng-thời-gian(RD) = 50 × t_OSFD / t_RD-mỗi-bước. Không quyết định method; chọn B cho panel dev300 ở entry riêng.
 **Caveat:** dev30 nhiễu (Δ ~1–2 trong nhiễu); B36 là PNG chạy ở lần E39 (khác lần); GPU không tất định.
 **Chạy:** `results/e40/run.sh`, log `results/e40/run.log`.
+
+### Kết quả E40 @ dev30 (V100, xong 21:03 GMT+7; `results/ablation/e40_dev30/screen.json`, `results/runs/dev300_B{36,50,75,100}_eps5_limit100/*_e40_dev30.json`, log `results/e40/run.log`) — MÔ TẢ
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh (cùng lần):
+- OSFD B50: 98.3 / 91.2 / 81.7 / 80.8 / 74.5 / 22.6 | 79.0 | 4.1
+- RD B36 (E39): 99.0 / 92.1 / 84.7 / 85.2 / 76.6 / **38.0** | 82.2 | 4.0 (lần E39)
+- RD B50: 99.1 / 94.5 / 87.0 / 85.5 / 78.8 / **37.2** | 83.8 | 5.6
+- RD B75: 99.5 / 95.3 / 90.9 / 89.0 / 82.6 / **37.8** | 87.5 | 8.1
+- RD B100: 99.8 / 95.1 / 92.1 / 89.3 / 83.9 / **39.2** | 88.4 | 11.1
+Δ liên tiếp (Swin-L | CA3): 36→50 −0.8 [−2.4, +2.3] | +1.6; 50→75 +0.6 [−3.6, +3.3] | **+3.8 [+2.4, +8.1]**; 75→100 +1.4 [−2.5, +4.0] | +0.9 [−0.6, +2.6].
+**Đọc:** theo định nghĩa khai báo (ΔSwin-L < 1 VÀ ΔCA3 < 1) KHÔNG bước nào đạt "bão hòa" trên điểm ước lượng (75→100: Swin-L +1.4 nằm trong nhiễu). Mô tả: **DINO-Swin-L bão hòa NGAY từ B36** (37–39 ở mọi B, mọi Δ trong nhiễu; khớp WP2 B100 10-22 = 38.0); **CNN / Swin-T bão hòa quanh B75** (50→75 +3.8 CI > 0, 75→100 +0.9). **Thời gian cùng lần:** RD ~0.11 s/bước (5.6 / 50, 8.1 / 75, 11.1 / 100), OSFD B50 4.1 s → **B cùng thời gian OSFD B50 ≈ 37** (≈ B36 hiện dùng; tiết kiệm "~11%" ở E39 là do khác lần đo, KHÔNG tái lập). RD B36 − OSFD B50 (cùng thời gian): Swin-L **+15.4 [+5.5, +21.5]**, CA3 +3.1.
+**Hệ quả:** giữ B36 (cùng thời gian OSFD) cho bảng chính; báo thêm 1 dòng B75 (~2× thời gian) cho CNN (CA3 +5.3 so B36) — Swin-L không đổi theo B → trần ~37–39 không phải do thiếu bước.
