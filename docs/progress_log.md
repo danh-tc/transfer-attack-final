@@ -4362,3 +4362,13 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh (cùng lầ
 **Quy tắc (dev30, điểm; CI paired bootstrap mô tả):** RD-SAT − RD: **CÓ TÍN HIỆU** nếu ΔSwin-L ≥ +2 VÀ ΔCA3 ≥ −1 → entry riêng đưa bước bão hòa vào attack. Còn lại **KHÔNG**. Mô tả: Swin-L của RAND5 (sàn năng lượng thuần) → tách "năng lượng" vs "hướng" của RD: phần hướng = drop(RD) − drop(RAND5) ở cùng ε; tỉ lệ năng lượng SAT / RD.
 **Caveat:** dev30; PNG uint8 + clip [0, 255] (pixel sát biên không bão hòa được); RAND5 1 mẫu nhiễu / ảnh.
 **Chạy:** `results/e41/run.sh`, log `results/e41/run.log`, tag `e41_dev30`.
+
+### Kết quả E41 @ dev30 (V100, xong 21:20 GMT+7; `results/ablation/e41_dev30/screen.json`, `results/runs/dev300_B36_eps5_limit100/*_e41_dev30.json`, log `results/e41/run.log`) — theo quy tắc: **KHÔNG**; giả thuyết "năng lượng" BÁC MẠNH
+Năng lượng TB δ²: RD 22.45 → SAT 24.54 (×1.093; chỉ 2.2% pixel δ_RD = 0).
+R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: RD 99.0 / 92.1 / 84.7 / 85.2 / 76.6 / **38.0** | 82.2; **RD-SAT 98.7 / 91.1 / 84.2 / 83.4 / 73.3 / 36.9 | 80.3**; **RAND5 (±5 ngẫu nhiên, năng lượng TỐI ĐA) 4.5 / 3.2 / 2.8 / 8.4 / 1.8 / −2.3 | 4.3**.
+Δ RD-SAT − RD: Swin-L −1.1 [−2.2, +0.5], CA3 **−1.9 [−3.2, −0.8]**, YOLOX −3.3 → KHÔNG (ΔSwin-L < +2).
+**Đọc:**
+1. **Nhiễu ±5 ngẫu nhiên với năng lượng tối đa KHÔNG phá DINO-Swin-L (−2.3) và gần như không phá model nào** → thiệt hại KHÔNG đến từ năng lượng / bậc 2 kiểu "hướng ngẫu nhiên". Giả thuyết E41 (và lập luận "trần do năng lượng bị chặn theo ε" Claude nêu trong hội thoại trước khi chạy) **BÁC**.
+2. Toàn bộ 38 điểm Swin-L của RD đến từ HƯỚNG / CẤU TRÚC của δ, dù cos(g_R50, g_DINO) tại 1 điểm chỉ ~0.012 (E38) → thước đo căn hướng gradient bậc 1 cục bộ KHÔNG nắm được phần hướng hữu ích; hiệu ứng là phi tuyến / tích lũy dọc δ. Nhất quán E16 (cùng phổ, cùng năng lượng, δ_SwinT phá DINO gấp ~2× δ_R50 → khác biệt là mẫu cụ thể).
+3. Lấp đầy biên độ ở pixel attack chọn |δ| nhỏ làm HẠI nhẹ (CA3 −1.9, CI < 0) → biên độ nhỏ ở các pixel đó là thông tin, không phải lãng phí.
+4. Hệ quả cho câu chuyện trần: KHÔNG được nói "trần do năng lượng"; câu đúng: Swin-L cần HƯỚNG cụ thể (ngẫu nhiên = 0, R50 = 38, Swin-T = 58 cùng ε), và các ước lượng hướng chỉ-R50 đã thử không tiến gần hướng Swin-T (E19 / E24 / E36 / E38).
