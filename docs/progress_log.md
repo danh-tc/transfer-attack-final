@@ -4452,7 +4452,7 @@ RD-V so OSFD: ASR ≥ OSFD 2 / 8 target (YOLOv3, DINO-Swin-L; còn lại thua 0.
 ---
 
 ## 2026-10-28 — TẠM DỪNG (user, ~22:55 GMT+7, trả máy): tổng kết phiên + việc mở
-**Máy:** V100 16GB. Không tiến trình chạy. **KHÔNG có `.env` → PNG + dets phiên này CHƯA lên HF và MẤT khi trả máy** (artifacts/runs dev300_B{36,50,75,100}_eps5_limit100, ~320 MB; dets nén ~23 MB không commit theo quy ước). Số tổng hợp (metrics / generalization / screen / panel_dev30 json) ĐÃ commit trong `results/`. Sinh lại được bằng `results/e3{8,9}/run.sh`, `results/e4{0..5}/run.sh` (GPU không tất định → lệch nhỏ).
+**Máy:** V100 16GB. Không tiến trình chạy. **PNG + dets + gen_dets phiên này ĐÃ lên HF (user thêm `.env` cuối phiên, ~23:00 GMT+7), tag `_1028v100`:** `dev300_B{36,50,75,100}_eps5_limit100` (tar 233 / 51 / 24 / 24 MB). Máy mới: `python scripts/sync_artifacts.py download <run> --tag _1028v100` (⚠️ giải nén ra cùng thư mục `artifacts/runs/<run>/` với tar không tag / `_v100` của ngày khác — tải tag nào thì dùng tag đó). Số tổng hợp (metrics / generalization / screen / panel_dev30 json) ĐÃ commit trong `results/`. Sinh lại được bằng `results/e3{8,9}/run.sh`, `results/e4{0..5}/run.sh` (GPU không tất định → lệch nhỏ).
 **Phiên này (E38–E45 + chốt panel):**
 - E38 quét ρ: đỉnh transfer ρ = 0.002 (chữ U ngược mọi target); đánh đổi "mượt ↔ tương đồng gradient" (S&P'24) chỉ thấy ở R101 / Swin-T, KHÔNG ở DINO-Swin-L (Sim ~0.012 phẳng theo ρ).
 - E39 **RD** (bỏ loss_rpn_cls + stage C2, λ = 6 theo quy tắc): GỌN ĐƯỢC (≈ WP2, Swin-L 38.0 dev30).
@@ -4465,7 +4465,7 @@ RD-V so OSFD: ASR ≥ OSFD 2 / 8 target (YOLOv3, DINO-Swin-L; còn lại thua 0.
 **Code mới:** `scripts/e38_rho_tradeoff.py`, `scripts/rd_calib.py` (argv cls_mode), `scripts/e41_saturate.py`, **`scripts/panel_table.py`** (bảng drop + ASR panel chốt, paired bootstrap, T8); `repair.cls_term("roi")`; ô `C2-OCT-1V-WP1 / -WP10 / -WP2-RD / -RD4 / -RDV / -RD-SAT / RAND5`; `eval_generalization.PANEL_GEN` (mặc định panel chốt).
 **VIỆC MỞ — user quyết khi bắt đầu phiên mai:**
 1. **Định vị method:** (a) **RD** — ưu tiên AP drop + Transformer (DINO-Swin-L +15.4 so OSFD), thua ASR 7/8; (b) **RD-V** — ≈ OSFD trên T8 cả drop lẫn ASR, DINO-Swin-L +7.3; (c) quick test ô kết hợp CE + vanishing (kỳ vọng nằm giữa a và b, theo các đường biên hai kênh trước).
-2. **Định nghĩa ASR:** hiện = TB theo ảnh (macro, `per_image_transfer`); báo cáo gửi thầy ghi "% object không detect được" → cân nhắc gộp theo object (micro) hoặc báo cả hai (sửa `panel_table.py`, chạy CPU trên dets — lưu ý dets phiên này mất, cần sinh lại).
+2. **Định nghĩa ASR:** hiện = TB theo ảnh (macro, `per_image_transfer`); báo cáo gửi thầy ghi "% object không detect được" → cân nhắc gộp theo object (micro) hoặc báo cả hai (sửa `panel_table.py`, chạy CPU trên dets — tải từ HF tag `_1028v100`).
 3. Sau khi chốt (1)–(2): verify clean AP full val2017 panel A/B/C (FCOS, DINO-R50, YOLOv3, YOLOX-L, DINO-Swin-L); method chốt + OSFD + MI + M-DI² (+ RaPA) @ dev300 panel đầy đủ; kiểm surrogate FRC-R50; n300 GO; n1000; ε = 8.
 4. Cần báo thầy: surrogate Mask R-CNN R50 (thay Faster R-CNN, vì Controlled Panel); DINO-R50 thay Deformable DETR (ghép cặp DINO-Swin-L); YOLOX-L vào lại nhóm B; ASR nghiêng OSFD ngoài nhóm C.
-5. Máy mới: tạo `.env` (HF_TOKEN) để upload PNG từ đầu phiên.
+5. Máy mới: tạo `.env` (HF_TOKEN) ngay đầu phiên; dets phiên 10-28 tải lại từ HF tag `_1028v100` (không cần sinh lại để tính ASR micro).
