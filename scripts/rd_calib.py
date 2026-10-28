@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """E39 (progress_log 2026-10-28): λ cho WP2 rút gọn theo ĐÚNG quy tắc chọn λ = 4 cũ — trung vị 5 ảnh đầu dev300 của
-mean|∇ₓL_feat| / mean|∇ₓL_cls| tại δ = 0 (pia.calib_cls_weight); in cả cls_mode "c2" (kiểm tái lập ~3.8) và "roi"."""
+mean|∇ₓL_feat| / mean|∇ₓL_cls| tại δ = 0 (pia.calib_cls_weight); in cả cls_mode "c2" (kiểm tái lập ~3.8) và "roi".
+E45: thêm cls_mode qua argv (vd `python scripts/rd_calib.py vanish`)."""
 import os
 import sys
 
@@ -17,7 +18,7 @@ from attack.preprocess import resize_to_model
 
 model = load_model("r50", "cuda:0")
 data = build_attack_dataset("dev300")
-for mode in ("c2", "roi"):
+for mode in (sys.argv[1:] or ["c2", "roi"]):
     raws = []
     for i in range(5):
         s = data[i]
