@@ -4401,3 +4401,9 @@ Clean AP (n = 30): DETR-R50 36.4, DINO-R50 49.5. Relative drop % (AP adv) — DE
 - **Controlled (RQ1): R101 / ConvNeXt-T / Swin-T** giữ. **Phụ:** YOLOX-S, DETR-R50. **Held-out:** Mask R-CNN Swin-S (duy nhất).
 - **Metric:** relative AP drop (AP 0.5:0.95) + **ASR** = trong các GT target detect được ở ảnh sạch (đúng lớp, IoU ≥ 0.5, score ≥ 0.3), tỉ lệ không còn detect sau attack (= `mechanism.per_image_transfer` "suppression").
 **Thực thi:** tải YOLOv3 (`mim` id `yolov3_d53_mstrain-608_273e_coco`, thêm vào `scripts/download_checkpoints.sh --gen`); smoke load + infer 1 ảnh QUA cả 5 target ngoài Controlled (fcos_r50, dino_r50, yolov3_d53, yolox_l, dino_swin_l); `eval_generalization.py` mặc định `--models` = `PANEL_GEN` (5 model trên); cập nhật `docs/model_registry.md` + `CLAUDE.md`. Clean AP full val2017 của panel A/B/C CHƯA verify (việc tiếp).
+
+---
+
+## 2026-10-28 — E43: nhóm B panel chốt — eval YOLOv3-D53 + YOLOX-L trên PNG dev30 có sẵn (user: "1 thôi", ~22:35 GMT+7) — CHỈ MÔ TẢ
+PNG: run B36 (C2-OCT-1V, WP2 — E38; RD — E39), run B50 (OSFD — E40). Báo relative AP drop + ASR (suppression, `per_image_transfer`). YOLOX-L lần đầu được eval (trước là held-out). Không quyết định method.
+**Chạy:** `results/e43/run.sh`, log `results/e43/run.log`.
