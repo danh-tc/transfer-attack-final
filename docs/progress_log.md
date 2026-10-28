@@ -4332,3 +4332,12 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh: WP2 98.6 /
 Δ RD − WP2: Swin-L +1.8 [−0.8, +4.5], CA3 +0.7 [−1.4, +2.3], R101 −0.2, Swin-T +2.6 [−0.0, +5.6], YOLOX −1.1, ConvNeXt +0.5. RD4 − WP2 (mô tả): Swin-L +2.9 [−3.1, +6.2], CA3 −0.8, Swin-T −2.0.
 **Quy tắc:** |ΔSwin-L| 1.8 < 2 ✓, |ΔCA3| 0.7 < 2 ✓, ΔR101 −0.2 ≥ −2 ✓, R50 99.0 ≥ 0.8 × 98.6 ✓ → **GỌN ĐƯỢC**; TỐT HƠN không đạt (ΔSwin-L 1.8 < 2).
 **Đọc:** bỏ loss_rpn_cls + stage C2 của L_OSFD KHÔNG làm tụt (mọi Δ trong nhiễu, hơi dương) và nhanh hơn ~11% (4.0 vs 4.5 s/ảnh, đo khác lần chạy — cần đo cùng lần trước khi claim). Hai số hạng là thừa → bản rút gọn RD (λ = 6 theo quy tắc) đề xuất làm bản chính thức; xác nhận ở dev300 khi chạy panel (entry riêng). RD4 (không bù λ) nghiêng Swin-L / lùi Swin-T — trượt đường đánh đổi như quét λ. Nhanh hơn → ở CÙNG THỜI GIAN OSFD B50 có thể chạy B nhiều hơn 36 (đo lại tỉ lệ cùng lần).
+
+---
+
+## 2026-10-28 — E40: B bao nhiêu thì WP2-RD bão hòa? Quét B ∈ {36, 50, 75, 100} @ dev30 + OSFD B50 đo thời gian cùng lần (user: "thử nhanh B bao nhiêu là bão hòa", ~20:40 GMT+7) — CHỈ MÔ TẢ, khai báo TRƯỚC khi chạy
+**Mốc cũ:** WP2 B36 → B100 dev30 (10-22): Swin-L +1.8, CA3 +4.9 (BÃO HÒA Swin-L ~38); C2-OCT-1V dev100 A4500: CNN gần bão hòa ~B57, Swin-L tăng chậm tới B100.
+**Ô:** `C2-OCT-1V-WP2-RD` (λ = 6, E39) B36 (PNG E39) / B50 / B75 / B100; OSFD B50 cùng lần (thời gian + mốc). Run `dev300_B{36,50,75,100}_eps5_limit100`, dets `dets_e40_dev30.json`, tag `e40_dev30`.
+**Đọc (mô tả, điểm + CI paired bootstrap):** **bão hòa** ở bước B_k → B_{k+1} nếu ΔSwin-L < 1 VÀ ΔCA3 < 1 (điểm); B bão hòa = B nhỏ nhất thỏa. Báo s/ảnh RD và OSFD B50 CÙNG lần → B_cùng-thời-gian(RD) = 50 × t_OSFD / t_RD-mỗi-bước. Không quyết định method; chọn B cho panel dev300 ở entry riêng.
+**Caveat:** dev30 nhiễu (Δ ~1–2 trong nhiễu); B36 là PNG chạy ở lần E39 (khác lần); GPU không tất định.
+**Chạy:** `results/e40/run.sh`, log `results/e40/run.log`.
