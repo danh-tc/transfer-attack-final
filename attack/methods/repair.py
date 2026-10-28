@@ -98,6 +98,8 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
         finally:
             model.eval()
         return sum_loss_dict(select_terms(losses, "dino", "cls"))
+    if cls == "roi":  # E39 (progress_log 2026-10-28): chỉ loss_cls RoI head (bỏ loss_rpn_cls khỏi C2)
+        return model.loss(batch_inputs, batch_data_samples)["loss_cls"]
     if cls == "rpn":  # chỉ loss_rpn_cls (progress_log 2026-10-08): bỏ sinh proposal + RoI head; nhãn GT -> 0 như two_stage.loss
         rpn_ds = copy.deepcopy(batch_data_samples)
         for d in rpn_ds:

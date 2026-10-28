@@ -4316,3 +4316,13 @@ HardBank-IS (init δ_SwinT B0 ~58) — R50 / Swin-L drop: B4 87.8 / 49.3; **B12 
 3. **Với DINO-Swin-L thì KHÔNG:** Sim ≈ 0.012 (gần trực giao, trùng dấu = ngẫu nhiên) và PHẲNG theo ρ. Lợi DINO của WP2 (31 → 36) và sụp ở liều cao (→ 13.5) KHÔNG đi qua tương đồng gradient bậc 1. Sụp ở ρ = 0.01 là do δ mất sức trên chính R50 (white-box 48.8) chứ không do lệch hướng khỏi DINO.
 4. Hệ quả cho paper: (a) câu "WP2 ở đỉnh đánh đổi mượt ↔ tương đồng" ĐÚNG cho CNN / Swin-T, KHÔNG dùng cho DINO-Swin-L; (b) thiệt hại trên DINO-Swin-L từ δ R50 gần như KHÔNG giải thích được bằng căn hướng gradient tuyến tính (cos ~0.01 ở mọi liều) — khớp E14b (phản ứng chung kiểu nhiễu) và E32 (lợi DINO đến từ đổi kiểu lỗi sang xóa object). Trần ~37 nhất quán với việc 1 R50 không có kênh bậc 1 nào tới DINO-Swin-L.
 **Caveat:** dev30; Sim dùng loss cls GT của target tại 1 điểm cố định (P1 = δ của ρ = 0), view đồng nhất; cos tuyệt đối nhỏ nên Δ ~0.003 tuy CI loại 0 nhưng rất nhỏ về độ lớn.
+
+---
+
+## 2026-10-28 — E39: WP2 RÚT GỌN — bỏ loss_rpn_cls + bỏ stage C2 của L_OSFD @ dev30 B36 (user: "chạy thử cái rút gọn", ~20:30 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** data cho thấy 2 số hạng gần như không đóng góp: (a) loss_rpn_cls — RPN-OCT ≈ OSFD (lợi của L_cls nằm ở RoI cls 80 lớp, 10-08); (b) stage C2 của L_OSFD — gradient nhỏ ~10³× phần còn lại (E19), tăng trọng số chỉ hại CNN (C2W, 10-24). Mục đích: method GỌN hơn cho paper (bỏ số hạng thừa), KHÔNG kỳ vọng tăng.
+**Ô (gốc C2-OCT-1V-WP2, B36, ρ = 0.002, mọi thứ khác y nguyên):** `C2-OCT-1V-WP2-RD` = L_cls chỉ `loss_cls` RoI (`repair.cls_term("roi")`) + L_OSFD stage C3–C5 (`stage_w = (0, 1, 1, 1)`), **λ = 6 theo ĐÚNG quy tắc chọn λ = 4 cũ** (trung vị 5 ảnh đầu dev300 mean|∇ₓL_feat| / mean|∇ₓL_cls| tại δ = 0, `scripts/rd_calib.py`, `results/e39/calib.log`: c2 tái lập 3.78 → 4; roi 10.75 / 3.34 / 2.17 / 7.23 / 6.06 → **6.06 → 6**). Mô tả: `C2-OCT-1V-WP2-RD4` (cùng rút gọn, giữ λ = 4 — bỏ rpn mà không bù độ lớn).
+**Mốc:** WP2 B36 dev30 = PNG E38 (cùng ngày, cùng máy), eval lại cùng lần.
+**Quy tắc (dev30, điểm ước lượng, so WP2 cùng 30 ảnh; CI paired bootstrap mô tả):** **GỌN ĐƯỢC** nếu RD có |ΔSwin-L| < 2 VÀ |ΔCA3| < 2 VÀ ΔR101 ≥ −2 VÀ R50 white-box ≥ 0.8 × WP2 → đề xuất RD làm bản chính thức (xác nhận dev300 ở entry riêng khi chạy panel). **TỐT HƠN** (ghi nhận, không đổi quy trình) nếu ΔSwin-L ≥ +2 VÀ ΔCA3 ≥ −1. Còn lại → **KHÔNG GỌN** (giữ WP2 đầy đủ; số hạng "thừa" thực ra có vai trò → ghi nhận cho paper).
+**Caveat:** dev30 đã dùng nhiều; λ = 6 theo quy tắc, không tune; GPU không tất định (Δ ~1–2 điểm nằm trong nhiễu dev30).
+**Chạy:** `results/e39/run.sh`, log `results/e39/run.log`; tag `e39_dev30`.
