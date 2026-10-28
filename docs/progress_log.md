@@ -4372,3 +4372,10 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3: RD 99.0 / 92.1 / 84.
 2. Toàn bộ 38 điểm Swin-L của RD đến từ HƯỚNG / CẤU TRÚC của δ, dù cos(g_R50, g_DINO) tại 1 điểm chỉ ~0.012 (E38) → thước đo căn hướng gradient bậc 1 cục bộ KHÔNG nắm được phần hướng hữu ích; hiệu ứng là phi tuyến / tích lũy dọc δ. Nhất quán E16 (cùng phổ, cùng năng lượng, δ_SwinT phá DINO gấp ~2× δ_R50 → khác biệt là mẫu cụ thể).
 3. Lấp đầy biên độ ở pixel attack chọn |δ| nhỏ làm HẠI nhẹ (CA3 −1.9, CI < 0) → biên độ nhỏ ở các pixel đó là thông tin, không phải lãng phí.
 4. Hệ quả cho câu chuyện trần: KHÔNG được nói "trần do năng lượng"; câu đúng: Swin-L cần HƯỚNG cụ thể (ngẫu nhiên = 0, R50 = 38, Swin-T = 58 cùng ε), và các ước lượng hướng chỉ-R50 đã thử không tiến gần hướng Swin-T (E19 / E24 / E36 / E38).
+
+---
+
+## 2026-10-28 — E42: đặt cạnh AugTrans (CMC 2026, Table 2: FR-R50 → DETR-R50 / DINO-R50) — eval DETR-R50 + DINO-R50 trên PNG dev30 có sẵn (user: "thử nhanh cái a", ~21:40 GMT+7) — CHỈ MÔ TẢ
+**Đối chiếu (papers/AugTrans.pdf §4.1):** surrogate của họ Faster R-CNN R50 torchvision (clean AP 36.9) ≠ Mask R-CNN R50 mmdet của mình; DETR-R50 chính thức 500e (42.5) vs mmdet `detr_r50_8xb2-150e`; DINO-R50 "repo chính thức" clean AP **63.2 (bất thường — DINO-R50 chính thức ~49–51)** vs mmdet `dino-4scale_r50_12e`; ε = 5 khớp; ngân sách họ 160 iter × 10 EOT ≈ 1600 gradient vs B36 / B50 của mình (~44×); metric họ AP tuyệt đối, COCO val 5000 ảnh; code AugTrans không có (repo 404, 09-23). "Cross-paradigm" của họ = backbone VẪN R50.
+**Chạy:** eval_generalization `detr_r50`, `dino_r50` trên dev30: run B36 (C2-OCT-1V, WP2, RD — PNG E38 / E39) + run B50 (OSFD — PNG E40). Báo relative AP drop + AP tuyệt đối. Chỉ tham khảo, KHÔNG phải so sánh công bằng (khác surrogate, checkpoint target, ngân sách, tập ảnh).
+**Chạy:** `results/e42/run.sh`, log `results/e42/run.log`.
