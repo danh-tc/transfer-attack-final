@@ -4352,3 +4352,13 @@ R50 / R101 / ConvNeXt / Swin-T / YOLOX / DINO-Swin-L | CA3 | s/ảnh (cùng lầ
 Δ liên tiếp (Swin-L | CA3): 36→50 −0.8 [−2.4, +2.3] | +1.6; 50→75 +0.6 [−3.6, +3.3] | **+3.8 [+2.4, +8.1]**; 75→100 +1.4 [−2.5, +4.0] | +0.9 [−0.6, +2.6].
 **Đọc:** theo định nghĩa khai báo (ΔSwin-L < 1 VÀ ΔCA3 < 1) KHÔNG bước nào đạt "bão hòa" trên điểm ước lượng (75→100: Swin-L +1.4 nằm trong nhiễu). Mô tả: **DINO-Swin-L bão hòa NGAY từ B36** (37–39 ở mọi B, mọi Δ trong nhiễu; khớp WP2 B100 10-22 = 38.0); **CNN / Swin-T bão hòa quanh B75** (50→75 +3.8 CI > 0, 75→100 +0.9). **Thời gian cùng lần:** RD ~0.11 s/bước (5.6 / 50, 8.1 / 75, 11.1 / 100), OSFD B50 4.1 s → **B cùng thời gian OSFD B50 ≈ 37** (≈ B36 hiện dùng; tiết kiệm "~11%" ở E39 là do khác lần đo, KHÔNG tái lập). RD B36 − OSFD B50 (cùng thời gian): Swin-L **+15.4 [+5.5, +21.5]**, CA3 +3.1.
 **Hệ quả:** giữ B36 (cùng thời gian OSFD) cho bảng chính; báo thêm 1 dòng B75 (~2× thời gian) cho CNN (CA3 +5.3 so B36) — Swin-L không đổi theo B → trần ~37–39 không phải do thiếu bước.
+
+---
+
+## 2026-10-28 — E41: giả thuyết "bậc 2 / năng lượng" cho DINO-Swin-L — bão hòa δ_RD về ±ε (RD-SAT) + sàn nhiễu ngẫu nhiên ±5 (RAND5) @ dev30, hậu xử lý PNG, chỉ forward (user: "Approve", ~21:15 GMT+7) — khóa TRƯỚC khi chạy
+**Lập luận:** ΔL_T(δ) ≈ g_Tᵀδ + ½δᵀH_Tδ. E38: cos(g_R50, g_DINO) ≈ 0.012, trùng dấu 0.501 → bậc 1 ≈ 0 với DINO-Swin-L; nếu hướng δ "ngẫu nhiên" so với H_T thì E[δᵀH_Tδ] ≈ tr(H_T)/d·‖δ‖₂² → thiệt hại theo NĂNG LƯỢNG. Khớp: Swin-L nhạy mạnh theo ε (5 → 8: +17 mọi method), bão hòa theo B (E40), E14b (phản ứng chung kiểu nhiễu). Hệ quả kiểm được: trong hộp L∞, ‖δ‖₂ max khi mọi pixel ±ε → giữ dấu R50 (cho CNN), đẩy biên độ lên ε. Đồng thời là ứng viên giải thích trần ~37 (năng lượng bị chặn theo ε).
+**Ghi nhận trước khi chạy (từ attack_stats E39):** RMS δ_RD ≈ 4.73 / 5 → năng lượng đã ~89% mức tối đa → SAT chỉ thêm ~+12% năng lượng → kỳ vọng nhỏ (~+0–2).
+**Ô (CHỈ eval, `scripts/e41_saturate.py`, run `dev300_B36_eps5_limit100`):** `C2-OCT-1V-WP2-RD-SAT` = clip(x + 5·sign(δ_RD)), pixel δ = 0 → dấu Rademacher (seed 2026 + img_id); `RAND5` = clip(x + 5·r), r Rademacher (seed 2026 + img_id + 1). Mốc RD B36 (PNG E39), eval lại cùng lần. 6 model.
+**Quy tắc (dev30, điểm; CI paired bootstrap mô tả):** RD-SAT − RD: **CÓ TÍN HIỆU** nếu ΔSwin-L ≥ +2 VÀ ΔCA3 ≥ −1 → entry riêng đưa bước bão hòa vào attack. Còn lại **KHÔNG**. Mô tả: Swin-L của RAND5 (sàn năng lượng thuần) → tách "năng lượng" vs "hướng" của RD: phần hướng = drop(RD) − drop(RAND5) ở cùng ε; tỉ lệ năng lượng SAT / RD.
+**Caveat:** dev30; PNG uint8 + clip [0, 255] (pixel sát biên không bão hòa được); RAND5 1 mẫu nhiễu / ảnh.
+**Chạy:** `results/e41/run.sh`, log `results/e41/run.log`, tag `e41_dev30`.
