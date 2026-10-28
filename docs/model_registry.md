@@ -13,14 +13,20 @@ Cột "Checkpoint (mim)" là identifier mim dùng để tải (`mim download mmd
 | Mask R-CNN ConvNeXt-T | Cross-CNN target | Mask R-CNN | ConvNeXt-T | CNN — khác (ConvNeXt) | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask-rcnn_convnext-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.2 | **46.2** (khớp) | 2026-09-22 |
 | Mask R-CNN Swin-T | CNN→Transformer target | Mask R-CNN | Swin-T | Transformer | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco.py` | `mask-rcnn_swin-t-p4-w7_fpn_amp-ms-crop-3x_coco` | 46.0 | **46.0** (khớp) | 2026-09-22 |
 
-## Generalization Panel (chạy sau khi Controlled Panel confirm gap)
+## Panel A/B/C — CHỐT 2026-10-28 (progress_log entry "CHỐT panel A/B/C cuối"; thay bảng Generalization Panel cũ)
 
-| Model | Detector | Backbone | Họ backbone | Config | Box AP (README) | Ngày verify | Ghi chú |
+Nhóm theo quan hệ họ backbone với surrogate Mask R-CNN R50. Mask R-CNN Swin-T (nhóm C) đi chung Controlled Panel ở trên.
+
+| Nhóm | Model | Detector | Backbone | Config | Box AP (README) | Ngày verify | Ghi chú |
 |---|---|---|---|---|---|---|---|
-| FCOS-R50 | FCOS | ResNet-50 | CNN — ResNet | `fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py` | 38.7 | _chưa_ | biến thể "improved" |
-| DETR-R50 | DETR | ResNet-50 | CNN — ResNet | `detr_r50_8xb2-150e_coco.py` | 42.0 | _chưa_ | |
-| YOLOX-CSP | YOLOX | CSPDarknet | CNN — khác (CSP) | `yolox_s_8xb8-300e_coco.py` | 40.5 | _chưa_ | size S vs L chưa chốt, xem protocol_lock.md |
-| DINO-Swin-L | DINO | Swin-L | Transformer | `dino-5scale_swin-l_8xb2-36e_coco.py` | 58.4 | _chưa_ | thay Swin-T (không có checkpoint chính thức) — lệch capacity, xem caveat protocol_lock.md |
+| A | FCOS-R50 | FCOS | ResNet-50 | `fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py` | 38.7 | _chưa_ | biến thể "improved" |
+| A | DINO-R50 | DINO 4-scale | ResNet-50 | `dino-4scale_r50_8xb2-12e_coco.py` | 49.0 | _chưa_ (dev30: 49.5) | ghép cặp DINO-Swin-L (cùng detector, khác backbone) |
+| B | YOLOv3-D53 | YOLOv3 | DarkNet-53 | `yolov3_d53_8xb8-ms-608-273e_coco.py` | 33.7 | _chưa_ | mim id `yolov3_d53_mstrain-608_273e_coco` |
+| B | YOLOX-L | YOLOX | CSPDarknet | `yolox_l_8xb8-300e_coco.py` | 49.4 | _chưa_ | có trong OSFD (AAAI'24) + benchmark 2602.16494 |
+| C | Mask R-CNN Swin-T | Mask R-CNN | Swin-T | (Controlled Panel) | 46.0 | **46.0** 2026-09-22 | |
+| C | DINO-Swin-L | DINO 5-scale | Swin-L | `dino-5scale_swin-l_8xb2-36e_coco.py` | 58.4 | _chưa_ | frontier; lệch capacity / pretrain IN-22k, xem caveat protocol_lock.md |
+
+**Phụ (báo cáo bổ sung, không thuộc panel chính):** YOLOX-S (`yolox_s_8xb8-300e_coco.py`, 40.5 — toàn bộ data dev30/100/300 trước 10-28 dùng model này ở nhóm B), DETR-R50 (`detr_r50_8xb2-150e_coco.py`, 42.0 — đối chiếu AugTrans, E42). **Held-out (chưa từng eval):** Mask R-CNN Swin-S (`mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py`).
 
 ## Tham chiếu họ backbone
 

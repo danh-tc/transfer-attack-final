@@ -56,6 +56,9 @@ GEN_PANEL = {
     "mrcnn_swin_s": ("swin/mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco.py", "mask_rcnn_swin-s-p4-w7*"),
 }
 DIAG_ONLY = {"dino_r50", "mrcnn_swin_s"}
+# Panel A/B/C CHỐT (progress_log 2026-10-28), phần ngoài Controlled Panel (Swin-T đi qua run_baselines):
+# A = fcos_r50, dino_r50 | B = yolov3_d53, yolox_l | C = dino_swin_l. Phụ: yolox_s, detr_r50. Held-out: mrcnn_swin_s.
+PANEL_GEN = ["fcos_r50", "dino_r50", "yolov3_d53", "yolox_l", "dino_swin_l"]
 
 
 def predict_model(key, img_ids, coco, adv_dir, out_path, device, methods, split_ids):
@@ -100,8 +103,8 @@ def predict_model(key, img_ids, coco, adv_dir, out_path, device, methods, split_
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--run", default="n300_B50_eps5")
-    p.add_argument("--models", nargs="+", default=[k for k in GEN_PANEL if k not in DIAG_ONLY],
-                   choices=list(GEN_PANEL))  # mặc định = panel định trước; dino_r50 chỉ chạy khi chỉ định
+    p.add_argument("--models", nargs="+", default=PANEL_GEN,
+                   choices=list(GEN_PANEL))  # mặc định = panel A/B/C chốt 2026-10-28 (trước đó: GEN_PANEL trừ DIAG_ONLY)
     p.add_argument("--n-boot", type=int, default=1000)
     p.add_argument("--device", default="cuda:0")
     p.add_argument("--ctrl-refs", nargs="*", default=[],

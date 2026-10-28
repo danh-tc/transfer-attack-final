@@ -4389,3 +4389,15 @@ Clean AP (n = 30): DETR-R50 36.4, DINO-R50 49.5. Relative drop % (AP adv) — DE
 - **RD B36: 96.0 (1.5) | 94.6 (2.7)**
 - AugTrans (Table 2, FR-R50 nguồn, COCO 5000 ảnh, ~1600 gradient): DETR 42.5 → 2.8 (93.4%) | DINO 63.2 → 5.4 (91.5%).
 **Đọc:** mọi method của mình (kể cả OSFD) đều phá DETR-R50 / DINO-R50 ~94–96% ở ε = 5 với ~1/44 ngân sách AugTrans → setting "CNN → detector Transformer cùng backbone R50" BÃO HÒA, KHÔNG phân biệt method (khớp DINO-R50 94–97% từ 09-23 / panel A/B/C). Số mình ngang hoặc mạnh hơn AugTrans về drop, nhưng KHÔNG so công bằng (khác surrogate, checkpoint target, ngân sách, tập ảnh; DINO clean 63.2 của họ bất thường). Định vị paper: ca khó thật là ĐỔI HỌ BACKBONE (DINO-Swin-L: OSFD 22.6 → RD 38.0 cùng dev30), nơi AugTrans không báo cáo.
+
+---
+
+## 2026-10-28 — CHỐT panel A/B/C cuối + surrogate (user approve, ~22:20 GMT+7) — thay entry "CHỐT panel đánh giá A/B/C" 10-25 ở nhóm B
+**Đối chiếu báo cáo gửi thầy** (surrogate Faster R-CNN R50; A: fcos_r50, deformable_detr; B: yolov3_d53, yolox_l; C: mask_rcnn_swin_t, dino_swin_l; metric ASR + % mAP giảm) với setting repo. **Quyết định (user approve đề xuất Claude):**
+- **Surrogate: GIỮ Mask R-CNN R50** (`mask-rcnn_r50_fpn_ms-poly-3x`, mask head không dùng khi attack → tương đương Faster R-CNN về gradient). Lý do: Controlled Panel (RQ1) cần CÙNG detector cho R50 / R101 / ConvNeXt-T / Swin-T — mmdet chỉ có checkpoint Mask R-CNN chính thức cho đủ 4 backbone; mọi bằng chứng E1–E42 trên surrogate này. Bù: 1 lần kiểm surrogate FRC-R50 cho method chốt ở bước cuối (entry riêng). → Báo thầy thay đổi này.
+- **A: FCOS-R50 + DINO-R50** (giữ setting repo, KHÔNG Deformable DETR): DINO-R50 ghép cặp DINO-Swin-L (cùng detector, chỉ khác backbone) → cô lập họ backbone ở nhóm C; nhóm A bão hòa với mọi method (E42) nên đổi không mất khả năng phân biệt. Deformable DETR: tùy chọn phụ. → Báo thầy.
+- **B: YOLOv3-D53 + YOLOX-L** (QUAY VỀ báo cáo, thay YOLOX-S): YOLOX-L có trong OSFD (AAAI'24) + benchmark 2602.16494 → so được với literature; lý do "cân capacity" của YOLOX-S yếu (panel không kiểm soát capacity). YOLOX-L trước là held-out, CHƯA từng eval → đưa vào panel chính không rò rỉ quyết định method. YOLOX-S thành model phụ (giữ số đã có).
+- **C: Mask R-CNN Swin-T + DINO-Swin-L** (khớp).
+- **Controlled (RQ1): R101 / ConvNeXt-T / Swin-T** giữ. **Phụ:** YOLOX-S, DETR-R50. **Held-out:** Mask R-CNN Swin-S (duy nhất).
+- **Metric:** relative AP drop (AP 0.5:0.95) + **ASR** = trong các GT target detect được ở ảnh sạch (đúng lớp, IoU ≥ 0.5, score ≥ 0.3), tỉ lệ không còn detect sau attack (= `mechanism.per_image_transfer` "suppression").
+**Thực thi:** tải YOLOv3 (`mim` id `yolov3_d53_mstrain-608_273e_coco`, thêm vào `scripts/download_checkpoints.sh --gen`); smoke load + infer 1 ảnh QUA cả 5 target ngoài Controlled (fcos_r50, dino_r50, yolov3_d53, yolox_l, dino_swin_l); `eval_generalization.py` mặc định `--models` = `PANEL_GEN` (5 model trên); cập nhật `docs/model_registry.md` + `CLAUDE.md`. Clean AP full val2017 của panel A/B/C CHƯA verify (việc tiếp).

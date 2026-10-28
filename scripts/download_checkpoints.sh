@@ -42,7 +42,8 @@ if [ "${1:-}" = "--gen" ]; then
     "yolox_s_8x8_300e_coco"            # mim id khác tên file config (yolox_s_8xb8-300e_coco.py)
     "yolox_l_8x8_300e_coco"
     "dino-5scale_swin-l_8xb2-36e_coco"
-    "dino-4scale_r50_8xb2-12e_coco"     # chẩn đoán post hoc, xem progress_log 2026-09-23
+    "dino-4scale_r50_8xb2-12e_coco"     # nhóm A panel chốt (progress_log 2026-10-28)
+    "yolov3_d53_mstrain-608_273e_coco"  # nhóm B panel chốt; mim id khác tên file config (yolov3_d53_8xb8-ms-608-273e_coco.py) (progress_log 2026-10-25 / 10-28)
     "mask-rcnn_swin-s-p4-w7_fpn_amp-ms-crop-3x_coco"  # chẩn đoán post hoc (capacity Swin), eval_generalization mrcnn_swin_s
   )
 fi
