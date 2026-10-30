@@ -4583,7 +4583,7 @@ So transfer RD (E50, cùng vùng): FULL 30.6 / 26.2; IN 26.0; **OUT 0.5 / 3.0; R
 
 ---
 
-## 2026-10-30 — E52: kênh NGỮ CẢNH có chuyển từ R50 sang DINO-Swin-L không? δ chỉ ở nền (OUT) / vành (RING), loss RD gốc vs loss CHỈ object @ dev30 B36 (user: "approve", ~12:45 GMT+7) — khóa TRƯỚC khi chạy
+## 2026-10-30 — E52: kênh NGỮ CẢNH có chuyển từ R50 sang DINO-Swin-L không? δ chỉ ở nền (OUT) / vành (RING), loss RD gốc vs loss CHỈ object @ dev30 B36 (user: "approve", ~12:36 GMT+7) — khóa TRƯỚC khi chạy
 **Vì sao:** E51 — white-box chỉ ngoài box hạ Swin-L 66 (ASR 33), vành 49 / 26; δ_RD cùng vùng ≈ 0.5 (E50) vì L_OSFD trên feature NỀN của R50 kéo pixel nền đi tạo box giả cho CNN. Giả thuyết: nếu pixel nền chỉ nhận gradient qua ảnh hưởng NGỮ CẢNH lên object của R50, hướng đó có thể chuyển sang Swin-L.
 **Ô (RD: OCT 1V, MI, WP ρ 0.002, AMP, B36, ε 5, λ = 6 giữ nguyên; vùng theo box GT của data_sample quy về ảnh gốc, nới 25% như E50 — khác E50 nhỏ: E50 dùng mọi annotation COCO kể cả crowd):** `RD-OUTF` / `RD-RINGF` = δ chỉ ở OUT / RING (gradient × mask trước chuẩn hóa), loss RD gốc; `RD-OUTO` / `RD-RINGO` = cùng vùng, loss CHỈ object: L_OSFD C3–C5 chỉ token giao box (chia tổng token → mỗi token trong box như gốc, `repair.make_view_loss(box_feat)`) + CE RoI chỉ RoI dương (`roi_pos`). Smoke dev5 B3: δ ngoài vùng = 0 tuyệt đối; OUTO phủ 43–96% vùng (pixel xa object không nhận gradient).
 **Mốc:** RD-OUT / RD-RING hậu xử lý (E50): Swin-L 0.5 / 0.4.
