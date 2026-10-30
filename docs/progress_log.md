@@ -4670,3 +4670,12 @@ DINO-Swin-L drop/ASR | Conv / Swin-T / YOLOX-L / R101 drop | T8 drop/ASR (mốc 
 Thời gian 2.7 s/ảnh = RD (CWT chỉ thêm interpolate, gần như miễn phí) -> KHÁC các hướng trước, KHÔNG tốn thêm budget.
 **Theo quy tắc:** n=3 ΔSwin-L +4.0 ≥ +3 (điểm) ✓; CA3 (Conv +1.2, Swin-T +2.7, YOLOX-L +1.2) ≥ −2 ✓; R101 +0.5 ≥ −3 ✓ -> **CÓ TÍN HIỆU**. CI cận dưới −0.2 (chạm 0, dev30 nhiễu) nên chưa xác nhận CI — đúng lý do quy tắc đòi dev100.
 **Đọc:** (1) Lần đầu một method single-surrogate SẠCH nhích Swin-L +4 mà KHÔNG hại CNN (CNN còn tăng nhẹ: Conv +1.2, Swin-T +2.7) và KHÔNG tốn thêm thời gian. (2) **Phụ thuộc liều rõ: n=2 +1.2 < n=3 +4.0** -> khối mịn hơn = hiệu ứng mạnh hơn -> dấu hiệu CƠ CHẾ THẬT (không phải nhiễu). (3) Khớp giả thuyết khai báo: đẩy δ bớt phụ thuộc lưới pixel qua ĐƯỜNG ĐẦU VÀO (OCT-family) làm được cái regularizer-δ E55 không làm được -> xác nhận "input-diversity là đòn bẩy, regularizer-δ là chỉ báo". (4) ASR ~ngang RD (26.4 vs 26.2). **VIỆC TIẾP:** (a) quét liều n ∈ {4, 6} + biến thể có xoay khối @ dev30 (rẻ, xác nhận đơn điệu); (b) nếu còn tăng -> dev100 cùng-thời-gian (CWT = RD về thời gian nên B36 so trực tiếp) + OSFD cùng máy. Caveat: dev30, CI chạm 0, 1 máy.
+
+---
+
+## 2026-10-30 — E57: quét liều CWT n ∈ {4, 6} + biến thể XOAY khối (n=3, ±15°) — xác nhận đơn điệu tín hiệu E56 @ dev30 B36 (user: "Đồng ý luôn", ~14:05 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** E56 — RD-CWT có tín hiệu, phụ thuộc liều n=2 (+1.2) < n=3 (+4.0). Quét n cao hơn để xác nhận đơn điệu (cơ chế thật, CI tách 0 ở liều cao). Thêm biến thể xoay khối (CWT gốc) đã bỏ ở E56.
+**Ô (nền RD):** `-CWTN4` (n=4), `-CWTN6` (n=6), `-CWTN3R` (n=3 + xoay khối ±15°). Mốc RD + CWTN3 (PNG E56), eval lại cùng lần. Smoke dev5 B3 OK.
+**Quy tắc (dev30, điểm):** **ĐƠN ĐIỆU XÁC NHẬN** nếu ΔSwin-L tăng tiếp n=3 -> n=4 (hoặc n=6) với ΔSwin-L(tốt nhất − RD) ≥ +5 VÀ CA3 ≥ −2 VÀ R101 ≥ −3 -> chọn n tốt nhất, lên dev100 cùng-thời-gian + OSFD cùng máy. **BÃO HÒA** nếu n ≥ 4 không hơn n=3 (vẫn giữ tín hiệu n=3). **MẤT** nếu n cao làm Swin-L tụt về ≤ RD+1 (tín hiệu n=3 là nhiễu). Xoay (CWTN3R): mô tả, đọc kèm caveat box GT lệch.
+**Caveat:** dev30, CI chạm 0; n rất cao -> khối nhỏ, co-phóng mất nhiều nội dung (có thể hại white-box R50 -> đọc kèm R50); xoay làm box GT lệch nhẹ (nhiễu cho L_cls).
+**Chạy:** `results/e56/run_sweep.sh`, log `results/e56/run_sweep.log`.

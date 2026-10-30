@@ -405,18 +405,20 @@ def _scramble(d: torch.Tensor, tile: int, gen) -> torch.Tensor:
     return out
 
 
-def _cwt_spec(h, w, n, s_max, rng):
-    """Spec co-phóng theo khối n×n: biên khối (chia đều, dư dồn khối cuối) + hệ số co mỗi khối ~ U(1, s_max)."""
+def _cwt_spec(h, w, n, s_max, rng, rot_deg=0.0):
+    """Spec co-phóng theo khối n×n: biên khối (chia đều, dư dồn khối cuối) + hệ số co mỗi khối ~ U(1, s_max) + góc xoay mỗi
+    khối ~ U(−rot_deg, rot_deg) độ (0 = không xoay)."""
     ys = [i * h // n for i in range(n)] + [h]
     xs = [j * w // n for j in range(n)] + [w]
     f = [[rng.uniform(1.0, s_max) for _ in range(n)] for _ in range(n)]
-    return ys, xs, f
+    r = [[rng.uniform(-rot_deg, rot_deg) for _ in range(n)] for _ in range(n)]
+    return ys, xs, f, r
 
 
 def _cwt_apply(img, spec):
-    """Áp spec: mỗi khối co xuống 1/f rồi phóng lại kích thước gốc (bilinear) -> phá high-freq cục bộ, giữ vị trí khối.
-    Khả vi theo img (chỉ interpolate). img [C, H, W]."""
-    ys, xs, f = spec
+    """Áp spec: mỗi khối co xuống 1/f rồi phóng lại kích thước gốc (bilinear); nếu có góc, xoay quanh tâm khối (grid_sample
+    reflection). Giữ vị trí khối (ảnh ra = ảnh vào về kích thước). Khả vi theo img. img [C, H, W]."""
+    ys, xs, f, r = spec
     n = len(xs) - 1
     rows = []
     for i in range(n):
@@ -426,7 +428,14 @@ def _cwt_apply(img, spec):
             bh, bw = blk.shape[-2:]
             sh, sw = max(1, int(bh / f[i][j])), max(1, int(bw / f[i][j]))
             small = F.interpolate(blk[None], size=(sh, sw), mode="bilinear", align_corners=False)
-            cols.append(F.interpolate(small, size=(bh, bw), mode="bilinear", align_corners=False)[0])
+            out = F.interpolate(small, size=(bh, bw), mode="bilinear", align_corners=False)
+            if r[i][j] != 0.0:
+                a = math.radians(r[i][j])
+                theta = torch.tensor([[math.cos(a), -math.sin(a), 0.0], [math.sin(a), math.cos(a), 0.0]],
+                                     device=img.device, dtype=out.dtype)[None]
+                grid = F.affine_grid(theta, out.shape, align_corners=False)
+                out = F.grid_sample(out, grid, mode="bilinear", padding_mode="reflection", align_corners=False)
+            cols.append(out[0])
         rows.append(torch.cat(cols, dim=-1))
     return torch.cat(rows, dim=-2)
 
@@ -782,7 +791,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 # E56 (progress_log 2026-10-30): CWT (arXiv 2501.11901) — co-phóng theo khối n×n (phá high-freq cục bộ),
                 # áp Y HỆT cho v và c (CÙNG spec) -> δ phải sống sót qua lấy mẫu lại theo khối (đẩy δ bớt phụ thuộc lưới
                 # pixel, E54). Giữ vị trí khối -> box GT còn đúng cho L_cls. Hệ số co MỚI mỗi bước (cwt_rng seed + 15).
-                spec = _cwt_spec(v.shape[-2], v.shape[-1], cwt[0], cwt[1], cwt_rng)
+                spec = _cwt_spec(v.shape[-2], v.shape[-1], cwt[0], cwt[1], cwt_rng, cwt[2] if len(cwt) > 2 else 0.0)
                 v, c = _cwt_apply(v, spec), _cwt_apply(c, spec)
             ctx = rapa[0]() if rapa is not None else contextlib.nullcontext  # CÙNG mask cho sạch và adv của view
             if rapa_cls is not None and feature:
