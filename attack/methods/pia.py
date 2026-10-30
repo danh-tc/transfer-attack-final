@@ -405,6 +405,32 @@ def _scramble(d: torch.Tensor, tile: int, gen) -> torch.Tensor:
     return out
 
 
+def _cwt_spec(h, w, n, s_max, rng):
+    """Spec co-phóng theo khối n×n: biên khối (chia đều, dư dồn khối cuối) + hệ số co mỗi khối ~ U(1, s_max)."""
+    ys = [i * h // n for i in range(n)] + [h]
+    xs = [j * w // n for j in range(n)] + [w]
+    f = [[rng.uniform(1.0, s_max) for _ in range(n)] for _ in range(n)]
+    return ys, xs, f
+
+
+def _cwt_apply(img, spec):
+    """Áp spec: mỗi khối co xuống 1/f rồi phóng lại kích thước gốc (bilinear) -> phá high-freq cục bộ, giữ vị trí khối.
+    Khả vi theo img (chỉ interpolate). img [C, H, W]."""
+    ys, xs, f = spec
+    n = len(xs) - 1
+    rows = []
+    for i in range(n):
+        cols = []
+        for j in range(n):
+            blk = img[:, ys[i]:ys[i + 1], xs[j]:xs[j + 1]]
+            bh, bw = blk.shape[-2:]
+            sh, sw = max(1, int(bh / f[i][j])), max(1, int(bw / f[i][j]))
+            small = F.interpolate(blk[None], size=(sh, sw), mode="bilinear", align_corners=False)
+            cols.append(F.interpolate(small, size=(bh, bw), mode="bilinear", align_corners=False)[0])
+        rows.append(torch.cat(cols, dim=-1))
+    return torch.cat(rows, dim=-2)
+
+
 def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float = 5.0,
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
@@ -422,7 +448,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
-                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None):
+                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -522,6 +548,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert scr is None or (geo == "elem" and cls_weight > 0 and feature and co_transform and n_views == 1
                            and backward_per_step == 1 and not cache_views and dual is None)
     scr_gen = torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 13) if scr is not None else None
+    # E56 (progress_log 2026-10-30): cwt = (n, s_max) — view co-phóng theo khối n×n (CWT, arXiv 2501.11901), áp vào elem.
+    assert cwt is None or (geo == "elem" and co_transform and not cache_views)
+    cwt_rng = random.Random(torch.initial_seed() + 15) if cwt is not None else None
     # otsv = β (C2-OCT-1V-WP2-OTSV, E21, progress_log 2026-10-24): bước lẻ forward ảo OTSV (otsv_hook trên layer3, box GT
     # co-transform của view), bước chẵn forward R50 gốc (lịch 1 : 1); feature sạch của view qua CÙNG chế độ forward.
     assert otsv is None or (n_views == 1 and backward_per_step == 1 and not cache_views and cls_weight > 0 and pfa is None)
@@ -749,6 +778,12 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 # RNG riêng (seed + 9) -> chuỗi view OCT trùng ô gốc. Box GT giữ nguyên.
                 bc = _blur(c, tx_rng.uniform(0.0, tex_blur))
                 v, c = v + (bc - c), bc
+            if cwt is not None:
+                # E56 (progress_log 2026-10-30): CWT (arXiv 2501.11901) — co-phóng theo khối n×n (phá high-freq cục bộ),
+                # áp Y HỆT cho v và c (CÙNG spec) -> δ phải sống sót qua lấy mẫu lại theo khối (đẩy δ bớt phụ thuộc lưới
+                # pixel, E54). Giữ vị trí khối -> box GT còn đúng cho L_cls. Hệ số co MỚI mỗi bước (cwt_rng seed + 15).
+                spec = _cwt_spec(v.shape[-2], v.shape[-1], cwt[0], cwt[1], cwt_rng)
+                v, c = _cwt_apply(v, spec), _cwt_apply(c, spec)
             ctx = rapa[0]() if rapa is not None else contextlib.nullcontext  # CÙNG mask cho sạch và adv của view
             if rapa_cls is not None and feature:
                 ctx = rapa_cls[0]()
