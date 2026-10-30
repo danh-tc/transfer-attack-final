@@ -4541,7 +4541,19 @@ DINO-Swin-L drop, 3090 | V100 (E38 / E39): C2-OCT-1V **25.5** | 31.2 (−5.7); W
 **Caveat:** dev30; 3 quỹ đạo khác nhau do số học (không phải seed khởi tạo) → độ đa dạng có thể nhỏ; E41: đẩy biên độ lên ±ε hại nhẹ (CA3 −1.9).
 **Chạy:** `results/e49/run.sh`, log `results/e49/run.log`.
 
-### Kết quả E49 @ dev30 (3090, xong ~11:40 GMT+7; `results/mechanism/e49_traj_vote.json`, `results/runs/dev300_B36_eps5_limit100*/*_e49*_dev30.json`, log `results/e49/run.log`) — theo quy tắc: **XÁM** (VOTE3 − max lẻ = +1.7)
+### Kết quả E49 @ dev30 (3090, xong 11:32 GMT+7; `results/mechanism/e49_traj_vote.json`, `results/runs/dev300_B36_eps5_limit100*/*_e49*_dev30.json`, log `results/e49/run.log`) — theo quy tắc: **XÁM** (VOTE3 − max lẻ = +1.7)
 DINO-Swin-L drop: lẻ E46 / E47 / E48 = 30.6 / 31.5 / 32.5; **VOTE3 34.2** [28.2, 42.2]; MEAN3 32.6. ConvNeXt / Swin-T / YOLOX-L: VOTE3 84.7 / 87.2 / 71.5 vs TB lẻ 85.2 / 85.5 / 71.7 (không giảm > 2 ✓). R101 92.5 vs 93.0.
 **Mô tả:** đồng thuận dấu giữa cặp δ 0.77–0.82 (hòa 1.8%); suppression Swin-L theo ảnh giữa 3 nguồn **Pearson 0.92–0.93, Spearman 0.93–0.95**, SD theo ảnh giữa nguồn 2.6 điểm; ASR macro Swin-L lẻ 26.2–26.5 → VOTE3 28.1.
 **Đọc:** (1) 3 quỹ đạo trên CÙNG máy 3090 rất giống nhau (≈ 80% dấu trùng, ảnh nào bị phá gần như cố định) → đa dạng quá nhỏ để bỏ phiếu lọc được nhiều; VOTE3 nhích +1.7 (trong nhiễu). (2) Vì thế E49 KHÔNG trả lời được câu "V100 vs 3090": 3 nguồn ở đây đều là 3090; quỹ đạo V100 có thể khác nhiều hơn. Phép kiểm trực tiếp: tải PNG V100 (HF tag `_1028v100`, `.env` đã có) và eval trên 3090 (eval không phụ thuộc máy — clean AP trùng) + đo đồng thuận dấu δ_V100 vs δ_3090.
+
+---
+
+## 2026-10-30 — E50: vai trò của pixel δ Ở NỀN — che δ_RD theo GT box (IN / OUT / RING) @ dev30, hậu xử lý PNG E46, chỉ forward (user: "approve", ~11:37 GMT+7) — PHÉP DÒ, khai báo TRƯỚC khi chạy
+**Vì sao (thảo luận background với user):** mọi lần khai thác nền trước đây đều là "nền làm ĐÍCH cho feature object trên R50" (BG-OCT, XBG, E17, E18) — đều hại / yếu. Chưa từng đo ở mức pixel: δ ngoài box đóng góp bao nhiêu, cho target nào. Dữ kiện: E14b — thiệt hại feature bb3 Swin-L 87% từ token trong box, ngoài ≈ 0, δ trải năng lượng đều (~2/3 token là nền); box giả trên nền là kiểu phá chính của OSFD trên CNN (FP nền / ảnh tới 18–41) nhưng DINO chặn (1.1 → 1.8). Dưới L∞ không dồn ngân sách giữa pixel được, nhưng ĐỔI MỤC TIÊU cho pixel nền được.
+**Ô (`scripts/e50_bg_mask.py`, run `dev300_B36_eps5_limit100`, nguồn δ = RD B36 PNG E46):** vùng theo hộp COCO (mọi annotation, khung ảnh gốc): `RD-IN` = δ chỉ trong hợp box; `RD-OUT` = chỉ ngoài; `RD-RING` = vành (box nới mỗi cạnh 25%) trừ IN. Eval panel đủ 9 model (`panel_table.py`, so FULL = RD) + FP / ảnh nền | sát object (định nghĩa `err_profile`).
+**Đọc (khai báo trước; share_X(m) = drop(X) / drop(FULL), điểm):**
+- **"NỀN CHỈ PHỤC VỤ CNN"** nếu share_OUT(DINO-Swin-L) ≤ 0.2 VÀ TB share_OUT(ConvNeXt, FCOS, YOLOv3, YOLOX-L) ≥ 0.4 → pixel nền là ngân sách đổi mục tiêu được cho Swin-L (entry riêng thiết kế loss vùng nền).
+- **"VÀNH CÓ VAI TRÒ Ở SWIN-L"** nếu share_RING(DINO-Swin-L) ≥ 0.25 → ngữ cảnh sát object là kênh; ứng viên loss riêng cho vành.
+- Mô tả: share_IN + share_OUT (tính cộng tính?), ASR, FP nền theo ô, tỉ lệ diện tích từng vùng.
+**Caveat:** dev30; che δ cắt cạnh đột ngột ở biên box (biên nhân tạo); δ được tối ưu cho cả ảnh nên share ≠ "đóng góp nếu tối ưu riêng"; GT box chỉ dùng được vì threat model GT-assisted.
+**Chạy:** `results/e50/run.sh`, log `results/e50/run.log`.
