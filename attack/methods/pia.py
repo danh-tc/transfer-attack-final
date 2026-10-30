@@ -407,7 +407,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
-                    weight_capwp=None, hardview=None):
+                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -449,7 +449,24 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     # mỗi bước; "alt": bước chẵn chỉ L_feat (chỉ backbone), bước lẻ chỉ L_cls (bỏ forward sạch co-transform).
     assert dual is None or (geo == "elem" and cls_weight > 0 and feature and co_transform and rapa_cls_p is None
                             and not (fia_views or roi_pos or fab_k or obj_weight or ilpd_gamma is not None or cls_auto))
-    assert not roi_pos or (cls_weight > 0 and cls_mode == "c2")
+    assert not roi_pos or (cls_weight > 0 and cls_mode in ("c2", "roi"))
+    # E52 (progress_log 2026-10-30): pix_region = "out" | "ring" -> δ chỉ ở vùng đó (gradient nhân mask trước chuẩn hóa / sign;
+    # ngoài vùng sign 0 -> δ = 0); vùng theo box GT quy về ảnh gốc như scripts/e50_bg_mask.py. box_feat: L_OSFD chỉ token trong box.
+    assert pix_region in (None, "out", "ring") and (not box_feat or stage_w is not None)
+    grad_transform = None
+    if pix_region is not None:
+        sx, sy = data_sample.metainfo["scale_factor"]
+        gb = data_sample.gt_instances.bboxes
+        h0, w0 = orig_pixels.shape[-2:]
+        inside = torch.zeros((h0, w0), dtype=torch.bool, device=orig_pixels.device)
+        grown = torch.zeros_like(inside)
+        for x1, y1, x2, y2 in (gb.tensor if hasattr(gb, "tensor") else gb).float().tolist():
+            x, y, bw, bh = x1 / sx, y1 / sy, (x2 - x1) / sx, (y2 - y1) / sy
+            up = lambda v: int(-(-v // 1))  # ceil (tên `math` bị gán cục bộ phía dưới hàm)
+            inside[int(y):up(y + bh), int(x):up(x + bw)] = True
+            grown[max(0, int(y - 0.25 * bh)):up(y + 1.25 * bh), max(0, int(x - 0.25 * bw)):up(x + 1.25 * bw)] = True
+        pix_mask = (~inside if pix_region == "out" else grown & ~inside).float()[None]
+        grad_transform = lambda g: g * pix_mask
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
@@ -742,7 +759,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                     fab_weight=fab_weight, obj_weight=obj_weight,
                                     split=dual == "exact" or weight_def is not None, stage_pool=stage_pool,
                                     size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w,
-                                    fpa=fpa)
+                                    fpa=fpa, box_feat=box_feat)
                 lf2 = _with_ctx(lf, ctx) if rapa_cls is not None else lf
                 out.append((v, dsv, lf2, (c, fc)) if weight_capwp is not None else (v, dsv, lf2))
             elif rapa is not None:
@@ -843,7 +860,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                          epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                          on_step=on_step, backward_per_step=backward_per_step,
                                          season_sigma=season_sigma, dual=dual, weight_perturb=wp,
-                                         init_noise=init_noise, spike=spike)
+                                         init_noise=init_noise, spike=spike, grad_transform=grad_transform)
     finally:
         if mask_head is not None:
             model.roi_head.mask_head = mask_head

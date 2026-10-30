@@ -402,7 +402,8 @@ def _fpa_mse(fc_tgt, fa, gamma: float, p: float):
 def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=None, feat_weight: float = 1.0,
                    ilpd_gamma=None, ilpd_stage: int = 2, feat_chw=None, roi_ctx=None, fab_weight: float = 0.0,
                    obj_weight: float = 0.0, obj_k: float = 1.0, split: bool = False, stage_pool=None, size_w=None,
-                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add", stage_w=None, fpa=None):
+                   ln_feat: bool = False, xbg_feats=None, xbg_mode: str = "add", stage_w=None, fpa=None,
+                   box_feat: bool = False):
     """loss_fn(model, ảnh view, data_sample view): L_OSFD trên backbone adv + weight·L_cls trên
     nhánh head; repair_feats = (C2, C3) sạch -> thay vào trước FPN (R-a), None = không sửa.
     ilpd_gamma = γ (ILPD, NeurIPS 2023; progress_log 2026-10-18): chỉ trên đường head, stage `ilpd_stage` vào FPN =
@@ -475,6 +476,12 @@ def make_view_loss(feats_clean, k: float, cls: str, weight: float, repair_feats=
         elif xbg_feats is not None:
             feat = sum(_xbg_mse(k * fc, fb, fa, s, data_sample, xbg_mode)
                        for s, (fc, fb, fa) in enumerate(zip(feats_clean, xbg_feats, cap["f"])))
+        elif stage_w is not None and box_feat:
+            # E52 (progress_log 2026-10-30): chỉ token giao box GT của view; chia cho TỔNG số token -> mỗi token trong box
+            # đóng góp như L_OSFD gốc, token nền = 0 (không đổi cân bằng với L_cls).
+            feat = sum(w * ((k * fc.float() - fa.float()).pow(2).mean(1)[0] * _box_mask(fa, s, data_sample)).sum()
+                       / fa.shape[-1] / fa.shape[-2]
+                       for s, (w, fc, fa) in enumerate(zip(stage_w, feats_clean, cap["f"])))
         elif stage_w is not None:
             feat = sum(w * F.mse_loss(k * fc, fa) for w, fc, fa in zip(stage_w, feats_clean, cap["f"]))
         elif fpa is not None:
