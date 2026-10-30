@@ -4686,7 +4686,7 @@ Thời gian 2.7 s/ảnh = RD (CWT chỉ thêm interpolate, gần như miễn ph�
 
 ---
 
-## 2026-10-30 — E58: XÁC NHẬN RD-CWT(n=3) @ dev100 cùng máy 3090 (bản gọn) — RD-CWTN3 vs RD vs OSFD (user: "approve", ~14:20 GMT+7) — khóa TRƯỚC khi chạy
+## 2026-10-30 — E58: XÁC NHẬN RD-CWT(n=3) @ dev100 cùng máy 3090 (bản gọn) — RD-CWTN3 vs RD vs OSFD (user: "approve", ~14:57 GMT+7) — khóa TRƯỚC khi chạy
 **Vì sao:** E56/E57 — RD-CWT(n=3) ΔSwin-L +4.0 nhưng CI dev30 chạm 0 [−0.2, +5.8]; chữ U ngược theo n (cơ chế thật). dev100 co CI ~±2.5 -> phân giải được +4. Đây là method single-surrogate SẠCH duy nhất có tín hiệu dương; xác nhận trước khi đầu tư full panel / dev300.
 **Ô (dev100, 100 ảnh):** RD-CWTN3 (B36), RD (B36), OSFD (B50) — sinh lại cùng máy cùng lần (không trộn PNG V100). Eval gọn: Controlled (r50/r101/convnext_t/swin_t) + DINO-Swin-L + YOLOX-L. CWT = RD về thời gian (E56: 2.7 s/ảnh) -> so B36 trực tiếp.
 **Quy tắc (dev100, paired bootstrap 1000 so RD):** **XÁC NHẬN** nếu ΔSwin-L(CWTN3 − RD) > 0 với cận dưới CI95 > 0 VÀ CA3 (ConvNeXt/Swin-T/YOLOX-L) ≥ −2 (điểm) VÀ R101 ≥ −3 -> RD-CWT(n=3) là method chốt; chạy full panel + dev300. **KHÔNG** nếu cận dưới CI ≤ 0 -> tín hiệu dev30 không vững; RD / RD-CV là method chốt. Mô tả: drop + ASR + APloc so OSFD.
