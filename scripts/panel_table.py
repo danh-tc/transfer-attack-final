@@ -100,6 +100,7 @@ def main():
     p.add_argument("--cells", nargs="+", required=True)
     p.add_argument("--ref", required=True, help="tên ô mốc cho Δ (paired bootstrap)")
     p.add_argument("--out", default=None)
+    p.add_argument("--gen-models", nargs="+", default=None, help="giới hạn PANEL_GEN (vd dino_swin_l yolox_l) — bản gọn")
     args = p.parse_args()
     with quiet():
         coco = COCO(ANN_FILE)
@@ -108,7 +109,7 @@ def main():
     n = len(ids)
     W = np.vstack([np.ones((1, n)), bootstrap_indices(n, N_BOOT, BOOT_SEED)])
     rows = [np.arange(n)] + list(np.random.default_rng(BOOT_SEED).integers(0, n, size=(N_BOOT, n)))
-    models = CTRL + PANEL_GEN
+    models = CTRL + (args.gen_models if args.gen_models else PANEL_GEN)
 
     def ap(g, d, j):
         with quiet():
@@ -142,7 +143,7 @@ def main():
                 met[name][key][k] = pct_drop(ratio(csr_counts(coco, c, ids, thr), rows),
                                              ratio(csr_counts(coco, a, ids, thr), rows))
         for m in METRICS:
-            met[name][m]["T8"] = np.nanmean([met[name][m][k] for k in T8], axis=0)
+            met[name][m]["T8"] = np.nanmean([met[name][m][k] for k in T8 if k in met[name][m]], axis=0)
 
     cols = models + ["T8"]
     r2 = lambda x: round(float(x), 2)
