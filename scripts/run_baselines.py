@@ -684,7 +684,8 @@ def print_table(m, keys, methods):
 def run_name(args, budget):
     return (f"{args.split}_B{budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
             + (f"_sur-{args.surrogate}" if args.surrogate != SURROGATE_KEY else "")
-            + ("_fp32" if getattr(args, "no_tf32", False) else ""))
+            + ("_fp32" if getattr(args, "no_tf32", False) else "")
+            + (f"_seed{getattr(args, 'seed_base', 0)}" if getattr(args, "seed_base", 0) else ""))
 
 
 def main():
@@ -706,6 +707,8 @@ def main():
                    help="mốc B < --budget: ghi δ sau từng mốc vào run B tương ứng (đường bão hòa, progress_log 2026-10-20)")
     p.add_argument("--init-from", default=None,
                    help="run chứa PNG khởi tạo δ cho ô INIT_METHODS (E20, progress_log 2026-10-24)")
+    p.add_argument("--seed-base", type=int, default=0,
+                   help="E59 (progress_log 2026-10-30): base seed attack (thay SEED=0) -> quỹ đạo khác trên cùng máy; run riêng *_seedN")
     p.add_argument("--no-tf32", action="store_true",
                    help="tắt TF32 cho conv / matmul (Ampere+; V100 luôn FP32) -> run riêng *_fp32 (E47, progress_log 2026-10-30)")
     args = p.parse_args()
@@ -713,6 +716,9 @@ def main():
     if args.no_tf32:
         torch.backends.cudnn.allow_tf32 = False
         torch.backends.cuda.matmul.allow_tf32 = False
+    if getattr(args, "seed_base", 0):
+        global SEED
+        SEED = args.seed_base  # E59: đổi quỹ đạo attack trên CÙNG máy (view/noise/WP/... đều từ SEED + chỉ số ảnh)
 
     run = run_name(args, args.budget)
     run_dir = os.path.join(REPO_ROOT, "results/runs", run)
