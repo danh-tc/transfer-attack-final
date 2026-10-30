@@ -4488,7 +4488,7 @@ RD-V − RD: ASR micro T8 +5.1, APloc −2.1, CSR3 +4.7, DINO-Swin-L APloc −7.
 **Caveat:** dev30 đã dùng nhiều; mốc sinh lại trên máy khác (3090 vs V100) → RD / RD-V / OSFD lệch nhỏ so E45, mọi so sánh dùng số CÙNG lần này; GPU không tất định.
 **Chạy:** `results/e46/run.sh`, log `results/e46/run.log`, tag `e46_dev30`.
 
-### Kết quả E46 @ dev30 B36 (RTX 3090, xong ~11:05 GMT+7; `results/e46/panel_dev30.json`, `results/runs/dev300_B{36,50}_eps5_limit100/*_e46_dev30.json`, log `results/e46/run.log`) — theo quy tắc: **KHÔNG** (ΔASR_T8 +2.0 < +3)
+### Kết quả E46 @ dev30 B36 (RTX 3090, xong 10:55 GMT+7; `results/e46/panel_dev30.json`, `results/runs/dev300_B{36,50}_eps5_limit100/*_e46_dev30.json`, log `results/e46/run.log`) — theo quy tắc: **KHÔNG** (ΔASR_T8 +2.0 < +3)
 Drop / ASR macro % (cùng lần, mốc sinh lại trên 3090):
 | | R101 | ConvNeXt | Swin-T | FCOS | DINO-R50 | YOLOv3 | YOLOX-L | DINO-Swin-L | T8 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -4503,19 +4503,19 @@ s/ảnh (3090, cùng lần): RD 2.7, RD-V 2.4, RD-CV 3.1 (+15%: forward RPN / Ro
 
 ---
 
-## 2026-10-30 — E47: TF32 có phải nguồn lệch DINO-Swin-L giữa V100 (E45) và 3090 (E46)? RD B36 + OSFD B50 @ dev30 FP32 thuần (user: "approve", ~11:20 GMT+7) — CHẨN ĐOÁN, khai báo TRƯỚC khi chạy
+## 2026-10-30 — E47: TF32 có phải nguồn lệch DINO-Swin-L giữa V100 (E45) và 3090 (E46)? RD B36 + OSFD B50 @ dev30 FP32 thuần (user: "approve", ~10:59 GMT+7) — CHẨN ĐOÁN, khai báo TRƯỚC khi chạy
 **Vì sao:** E46 (3090) RD Swin-L 30.6 vs E45 (V100) 38.0; clean AP trùng → lệch ở bước sinh attack. 3090 mặc định `cudnn.allow_tf32 = True` (conv cắt mantissa 10 bit); V100 không có TF32.
 **Thao tác:** cờ mới `run_baselines.py --no-tf32` (tắt TF32 conv + matmul, run riêng `*_fp32`); RD B36 + OSFD B50 dev30, mọi thứ khác y nguyên; eval Controlled (dets) + DINO-Swin-L (inference để mặc định — clean AP không đổi theo TF32).
 **Đọc (khai báo trước, điểm):** **TF32 LÀ NGUỒN** nếu RD_fp32 Swin-L ≥ 35 (gần E45 38.0 hơn E46 30.6) → protocol: mọi run trên Ampere+ dùng `--no-tf32`; số Swin-L E46 không dùng. **KHÔNG PHẢI** nếu ≤ 33 → lệch là nhiễu giữa lần chạy (dev30 quá nhỏ cho Swin-L) → đọc Swin-L từ dev100 trở lên. Giữa → XÁM. OSFD_fp32 mô tả (E45 22.6 / E46 26.5).
 **Chạy:** `results/e47/run.sh`, log `results/e47/run.log`.
 
-### Kết quả E47 @ dev30 (3090, xong ~11:35 GMT+7; `results/runs/dev300_B{36,50}_eps5_limit100_fp32/*_e47_dev30.json`, log `results/e47/run.log`) — theo quy tắc: **KHÔNG PHẢI TF32**
+### Kết quả E47 @ dev30 (3090, xong 11:05 GMT+7; `results/runs/dev300_B{36,50}_eps5_limit100_fp32/*_e47_dev30.json`, log `results/e47/run.log`) — theo quy tắc: **KHÔNG PHẢI TF32**
 DINO-Swin-L drop: **RD_fp32 31.5** [24.9, 42.6] (E46 TF32 30.6, E45 V100 38.0); OSFD_fp32 26.2 (E46 26.5, E45 22.6). Controlled RD_fp32 98.2 / 92.6 / 84.2 / 85.2 (≈ E46). s/ảnh RD 2.7 (không đổi), OSFD 3.7.
 **Đọc:** tắt TF32 không đổi gì → TF32 không phải nguồn. Lưu ý (phát hiện sau khi khóa): ô C2-OCT* chạy **AMP fp16** (`_C2OCT amp=True`) → conv trong attack là fp16, TF32 vốn không áp dụng cho phần lớn tính toán; khai báo E47 bỏ sót điểm này. Lệch KHÔNG giống nhiễu ngẫu nhiên giữa lần chạy: 2 lần trên 3090 cho RD Swin-L 30.6 / 31.5, các lần trên V100 37–39 (E39 B36 38.0, E40 B50 / B75 / B100 37.2 / 37.8 / 39.2) → lệch có HỆ THỐNG theo phần cứng (nghi: kernel fp16 / thuật toán cuDNN khác giữa Volta và Ampere). CHƯA kiểm (ứng viên: RD `amp=False` trên 3090). Hệ quả: số Swin-L không ghép giữa V100 và Ampere; claim "+15 Swin-L so OSFD" (V100) chưa vững — trên 3090 chỉ +4–5.
 
 ---
 
-## 2026-10-30 — E48: lệch DINO-Swin-L V100 vs 3090 đến từ WP và/hoặc AMP fp16? @ dev30 B36 trên 3090 (user: "Kiểm tìm nguyên nhân thử", ~11:45 GMT+7) — CHẨN ĐOÁN, khai báo TRƯỚC khi chạy
+## 2026-10-30 — E48: lệch DINO-Swin-L V100 vs 3090 đến từ WP và/hoặc AMP fp16? @ dev30 B36 trên 3090 (user: "Kiểm tìm nguyên nhân thử", ~11:14 GMT+7) — CHẨN ĐOÁN, khai báo TRƯỚC khi chạy
 **Manh mối (log cũ):** C2-OCT-1V (KHÔNG WP) tái lập giữa V100 và A4500 (Ampere): Swin-L dev300 V100 32.4, dev100 A4500 B41 30.5; lợi so OSFD +8.8 (V100 dev100) vs +6.4 (A4500). Mọi run có WP đều trên V100. WP tính ∇θ trong autocast fp16, không GradScaler → underflow có thể khác kernel Volta / Ampere.
 **Ô (3090, dev30, B36, seed như cũ; mốc V100 = E38 / E39 cùng dev30 B36):** `C2-OCT-1V` (V100 31.2), `C2-OCT-1V-WP2` (V100 36.2), `C2-OCT-1V-WP2-RD-NOAMP` (RD, `amp=False`; RD V100 38.0, 3090 AMP 30.6 / 31.5). RD AMP (PNG E46) eval lại cùng lần.
 **Đọc (khai báo trước, Swin-L điểm):**
@@ -4525,3 +4525,9 @@ DINO-Swin-L drop: **RD_fp32 31.5** [24.9, 42.6] (E46 TF32 30.6, E45 V100 38.0); 
 - Còn lại → XÁM, mô tả.
 **Caveat:** dev30; 1 lần chạy mỗi ô; GPU không tất định.
 **Chạy:** `results/e48/run.sh`, log `results/e48/run.log`.
+
+### Kết quả E48 @ dev30 B36 (3090, xong 11:21 GMT+7; `results/runs/dev300_B36_eps5_limit100/*_e48_dev30.json`, log `results/e48/run.log`) — theo quy tắc: **lệch CHUNG của máy / nhiễu dev30, KHÔNG riêng WP, KHÔNG do AMP** → cần dev100
+(Ghi chú: giờ trong các entry E46–E48 ban đầu ước đoán sai, đã sửa theo timestamp file log.)
+DINO-Swin-L drop, 3090 | V100 (E38 / E39): C2-OCT-1V **25.5** | 31.2 (−5.7); WP2 **31.8** | 36.2 (−4.4); RD (AMP, PNG E46) 30.6 | 38.0; **RD-NOAMP 32.5** | — . OSFD B50: 26.5 (E46) | 22.6 (E40). Controlled: R50 / R101 / ConvNeXt / Swin-T — C2-OCT-1V 99.3 / 93.5 / 81.7 / 83.4; WP2 98.5 / 92.1 / 86.4 / 81.2; RD-NOAMP 98.5 / 93.2 / 85.5 / 86.2 (≈ V100 trong ±2–3). s/ảnh: C2-OCT-1V 2.5, WP2 2.7, RD 2.7, RD-NOAMP 3.5 (AMP nhanh hơn 1.3×).
+**Theo quy tắc:** RD-NOAMP 32.5 < 35 → không phải AMP; C2-OCT-1V lệch −5.7 > 2.5 → không riêng WP. **Mô tả: lợi TƯƠNG ĐỐI của WP2 TÁI LẬP** (WP2 − C2-OCT-1V: 3090 +6.3, V100 +5.0); RD ≈ WP2 trên cả hai máy.
+**Đọc:** (1) Mức TUYỆT ĐỐI Swin-L của họ C2 thấp hơn ~5–7 trên 3090, OSFD lại cao hơn ~4 → không phải dịch đều theo máy. 2 lần cùng máy (E46 / E47) gần trùng (30.6 / 31.5) → trên cùng phần cứng gần tất định; đổi phần cứng = quỹ đạo sign khác (như đổi seed) → với n = 30 và CI Swin-L rộng ~±8, mỗi máy là 1 "lần rút". Giả thuyết: biến thiên theo SEED của Swin-L ở dev30 ~ cỡ 5 điểm → mọi chênh Swin-L < ~6 ở dev30 không đọc được; số V100 không phải "tốt hơn" mà là 1 lần rút. CHƯA kiểm (cần đổi seed trên cùng máy). (2) Hệ quả cho claim: "+15 Swin-L so OSFD" (V100 dev30) và "+4" (3090 dev30) đều là 1 lần rút; số đáng tin là dev300 (V100: WP2 sàng lọc 10-25, C2-OCT-1V − OSFD +9.0) → cần dev100 / dev300 trên máy chạy final, đo CẢ OSFD cùng máy.
