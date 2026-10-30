@@ -4500,3 +4500,11 @@ RD-CV − RD: ASR_T8 **+2.0 [−1, +6]** (< +3 ✗), drop_T8 +0.8 [−1, +3] ✓
 s/ảnh (3090, cùng lần): RD 2.7, RD-V 2.4, RD-CV 3.1 (+15%: forward RPN / RoI thêm của L_V), OSFD B50 3.1.
 **⚠️ Không tái lập E45 (V100):** clean AP 6 model trùng E45 (lệch ≤ 0.2) → eval đúng; lệch ở bước SINH attack: DINO-Swin-L RD 38.0 → **30.6**, OSFD 22.6 → 26.5, RD-V 29.9 → 29.3; RD − OSFD Swin-L +15.4 → **+4.1**; đánh đổi RD-V (Swin-L −8.1 ở E45) còn −1.3. Lớn hơn nhiều mức "GPU không tất định ~1–2" từng thấy. Nghi vấn: TF32 trên Ampere (`torch.backends.cudnn.allow_tf32 = True` mặc định; V100 không có TF32) → gradient conv kém chính xác, có thể ảnh hưởng riêng nhánh WP (∇θ chuẩn hóa) / Swin-L. CHƯA kiểm. Hệ quả: mọi so sánh trên Swin-L giữa máy V100 và Ampere KHÔNG được ghép; trước khi chốt method cần xác định nguồn lệch.
 **Đọc:** (1) Kết hợp CE + vanishing nằm GIỮA RD và RD-V về ASR (như khai báo) nhưng KHÔNG mất drop / Swin-L — trên lần chạy này RD-CV có drop T8, APloc T8 và DINO-Swin-L cao nhất 4 ô. (2) Theo quy tắc khóa → KHÔNG (ASR chưa đủ). (3) Kết luận E45 "RD-V mất 8 điểm Swin-L" không tái lập trên 3090 → câu chuyện đánh đổi CE ↔ vanishing trên Swin-L chưa chắc chắn.
+
+---
+
+## 2026-10-30 — E47: TF32 có phải nguồn lệch DINO-Swin-L giữa V100 (E45) và 3090 (E46)? RD B36 + OSFD B50 @ dev30 FP32 thuần (user: "approve", ~11:20 GMT+7) — CHẨN ĐOÁN, khai báo TRƯỚC khi chạy
+**Vì sao:** E46 (3090) RD Swin-L 30.6 vs E45 (V100) 38.0; clean AP trùng → lệch ở bước sinh attack. 3090 mặc định `cudnn.allow_tf32 = True` (conv cắt mantissa 10 bit); V100 không có TF32.
+**Thao tác:** cờ mới `run_baselines.py --no-tf32` (tắt TF32 conv + matmul, run riêng `*_fp32`); RD B36 + OSFD B50 dev30, mọi thứ khác y nguyên; eval Controlled (dets) + DINO-Swin-L (inference để mặc định — clean AP không đổi theo TF32).
+**Đọc (khai báo trước, điểm):** **TF32 LÀ NGUỒN** nếu RD_fp32 Swin-L ≥ 35 (gần E45 38.0 hơn E46 30.6) → protocol: mọi run trên Ampere+ dùng `--no-tf32`; số Swin-L E46 không dùng. **KHÔNG PHẢI** nếu ≤ 33 → lệch là nhiễu giữa lần chạy (dev30 quá nhỏ cho Swin-L) → đọc Swin-L từ dev100 trở lên. Giữa → XÁM. OSFD_fp32 mô tả (E45 22.6 / E46 26.5).
+**Chạy:** `results/e47/run.sh`, log `results/e47/run.log`.

@@ -651,7 +651,8 @@ def print_table(m, keys, methods):
 
 def run_name(args, budget):
     return (f"{args.split}_B{budget}_eps{args.epsilon:g}" + (f"_limit{args.limit}" if args.limit else "")
-            + (f"_sur-{args.surrogate}" if args.surrogate != SURROGATE_KEY else ""))
+            + (f"_sur-{args.surrogate}" if args.surrogate != SURROGATE_KEY else "")
+            + ("_fp32" if getattr(args, "no_tf32", False) else ""))
 
 
 def main():
@@ -673,8 +674,13 @@ def main():
                    help="mốc B < --budget: ghi δ sau từng mốc vào run B tương ứng (đường bão hòa, progress_log 2026-10-20)")
     p.add_argument("--init-from", default=None,
                    help="run chứa PNG khởi tạo δ cho ô INIT_METHODS (E20, progress_log 2026-10-24)")
+    p.add_argument("--no-tf32", action="store_true",
+                   help="tắt TF32 cho conv / matmul (Ampere+; V100 luôn FP32) -> run riêng *_fp32 (E47, progress_log 2026-10-30)")
     args = p.parse_args()
     assert all(b < args.budget for b in args.snapshots)
+    if args.no_tf32:
+        torch.backends.cudnn.allow_tf32 = False
+        torch.backends.cuda.matmul.allow_tf32 = False
 
     run = run_name(args, args.budget)
     run_dir = os.path.join(REPO_ROOT, "results/runs", run)
