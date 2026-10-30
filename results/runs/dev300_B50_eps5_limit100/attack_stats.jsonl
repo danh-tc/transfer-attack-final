@@ -558,3 +558,33 @@
 {"method": "C2-OCT-1V-WP2-RD", "img_id": 166259, "linf_255": 5.0, "l2": 17.100528717041016, "l2_per_pixel_rms": 0.01888621784746647, "runtime_s": 5.402570486068726, "backward": 50, "forward_views": 50, "forward_no_grad": 50, "mean_disp_px": 68.506466078332, "gt_kept_frac": 1.0}
 {"method": "C2-OCT-1V-WP2-RD", "img_id": 172877, "linf_255": 5.0, "l2": 17.478843688964844, "l2_per_pixel_rms": 0.0182071290910244, "runtime_s": 5.8373308181762695, "backward": 50, "forward_views": 50, "forward_no_grad": 50, "mean_disp_px": 72.88220663614076, "gt_kept_frac": 0.915}
 {"method": "C2-OCT-1V-WP2-RD", "img_id": 182805, "linf_255": 5.0, "l2": 15.713644027709961, "l2_per_pixel_rms": 0.01890057511627674, "runtime_s": 6.191617012023926, "backward": 50, "forward_views": 50, "forward_no_grad": 50, "mean_disp_px": 76.84374690693268, "gt_kept_frac": 1.0}
+{"method": "OSFD", "img_id": 7088, "linf_255": 5.0, "l2": 17.999521255493164, "l2_per_pixel_rms": 0.018788686022162437, "runtime_s": 3.099193572998047, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 7795, "linf_255": 5.0, "l2": 17.23360252380371, "l2_per_pixel_rms": 0.019033188000321388, "runtime_s": 3.1442604064941406, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 11615, "linf_255": 5.0, "l2": 18.10078239440918, "l2_per_pixel_rms": 0.018854981288313866, "runtime_s": 2.909421920776367, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 12667, "linf_255": 5.0, "l2": 18.243854522705078, "l2_per_pixel_rms": 0.019004015251994133, "runtime_s": 2.9098567962646484, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 17959, "linf_255": 5.0, "l2": 17.246475219726562, "l2_per_pixel_rms": 0.01904740370810032, "runtime_s": 3.1229867935180664, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 19109, "linf_255": 5.0, "l2": 17.30145263671875, "l2_per_pixel_rms": 0.01908578723669052, "runtime_s": 3.121079683303833, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 31118, "linf_255": 5.0, "l2": 17.08438491821289, "l2_per_pixel_rms": 0.01886838674545288, "runtime_s": 3.120593309402466, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 31296, "linf_255": 5.0, "l2": 17.164100646972656, "l2_per_pixel_rms": 0.019000979140400887, "runtime_s": 3.1219615936279297, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 42563, "linf_255": 5.0, "l2": 20.858436584472656, "l2_per_pixel_rms": 0.01905631273984909, "runtime_s": 2.370530843734741, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 50145, "linf_255": 5.0, "l2": 11.904805183410645, "l2_per_pixel_rms": 0.0175374336540699, "runtime_s": 3.1204142570495605, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 60932, "linf_255": 5.0, "l2": 16.65781593322754, "l2_per_pixel_rms": 0.01837576925754547, "runtime_s": 3.1209986209869385, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 69356, "linf_255": 5.0, "l2": 18.58473777770996, "l2_per_pixel_rms": 0.01887383498251438, "runtime_s": 2.7710394859313965, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 78404, "linf_255": 5.0, "l2": 13.542781829833984, "l2_per_pixel_rms": 0.018690815195441246, "runtime_s": 3.0190160274505615, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 84031, "linf_255": 5.0, "l2": 17.19232749938965, "l2_per_pixel_rms": 0.01898760162293911, "runtime_s": 3.1253597736358643, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 87476, "linf_255": 5.0, "l2": 17.054637908935547, "l2_per_pixel_rms": 0.018835533410310745, "runtime_s": 3.1836252212524414, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 101787, "linf_255": 5.0, "l2": 17.789875030517578, "l2_per_pixel_rms": 0.018991714343428612, "runtime_s": 3.0195536613464355, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 105455, "linf_255": 5.0, "l2": 17.26880645751953, "l2_per_pixel_rms": 0.019072066992521286, "runtime_s": 3.1542444229125977, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 127182, "linf_255": 5.0, "l2": 17.120410919189453, "l2_per_pixel_rms": 0.018908176571130753, "runtime_s": 3.1555449962615967, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 133418, "linf_255": 5.0, "l2": 17.258243560791016, "l2_per_pixel_rms": 0.019060401245951653, "runtime_s": 3.1248362064361572, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 134856, "linf_255": 5.0, "l2": 18.256547927856445, "l2_per_pixel_rms": 0.019017238169908524, "runtime_s": 2.886500835418701, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 145020, "linf_255": 5.0, "l2": 15.742711067199707, "l2_per_pixel_rms": 0.018909292295575142, "runtime_s": 3.32766056060791, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 147729, "linf_255": 5.0, "l2": 14.102046966552734, "l2_per_pixel_rms": 0.01880272850394249, "runtime_s": 2.8880667686462402, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 154358, "linf_255": 5.0, "l2": 17.041301727294922, "l2_per_pixel_rms": 0.018820805475115776, "runtime_s": 3.158262014389038, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 159458, "linf_255": 5.0, "l2": 18.15234375, "l2_per_pixel_rms": 0.01890869066119194, "runtime_s": 2.8876378536224365, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 160864, "linf_255": 5.0, "l2": 16.419755935668945, "l2_per_pixel_rms": 0.018999461084604263, "runtime_s": 3.457017183303833, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 163746, "linf_255": 5.0, "l2": 18.485897064208984, "l2_per_pixel_rms": 0.019097652286291122, "runtime_s": 2.8884637355804443, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 165681, "linf_255": 5.0, "l2": 17.454669952392578, "l2_per_pixel_rms": 0.018904689699411392, "runtime_s": 3.1232285499572754, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 166259, "linf_255": 5.0, "l2": 17.20960235595703, "l2_per_pixel_rms": 0.019006680697202682, "runtime_s": 3.1249451637268066, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 172877, "linf_255": 5.0, "l2": 17.59901237487793, "l2_per_pixel_rms": 0.018332304432988167, "runtime_s": 2.8889498710632324, "backward": 50, "forward_views": 100}
+{"method": "OSFD", "img_id": 182805, "linf_255": 5.0, "l2": 15.847577095031738, "l2_per_pixel_rms": 0.019061671569943428, "runtime_s": 3.297557830810547, "backward": 50, "forward_views": 100}
