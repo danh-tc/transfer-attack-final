@@ -390,6 +390,21 @@ def _blur(img: torch.Tensor, s: float) -> torch.Tensor:
     return F.conv2d(t, k1.view(1, 1, -1, 1).repeat(c, 1, 1, 1), groups=c)[0]
 
 
+def _scramble(d: torch.Tensor, tile: int, gen) -> torch.Tensor:
+    """E54/E55 (progress_log 2026-10-30): hoán vị VỊ TRÍ các ô tile×tile của d [C,H,W], giữ nội dung trong mỗi ô. Hoán vị
+    là reindex CỐ ĐỊNH (theo gen) -> khả vi theo d. Dải biên (H, W không chia hết tile) giữ nguyên. gen trên cùng device d."""
+    c, h, w = d.shape
+    hh, ww = h // tile, w // tile
+    if hh < 2 or ww < 2:
+        return d
+    core = d[:, :hh * tile, :ww * tile].reshape(c, hh, tile, ww, tile).permute(0, 1, 3, 2, 4).reshape(c, hh * ww, tile, tile)
+    perm = torch.randperm(hh * ww, generator=gen, device=d.device)
+    s = core[:, perm].reshape(c, hh, ww, tile, tile).permute(0, 1, 3, 2, 4).reshape(c, hh * tile, ww * tile)
+    out = d.clone()
+    out[:, :hh * tile, :ww * tile] = s
+    return out
+
+
 def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float = 5.0,
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
@@ -407,7 +422,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
-                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False):
+                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -501,6 +516,12 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                 and n_views == 1 and backward_per_step == 1 and not cache_views and pfa is None)
     pfa_state = {"off": (0, 0)}
     pfa_rng = random.Random(torch.initial_seed() + 11) if pfa is not None else None
+    # E55 (progress_log 2026-10-30): scr = (λ, tile) — số hạng regularizer "bền xáo ô": + λ·L_OSFD(c + scramble(v − c)) trên
+    # mỗi view, hoán vị ô tile×tile mới mỗi bước (gen seed + 13 -> chuỗi view OCT trùng ô gốc). Đẩy δ về vùng ít phụ thuộc
+    # vị trí cục bộ (E54: δ_S bền xáo ô 0.41 vs δ_R50 0.26). Khả vi (reindex cố định).
+    assert scr is None or (geo == "elem" and cls_weight > 0 and feature and co_transform and n_views == 1
+                           and backward_per_step == 1 and not cache_views and dual is None)
+    scr_gen = torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 13) if scr is not None else None
     # otsv = β (C2-OCT-1V-WP2-OTSV, E21, progress_log 2026-10-24): bước lẻ forward ảo OTSV (otsv_hook trên layer3, box GT
     # co-transform của view), bước chẵn forward R50 gốc (lịch 1 : 1); feature sạch của view qua CÙNG chế độ forward.
     assert otsv is None or (n_views == 1 and backward_per_step == 1 and not cache_views and cls_weight > 0 and pfa is None)
@@ -761,6 +782,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                     size_w=size_w, ln_feat=ln_feat, xbg_feats=fb, xbg_mode=xbg or "add", stage_w=stage_w,
                                     fpa=fpa, box_feat=box_feat)
                 lf2 = _with_ctx(lf, ctx) if rapa_cls is not None else lf
+                if scr is not None:
+                    lf2 = _with_scramble(lf2, c.detach(), fc, ds, k, scr[0], scr[1], scr_gen)
                 out.append((v, dsv, lf2, (c, fc)) if weight_capwp is not None else (v, dsv, lf2))
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
@@ -946,4 +969,16 @@ def _with_ctx(loss_fn, ctx):
     def wrapped(model, pixel_tensor, data_sample):
         with ctx():
             return loss_fn(model, pixel_tensor, data_sample)
+    return wrapped
+
+
+def _with_scramble(loss_fn, c_clean, fc, ds, k, weight, tile, gen):
+    """E55: + weight·L_OSFD(c_clean + scramble(v − c_clean)) — δ của view bị xáo vị trí ô, phải vẫn tạo distortion feature
+    như δ gốc trên CÙNG nền sạch (fc = k·feature sạch). c_clean, fc đã detach; hoán vị mới mỗi lần gọi (gen)."""
+    def wrapped(model, v, data_sample):
+        base = loss_fn(model, v, data_sample)
+        d_scr = _scramble(v - c_clean, tile, gen)
+        fa = extract_features(model, c_clean + d_scr, ds)
+        l_scr = sum(F.mse_loss(k * fcc, faa) for fcc, faa in zip(fc, fa))
+        return base + weight * l_scr
     return wrapped
