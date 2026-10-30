@@ -4717,7 +4717,7 @@ Swin-L drop RD B36 theo seed: 0→30.6, 100→27.6, 200→30.7, 300→30.8. **ra
 
 ---
 
-## 2026-10-30 — E60: TÁI TẠO cơ chế V100 — flush gradient fp16-kiểu-V100 (RD-GQ) @ dev30 B36 (user: "approve", ~16:25 GMT+7) — khóa TRƯỚC khi chạy
+## 2026-10-30 — E60: TÁI TẠO cơ chế V100 — flush gradient fp16-kiểu-V100 (RD-GQ) @ dev30 B36 (user: "approve", ~16:24 GMT+7) — khóa TRƯỚC khi chạy
 **Root cause đã chốt (E59 + probe δ V100):** chênh V100(38)/3090(32) KHÔNG do seed/code/eval — là **kernel fp16 Volta lúc SINH** (code cũ trên 3090 = 32.4; δ V100 eval trên 3090 = 37.7). Mổ δ: V100 vs 3090 **giống hệt mọi thống kê bậc thấp** (RMS 4.74, phổ [.36,.35,.29], mượt 5.81, bão hòa 86%) nhưng **cos chỉ 0.30, dấu khác 37%** → khác biệt là MẪU DẤU cụ thể. Giả thuyết: fp16 V100 flush thành phần gradient NHỎ (overfit R50, E53) → dấu do thành phần lớn/bền quyết định → transfer tốt hơn.
 **Ô (`pia.gflush`, grad_transform trước bước sign; bỏ |g| < phân vị p theo ảnh):** `RD-GQ30/50/70` (p = 0.3/0.5/0.7), nền RD y nguyên. Mốc RD code hiện tại sinh lại CÙNG lap. Smoke dev5 OK.
 **Quy tắc (dev30, điểm; mốc V100 trên Swin-L = 37.7 eval-3090):** **TÁI TẠO** nếu tồn tại p: ΔSwin-L(GQ − RD) ≥ +3 VÀ CA3 (Conv/Swin-T/YOLOX-L) ≥ −2 VÀ R50 white-box ≥ 0.8×RD → cơ chế V100 tái tạo được + method mới; BẮT BUỘC xác nhận dev100 (bài học E56→E58). **KHÔNG** nếu mọi p ΔSwin-L ≤ +1 → flush thành phần nhỏ không phải cơ chế; V100 là artefact kernel không emulate được bằng thao tác gradient hậu kỳ. Còn lại XÁM.
