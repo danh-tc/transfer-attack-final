@@ -4727,3 +4727,12 @@ Swin-L drop RD B36 theo seed: 0→30.6, 100→27.6, 200→30.7, 300→30.8. **ra
 ### Kết quả E60 @ dev30 B36 (3090, xong 16:34 GMT+7; `results/e60/panel_dev30.json`, `results/runs/dev300_B36_eps5_limit100/*_e60_dev30.json`, log `results/e60/run.log`) — theo quy tắc: XÁM (GQ70 +2.4 < +3) nhưng ĐƠN ĐIỆU đúng hướng cơ chế
 DINO-Swin-L drop (R50 WB): RD 30.3 (98.0) | GQ30 30.8 (98.0) | GQ50 31.6 (98.8) | **GQ70 32.7 (98.2)**. ΔSwin-L: +0.5 / +1.3 / **+2.4 [−1.5,+4.2]**. CNN không tụt (YOLOX-L 71.9→75.1). Mốc tái tạo V100 = 37.7.
 **Đọc:** (1) **Đơn điệu p=0.3→0.7: Swin-L 30.8→31.6→32.7** → flush thành phần gradient nhỏ CÀNG MẠNH càng tăng transfer → ỦNG HỘ giả thuyết "thành phần nhỏ = overfit R50" (E53). Chưa đỉnh. (2) R50 WB ~98 dù chỉ giữ 30% thành phần lớn (p=0.7) → phần lớn gradient thừa cho R50 (khớp E53 overkill). (3) Chưa đạt +3 và chưa tới V100 37.7 → đẩy p cao hơn (E61). (4) Khác CWT (E56, đỉnh rồi chết dev100): đây đơn điệu + có cơ chế numerics đo được → đáng đẩy tiếp. **VIỆC TIẾP (E61):** p ∈ {0.8, 0.9} xem tới 37.7 + R50 vỡ ở đâu; nếu đạt +3 → dev100 xác nhận.
+
+---
+
+## 2026-10-30 — E61: đẩy liều flush gradient p ∈ {0.8, 0.9} — RD-GQ tới mốc V100 37.7? @ dev30 B36 (user: "approve"/tiếp E60, ~16:36 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** E60 đơn điệu p=0.3→0.7 (Swin-L 30.8→31.6→32.7), chưa đỉnh, R50 WB ~98. Đẩy tiếp xem có tới V100 37.7 + R50 vỡ ở đâu.
+**Ô:** `RD-GQ80` (p=0.8, giữ top 20% thành phần gradient), `RD-GQ90` (p=0.9, giữ top 10%). Mốc RD + GQ70 (PNG E60).
+**Quy tắc (dev30, điểm):** **ĐẠT (tái tạo V100)** nếu tồn tại p: ΔSwin-L(GQ − RD) ≥ +3 VÀ R50 WB ≥ 0.8×RD VÀ CA3 ≥ −2 → dev100 xác nhận. **R50 VỠ** nếu R50 WB < 0.8×RD (flush quá mạnh phá δ trên chính surrogate) → p đó loại; đọc p lớn nhất còn giữ R50. Mô tả đường liều đầy đủ 0.3→0.9.
+**Caveat:** dev30; p rất cao → gần như chỉ giữ vài pixel gradient → có thể vỡ.
+**Chạy:** `results/e60/run_ext.sh`, log `results/e60/run_ext.log`.
