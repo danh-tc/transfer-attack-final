@@ -1,0 +1,375 @@
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.37s)
+creating index...
+index created!
+[e50] 30 ảnh; tỉ lệ diện tích TB {'RD-IN': 0.3603680803482249, 'RD-OUT': 0.6396319196517752, 'RD-RING': 0.17125397538183543}
+loading annotations into memory...
+Done (t=0.35s)
+creating index...
+index created!
+[run] dev300_B36_eps5_limit100: 30 ảnh (subset dev30), methods=['C2-OCT-1V-WP2-RD', 'RD-IN', 'RD-OUT', 'RD-RING']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.37s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[eval] COCOeval xong (weighted AP khớp pycocotools)
+[eval] bootstrap 1000 mẫu xong (71s)
+
+=== bbox AP (n=30, B=36, eps=5.0) ===
+                              r50                 r101           convnext_t               swin_t
+clean          40.8 [ 34.0, 49.0]   40.5 [ 34.0, 49.0]   45.6 [ 39.3, 54.5]   46.0 [ 38.3, 55.4]
+C2-OCT-1V-WP2-RD    0.6 [  0.2,  1.5]    2.8 [  1.8,  6.0]    6.5 [  4.6, 11.8]    6.8 [  5.2, 13.4]
+RD-IN           2.7 [  1.3,  5.7]    5.2 [  3.9, 11.0]   12.1 [  9.7, 19.1]   13.5 [  9.8, 21.1]
+RD-OUT         23.6 [ 18.3, 30.3]   30.2 [ 25.1, 39.1]   36.4 [ 31.5, 43.3]   37.6 [ 32.2, 45.8]
+RD-RING        30.1 [ 25.0, 38.5]   34.5 [ 29.3, 43.8]   42.2 [ 36.2, 49.9]   43.5 [ 36.5, 52.0]
+
+=== relative AP drop % [95% CI] ===
+C2-OCT-1V-WP2-RD   98.4 [ 96.3, 99.4]   93.0 [ 85.4, 95.7]   85.8 [ 75.5, 89.8]   85.1 [ 70.6, 88.7]
+RD-IN          93.5 [ 86.0, 96.9]   87.2 [ 73.3, 90.2]   73.5 [ 61.4, 77.8]   70.6 [ 57.8, 76.5]
+RD-OUT         42.2 [ 33.1, 50.8]   25.5 [ 12.4, 35.0]   20.3 [ 12.7, 27.4]   18.1 [  9.2, 23.6]
+RD-RING        26.3 [ 17.4, 31.4]   14.8 [  5.8, 19.1]    7.5 [  3.5, 12.8]    5.4 [ -1.3, 11.9]
+
+=== CrossAvg / TransferGap (same-family drop − cross drop) ===
+C2-OCT-1V-WP2-RD CrossAvg  85.5 [ 73.3, 89.2]  gap→ConvNeXt   7.2 [  3.9, 13.6]  gap→Swin   7.9 [  4.7, 18.3]  gap→avg   7.6 [  4.4, 15.5]
+RD-IN        CrossAvg  72.1 [ 60.3, 76.9]  gap→ConvNeXt  13.7 [  5.7, 19.8]  gap→Swin  16.6 [  7.1, 23.5]  gap→avg  15.1 [  6.8, 21.3]
+RD-OUT       CrossAvg  19.2 [ 12.3, 24.4]  gap→ConvNeXt   5.2 [ -7.4, 15.3]  gap→Swin   7.3 [ -3.0, 16.6]  gap→avg   6.3 [ -4.3, 15.2]
+RD-RING      CrossAvg   6.5 [  2.2, 11.7]  gap→ConvNeXt   7.3 [ -4.0, 12.7]  gap→Swin   9.3 [ -2.0, 14.7]  gap→avg   8.3 [ -2.2, 12.6]
+
+=== runtime === {'C2-OCT-1V-WP2-RD': 2.6, 'RD-IN': 0.0, 'RD-OUT': 0.0, 'RD-RING': 0.0}
+saved: /workspace/transfer-attack-final/results/runs/dev300_B36_eps5_limit100/metrics_e50_dev30.json
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: fcos_r50
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: dino_r50
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: yolov3_d53
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: yolox_l
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[gen] AP xong: dino_swin_l
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[gen] AP xong: r101
+
+=== clean AP (n=30) ===
+r101: 40.5  fcos_r50: 38.1  dino_r50: 49.7  yolov3_d53: 36.0  yolox_l: 49.8  dino_swin_l: 59.7
+
+=== relative AP drop % [95% CI] ===
+                             r101             fcos_r50             dino_r50           yolov3_d53              yolox_l          dino_swin_l
+C2-OCT-1V-WP2-RD   93.0 [ 85.4, 95.7]   94.5 [ 85.0, 96.6]   91.8 [ 84.4, 94.8]   80.7 [ 67.2, 85.1]   70.5 [ 58.8, 75.5]   30.6 [ 24.6, 40.3]
+RD-IN          87.2 [ 73.3, 90.2]   81.0 [ 68.9, 86.4]   81.9 [ 70.6, 86.1]   59.2 [ 49.4, 69.5]   58.0 [ 45.1, 65.0]   26.0 [ 19.7, 39.9]
+RD-OUT         25.5 [ 12.4, 35.0]   29.2 [ 20.6, 38.7]   26.0 [ 17.9, 33.2]   20.4 [ 13.0, 28.4]   11.6 [  6.4, 17.4]    0.5 [ -1.2,  5.7]
+RD-RING        14.8 [  5.8, 19.1]   19.2 [ 10.2, 25.5]    9.1 [  5.0, 16.1]    9.2 [  4.5, 15.0]    4.0 [ -0.3,  8.9]    0.4 [ -1.1,  2.4]
+
+=== headroom = drop(R101) − drop(model) ===
+C2-OCT-1V-WP2-RD   -1.4 [ -4.2,  2.5]    1.2 [ -3.0,  5.9]   12.3 [  7.9, 20.8]   22.6 [ 16.3, 31.0]   62.5 [ 48.8, 66.9]
+RD-IN           6.2 [ -3.6, 13.0]    5.3 [ -2.8, 10.4]   28.0 [ 12.9, 33.2]   29.2 [ 18.5, 35.3]   61.2 [ 39.9, 65.0]
+RD-OUT         -3.7 [-17.2,  4.3]   -0.5 [-15.0,  9.1]    5.1 [-12.1, 16.6]   13.9 [  0.3, 21.3]   25.0 [  9.0, 33.1]
+RD-RING        -4.4 [-13.0,  1.7]    5.6 [ -5.9, 10.3]    5.5 [ -6.1, 11.0]   10.8 [  0.0, 15.0]   14.4 [  4.8, 18.4]
+
+=== method_diff ===
+                                   fcos_r50             dino_r50           yolov3_d53              yolox_l          dino_swin_l
+RD-IN - C2-OCT-1V-WP2-RD  -13.5 [-23.1, -5.5]   -9.9 [-17.2, -4.5]  -21.5 [-27.3, -7.8]  -12.4 [-17.5, -7.2]   -4.6 [ -9.4,  1.7]
+RD-OUT - C2-OCT-1V-WP2-RD  -65.2 [-72.4,-51.9]  -65.9 [-74.1,-55.1]  -60.3 [-67.7,-42.5]  -58.9 [-65.4,-45.7]  -30.1 [-38.8,-23.6]
+RD-OUT - RD-IN          -51.8 [-61.6,-34.5]  -55.9 [-64.1,-41.2]  -38.8 [-48.9,-26.7]  -46.5 [-54.7,-31.7]  -25.5 [-38.0,-17.9]
+RD-RING - C2-OCT-1V-WP2-RD  -75.3 [-82.3,-66.1]  -82.7 [-86.5,-72.7]  -71.5 [-77.6,-56.2]  -66.5 [-72.3,-54.4]  -30.2 [-39.6,-24.7]
+RD-RING - RD-IN         -61.8 [-72.9,-49.1]  -72.8 [-76.7,-60.1]  -50.0 [-58.7,-40.3]  -54.1 [-61.3,-41.3]  -25.6 [-38.9,-19.1]
+RD-RING - RD-OUT        -10.1 [-18.9, -6.2]  -16.8 [-22.3, -8.7]  -11.2 [-16.8, -5.1]   -7.6 [-11.9, -4.3]   -0.1 [ -5.1,  1.3]
+saved: /workspace/transfer-attack-final/results/runs/dev300_B36_eps5_limit100/generalization_e50_dev30.json
+
+[drop]                       r50        r101  convnext_t      swin_t    fcos_r50    dino_r50  yolov3_d53     yolox_l dino_swin_l          T8
+C2-OCT-1V-WP2-RD            98.5        93.0        85.8        85.1        94.5        91.8        80.7        70.5        30.6        79.0
+RD-IN                       93.5        87.2        73.5        70.6        81.0        81.9        59.2        58.0        26.0        67.2
+RD-OUT                      42.2        25.5        20.2        18.1        29.2        26.0        20.4        11.6         0.5        18.9
+RD-RING                     26.3        14.8         7.5         5.4        19.1         9.1         9.2         4.0         0.4         8.7
+Δ RD-IN                     -5.0        -5.8       -12.3       -14.5       -13.5        -9.9       -21.5       -12.4        -4.6       -11.8
+Δ RD-OUT                   -56.3       -67.6       -65.6       -67.0       -65.2       -65.8       -60.4       -58.9       -30.1       -60.1
+Δ RD-RING                  -72.2       -78.3       -78.3       -79.7       -75.3       -82.7       -71.5       -66.5       -30.2       -70.3
+  CI RD-IN              [-11,-2]    [-14,-4]    [-19,-7]    [-22,-5]    [-23,-6]    [-17,-5]    [-27,-8]    [-17,-7]     [-9,+2]    [-17,-7]
+  CI RD-OUT            [-65,-47]   [-79,-55]   [-73,-53]   [-72,-54]   [-72,-52]   [-74,-55]   [-68,-42]   [-65,-46]   [-39,-24]   [-65,-51]
+  CI RD-RING           [-81,-67]   [-87,-70]   [-83,-66]   [-83,-66]   [-82,-66]   [-87,-73]   [-78,-56]   [-72,-54]   [-40,-25]   [-74,-62]
+
+[asr]                        r50        r101  convnext_t      swin_t    fcos_r50    dino_r50  yolov3_d53     yolox_l dino_swin_l          T8
+C2-OCT-1V-WP2-RD            87.8        78.7        64.5        65.0        82.5        86.6        65.0        59.3        26.2        66.0
+RD-IN                       84.2        71.3        58.0        56.5        75.2        78.5        51.3        47.8        23.4        57.7
+RD-OUT                      16.2        12.0         7.5         8.5        19.6        19.1        10.0         5.9         3.0        10.7
+RD-RING                     11.8        10.0         3.1         4.0         8.7         7.5         5.3         3.9         2.2         5.6
+Δ RD-IN                     -3.6        -7.4        -6.6        -8.5        -7.4        -8.1       -13.7       -11.5        -2.8        -8.2
+Δ RD-OUT                   -71.6       -66.7       -57.0       -56.5       -62.9       -67.5       -55.0       -53.4       -23.3       -55.3
+Δ RD-RING                  -76.0       -68.7       -61.4       -61.0       -73.8       -79.1       -59.7       -55.4       -24.0       -60.4
+  CI RD-IN               [-7,-1]    [-11,-4]    [-11,-3]    [-14,-4]    [-16,-0]    [-16,-1]    [-21,-7]    [-18,-6]     [-5,-1]    [-12,-5]
+  CI RD-OUT            [-81,-61]   [-77,-56]   [-69,-45]   [-67,-46]   [-75,-50]   [-78,-56]   [-66,-43]   [-64,-43]   [-31,-16]   [-64,-47]
+  CI RD-RING           [-84,-67]   [-78,-59]   [-73,-50]   [-71,-52]   [-85,-61]   [-86,-72]   [-69,-49]   [-66,-45]   [-32,-17]   [-67,-54]
+
+[asr_micro]                  r50        r101  convnext_t      swin_t    fcos_r50    dino_r50  yolov3_d53     yolox_l dino_swin_l          T8
+C2-OCT-1V-WP2-RD            89.6        76.2        59.0        58.9        74.8        81.9        58.7        50.6        28.6        61.1
+RD-IN                       84.9        66.4        52.0        49.6        69.0        73.4        46.0        41.9        25.2        53.0
+RD-OUT                      17.1        11.7         7.0         8.2        13.6        16.0        11.6         7.0         3.4         9.8
+RD-RING                     11.2         6.6         3.7         4.4         5.8         8.0         4.8         4.6         2.3         5.0
+Δ RD-IN                     -4.8        -9.8        -7.0        -9.3        -5.8        -8.4       -12.7        -8.7        -3.4        -8.1
+Δ RD-OUT                   -72.5       -64.5       -52.0       -50.7       -61.3       -65.8       -47.1       -43.6       -25.2       -51.3
+Δ RD-RING                  -78.5       -69.5       -55.4       -54.4       -69.0       -73.8       -54.0       -46.1       -26.3       -56.1
+  CI RD-IN               [-9,-1]    [-15,-5]    [-12,-3]    [-15,-4]    [-14,-1]    [-14,-3]    [-20,-7]    [-13,-5]     [-6,-1]    [-12,-5]
+  CI RD-OUT            [-81,-61]   [-73,-56]   [-63,-42]   [-59,-43]   [-73,-48]   [-74,-58]   [-57,-38]   [-52,-36]   [-32,-19]   [-59,-45]
+  CI RD-RING           [-84,-72]   [-76,-63]   [-66,-46]   [-63,-47]   [-80,-59]   [-81,-67]   [-62,-47]   [-54,-39]   [-34,-20]   [-63,-51]
+
+[aploc]                      r50        r101  convnext_t      swin_t    fcos_r50    dino_r50  yolov3_d53     yolox_l dino_swin_l          T8
+C2-OCT-1V-WP2-RD            98.5        91.9        82.5        79.2        93.8        94.3        69.8        66.7        35.0        76.6
+RD-IN                       92.5        81.0        67.7        61.7        80.0        84.7        51.4        49.7        27.1        62.9
+RD-OUT                      58.8        39.7        29.1        26.1        44.8        39.7        18.8        17.4         4.4        27.5
+RD-RING                     26.5        13.0         7.8         5.4        14.6        13.8         3.3         3.6         1.9         7.9
+Δ RD-IN                     -6.0       -10.9       -14.7       -17.5       -13.8        -9.6       -18.4       -17.0        -7.9       -13.7
+Δ RD-OUT                   -39.8       -52.3       -53.3       -53.1       -49.0       -54.6       -50.9       -49.4       -30.6       -49.2
+Δ RD-RING                  -72.0       -79.0       -74.7       -73.7       -79.2       -80.4       -66.5       -63.1       -33.2       -68.7
+  CI RD-IN              [-10,-3]    [-17,-6]   [-21,-10]   [-24,-13]    [-22,-7]    [-15,-5]   [-27,-12]   [-23,-12]    [-13,-4]    [-19,-9]
+  CI RD-OUT            [-52,-29]   [-63,-43]   [-64,-42]   [-62,-45]   [-60,-38]   [-65,-43]   [-60,-41]   [-59,-39]   [-38,-23]   [-57,-41]
+  CI RD-RING           [-78,-65]   [-85,-71]   [-81,-67]   [-80,-66]   [-85,-72]   [-85,-74]   [-75,-57]   [-72,-54]   [-42,-25]   [-73,-63]
+
+[csr0]                       r50        r101  convnext_t      swin_t    fcos_r50    dino_r50  yolov3_d53     yolox_l dino_swin_l          T8
+C2-OCT-1V-WP2-RD            86.8        68.8        52.2        53.7        67.7        64.2        42.3        36.8        15.8        50.2
+RD-IN                       79.3        60.9        41.9        40.9        54.9        51.1        34.0        30.4        11.9        40.8
+RD-OUT                      16.8         7.2         3.8         5.1         6.8         4.8         3.4         2.7         0.3         4.2
+RD-RING                     10.4         4.3         1.7         1.4         3.8         2.6         1.1         2.3        -0.3         2.1
+Δ RD-IN                     -7.5        -7.9       -10.3       -12.8       -12.8       -13.1        -8.3        -6.3        -3.9        -9.4
+Δ RD-OUT                   -70.0       -61.6       -48.5       -48.6       -60.9       -59.4       -38.9       -34.1       -15.5       -45.9
+Δ RD-RING                  -76.4       -64.5       -50.5       -52.4       -63.9       -61.7       -41.1       -34.5       -16.1       -48.1
+  CI RD-IN              [-14,-2]    [-13,-3]    [-17,-5]    [-20,-8]    [-21,-7]    [-20,-8]    [-13,-4]    [-11,-3]     [-7,-1]    [-14,-6]
+  CI RD-OUT            [-80,-60]   [-71,-53]   [-60,-39]   [-59,-39]   [-71,-52]   [-70,-51]   [-50,-27]   [-45,-27]   [-20,-11]   [-54,-38]
+  CI RD-RING           [-83,-70]   [-72,-58]   [-61,-41]   [-62,-44]   [-74,-55]   [-72,-53]   [-52,-30]   [-45,-27]   [-21,-12]   [-56,-41]
+
+[csr3]                       r50        r101  convnext_t      swin_t    fcos_r50    dino_r50  yolov3_d53     yolox_l dino_swin_l          T8
+C2-OCT-1V-WP2-RD            89.4        74.8        58.6        59.5        74.7        81.8        57.8        50.2        27.3        60.6
+RD-IN                       84.5        65.6        51.9        50.6        68.2        73.3        42.7        41.4        23.9        52.2
+RD-OUT                      16.7         8.8         5.3         7.5        10.4        14.0         7.6         5.9         1.9         7.7
+RD-RING                     10.2         3.6         1.9         1.9         1.3         6.8         1.6         3.8         0.4         2.6
+Δ RD-IN                     -4.9        -9.2        -6.8        -9.0        -6.5        -8.5       -15.1        -8.8        -3.4        -8.4
+Δ RD-OUT                   -72.8       -66.0       -53.4       -52.1       -64.3       -67.8       -50.3       -44.4       -25.4       -52.9
+Δ RD-RING                  -79.3       -71.2       -56.8       -57.7       -73.4       -75.0       -56.2       -46.4       -26.9       -58.0
+  CI RD-IN               [-9,-1]    [-14,-5]    [-12,-2]    [-14,-5]    [-15,-1]    [-14,-3]    [-23,-9]    [-14,-5]     [-6,-0]    [-12,-5]
+  CI RD-OUT            [-82,-62]   [-74,-58]   [-65,-43]   [-61,-43]   [-77,-51]   [-76,-59]   [-62,-40]   [-53,-37]   [-34,-18]   [-61,-46]
+  CI RD-RING           [-85,-72]   [-78,-65]   [-69,-46]   [-67,-50]   [-85,-63]   [-83,-68]   [-66,-48]   [-54,-40]   [-36,-19]   [-65,-52]
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+r50 clean: nền 3.8 / sát 4.97 | C2-OCT-1V-WP2-RD: nền 32.83 / sát 10.33 | RD-IN: nền 11.37 / sát 9.7 | RD-OUT: nền 24.97 / sát 5.7 | RD-RING: nền 7.73 / sát 5.37
+r101 clean: nền 3.13 / sát 4.8 | C2-OCT-1V-WP2-RD: nền 23.53 / sát 9.73 | RD-IN: nền 8.27 / sát 8.23 | RD-OUT: nền 17.37 / sát 5.03 | RD-RING: nền 5.97 / sát 4.83
+convnext_t clean: nền 3.8 / sát 5.47 | C2-OCT-1V-WP2-RD: nền 20.3 / sát 9.67 | RD-IN: nền 7.8 / sát 9.03 | RD-OUT: nền 14.6 / sát 5.33 | RD-RING: nền 5.5 / sát 5.23
+swin_t clean: nền 3.5 / sát 4.93 | C2-OCT-1V-WP2-RD: nền 17.43 / sát 8.93 | RD-IN: nền 6.43 / sát 9.13 | RD-OUT: nền 13.47 / sát 4.97 | RD-RING: nền 4.77 / sát 4.87
+fcos_r50 clean: nền 0.23 / sát 1.1 | C2-OCT-1V-WP2-RD: nền 8.93 / sát 3.43 | RD-IN: nền 2.77 / sát 3.3 | RD-OUT: nền 5.67 / sát 1.2 | RD-RING: nền 1.17 / sát 1.07
+dino_r50 clean: nền 1.43 / sát 2.4 | C2-OCT-1V-WP2-RD: nền 15.23 / sát 5.6 | RD-IN: nền 5.77 / sát 5.53 | RD-OUT: nền 10.57 / sát 2.73 | RD-RING: nền 3.2 / sát 2.63
+yolov3_d53 clean: nền 0.6 / sát 1.63 | C2-OCT-1V-WP2-RD: nền 3.5 / sát 3.17 | RD-IN: nền 1.07 / sát 2.7 | RD-OUT: nền 2.73 / sát 1.6 | RD-RING: nền 0.87 / sát 1.43
+yolox_l clean: nền 1.13 / sát 2.2 | C2-OCT-1V-WP2-RD: nền 9.1 / sát 5.33 | RD-IN: nền 3.03 / sát 4.7 | RD-OUT: nền 6.13 / sát 2.23 | RD-RING: nền 1.63 / sát 2.1
+dino_swin_l clean: nền 1.6 / sát 2.07 | C2-OCT-1V-WP2-RD: nền 3.27 / sát 3.2 | RD-IN: nền 2.2 / sát 3.2 | RD-OUT: nền 2.3 / sát 1.97 | RD-RING: nền 1.6 / sát 1.9

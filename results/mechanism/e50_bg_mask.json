@@ -1,0 +1,254 @@
+{
+ "build": {
+  "area_frac": {
+   "RD-IN": 0.3603680803482249,
+   "RD-OUT": 0.6396319196517752,
+   "RD-RING": 0.17125397538183543
+  }
+ },
+ "fp_per_img": {
+  "r50": {
+   "clean": {
+    "nền": 3.8,
+    "sát object": 4.97,
+    "tổng": 8.77
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 32.83,
+    "sát object": 10.33,
+    "tổng": 43.17
+   },
+   "RD-IN": {
+    "nền": 11.37,
+    "sát object": 9.7,
+    "tổng": 21.07
+   },
+   "RD-OUT": {
+    "nền": 24.97,
+    "sát object": 5.7,
+    "tổng": 30.67
+   },
+   "RD-RING": {
+    "nền": 7.73,
+    "sát object": 5.37,
+    "tổng": 13.1
+   }
+  },
+  "r101": {
+   "clean": {
+    "nền": 3.13,
+    "sát object": 4.8,
+    "tổng": 7.93
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 23.53,
+    "sát object": 9.73,
+    "tổng": 33.27
+   },
+   "RD-IN": {
+    "nền": 8.27,
+    "sát object": 8.23,
+    "tổng": 16.5
+   },
+   "RD-OUT": {
+    "nền": 17.37,
+    "sát object": 5.03,
+    "tổng": 22.4
+   },
+   "RD-RING": {
+    "nền": 5.97,
+    "sát object": 4.83,
+    "tổng": 10.8
+   }
+  },
+  "convnext_t": {
+   "clean": {
+    "nền": 3.8,
+    "sát object": 5.47,
+    "tổng": 9.27
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 20.3,
+    "sát object": 9.67,
+    "tổng": 29.97
+   },
+   "RD-IN": {
+    "nền": 7.8,
+    "sát object": 9.03,
+    "tổng": 16.83
+   },
+   "RD-OUT": {
+    "nền": 14.6,
+    "sát object": 5.33,
+    "tổng": 19.93
+   },
+   "RD-RING": {
+    "nền": 5.5,
+    "sát object": 5.23,
+    "tổng": 10.73
+   }
+  },
+  "swin_t": {
+   "clean": {
+    "nền": 3.5,
+    "sát object": 4.93,
+    "tổng": 8.43
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 17.43,
+    "sát object": 8.93,
+    "tổng": 26.37
+   },
+   "RD-IN": {
+    "nền": 6.43,
+    "sát object": 9.13,
+    "tổng": 15.57
+   },
+   "RD-OUT": {
+    "nền": 13.47,
+    "sát object": 4.97,
+    "tổng": 18.43
+   },
+   "RD-RING": {
+    "nền": 4.77,
+    "sát object": 4.87,
+    "tổng": 9.63
+   }
+  },
+  "fcos_r50": {
+   "clean": {
+    "nền": 0.23,
+    "sát object": 1.1,
+    "tổng": 1.33
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 8.93,
+    "sát object": 3.43,
+    "tổng": 12.37
+   },
+   "RD-IN": {
+    "nền": 2.77,
+    "sát object": 3.3,
+    "tổng": 6.07
+   },
+   "RD-OUT": {
+    "nền": 5.67,
+    "sát object": 1.2,
+    "tổng": 6.87
+   },
+   "RD-RING": {
+    "nền": 1.17,
+    "sát object": 1.07,
+    "tổng": 2.23
+   }
+  },
+  "dino_r50": {
+   "clean": {
+    "nền": 1.43,
+    "sát object": 2.4,
+    "tổng": 3.83
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 15.23,
+    "sát object": 5.6,
+    "tổng": 20.83
+   },
+   "RD-IN": {
+    "nền": 5.77,
+    "sát object": 5.53,
+    "tổng": 11.3
+   },
+   "RD-OUT": {
+    "nền": 10.57,
+    "sát object": 2.73,
+    "tổng": 13.3
+   },
+   "RD-RING": {
+    "nền": 3.2,
+    "sát object": 2.63,
+    "tổng": 5.83
+   }
+  },
+  "yolov3_d53": {
+   "clean": {
+    "nền": 0.6,
+    "sát object": 1.63,
+    "tổng": 2.23
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 3.5,
+    "sát object": 3.17,
+    "tổng": 6.67
+   },
+   "RD-IN": {
+    "nền": 1.07,
+    "sát object": 2.7,
+    "tổng": 3.77
+   },
+   "RD-OUT": {
+    "nền": 2.73,
+    "sát object": 1.6,
+    "tổng": 4.33
+   },
+   "RD-RING": {
+    "nền": 0.87,
+    "sát object": 1.43,
+    "tổng": 2.3
+   }
+  },
+  "yolox_l": {
+   "clean": {
+    "nền": 1.13,
+    "sát object": 2.2,
+    "tổng": 3.33
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 9.1,
+    "sát object": 5.33,
+    "tổng": 14.43
+   },
+   "RD-IN": {
+    "nền": 3.03,
+    "sát object": 4.7,
+    "tổng": 7.73
+   },
+   "RD-OUT": {
+    "nền": 6.13,
+    "sát object": 2.23,
+    "tổng": 8.37
+   },
+   "RD-RING": {
+    "nền": 1.63,
+    "sát object": 2.1,
+    "tổng": 3.73
+   }
+  },
+  "dino_swin_l": {
+   "clean": {
+    "nền": 1.6,
+    "sát object": 2.07,
+    "tổng": 3.67
+   },
+   "C2-OCT-1V-WP2-RD": {
+    "nền": 3.27,
+    "sát object": 3.2,
+    "tổng": 6.47
+   },
+   "RD-IN": {
+    "nền": 2.2,
+    "sát object": 3.2,
+    "tổng": 5.4
+   },
+   "RD-OUT": {
+    "nền": 2.3,
+    "sát object": 1.97,
+    "tổng": 4.27
+   },
+   "RD-RING": {
+    "nền": 1.6,
+    "sát object": 1.9,
+    "tổng": 3.5
+   }
+  }
+ }
+}
