@@ -4487,3 +4487,16 @@ RD-V − RD: ASR micro T8 +5.1, APloc −2.1, CSR3 +4.7, DINO-Swin-L APloc −7.
 **Quy tắc (dev30, điểm; CI paired bootstrap mô tả; giống E45, so RD):** **ĐẠT** (RD-CV thay RD làm method chốt, xác nhận dev300 ở entry riêng) nếu ΔASR_T8(RDCV − RD) ≥ +3 VÀ Δdrop_T8 ≥ −1 VÀ Δdrop DINO-Swin-L ≥ −2. **KHÔNG** nếu ΔASR_T8 < +3. Còn lại → **ĐÁNH ĐỔI** (user quyết). Mô tả: so OSFD và RD-V (số target ≥ OSFD về ASR / drop), ASR micro, APloc, CSR.
 **Caveat:** dev30 đã dùng nhiều; mốc sinh lại trên máy khác (3090 vs V100) → RD / RD-V / OSFD lệch nhỏ so E45, mọi so sánh dùng số CÙNG lần này; GPU không tất định.
 **Chạy:** `results/e46/run.sh`, log `results/e46/run.log`, tag `e46_dev30`.
+
+### Kết quả E46 @ dev30 B36 (RTX 3090, xong ~11:05 GMT+7; `results/e46/panel_dev30.json`, `results/runs/dev300_B{36,50}_eps5_limit100/*_e46_dev30.json`, log `results/e46/run.log`) — theo quy tắc: **KHÔNG** (ΔASR_T8 +2.0 < +3)
+Drop / ASR macro % (cùng lần, mốc sinh lại trên 3090):
+| | R101 | ConvNeXt | Swin-T | FCOS | DINO-R50 | YOLOv3 | YOLOX-L | DINO-Swin-L | T8 |
+|---|---|---|---|---|---|---|---|---|---|
+| OSFD B50 | 93.7 / 87.7 | 83.4 / 71.3 | 77.5 / 66.1 | 94.0 / 89.0 | 95.7 / 93.6 | 75.9 / 71.8 | 74.2 / 61.1 | 26.5 / 24.1 | 77.6 / 70.6 |
+| RD B36 | 93.0 / 78.7 | 85.8 / 64.5 | 85.1 / 65.0 | 94.5 / 82.5 | 91.8 / 86.6 | 80.7 / 65.0 | 70.5 / 59.3 | 30.6 / 26.2 | 79.0 / 66.0 |
+| RD-V B36 | 92.9 / 86.6 | 78.8 / 69.7 | 78.3 / 72.2 | 95.0 / 89.4 | 93.7 / 92.4 | 82.0 / 73.7 | 73.2 / 60.8 | 29.3 / 26.5 | 77.9 / 71.4 |
+| **RD-CV B36** | 95.2 / 83.2 | 85.8 / 69.5 | 82.5 / 66.4 | 94.7 / 85.0 | 92.9 / 90.2 | 82.5 / 69.7 | 71.8 / 54.5 | **32.8** / 25.4 | **79.8** / 68.0 |
+RD-CV − RD: ASR_T8 **+2.0 [−1, +6]** (< +3 ✗), drop_T8 +0.8 [−1, +3] ✓, DINO-Swin-L drop +2.2 [−2, +5] ✓ → **KHÔNG**. Mô tả: ASR micro T8 +2.9 [+1, +5], **APloc drop T8 +2.6 [+1, +4]** (cao nhất 4 ô: 79.3 vs OSFD 75.3), CSR3 +3.2. RD-CV so OSFD: drop T8 +2.2, ASR macro T8 −2.6, ASR micro −2.3.
+s/ảnh (3090, cùng lần): RD 2.7, RD-V 2.4, RD-CV 3.1 (+15%: forward RPN / RoI thêm của L_V), OSFD B50 3.1.
+**⚠️ Không tái lập E45 (V100):** clean AP 6 model trùng E45 (lệch ≤ 0.2) → eval đúng; lệch ở bước SINH attack: DINO-Swin-L RD 38.0 → **30.6**, OSFD 22.6 → 26.5, RD-V 29.9 → 29.3; RD − OSFD Swin-L +15.4 → **+4.1**; đánh đổi RD-V (Swin-L −8.1 ở E45) còn −1.3. Lớn hơn nhiều mức "GPU không tất định ~1–2" từng thấy. Nghi vấn: TF32 trên Ampere (`torch.backends.cudnn.allow_tf32 = True` mặc định; V100 không có TF32) → gradient conv kém chính xác, có thể ảnh hưởng riêng nhánh WP (∇θ chuẩn hóa) / Swin-L. CHƯA kiểm. Hệ quả: mọi so sánh trên Swin-L giữa máy V100 và Ampere KHÔNG được ghép; trước khi chốt method cần xác định nguồn lệch.
+**Đọc:** (1) Kết hợp CE + vanishing nằm GIỮA RD và RD-V về ASR (như khai báo) nhưng KHÔNG mất drop / Swin-L — trên lần chạy này RD-CV có drop T8, APloc T8 và DINO-Swin-L cao nhất 4 ô. (2) Theo quy tắc khóa → KHÔNG (ASR chưa đủ). (3) Kết luận E45 "RD-V mất 8 điểm Swin-L" không tái lập trên 3090 → câu chuyện đánh đổi CE ↔ vanishing trên Swin-L chưa chắc chắn.
