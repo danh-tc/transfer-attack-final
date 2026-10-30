@@ -4614,7 +4614,7 @@ Lợi thật G (TB 30 ảnh) — S / RD / C / W / RAND: **R50** 6.78 / 12.71 / 1
 
 ---
 
-## 2026-10-30 — E54: tính chất CHỈ-R50 nào tách hướng chung δ_S khỏi hướng R50 δ_RD? (RQ2 -> regularizer method) @ dev30, forward/backward R50 (user: "Approve viết tiếp", ~13:20 GMT+7) — MÔ TẢ / sinh giả thuyết method, khai báo TRƯỚC khi đọc đủ
+## 2026-10-30 — E54: tính chất CHỈ-R50 nào tách hướng chung δ_S khỏi hướng R50 δ_RD? (RQ2 -> regularizer method) @ dev30, forward/backward R50 (user: "Approve viết tiếp", ~13:14 GMT+7) — MÔ TẢ / sinh giả thuyết method, khai báo TRƯỚC khi đọc đủ
 **Vì sao:** E53 H_steep ỦNG HỘ — gap = sai thứ tự độ dốc, WP là bước làm phẳng một phần trên trục C -> RD -> S. Cần 1 đại lượng CHỈ-R50 phân biệt S (hướng chung, transfer Swin-L cao) với RD (hướng R50) để làm regularizer; E24 trước thất bại vì chưa có δ_S làm mẫu dương. Giờ có δ_S + trục C -> RD kiểm hướng.
 **Đo (`scripts/e54_property_probe.py`, dev30, R50, δ_X = PNG − ảnh gốc, X in {C = C2-OCT-1V B36 E48, RD = RD B36 E46, S = C2-OCT-1V sur Swin-T B41}):** P1 deep = D_C5/ΣD_s (D_s = distortion feature stage s); P2 r_def = G(θ' WP)/G(θ0); P3 view_rob = TB_v Dfeat(view) / Dfeat(id), v in {co 0.8, giãn 1.25, dịch 4px}; P4 scramble = Dfeat(δ xáo ô 16px)/Dfeat(δ); P5 boxconc = năng lượng distortion C4 trong box / tỉ lệ token; P6 clsfrac = G_cls/G. (S ngoài threat model, chỉ phân tích.)
 **Quy tắc:** tính chất là **ỨNG VIÊN regularizer** nếu ĐƠN ĐIỆU C -> RD -> S VÀ |bước S−RD| > |bước RD−C| VÀ CI(S−RD) loại 0. Mô tả các tính chất khác.
