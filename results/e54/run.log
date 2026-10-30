@@ -1,0 +1,11 @@
+loading annotations into memory...
+Done (t=0.29s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+deep      C +0.4524  RD +0.4413  S +0.4073  | RD-C -0.0112  S-RD -0.0339 [-0.047,-0.021]  -> ỨNG VIÊN
+r_def     C +0.7633  RD +0.8642  S +0.7708  | RD-C +0.1009  S-RD -0.0934 [-0.134,-0.056]  -> -
+view_rob  C +0.9588  RD +0.9613  S +0.9769  | RD-C +0.0025  S-RD +0.0156 [+0.011,+0.020]  -> ỨNG VIÊN
+scramble  C +0.2551  RD +0.2643  S +0.4110  | RD-C +0.0092  S-RD +0.1468 [+0.134,+0.159]  -> ỨNG VIÊN
+boxconc   C +1.0668  RD +1.0525  S +1.0322  | RD-C -0.0143  S-RD -0.0203 [-0.067,+0.030]  -> đơn điệu
+clsfrac   C +0.4123  RD +0.3141  S +0.2927  | RD-C -0.0982  S-RD -0.0214 [-0.053,+0.009]  -> đơn điệu

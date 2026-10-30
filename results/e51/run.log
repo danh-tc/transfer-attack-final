@@ -1,0 +1,68 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.35s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.40s)
+creating index...
+index created!
+[E51] 1/30 (61s) peak 9.8 GB
+[E51] 2/30 (129s) peak 10.8 GB
+[E51] 3/30 (190s) peak 10.8 GB
+[E51] 4/30 (251s) peak 10.8 GB
+[E51] 5/30 (320s) peak 10.8 GB
+[E51] 6/30 (388s) peak 10.8 GB
+[E51] 7/30 (456s) peak 10.8 GB
+[E51] 8/30 (525s) peak 10.9 GB
+[E51] 9/30 (575s) peak 10.9 GB
+[E51] 10/30 (643s) peak 10.9 GB
+[E51] 11/30 (711s) peak 10.9 GB
+[E51] 12/30 (771s) peak 10.9 GB
+[E51] 13/30 (835s) peak 10.9 GB
+[E51] 14/30 (903s) peak 10.9 GB
+[E51] 15/30 (972s) peak 10.9 GB
+[E51] 16/30 (1036s) peak 10.9 GB
+[E51] 17/30 (1104s) peak 10.9 GB
+[E51] 18/30 (1173s) peak 10.9 GB
+[E51] 19/30 (1242s) peak 10.9 GB
+[E51] 20/30 (1303s) peak 10.9 GB
+[E51] 21/30 (1371s) peak 11.3 GB
+[E51] 22/30 (1432s) peak 11.3 GB
+[E51] 23/30 (1501s) peak 11.3 GB
+[E51] 24/30 (1562s) peak 11.3 GB
+[E51] 25/30 (1636s) peak 11.8 GB
+[E51] 26/30 (1696s) peak 11.8 GB
+[E51] 27/30 (1764s) peak 11.8 GB
+[E51] 28/30 (1833s) peak 11.8 GB
+[E51] 29/30 (1894s) peak 11.8 GB
+[E51] 30/30 (1962s) peak 11.8 GB
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+WB-FULL  AP drop  96.0  ASR  69.9  share 1.00
+WB-IN    AP drop  90.6  ASR  62.8  share 0.94
+WB-OUT   AP drop  66.3  ASR  32.9  share 0.69
+WB-RING  AP drop  48.8  ASR  26.1  share 0.51
