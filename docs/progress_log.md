@@ -4692,3 +4692,12 @@ Thời gian 2.7 s/ảnh = RD (CWT chỉ thêm interpolate, gần như miễn ph�
 **Quy tắc (dev100, paired bootstrap 1000 so RD):** **XÁC NHẬN** nếu ΔSwin-L(CWTN3 − RD) > 0 với cận dưới CI95 > 0 VÀ CA3 (ConvNeXt/Swin-T/YOLOX-L) ≥ −2 (điểm) VÀ R101 ≥ −3 -> RD-CWT(n=3) là method chốt; chạy full panel + dev300. **KHÔNG** nếu cận dưới CI ≤ 0 -> tín hiệu dev30 không vững; RD / RD-CV là method chốt. Mô tả: drop + ASR + APloc so OSFD.
 **Caveat:** dev100 lần đầu dùng phiên này (chưa "đốt" như dev30); 1 máy; bản gọn (full panel sau nếu xác nhận).
 **Chạy:** `results/e58/run.sh`, log `results/e58/run.log`.
+
+### Kết quả E58 @ dev100 B36 (3090, xong 15:17 GMT+7; `results/e58/panel_dev100.json`, `results/runs/dev300_B{36,50}_eps5_limit100/*_e58_dev100.json`, log `results/e58/run.log`) — theo quy tắc: **CWT KHÔNG xác nhận**; nhưng RD − OSFD XÁC NHẬN mạnh
+DINO-Swin-L drop/ASR | R101/Conv/SwinT/YOLOX-L drop (dev100, cùng máy cùng lần):
+- OSFD B50: 24.0/24.8 | 91.8/78.4/75.0/69.7
+- RD B36: 33.8/27.5 | 92.2/85.0/80.4/71.1
+- RD-CWTN3 B36: 34.4/27.4 | 92.4/86.0/81.0/69.6
+**ΔSwin-L(CWTN3 − RD) = +0.6 [−2.47, +2.43]** → cận dưới ≤ 0 → **KHÔNG**: tín hiệu +4 ở dev30 (E56/E57) KHÔNG sống sót dev100 (nhiễu dev30). CWT trung tính (Conv +1.0, Swin-T +0.6, YOLOX −1.5, đều CI chứa 0). **Đóng CWT.**
+**Phát hiện chính (ngoài CWT): RD − OSFD trên Swin-L = +9.8 [+5.1, +13.1]** (OSFD − RD = −9.81 [−13.07, −5.06]) — CI loại 0 CHẮC; cũng hơn Conv +6.6 [+2.2, +11.3], Swin-T +5.4 [−0.4, +8.6]. R50 white-box ≈ nhau (96.0–96.4). **Lần đầu xác nhận dev100 cùng máy CI chặt: RD vượt OSFD rõ ở target khác họ backbone.**
+**Đọc:** (1) Method chốt = **RD** (C2-OCT-1V-WP2-RD): đã validate hơn OSFD +9.8 Swin-L dev100. Con số Swin-L trung thực của RD = **33.8** (dev100 3090) — không phải 38 (V100 dev30) hay 30.6 (dev30 3090). (2) CWT: tín hiệu dev30 không tái lập → quy tắc "chỉ đọc Swin-L từ dev100" được củng cố (bài học cho mọi screen dev30 sau). (3) Khoảng cách tới 50 còn ~16 điểm = khoảng cách họ backbone (δ_S Swin-T 54–59); AWP đa bước là cú đặt cược còn lại có cơ sở nhưng tốn ngân sách B (khó thắng cùng-B). (4) **Việc tiếp (user quyết):** (a) chốt RD, chạy full panel + MI/M-DI² @ dev100/dev300 cùng máy → bảng paper; hoặc (b) thử AWP đa bước @ dev30 trước khi chốt.
