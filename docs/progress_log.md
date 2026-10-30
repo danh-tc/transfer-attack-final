@@ -4673,7 +4673,7 @@ Thời gian 2.7 s/ảnh = RD (CWT chỉ thêm interpolate, gần như miễn ph�
 
 ---
 
-## 2026-10-30 — E57: quét liều CWT n ∈ {4, 6} + biến thể XOAY khối (n=3, ±15°) — xác nhận đơn điệu tín hiệu E56 @ dev30 B36 (user: "Đồng ý luôn", ~14:05 GMT+7) — khóa TRƯỚC khi chạy
+## 2026-10-30 — E57: quét liều CWT n ∈ {4, 6} + biến thể XOAY khối (n=3, ±15°) — xác nhận đơn điệu tín hiệu E56 @ dev30 B36 (user: "Đồng ý luôn", ~14:07 GMT+7) — khóa TRƯỚC khi chạy
 **Vì sao:** E56 — RD-CWT có tín hiệu, phụ thuộc liều n=2 (+1.2) < n=3 (+4.0). Quét n cao hơn để xác nhận đơn điệu (cơ chế thật, CI tách 0 ở liều cao). Thêm biến thể xoay khối (CWT gốc) đã bỏ ở E56.
 **Ô (nền RD):** `-CWTN4` (n=4), `-CWTN6` (n=6), `-CWTN3R` (n=3 + xoay khối ±15°). Mốc RD + CWTN3 (PNG E56), eval lại cùng lần. Smoke dev5 B3 OK.
 **Quy tắc (dev30, điểm):** **ĐƠN ĐIỆU XÁC NHẬN** nếu ΔSwin-L tăng tiếp n=3 -> n=4 (hoặc n=6) với ΔSwin-L(tốt nhất − RD) ≥ +5 VÀ CA3 ≥ −2 VÀ R101 ≥ −3 -> chọn n tốt nhất, lên dev100 cùng-thời-gian + OSFD cùng máy. **BÃO HÒA** nếu n ≥ 4 không hơn n=3 (vẫn giữ tín hiệu n=3). **MẤT** nếu n cao làm Swin-L tụt về ≤ RD+1 (tín hiệu n=3 là nhiễu). Xoay (CWTN3R): mô tả, đọc kèm caveat box GT lệch.
