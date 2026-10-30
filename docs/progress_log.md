@@ -4512,3 +4512,16 @@ s/ảnh (3090, cùng lần): RD 2.7, RD-V 2.4, RD-CV 3.1 (+15%: forward RPN / Ro
 ### Kết quả E47 @ dev30 (3090, xong ~11:35 GMT+7; `results/runs/dev300_B{36,50}_eps5_limit100_fp32/*_e47_dev30.json`, log `results/e47/run.log`) — theo quy tắc: **KHÔNG PHẢI TF32**
 DINO-Swin-L drop: **RD_fp32 31.5** [24.9, 42.6] (E46 TF32 30.6, E45 V100 38.0); OSFD_fp32 26.2 (E46 26.5, E45 22.6). Controlled RD_fp32 98.2 / 92.6 / 84.2 / 85.2 (≈ E46). s/ảnh RD 2.7 (không đổi), OSFD 3.7.
 **Đọc:** tắt TF32 không đổi gì → TF32 không phải nguồn. Lưu ý (phát hiện sau khi khóa): ô C2-OCT* chạy **AMP fp16** (`_C2OCT amp=True`) → conv trong attack là fp16, TF32 vốn không áp dụng cho phần lớn tính toán; khai báo E47 bỏ sót điểm này. Lệch KHÔNG giống nhiễu ngẫu nhiên giữa lần chạy: 2 lần trên 3090 cho RD Swin-L 30.6 / 31.5, các lần trên V100 37–39 (E39 B36 38.0, E40 B50 / B75 / B100 37.2 / 37.8 / 39.2) → lệch có HỆ THỐNG theo phần cứng (nghi: kernel fp16 / thuật toán cuDNN khác giữa Volta và Ampere). CHƯA kiểm (ứng viên: RD `amp=False` trên 3090). Hệ quả: số Swin-L không ghép giữa V100 và Ampere; claim "+15 Swin-L so OSFD" (V100) chưa vững — trên 3090 chỉ +4–5.
+
+---
+
+## 2026-10-30 — E48: lệch DINO-Swin-L V100 vs 3090 đến từ WP và/hoặc AMP fp16? @ dev30 B36 trên 3090 (user: "Kiểm tìm nguyên nhân thử", ~11:45 GMT+7) — CHẨN ĐOÁN, khai báo TRƯỚC khi chạy
+**Manh mối (log cũ):** C2-OCT-1V (KHÔNG WP) tái lập giữa V100 và A4500 (Ampere): Swin-L dev300 V100 32.4, dev100 A4500 B41 30.5; lợi so OSFD +8.8 (V100 dev100) vs +6.4 (A4500). Mọi run có WP đều trên V100. WP tính ∇θ trong autocast fp16, không GradScaler → underflow có thể khác kernel Volta / Ampere.
+**Ô (3090, dev30, B36, seed như cũ; mốc V100 = E38 / E39 cùng dev30 B36):** `C2-OCT-1V` (V100 31.2), `C2-OCT-1V-WP2` (V100 36.2), `C2-OCT-1V-WP2-RD-NOAMP` (RD, `amp=False`; RD V100 38.0, 3090 AMP 30.6 / 31.5). RD AMP (PNG E46) eval lại cùng lần.
+**Đọc (khai báo trước, Swin-L điểm):**
+- **AMP LÀ NGUỒN (trên Ampere):** RD-NOAMP ≥ 35 → protocol: ô WP chạy không AMP trên Ampere; đo lại thời gian.
+- **WP NHẠY PHẦN CỨNG:** C2-OCT-1V(3090) trong ±2.5 của 31.2 VÀ WP2(3090) − C2-OCT-1V(3090) ≤ +2 (V100: +5.0) → lợi Swin-L của WP2 không tái lập trên Ampere.
+- Cả C2-OCT-1V(3090) cũng lệch > 2.5 → lệch chung của máy / nhiễu dev30, không riêng WP → cần dev100.
+- Còn lại → XÁM, mô tả.
+**Caveat:** dev30; 1 lần chạy mỗi ô; GPU không tất định.
+**Chạy:** `results/e48/run.sh`, log `results/e48/run.log`.
