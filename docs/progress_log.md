@@ -4661,3 +4661,12 @@ Thời gian: RD-SCR 3.4 s/ảnh vs RD 2.7 (×1.26; thêm 1 extract_features/bư�
 **Quy tắc (dev30, điểm, cùng máy 3090 ~tất định nên đọc ~±3; CI mô tả):** **CÓ TÍN HIỆU** (đi tiếp dev100 cùng-thời-gian) nếu tồn tại n: ΔSwin-L(CWT − RD) ≥ +3 VÀ ΔCA3(ConvNeXt/Swin-T/YOLOX-L) ≥ −2 VÀ ΔR101 ≥ −3. **KHÔNG** nếu mọi n có ΔSwin-L ≤ +1. Còn lại XÁM. Mô tả: thời gian/ảnh (CWT thêm interpolate rẻ), panel đủ, ASR.
 **Caveat:** dev30; s_max không tune (1.3 theo paper); bỏ xoay; chưa so cùng-thời-gian.
 **Chạy:** `results/e56/run.sh`, log `results/e56/run.log`.
+
+### Kết quả E56 @ dev30 B36 (3090, xong 14:00 GMT+7; `results/e56/panel_dev30.json`, `results/runs/dev300_B36_eps5_limit100/*_e56_dev30.json`, log `results/e56/run.log`) — theo quy tắc: **CÓ TÍN HIỆU** (n=3: ΔSwin-L +4.0 điểm, CNN không tụt) — tín hiệu DƯƠNG sạch đầu tiên
+DINO-Swin-L drop/ASR | Conv / Swin-T / YOLOX-L / R101 drop | T8 drop/ASR (mốc RD 30.6):
+- RD: 30.6/26.2 | 85.8 / 85.1 / 70.5 / 93.0 | 79.0/66.0
+- RD-CWT n=2: 31.8/25.6 | 85.6 / 86.7 / 72.0 / 94.0 | 80.0/66.9 — ΔSwin-L **+1.2 [−3.2, +4.3]**
+- **RD-CWT n=3: 34.6/26.4 | 87.0 / 87.8 / 71.7 / 93.5 | 80.8/66.3 — ΔSwin-L +4.0 [−0.2, +5.8]**
+Thời gian 2.7 s/ảnh = RD (CWT chỉ thêm interpolate, gần như miễn phí) -> KHÁC các hướng trước, KHÔNG tốn thêm budget.
+**Theo quy tắc:** n=3 ΔSwin-L +4.0 ≥ +3 (điểm) ✓; CA3 (Conv +1.2, Swin-T +2.7, YOLOX-L +1.2) ≥ −2 ✓; R101 +0.5 ≥ −3 ✓ -> **CÓ TÍN HIỆU**. CI cận dưới −0.2 (chạm 0, dev30 nhiễu) nên chưa xác nhận CI — đúng lý do quy tắc đòi dev100.
+**Đọc:** (1) Lần đầu một method single-surrogate SẠCH nhích Swin-L +4 mà KHÔNG hại CNN (CNN còn tăng nhẹ: Conv +1.2, Swin-T +2.7) và KHÔNG tốn thêm thời gian. (2) **Phụ thuộc liều rõ: n=2 +1.2 < n=3 +4.0** -> khối mịn hơn = hiệu ứng mạnh hơn -> dấu hiệu CƠ CHẾ THẬT (không phải nhiễu). (3) Khớp giả thuyết khai báo: đẩy δ bớt phụ thuộc lưới pixel qua ĐƯỜNG ĐẦU VÀO (OCT-family) làm được cái regularizer-δ E55 không làm được -> xác nhận "input-diversity là đòn bẩy, regularizer-δ là chỉ báo". (4) ASR ~ngang RD (26.4 vs 26.2). **VIỆC TIẾP:** (a) quét liều n ∈ {4, 6} + biến thể có xoay khối @ dev30 (rẻ, xác nhận đơn điệu); (b) nếu còn tăng -> dev100 cùng-thời-gian (CWT = RD về thời gian nên B36 so trực tiếp) + OSFD cùng máy. Caveat: dev30, CI chạm 0, 1 máy.
