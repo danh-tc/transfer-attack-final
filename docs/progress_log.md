@@ -4654,7 +4654,7 @@ Thời gian: RD-SCR 3.4 s/ảnh vs RD 2.7 (×1.26; thêm 1 extract_features/bư�
 
 ---
 
-## 2026-10-30 — E56: RD-CWT — view co-phóng theo KHỐI (CWT, arXiv 2501.11901) trên nền RD @ dev30 B36 (user: "code đi", ~13:45 GMT+7) — khóa TRƯỚC khi chạy
+## 2026-10-30 — E56: RD-CWT — view co-phóng theo KHỐI (CWT, arXiv 2501.11901) trên nền RD @ dev30 B36 (user: "code đi", ~13:51 GMT+7) — khóa TRƯỚC khi chạy
 **Vì sao (literature + cơ chế):** CWT (arXiv 2501.11901, CNN surrogate, single-surrogate, chỉ đụng input): co từng khối rồi phóng lại -> phá high-freq CỤC BỘ; hơn BSR ~6–7% trên ViT. Khớp E54 (δ_S bớt phụ thuộc lưới pixel) nhưng qua ĐƯỜNG ĐẦU VÀO (họ OCT đã thắng +9 Swin-L) thay vì regularizer δ (E55 — chết). Giả thuyết: buộc δ sống sót qua lấy mẫu lại theo khối -> đẩy δ ra khỏi mẫu khóa-vị-trí đặc thù R50, về phía δ_S, mà không vấp đường nhân quả đã chết của E55.
 **Ô (nền RD: OCT 1V, MI, WP ρ 0.002, AMP, B36, λ_cls = 6; `pia._cwt_spec/_cwt_apply`, áp CÙNG spec cho ảnh sạch + adv của view, hệ số co mới mỗi bước seed + 15):** `C2-OCT-1V-WP2-RD-CWT` n = 2 (lưới 2×2, s_max = 1.3 như paper); `-CWTN3` n = 3. Bỏ xoay khối (paper có) để giữ vị trí khối -> box GT còn đúng cho L_cls (ghi nhận: biến thể có xoay để sau nếu có tín hiệu). Smoke dev5 B3 OK, δ đúng L∞.
 **Mốc:** RD B36 + OSFD B50 (PNG E46), eval lại cùng lần.
