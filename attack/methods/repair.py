@@ -105,8 +105,19 @@ def cls_term(model, batch_inputs, batch_data_samples, cls: str):
         for d in rpn_ds:
             d.gt_instances.labels = torch.zeros_like(d.gt_instances.labels)
         return sum_loss_dict({"loss_rpn_cls": model.rpn_head.loss(model.extract_feat(batch_inputs), rpn_ds)["loss_rpn_cls"]})
+    if cls == "roi+vanish":  # E46 (progress_log 2026-10-30): loss_cls RoI + (0.3 / 6)·L_V, CHUNG 1 forward backbone
+        x = model.extract_feat(batch_inputs)
+        model.extract_feat = lambda _: x  # model.loss dùng lại x (thuộc tính instance che method, del để trả lại)
+        try:
+            l_roi = model.loss(batch_inputs, batch_data_samples)["loss_cls"]
+        finally:
+            del model.extract_feat
+        return l_roi + RDCV_VANISH_RATIO * vanish_loss(model, x, batch_data_samples)
     assert cls == "vanish"
     return vanish_loss(model, model.extract_feat(batch_inputs), batch_data_samples)
+
+
+RDCV_VANISH_RATIO = 0.3 / 6.0  # λ_V (E45) / λ_CE (E39), cả hai theo quy tắc calib cũ — không tune
 
 
 @contextlib.contextmanager
