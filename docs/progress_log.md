@@ -4566,7 +4566,7 @@ FP nền / ảnh (sạch → FULL | IN | OUT): R50 3.8 → 32.8 | 11.4 | 25.0; C
 
 ---
 
-## 2026-10-30 — E51: cổng ORACLE — pixel nền CÓ THỂ tác động DINO-Swin-L không? White-box trên CHÍNH DINO-Swin-L theo vùng GT box @ dev30 B20 (user: "approve", ~11:50 GMT+7) — CHỈ PHÂN TÍCH (như E8), khai báo TRƯỚC khi chạy
+## 2026-10-30 — E51: cổng ORACLE — pixel nền CÓ THỂ tác động DINO-Swin-L không? White-box trên CHÍNH DINO-Swin-L theo vùng GT box @ dev30 B20 (user: "approve", ~11:56 GMT+7) — CHỈ PHÂN TÍCH (như E8), khai báo TRƯỚC khi chạy
 **Vì sao:** E50 — δ_RD ở nền gần như không tác động Swin-L (share 0.02), nhưng đó là δ tối ưu cho R50; chưa biết pixel nền CÓ THỂ tác động Swin-L (qua attention / ngữ cảnh) hay không. Dùng gradient target CHỈ để đo khả năng (không vào method, không vi phạm threat model của attack transfer).
 **Ô (`scripts/e51_wb_bgmask.py`, PNG `artifacts/e51/`):** loss = số hạng phân loại không-dn của DINO (như E8 WB-s1), ascent, MI μ = 1, α = 1, B20, ε = 5; δ ← δ·mask mỗi bước, mask = vùng E50: WB-FULL / WB-IN / WB-OUT / WB-RING. Eval DINO-Swin-L: AP drop + ASR (suppression). Smoke 1 ảnh OK (61 s / ảnh cho 4 ô, peak 9.8 GB; ước ~35 phút dev30).
 **Đọc (khai báo trước, điểm):** share = drop(ô) / drop(WB-FULL).
