@@ -4621,3 +4621,13 @@ Lợi thật G (TB 30 ảnh) — S / RD / C / W / RAND: **R50** 6.78 / 12.71 / 1
 **⚠️ Minh bạch:** đã xem smoke 3 ảnh (`--limit 3`, KHÔNG đọc kết luận): scramble C 0.28 / RD 0.29 / S 0.47 nổi bật nhất (khớp E7/E13: δ_R50 là mẫu tần cao khớp CHÍNH XÁC nội dung cục bộ + khóa lưới); deep, view_rob cũng đơn điệu. Ghi nhận là thông tin có trước khi khóa; quy tắc trên khóa trước khi chạy đủ 30.
 **Caveat:** dev30; δ_S ngoài threat model; 1 điểm (ảnh sạch); scramble giữ nội dung trong ô nhưng xáo vị trí ô (thô, không phải phép bất biến chuẩn).
 **Chạy:** `results/e54/run.sh`, log `results/e54/run.log`.
+
+### Kết quả E54 @ dev30 (3090, xong 13:15 GMT+7; `results/mechanism/e54_property_probe.json`, log `results/e54/run.log`) — theo quy tắc: **3 ỨNG VIÊN** (scramble mạnh nhất), 3 không
+Tính chất — C / RD / S | bước RD−C | bước S−RD [CI]:
+- **scramble (Dfeat sau xáo ô 16px / Dfeat gốc): 0.255 / 0.264 / 0.411 | +0.009 | +0.147 [+0.134, +0.159]** -> ỨNG VIÊN (bước S−RD gấp ~16× RD−C). δ_S giữ 41% tác dụng feature khi xáo ô, δ_RD chỉ 26% -> δ_R50 phụ thuộc VỊ TRÍ cục bộ chính xác, δ_S KHÔNG.
+- **view_rob (Dfeat view / Dfeat id): 0.959 / 0.961 / 0.977 | +0.003 | +0.016 [+0.011, +0.020]** -> ỨNG VIÊN (bền view hơn; khớp OCT).
+- **deep (D_C5/ΣD_s): 0.452 / 0.441 / 0.407 | −0.011 | −0.034 [−0.047, −0.021]** -> ỨNG VIÊN (S distortion NÔNG hơn; lưu ý ngược chiều E32 "WP dời về sâu" — ở đây trục tới S là nông hơn, WP chỉ nhích).
+- r_def: 0.763 / 0.864 / 0.771 -> KHÔNG đơn điệu (RD đỉnh; r_def là thứ WP tối ưu trực tiếp, không phải trục tới S).
+- boxconc: 1.067 / 1.053 / 1.032 -> đơn điệu nhẹ, CI chứa 0.
+- clsfrac: 0.412 / 0.314 / 0.293 -> đơn điệu (S ít phần cls hơn) nhưng bước S−RD CI chứa 0.
+**Đọc:** (1) **scramble là ứng viên trội**: chênh S−RD +0.147 (CI chặt), gấp ~16× bước RD−C, khớp cơ chế E7 (δ_R50 mẫu tần cao khớp nội dung) + E13 (khóa lưới stride 4). δ chuyển giao Swin-L bền với xáo vị trí cục bộ; δ R50 thì không. (2) view_rob, deep cùng hướng nhưng biên độ nhỏ. (3) **Hướng method (regularizer suy từ cơ chế):** phạt phần δ phụ thuộc vị trí cục bộ trên R50 = ép G_feat bền với xáo ô. Ứng viên loss: tại mỗi bước, cực đại hóa Dfeat của CẢ δ gốc LẪN δ xáo ô (hoặc min khoảng cách giữa hai), kéo δ về vùng bền-xáo như δ_S. KHÁC OCT (xáo PHÁ cấu trúc cục bộ thay vì biến đổi hình học toàn cục) -> novelty. (4) Caveat: xáo ô là phép thô; cần thiết kế loss khả vi (xáo ô không khả vi theo δ — dùng 2 forward: δ và detach(xáo δ), hoặc regularizer trên tự tương quan không gian của gradient). Khóa entry method trước khi code.
