@@ -457,7 +457,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
-                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None):
+                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -517,6 +517,13 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             grown[max(0, int(y - 0.25 * bh)):up(y + 1.25 * bh), max(0, int(x - 0.25 * bw)):up(x + 1.25 * bw)] = True
         pix_mask = (~inside if pix_region == "out" else grown & ~inside).float()[None]
         grad_transform = lambda g: g * pix_mask
+    if gflush is not None:
+        # E60 (progress_log 2026-10-30): giả lập flush fp16 của V100 — bỏ (về 0) thành phần gradient NHỎ (|g| dưới phân vị
+        # gflush theo ảnh) trước bước sign, giữ thành phần lớn/bền. Kiểm giả thuyết: thành phần nhỏ = overfit R50 (E53).
+        assert pix_region is None
+        def grad_transform(g):  # noqa: E306,F811
+            t = torch.quantile(g.detach().abs().float().flatten(), gflush)
+            return g * (g.abs() >= t)
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
