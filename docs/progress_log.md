@@ -4871,3 +4871,15 @@ CKA theo stage (điểm): stage4 convnext-r101 0.778, convnext-r50 0.747 ≫ con
 **Đã thấy smoke 1 ảnh (không quyết định):** cos(ConvNeXt,SwinL) 0.114 > cos(R50,SwinL) 0.064; SwinT 0.326 vs 0.155 — đúng hướng, chờ CI dev30.
 **Caveat:** n=30; gradient first-order ảnh sạch (A1 thấy cos nhỏ, nhiễu); 1 objective cls.
 **Chạy:** `python scripts/e68_grad_align.py`, log `results/e68/run.log`.
+
+### Kết quả E68 @ dev30 (A4500, xong 13:53 GMT+7; `results/mechanism/e68_grad_align.json`, log `results/e68/run.log`) — theo quy tắc: **GRADIENT LÀ CẦU** (Δcos > 0, CI loại 0) — lý do XÁC NHẬN
+Trục chính DINO-Swin-L: cos(∇ConvNeXt, ∇SwinL) = **0.0364 [0.0258, 0.0481]** vs cos(∇R50, ∇SwinL) = **0.0158 [0.0066, 0.0255]**; **Δcos = +0.0206 [+0.0153, +0.0263]** → ConvNeXt định hướng gradient gần Swin-L **gấp ~2.3×** R50, CI loại 0 chắc.
+Phụ Swin-T: cos(ConvNeXt) 0.206 vs cos(R50) 0.111, Δ +0.095 [+0.077, +0.112] (rõ hơn, vì Swin-T cùng head Mask R-CNN). cos(∇R50, ∇ConvNeXt) = 0.143 (thấp — khớp cos δ 0.09, E64). Đồng thuận dấu mọi cặp ≈ 0.50–0.52 (A1: sign gần ngẫu nhiên — khác biệt nằm ở cosine/độ lớn hướng, không ở dấu pixel).
+**Đọc — CHUỖI LÝ DO HOÀN CHỈNH (vì sao ConvNeXt improve Swin-L mà giảm ResNet):**
+1. ConvNeXt về FEATURE sạch giống ResNet, không giống Swin (E67: CKA sâu 0.66–0.70 vs 0.46–0.63).
+2. NHƯNG đường BACKWARD của ConvNeXt (kernel 7×7 depthwise + LayerNorm + patchify) tạo ∇ₓ loss cls gần hướng ∇ₓ Swin-L hơn R50 (~2.3× trên Swin-L, ~1.9× trên Swin-T) — bản chất đây là chỗ hai họ "đồng ý" về phần nào của ảnh làm hỏng object. R50 (kernel 3×3, BN) không trỏ vào hướng đó.
+3. Hệ quả: δ từ ConvNeXt phổ quát hơn — vừa phá ResNet (feature gần ResNet) VỪA phá Swin-L (gradient gần Swin-L). δ từ R50 chỉ có lợi thế feature ResNet, gradient không trỏ Swin-L → kẹt 33.8.
+4. Khớp mọi quan sát trước: cos(δ_R50, δ_CNX) = 0.09 trực giao (E64); D_k δ_CNX phá Swin-L sâu hơn (E64); method cần cls (E66: cls = cầu, đúng loss mà E68 đo gradient); đổi riêng surrogate không đủ (E65: OSFD-CNX 26.1 — vì OSFD thiếu cls, không khai thác hướng gradient này).
+**Giới hạn còn lại (ResNet tụt ~10):** cos gradient ConvNeXt→ResNet (R50 0.143, R101 0.141) THẤP HƠN R50→ResNet white-box, nên δ_CNX không trỏ sâu vào ResNet bằng chính R50 → tụt ~10 là do mất lợi thế white-box/cùng-họ của R50-surrogate, **không gỡ được bằng tinh chỉnh loss** (cos gradient là tính chất kiến trúc cố định). Lever giữ-cả-hai cùng-budget: tăng trọng số HƯỚNG CHUNG (cls, cos cao nhất xuyên họ) — nhưng cos tuyệt đối nhỏ (0.04–0.2) nên trần có hạn; hoặc ensemble (đổi threat model).
+**Novelty paper (cơ chế SẠCH):** "transferable direction" xuyên họ là một tính chất của ĐƯỜNG GRADIENT backbone, KHÔNG của tương đồng biểu diễn; surrogate ConvNeXt bắc cầu vì gradient của nó trỏ gần vùng Transformer đồng thuận, và method phải dùng loss cls để đi theo hướng đó. Giải thích vì sao OSFD (feature thuần) không hưởng.
+**Việc tiếp:** đủ lý do cơ chế — dừng chuỗi probe. Chờ user: (a) dev100 xác nhận bảng 2×2 + E68 trên dev100; (b) dựng câu chuyện paper quanh chuỗi E65→E68; (c) thử lever "tăng trọng số hướng chung" nếu muốn đẩy ResNet.
