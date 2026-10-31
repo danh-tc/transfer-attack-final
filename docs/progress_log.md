@@ -4906,3 +4906,15 @@ Drop (R50/R101/ConvNeXt/Swin-T/FCOS/DINO-R50/YOLOv3/YOLOX-L/Swin-L | RES3={R101,
 **NHƯNG không chỉ là trộn tuyến tính:** ENS-RC **vượt CẢ HAI single** ở YOLOv3 (83.4 > 81.7/71.7), YOLOX-L (80.1 > 76.9/75.1), Swin-T (90.7 > 84.3/87.1), ConvNeXt (97.1) — các target "khác họ thật" (không model nào white-box-trội). Và **T7 = 81.1 CAO NHẤT** (> RD-R50 79.6, RD-CNX 78.2). Chỉ ở head thuần ResNet-R50 (R50/R101/FCOS/DINO-R50) ENS-RC nội suy/kém nhẹ (FCOS 83.4 < cả hai) — vì đó là chỗ RD-R50 gần trần white-box mà nửa-budget R50 không với tới.
 **Đọc:** (1) Cơ chế E68 ĐÚNG — ensemble cross-family phủ bù: synergy rõ ở target khác-họ-thật, best T7. (2) Chưa "giữ cả hai" ở mức cao vì (a) warm-start yếu (momentum reset, không momentum-chung thật), (b) nửa-budget mỗi surrogate không đạt trần white-box ResNet. (3) ENS-RC T7 81.1 với CÙNG B=36 là method panel tốt nhất tới nay (dev30) — nhưng đổi threat model. (4) Đây là CẬN DƯỚI: ensemble momentum-chung thật (sửa core, mỗi bước backward 1 surrogate luân phiên, 1 momentum) kỳ vọng cao hơn.
 **Việc tiếp (user quyết):** (a) code ensemble momentum-chung thật (sửa run_iterative_attack nhận list model, luân phiên step) — nặng hơn nhưng là bản đúng; (b) dừng ở ENS-RC, dev100 xác nhận T7; (c) quay lại một-surrogate RD-CNX cho paper (threat model gốc). Mọi hướng ensemble = pivot idea.md §3, PHẢI duyệt chính thức + báo thầy trước khi vào bảng cuối.
+
+### Bổ sung E69 (xong 14:26 GMT+7): thêm OSFD-R50 + OSFD-CNX vào bảng E69 cùng đường eval (inference PNG) — so ENS-RC với baseline SOTA gốc
+Full panel dev30 (mAP drop; OSFD B50, RD/ENS B36):
+- OSFD-R50: 98.0/92.4/86.0/78.3/93.2/95.4/74.0/72.4/26.4 | T7 76.0
+- OSFD-CNX: 74.9/65.1/95.6/73.0/79.1/75.1/61.4/54.3/26.1 | T7 62.0
+- RD-R50:   98.7/92.5/85.8/84.3/95.1/92.7/81.7/76.9/33.8 | T7 79.6
+- RD-CNX:   83.7/82.2/95.4/87.1/85.0/83.6/71.7/75.1/62.8 | T7 78.2
+- ENS-RC:   90.3/88.6/97.1/90.7/83.4/86.2/83.4/80.1/55.0 | T7 81.1
+- ENS-CR:   96.3/90.4/86.0/81.2/89.0/90.7/78.3/71.1/31.8 | T7 76.1
+(thứ tự cột: r50/r101/convnext/swin_t/fcos/dino_r50/yolov3/yolox_l/dino_swin_l)
+**ENS-RC − OSFD-R50:** Swin-L +28.6 (CI ENS-RC [42.8,62.5] vs OSFD [18.4,35.0] — loại nhau), Swin-T +12.4, YOLOv3 +9.4, YOLOX-L +7.7; thua ở head thuần ResNet-R50: R50 −7.7, FCOS −9.8, DINO-R50 −9.2, R101 −3.8. **T7 +5.1** (81.1 vs 76.0). Lưu ý CI trên là từng-ô (không paired, file không lưu samples) — chỉ tham khảo; dev100 mới paired.
+**Đọc:** ENS-RC vượt OSFD-R50 ở MỌI target khác họ (mục tiêu RQ) + T7 cao nhất, nhưng (1) budget lệch OSFD B50 vs ENS B36 (ENS ít backward hơn mà vẫn hơn T7 → lợi thế thật, nhưng claim chặt cần cùng B), (2) ENS = 2 surrogate, OSFD-R50 = 1 → không đồng giả định; đối thủ đồng hạng của ENS là OSFD-ensemble (chưa chạy). OSFD-CNX T7 62.0 (thấp nhất) khẳng định lại: đổi surrogate cho OSFD không giúp (E65) — lợi của ENS/RD-CNX là do method dùng cls đi theo hướng gradient (E66/E68), không do surrogate.

@@ -32,7 +32,9 @@ ENSRUN = "dev300_B36_eps5_limit100_ens"
 OUT = os.path.join(REPO_ROOT, "results/mechanism/e69_ensemble.json")
 PANEL = ["r50", "r101", "convnext_t", "swin_t", "fcos_r50", "dino_r50", "yolov3_d53", "yolox_l", "dino_swin_l"]
 FIX = {"RD-CNX": ("dev300_B36_eps5_limit100_sur-convnext_t", "C2-OCT-1V-WP2-RD-CNX"),
-       "RD-R50": ("dev300_B36_eps5_limit100", "C2-OCT-1V-WP2-RD")}
+       "RD-R50": ("dev300_B36_eps5_limit100", "C2-OCT-1V-WP2-RD"),
+       "OSFD-R50": ("dev300_B50_eps5_limit100", "OSFD"),
+       "OSFD-CNX": ("dev300_B50_eps5_limit100_sur-convnext_t", "OSFD")}
 BOOT_SEED, N_BOOT = 2026, 1000
 
 
@@ -78,13 +80,17 @@ def main():
     ids = [i for i in load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev300.csv")) if i in keep]
     assert len(ids) == 30
     attack_ensemble(ids)
-    conds = ["ENS-RC", "ENS-CR", "RD-CNX", "RD-R50"]
+    conds = ["ENS-RC", "ENS-CR", "RD-CNX", "RD-R50", "OSFD-R50", "OSFD-CNX"]
     cat_ids = sorted(coco.getCatIds())
     n = len(ids)
     W = np.vstack([np.ones((1, n)), bootstrap_indices(n, N_BOOT, BOOT_SEED)])
     from mmdet.apis import inference_detector
-    res = {"n_images": n, "conds": conds, "drop": {m: {} for m in PANEL}, "note": "relative AP drop % dev30, cùng đường eval PNG"}
+    res = json.load(open(OUT)) if os.path.exists(OUT) else {"n_images": n, "conds": conds, "drop": {m: {} for m in PANEL}, "note": "relative AP drop % dev30, cùng đường eval PNG"}
+    res["conds"] = conds
     for key in PANEL:
+        res["drop"].setdefault(key, {})
+        if all(c in res["drop"][key] for c in conds):
+            print(key, "đã đủ, bỏ qua", flush=True); continue
         model = load(key)
         def ap_of(paths):
             dets = []
@@ -94,6 +100,8 @@ def main():
             return np.array([ev.ap(w) for w in W])[:, 0] * 100
         clean = ap_of([os.path.join(IMGDIR, coco.loadImgs(i)[0]["file_name"]) for i in ids])
         for c in conds:
+            if c in res["drop"][key]:
+                continue
             adv = ap_of([png_path(c, i) for i in ids])
             res["drop"][key][c] = summarize(*(lambda a: (a[0], a[1:]))(100 * (clean - adv) / clean))
         del model
