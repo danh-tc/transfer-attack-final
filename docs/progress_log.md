@@ -5077,3 +5077,33 @@ B50 sinh đủ 100 PNG; B75 dừng giữa chừng (PNG dở giữ lại ở `dev
 - **STDR GO** chỉ khi gate-1 ∧ gate-2 trên ≥1 target Transformer → đáng xây method direction-recovery 1-surrogate (RQ2/RQ3, không đổi threat model). **NO-GO** còn lại → hướng ConvNeXt/Swin không nằm (đủ/ổn định/chọn-được) trong objective-gradient R50 → single-surrogate recovery không khả thi từ objective-gradients, cần ensemble/distillation. Oracle TUYỆT ĐỐI không dùng chọn hyperparameter method cuối.
 **Kỳ vọng thấp (bản STDR tự nói):** E53–E72 đã đóng nhiều cách chỉnh gradient R50; chưa có bằng chứng R50 chứa đủ hướng ConvNeXt. Nhưng accessibility≠recoverability là câu hỏi hợp lệ chưa đo. Caveat: dev30 (diagnostic hình học như E68); chỉ objective-gradients (chưa gồm feature-stage disruption — degenerate tại x0, để follow-up); oracle=cls-grad tại x0.
 **Chạy:** `python scripts/e75_stdr.py` (sau khi E74-B50 eval xong để không tranh GPU), log `results/e75/run.log`.
+
+### Kết quả E74 @ dev100 (A4500, xong 2026-10-31 ~20:32 GMT+7; `results/mechanism/e74_cnx_budget.json`) — theo quy tắc: **BUDGET ≠ DIRECTION — đóng lever single-surrogate-qua-B**
+Bảng AP-drop % (boot 300; B36/RD-R50/ENS từ e73):
+```
+               r50  r101  cnx swin_t fcos dino_r50 yolov3 yolox swin_l   T7
+RD-R50        96.0 92.1 85.3  82.2  92.1  93.8   77.2  71.2  34.8  77.6
+RD-CNX(B36)   79.8 81.1 93.5  84.5  81.7  80.2   71.8  73.6  56.6  75.6
+RD-CNX-B50    83.0 84.6 94.7  86.9  84.5  84.1   74.3  75.7  59.0  78.4
+ENS-WP        95.2 92.1 95.2  88.0  91.1  92.8   80.0  79.1  55.3  82.6
+```
+RES3avg: RD-CNX 81.0 → B50 84.4 (gain **+3.4** cho +14 backward) vs mốc RD-R50 92.7 → vẫn hụt **−8.3**. Swin-L B50 **59.0** (cao hơn cả ENS 55.3 & B36 56.6). T7 B50 78.4 (> RD-R50 77.6, RD-CNX 75.6; < ENS 82.6).
+**Rule "giữ cả hai" = False:** RES3 ≥ RD-R50−3 False, T7 ≥ ENS−2 False (chỉ Swin-L≥RD-CNX−5 True). → tăng B bò lên ~+3 ResNet rồi nghẽn, không chạm RD-R50. **Khẳng định E64: hụt ResNet là HƯỚNG, không phải ngân sách.** B75 user dừng (37/100 PNG giữ lại).
+**Giữ khai thác sau (user):** B50 là **single-surrogate mạnh nhất** đo được (T7 78.4, Swin-L 59.0) — đáng làm reference/ablation "B" trong bảng paper; toàn bộ khoảng cách tới ENS giờ THUẦN là họ ResNet.
+
+---
+
+## 2026-10-31 — E75-STDR kết quả @ dev30 (A4500, xong 20:41 GMT+7; `results/mechanism/e75_stdr.json`, log `results/e75/run.log`) — theo GO/NO-GO khóa: **STDR NO-GO (gate-1 accessibility VỠ ở mọi target)**
+cos(grad, oracle cls-grad target) — cos_task = R50 chuẩn, COVERAGE = oracle chọn tổ hợp tốt nhất của 4 objective-gradient R50, headroom = COVERAGE − max(cos_task, best-single):
+```
+target       cos_task  cos_cls  best1  COVER  headroom  normsel(R50-only)
+convnext_t     0.137    0.131   0.150  0.164   +0.014    0.135
+swin_t         0.111    0.105   0.120  0.132   +0.011    0.109
+dino_swin_l    0.015    0.018   0.023  0.029   +0.005    0.015
+r101 (ctrl)    0.190    0.184   0.203  0.220   +0.017    0.190
+dino_r50(ctrl) 0.133    0.156   0.176  0.205   +0.029    0.130
+```
+**Gate-1 VỠ khắp nơi:** COVERAGE ≤ 0.22 (ngưỡng ≥0.30) VÀ headroom ≤ +0.03 (ngưỡng ≥+0.10). Tức dù ORACLE chọn tổ hợp tối ưu 4 gradient-objective của R50 cũng gần như KHÔNG hơn hướng R50 chuẩn, và phủ hướng target rất nhỏ. DINO-Swin-L COVERAGE **0.029** → gần trực giao với TOÀN BỘ subspace objective-gradient R50. w* không ổn định (w_std ≈ w_mean, đổi dấu) → gate-2 vô nghĩa (recover_frac âm).
+**Đọc:** giả thuyết STDR ("hướng transfer bị GỘP objective làm chìm") **SAI**: hướng không bị chìm, nó **không có** trong subspace objective-gradient R50. Khẳng định sâu E68 (R50⊥Swin-L). Single-surrogate direction-recovery từ objective-gradients **không khả thi** → cần ensemble / distillation.
+**Caveat trung thực:** (1) metric = cosine cls-grad tại x0 — ResNet-control (r101) COVERAGE chỉ 0.22 mà AP-transfer thực tế cao (92.1) → cosine là proxy YẾU/bảo thủ; kết luận MẠNH ở phần "reweight ≈ 0 headroom" (độc lập thang đo), vừa phải ở phần "coverage tuyệt đối thấp". (2) chỉ objective-gradients, chưa gồm feature-stage disruption (degenerate tại x0) — nhưng E64/E66 cho thấy feature-stage CÀNG đặc thù backbone, khó khá hơn. Follow-up đóng kín: lặp lại tại điểm perturbed với feature-pathway nếu cần airtight.
+**CHỐT hướng single-surrogate:** mọi đường từ R50 đã đóng — tần số (E64), vùng (E72), ngân sách (E74), reweight objective (E75). Cross-family direction **vắng mặt kiến trúc** trong R50. Lựa chọn còn lại: (a) ENS-WP (2 surrogate, pivot threat model, SOTA); (b) distillation proxy (CKL-adjacent, student yếu hơn); (c) **đóng gói chính chuỗi loại-trừ cơ chế này làm novelty** (mechanistic discovery, 8/10 theo thang reviewer bản STDR cho dòng "mechanistic finding") + ENS-WP như "phương pháp 2-hướng trực giao tối thiểu".
