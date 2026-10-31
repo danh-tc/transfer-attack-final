@@ -1,0 +1,306 @@
+{
+ "n_images": 100,
+ "score_thr": 0.3,
+ "profile": {
+  "dino_swin_l": {
+   "RD-R50": {
+    "n_atrisk": 736,
+    "frac": {
+     "survived": 0.6929,
+     "cls_fail": 0.0163,
+     "loc_fail": 0.1196,
+     "suppressed": 0.1712
+    },
+    "fail_comp": {
+     "cls_fail": 0.0531,
+     "loc_fail": 0.3894,
+     "suppressed": 0.5575
+    },
+    "fp_per_img": 3.3,
+    "score_erosion_surv": 0.0885
+   },
+   "RD-CNX": {
+    "n_atrisk": 736,
+    "frac": {
+     "survived": 0.5435,
+     "cls_fail": 0.0285,
+     "loc_fail": 0.1875,
+     "suppressed": 0.2405
+    },
+    "fail_comp": {
+     "cls_fail": 0.0625,
+     "loc_fail": 0.4107,
+     "suppressed": 0.5268
+    },
+    "fp_per_img": 4.36,
+    "score_erosion_surv": 0.0936
+   },
+   "ENS-WP": {
+    "n_atrisk": 736,
+    "frac": {
+     "survived": 0.5408,
+     "cls_fail": 0.0312,
+     "loc_fail": 0.1929,
+     "suppressed": 0.2351
+    },
+    "fail_comp": {
+     "cls_fail": 0.068,
+     "loc_fail": 0.4201,
+     "suppressed": 0.5118
+    },
+    "fp_per_img": 5.18,
+    "score_erosion_surv": 0.1097
+   }
+  },
+  "swin_t": {
+   "RD-R50": {
+    "n_atrisk": 745,
+    "frac": {
+     "survived": 0.4,
+     "cls_fail": 0.0711,
+     "loc_fail": 0.2215,
+     "suppressed": 0.3074
+    },
+    "fail_comp": {
+     "cls_fail": 0.1186,
+     "loc_fail": 0.3691,
+     "suppressed": 0.5123
+    },
+    "fp_per_img": 17.26,
+    "score_erosion_surv": 0.1564
+   },
+   "RD-CNX": {
+    "n_atrisk": 745,
+    "frac": {
+     "survived": 0.3584,
+     "cls_fail": 0.0698,
+     "loc_fail": 0.2698,
+     "suppressed": 0.302
+    },
+    "fail_comp": {
+     "cls_fail": 0.1088,
+     "loc_fail": 0.4205,
+     "suppressed": 0.4707
+    },
+    "fp_per_img": 14.6,
+    "score_erosion_surv": 0.1161
+   },
+   "ENS-WP": {
+    "n_atrisk": 745,
+    "frac": {
+     "survived": 0.3047,
+     "cls_fail": 0.0819,
+     "loc_fail": 0.255,
+     "suppressed": 0.3584
+    },
+    "fail_comp": {
+     "cls_fail": 0.1178,
+     "loc_fail": 0.3668,
+     "suppressed": 0.5154
+    },
+    "fp_per_img": 22.52,
+    "score_erosion_surv": 0.1581
+   }
+  },
+  "convnext_t": {
+   "RD-R50": {
+    "n_atrisk": 744,
+    "frac": {
+     "survived": 0.3562,
+     "cls_fail": 0.0793,
+     "loc_fail": 0.246,
+     "suppressed": 0.3185
+    },
+    "fail_comp": {
+     "cls_fail": 0.1232,
+     "loc_fail": 0.382,
+     "suppressed": 0.4948
+    },
+    "fp_per_img": 19.94,
+    "score_erosion_surv": 0.1535
+   },
+   "RD-CNX": {
+    "n_atrisk": 744,
+    "frac": {
+     "survived": 0.203,
+     "cls_fail": 0.0712,
+     "loc_fail": 0.3293,
+     "suppressed": 0.3965
+    },
+    "fail_comp": {
+     "cls_fail": 0.0894,
+     "loc_fail": 0.4132,
+     "suppressed": 0.4975
+    },
+    "fp_per_img": 21.12,
+    "score_erosion_surv": 0.0819
+   },
+   "ENS-WP": {
+    "n_atrisk": 744,
+    "frac": {
+     "survived": 0.1613,
+     "cls_fail": 0.0954,
+     "loc_fail": 0.2957,
+     "suppressed": 0.4476
+    },
+    "fail_comp": {
+     "cls_fail": 0.1138,
+     "loc_fail": 0.3526,
+     "suppressed": 0.5337
+    },
+    "fp_per_img": 31.19,
+    "score_erosion_surv": 0.1352
+   }
+  },
+  "r101": {
+   "RD-R50": {
+    "n_atrisk": 709,
+    "frac": {
+     "survived": 0.213,
+     "cls_fail": 0.0748,
+     "loc_fail": 0.275,
+     "suppressed": 0.4372
+    },
+    "fail_comp": {
+     "cls_fail": 0.095,
+     "loc_fail": 0.3495,
+     "suppressed": 0.5556
+    },
+    "fp_per_img": 22.26,
+    "score_erosion_surv": 0.1369
+   },
+   "RD-CNX": {
+    "n_atrisk": 709,
+    "frac": {
+     "survived": 0.4062,
+     "cls_fail": 0.0592,
+     "loc_fail": 0.2652,
+     "suppressed": 0.2694
+    },
+    "fail_comp": {
+     "cls_fail": 0.0998,
+     "loc_fail": 0.4466,
+     "suppressed": 0.4537
+    },
+    "fp_per_img": 11.43,
+    "score_erosion_surv": 0.1103
+   },
+   "ENS-WP": {
+    "n_atrisk": 709,
+    "frac": {
+     "survived": 0.2341,
+     "cls_fail": 0.0846,
+     "loc_fail": 0.2835,
+     "suppressed": 0.3977
+    },
+    "fail_comp": {
+     "cls_fail": 0.1105,
+     "loc_fail": 0.3702,
+     "suppressed": 0.5193
+    },
+    "fp_per_img": 22.59,
+    "score_erosion_surv": 0.1668
+   }
+  },
+  "dino_r50": {
+   "RD-R50": {
+    "n_atrisk": 648,
+    "frac": {
+     "survived": 0.1543,
+     "cls_fail": 0.0463,
+     "loc_fail": 0.2762,
+     "suppressed": 0.5231
+    },
+    "fail_comp": {
+     "cls_fail": 0.0547,
+     "loc_fail": 0.3266,
+     "suppressed": 0.6186
+    },
+    "fp_per_img": 15.16,
+    "score_erosion_surv": 0.2038
+   },
+   "RD-CNX": {
+    "n_atrisk": 648,
+    "frac": {
+     "survived": 0.3534,
+     "cls_fail": 0.0571,
+     "loc_fail": 0.2469,
+     "suppressed": 0.3426
+    },
+    "fail_comp": {
+     "cls_fail": 0.0883,
+     "loc_fail": 0.3819,
+     "suppressed": 0.5298
+    },
+    "fp_per_img": 6.78,
+    "score_erosion_surv": 0.1129
+   },
+   "ENS-WP": {
+    "n_atrisk": 648,
+    "frac": {
+     "survived": 0.1821,
+     "cls_fail": 0.0602,
+     "loc_fail": 0.2747,
+     "suppressed": 0.483
+    },
+    "fail_comp": {
+     "cls_fail": 0.0736,
+     "loc_fail": 0.3358,
+     "suppressed": 0.5906
+    },
+    "fp_per_img": 14.84,
+    "score_erosion_surv": 0.1846
+   }
+  },
+  "fcos_r50": {
+   "RD-R50": {
+    "n_atrisk": 474,
+    "frac": {
+     "survived": 0.2025,
+     "cls_fail": 0.0401,
+     "loc_fail": 0.2342,
+     "suppressed": 0.5232
+    },
+    "fail_comp": {
+     "cls_fail": 0.0503,
+     "loc_fail": 0.2937,
+     "suppressed": 0.6561
+    },
+    "fp_per_img": 8.74,
+    "score_erosion_surv": 0.1077
+   },
+   "RD-CNX": {
+    "n_atrisk": 474,
+    "frac": {
+     "survived": 0.3776,
+     "cls_fail": 0.0359,
+     "loc_fail": 0.2215,
+     "suppressed": 0.365
+    },
+    "fail_comp": {
+     "cls_fail": 0.0576,
+     "loc_fail": 0.3559,
+     "suppressed": 0.5864
+    },
+    "fp_per_img": 3.76,
+    "score_erosion_surv": 0.0563
+   },
+   "ENS-WP": {
+    "n_atrisk": 474,
+    "frac": {
+     "survived": 0.2278,
+     "cls_fail": 0.0506,
+     "loc_fail": 0.2215,
+     "suppressed": 0.5
+    },
+    "fail_comp": {
+     "cls_fail": 0.0656,
+     "loc_fail": 0.2869,
+     "suppressed": 0.6475
+    },
+    "fp_per_img": 8.65,
+    "score_erosion_surv": 0.086
+   }
+  }
+ }
+}

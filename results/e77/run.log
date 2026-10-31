@@ -1,0 +1,65 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.39s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+dino_swin_l {'RD-R50': {'supp': 0.1712, 'fp': 3.3}, 'RD-CNX': {'supp': 0.2405, 'fp': 4.36}, 'ENS-WP': {'supp': 0.2351, 'fp': 5.18}}
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+swin_t {'RD-R50': {'supp': 0.3074, 'fp': 17.26}, 'RD-CNX': {'supp': 0.302, 'fp': 14.6}, 'ENS-WP': {'supp': 0.3584, 'fp': 22.52}}
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+convnext_t {'RD-R50': {'supp': 0.3185, 'fp': 19.94}, 'RD-CNX': {'supp': 0.3965, 'fp': 21.12}, 'ENS-WP': {'supp': 0.4476, 'fp': 31.19}}
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+r101 {'RD-R50': {'supp': 0.4372, 'fp': 22.26}, 'RD-CNX': {'supp': 0.2694, 'fp': 11.43}, 'ENS-WP': {'supp': 0.3977, 'fp': 22.59}}
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+dino_r50 {'RD-R50': {'supp': 0.5231, 'fp': 15.16}, 'RD-CNX': {'supp': 0.3426, 'fp': 6.78}, 'ENS-WP': {'supp': 0.483, 'fp': 14.84}}
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+fcos_r50 {'RD-R50': {'supp': 0.5232, 'fp': 8.74}, 'RD-CNX': {'supp': 0.365, 'fp': 3.76}, 'ENS-WP': {'supp': 0.5, 'fp': 8.65}}
+
+=== E77-DFC: profile loại-thất-bại (frac theo at-risk objects) ===
+
+dino_swin_l  (at-risk n=736)
+  cond       surv    cls    loc   supp  |  FP/img  erode  | comp[cls,loc,supp]
+  RD-R50    0.693  0.016  0.120  0.171  |    3.30  0.088  | [0.05,0.39,0.56]
+  RD-CNX    0.543  0.029  0.188  0.240  |    4.36  0.094  | [0.06,0.41,0.53]
+  ENS-WP    0.541  0.031  0.193  0.235  |    5.18  0.110  | [0.07,0.42,0.51]
+
+swin_t  (at-risk n=745)
+  cond       surv    cls    loc   supp  |  FP/img  erode  | comp[cls,loc,supp]
+  RD-R50    0.400  0.071  0.222  0.307  |   17.26  0.156  | [0.12,0.37,0.51]
+  RD-CNX    0.358  0.070  0.270  0.302  |   14.60  0.116  | [0.11,0.42,0.47]
+  ENS-WP    0.305  0.082  0.255  0.358  |   22.52  0.158  | [0.12,0.37,0.52]
+
+convnext_t  (at-risk n=744)
+  cond       surv    cls    loc   supp  |  FP/img  erode  | comp[cls,loc,supp]
+  RD-R50    0.356  0.079  0.246  0.319  |   19.94  0.153  | [0.12,0.38,0.49]
+  RD-CNX    0.203  0.071  0.329  0.397  |   21.12  0.082  | [0.09,0.41,0.50]
+  ENS-WP    0.161  0.095  0.296  0.448  |   31.19  0.135  | [0.11,0.35,0.53]
+
+r101  (at-risk n=709)
+  cond       surv    cls    loc   supp  |  FP/img  erode  | comp[cls,loc,supp]
+  RD-R50    0.213  0.075  0.275  0.437  |   22.26  0.137  | [0.10,0.35,0.56]
+  RD-CNX    0.406  0.059  0.265  0.269  |   11.43  0.110  | [0.10,0.45,0.45]
+  ENS-WP    0.234  0.085  0.283  0.398  |   22.59  0.167  | [0.11,0.37,0.52]
+
+dino_r50  (at-risk n=648)
+  cond       surv    cls    loc   supp  |  FP/img  erode  | comp[cls,loc,supp]
+  RD-R50    0.154  0.046  0.276  0.523  |   15.16  0.204  | [0.05,0.33,0.62]
+  RD-CNX    0.353  0.057  0.247  0.343  |    6.78  0.113  | [0.09,0.38,0.53]
+  ENS-WP    0.182  0.060  0.275  0.483  |   14.84  0.185  | [0.07,0.34,0.59]
+
+fcos_r50  (at-risk n=474)
+  cond       surv    cls    loc   supp  |  FP/img  erode  | comp[cls,loc,supp]
+  RD-R50    0.203  0.040  0.234  0.523  |    8.74  0.108  | [0.05,0.29,0.66]
+  RD-CNX    0.378  0.036  0.222  0.365  |    3.76  0.056  | [0.06,0.36,0.59]
+  ENS-WP    0.228  0.051  0.222  0.500  |    8.65  0.086  | [0.07,0.29,0.65]
+
+--- GO/NO-GO (khóa trước khi đọc) — COMPOSITION chuẩn-hoá, không độ lớn ---
+dim cls_fail   ENS−RD-R50 comp (Transformer ['dino_swin_l', 'swin_t']) = [0.015, -0.001]  qualifies=False
+dim loc_fail   ENS−RD-R50 comp (Transformer ['dino_swin_l', 'swin_t']) = [0.031, -0.002]  qualifies=False
+dim suppressed ENS−RD-R50 comp (Transformer ['dino_swin_l', 'swin_t']) = [-0.046, 0.003]  qualifies=False
+FP ENS/RD-R50 (Transformer) = [1.57, 1.3]
+
+VERDICT: E77 NO-GO — profile thất bại khác nhau CHỦ YẾU về độ lớn, không về LOẠI; không có cơ chế thất bại cross-family riêng để nhắm -> đóng DFC
+[e77 XONG] 2026-10-31 21:06

@@ -5146,3 +5146,28 @@ ANCHOR convnext_t (pairwise-cos variant = 0.708 -> CÓ đa dạng hướng)
 **GO/NO-GO (khóa) — theo COMPOSITION chuẩn-hoá, KHÔNG độ lớn (chống tautology "attack mạnh hơn => mọi chiều cao"):** fail_comp[d] = tỷ trọng loại d trong TỔNG thất bại (at-risk). **GO** nếu tồn tại loại d: comp[d](RD-CNX) VÀ comp[d](ENS) đều ≥ comp[d](RD-R50) + 0.20, NHẤT QUÁN trên CẢ dino_swin_l VÀ swin_t → có hành vi output cross-family cụ thể để nhắm bằng loss R50-only (E78). **NO-GO** nếu profile khác chủ yếu về độ lớn, không về loại → đóng DFC (không chỉnh heuristic).
 **Caveat:** phase-1 chưa đo multi-scale consistency (lõi giả thuyết DFC) — để phase-2 nếu phase-1 GO; chỉ score_thr=0.3; dùng AP-drop E73 để liên hệ. consistency-attacks/augmentation KHÔNG mới (user ghi) — novelty phải tới từ một loại inconsistency CỤ THỂ gắn cross-backbone failure, không phải tối đa sai khác feature-map chung chung. Đây mới là phase chẩn đoán có/không có tín hiệu.
 **Chạy:** `python scripts/e77_dfc.py`, log `results/e77/run.log`.
+
+### Kết quả E77-DFC @ dev100 (A4500, xong ~21:30 GMT+7; `results/mechanism/e77_dfc.json`, log `results/e77/run.log`) — theo GO/NO-GO khóa: **E77 NO-GO — composition thất bại BẤT BIẾN qua họ backbone & attack**
+Profile loại-thất-bại (frac theo object at-risk) + composition chuẩn-hoá [cls,loc,supp]:
+```
+target        cond    surv  cls  loc  supp | FP/img erode | comp[cls,loc,supp]
+dino_swin_l  RD-R50  .693 .016 .120 .171 | 3.30  .088 | [.05,.39,.56]
+             RD-CNX  .543 .029 .188 .240 | 4.36  .094 | [.06,.41,.53]
+             ENS-WP  .541 .031 .193 .235 | 5.18  .110 | [.07,.42,.51]
+swin_t       RD-R50  .400 .071 .222 .307 |17.26  .156 | [.12,.37,.51]
+             RD-CNX  .358 .070 .270 .302 |14.60  .116 | [.11,.42,.47]
+             ENS-WP  .305 .082 .255 .358 |22.52  .158 | [.12,.37,.52]
+r101         RD-R50  .213 .075 .275 .437 |22.26  .137 | [.10,.35,.56]
+             RD-CNX  .406 .059 .265 .269 |11.43  .110 | [.10,.45,.45]
+             ENS-WP  .234 .085 .283 .398 |22.59  .167 | [.11,.37,.52]
+dino_r50     RD-R50  .154 .046 .276 .523 |15.16  .204 | [.05,.33,.62]
+             RD-CNX  .353 .057 .247 .343 | 6.78  .113 | [.09,.38,.53]
+             ENS-WP  .182 .060 .275 .483 |14.84  .185 | [.07,.34,.59]
+fcos_r50     RD-R50  .203 .040 .234 .523 | 8.74  .108 | [.05,.29,.66]
+             RD-CNX  .378 .036 .222 .365 | 3.76  .056 | [.06,.36,.59]
+             ENS-WP  .228 .051 .222 .500 | 8.65  .086 | [.07,.29,.65]
+```
+**GO/NO-GO:** không chiều nào qua — ENS−RD-R50 composition trên Transformer = cls +0.015/−0.001, loc +0.031/−0.002, supp −0.046/+0.003 (đều ≪ +0.20). **Composition [cls,loc,supp] ≈ [0.05-0.12, 0.33-0.45, 0.45-0.66] BẤT BIẾN** qua MỌI attack × MỌI target × MỌI họ backbone. Giả thuyết DFC ("attack khác gây cơ chế thất bại khác") BỊ BÁC: mọi attack làm hỏng detector theo CÙNG MỘT KIỂU (chủ yếu suppression + localization, rất ít classification-only), chỉ khác ĐỘ LỚN (survival). → NO-GO, đóng DFC.
+**Phát hiện corroborating (đáng cho paper):** (1) **Composition thất bại bất biến** = bằng chứng output-space củng cố E68: transfer gap thuần tuý là ĐỘ LỚN của cùng một kiểu hỏng, điều tiết bởi mức căn chỉnh hướng (kiến trúc), KHÔNG có "cơ chế hỏng đặc thù backbone" để khai thác. (2) **FP bám họ surrogate:** RD-R50 ảo giác nhiều trên target ResNet (r101/dino_r50/fcos FP 22/15/9) gấp ~2× RD-CNX (11/7/4); mỗi surrogate hallucinate mạnh trên chính-họ. (3) DINO chặn FP (swin_l FP chỉ 3-5 vs 15-22 ở detector khác) — khớp CLAUDE.md.
+**Caveat:** chưa đo multi-scale internal consistency (phase-2 DFC) — nhưng composition output bất biến đã làm yếu tiền đề; suppression (chiếm đa số) có composition bất biến. Nếu user muốn airtight: phase-2 multi-scale, nhưng khuyến nghị không, do invariance mạnh.
+**TỔNG (6 gate NO-GO liên tiếp):** input-space — tần số E64, vùng E72, ngân sách E74, objective E75, backward-path E76; output-space — failure-mode E77. Cả hai không gian hội tụ: single-surrogate KHÔNG tạo được hiệu ứng cross-family; gap do hướng kiến trúc (E68), không do cơ chế nào moi/nhắm được từ một surrogate. **Khuyến nghị: dừng vòng sinh giả-thuyết-1-surrogate; đóng gói cơ chế + ENS-WP làm contribution, hoặc distillation nếu bắt buộc 1-surrogate-at-test.**
