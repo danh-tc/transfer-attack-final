@@ -4861,3 +4861,13 @@ CKA theo stage (điểm): stage4 convnext-r101 0.778, convnext-r50 0.747 ≫ con
 **Hệ quả cho câu "giữ cả hai":** khung "2 subspace biểu diễn trực giao" mình nêu ở E67-lock KHÔNG được CKA ủng hộ → bỏ. Cơ chế thật ở phía GRADIENT/δ, chưa định vị. Chưa suy ra được lever giữ-cả-hai từ cơ chế cho tới khi probe gradient.
 **Giá trị paper:** phủ định có ích — loại câu chuyện hiển nhiên (và sai) "ConvNeXt ≈ Swin nên bắc cầu". Hiệu ứng (E65 +36 do method×surrogate) là THẬT nhưng cơ chế tinh tế hơn tương đồng kiến trúc.
 **Việc tiếp (user quyết):** E68 probe đường gradient — ∇ₓL qua ConvNeXt vs R50 trên ảnh sạch: độ trải không gian (kernel lớn → support rộng?), cos với ∇ₓ của Swin-L. Nếu ∇ₓ(ConvNeXt) gần ∇ₓ(Swin-L) hơn ∇ₓ(R50) → cầu nằm ở gradient, không ở feature.
+
+---
+
+## 2026-10-31 — E68: cầu ConvNeXt→Swin-L nằm ở ĐƯỜNG GRADIENT? (E67 bác tương đồng feature) @ dev30, forward+backward ảnh sạch (user: "Phân tích đến khi tìm đc lý do", ~13:50 GMT+7) — MÔ TẢ, khai báo TRƯỚC khi đọc số đủ
+**Vì sao:** E67 — ConvNeXt feature sạch GIỐNG ResNet, không giống Swin; vậy cầu không ở feature. Giả thuyết còn lại: ∇ₓ của loss cls qua ConvNeXt gần ∇ₓ của Swin-L hơn ∇ₓ qua R50 (dù feature giống ResNet) — đường backward (kernel 7×7, LayerNorm, patchify) định hướng δ.
+**Đo (`scripts/e68_grad_align.py`, `attack.targets.target_grads`):** gradient loss cls theo ẢNH GỐC (khung chung) cho {r50, r101, convnext_t, swin_t, dino_swin_l} trên ảnh sạch dev30; cosine + đồng thuận dấu từng cặp. cls = thành phần bắc cầu chính (E66).
+**Quy tắc (trục chính, paired bootstrap theo ảnh):** Δcos = cos(∇ConvNeXt, ∇Swin-L) − cos(∇R50, ∇Swin-L). **GRADIENT LÀ CẦU** nếu Δcos > 0, CI loại 0 → lý do xác nhận: ConvNeXt định hướng δ về phía Swin-L ở mức gradient, không ở feature. **KHÔNG (first-order)** nếu Δcos ≤ 0 hoặc CI chứa 0 → first-order không giải thích, cầu là tính chất lặp/landscape, probe tiếp. Kèm: cos(∇R50, ∇ConvNeXt) thấp (khớp cos δ 0.09), Swin-T phụ, đồng thuận dấu, objective task.
+**Đã thấy smoke 1 ảnh (không quyết định):** cos(ConvNeXt,SwinL) 0.114 > cos(R50,SwinL) 0.064; SwinT 0.326 vs 0.155 — đúng hướng, chờ CI dev30.
+**Caveat:** n=30; gradient first-order ảnh sạch (A1 thấy cos nhỏ, nhiễu); 1 objective cls.
+**Chạy:** `python scripts/e68_grad_align.py`, log `results/e68/run.log`.
