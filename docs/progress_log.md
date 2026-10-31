@@ -5028,3 +5028,24 @@ T7 / Swin-L (mAP drop; nền RD-CNX sur ConvNeXt B36):
 **Quy tắc đọc (dev100, paired bootstrap N=300):** XÁC NHẬN "giữ cả hai" nếu ENS-WP: RES3{R101,FCOS,DINO-R50} ≥ RD-R50 − 3 VÀ Swin-L ≥ RD-CNX − 5 VÀ T7 > max(RD-R50, RD-CNX, OSFD-R50). KHÔNG nếu một trong ba vỡ (ghi, user quyết). Mô tả CI từng target.
 **Caveat:** ENS-WP đổi threat model (2 surrogate); B lệch (OSFD B50 vs các method B36 — ENS/RD ít backward hơn mà vẫn so); boot 300 (pilot-mức); eval inference-PNG. Resume per-model (json ghi sau mỗi model). Artifact dev100 phiên này cần upload HF nếu giữ.
 **Chạy:** `results/e73/run.sh` (nền), log `results/e73/run.log`.
+
+### Kết quả E73 @ dev100 (A4500, xong 2026-10-31 11:34 GMT+7; `results/mechanism/e73_dev100.json`, log `results/e73/run.log`) — theo quy tắc: **XÁC NHẬN "giữ cả hai"** — cả 3 điều kiện QUA
+Bảng AP-drop % (cao = mạnh hơn; paired bootstrap N=300):
+```
+            r50  r101  cnx  swin_t fcos dino_r50 yolov3 yolox swin_l   T7
+OSFD-R50   96.6  90.0 77.8  73.2  93.0  96.2   73.8  68.6  24.4  74.2
+RD-R50     96.0  92.1 85.3  82.2  92.1  93.8   77.2  71.2  34.8  77.6
+RD-CNX     79.8  81.1 93.5  84.5  81.7  80.2   71.8  73.6  56.6  75.6
+ENS-WP     95.2  92.1 95.2  88.0  91.1  92.8   80.0  79.1  55.3  82.6  ★
+```
+**Kiểm quy tắc (locked):**
+- RES3 ≥ RD-R50 − 3: R101 92.1 vs 92.1 (+0.0), FCOS 91.1 vs 92.1 (−1.0), DINO-R50 92.8 vs 93.8 (−1.0) → **QUA** (cả 3 trong −3).
+- Swin-L ≥ RD-CNX − 5: 55.3 vs 56.6 = **−1.3** → **QUA** (trong CI; RD-CNX CI[48.5,60.0], ENS-WP CI[48.4,59.0] — chồng gần hết).
+- T7 > max(RD-R50 77.6, RD-CNX 75.6, OSFD 74.2): **82.6 > 77.6** → **QUA** (+5.0 so method tốt kế).
+→ **Cả 3 QUA ở n=100.** Đúng xu hướng dev30 (E71 T7 86.2), không phải nhiễu; mọi ô p_le_0 = 0 (CI loại 0).
+**Đọc:**
+1. **ENS-WP là method ensemble chốt:** tốt nhất/sát nhất ở MỌI model. Thắng tuyệt đối ở convnext(95.2)/swin_t(88.0)/yolov3(80.0)/yolox(79.1), bằng RD-R50 ở r101, giữ Swin-L của RD-CNX (−1.3). Chỉ thua nhẹ ở 3 ResNet-family held-out (r50 −1.4 vs OSFD/RD-R50, fcos −1.0, dino_r50 −1.0 vs RD-R50) — đều trong ngưỡng −3.
+2. So baseline: ENS-WP − OSFD = **+8.5 T7, +30.9 Swin-L, +2.1 R101**; − RD-R50 = +5.0 T7, +20.5 Swin-L; − RD-CNX = +7.0 T7, +11.1 R101, −1.3 Swin-L. Lấy lại được ResNet mà RD-CNX đánh mất (R101 81.1→92.1, dino_r50 80.2→92.8, fcos 81.7→91.1) MÀ không mất Swin-L.
+3. Cơ chế nhất quán E70/E71: momentum-chung giữa 2 surrogate gần-trực-giao (E68 cos 0.09–0.14) → mỗi họ đóng góp hướng riêng, cộng dồn giữ cả hai. B=36 (ít backward hơn OSFD B50).
+**CẢNH BÁO:** ENS-WP đổi threat model (2 surrogate) — cần thầy duyệt trước khi claim. B lệch với OSFD (B50) — ENS/RD ít backward hơn mà vẫn hơn (ưu thế, không bất lợi). Artifact dev100 phiên này (gồm ENS-WP) CHƯA upload HF.
+**Bước tiếp (user quyết):** (a) nâng n (dev300 → n1000) để chốt bảng paper; (b) thêm OSFD-ensemble baseline (so ensemble công bằng, không phải chỉ single-OSFD); (c) duyệt threat-model pivot với thầy; (d) upload artifact dev100 lên HF nếu giữ.
