@@ -5120,3 +5120,20 @@ dino_r50(ctrl) 0.133    0.156   0.176  0.205   +0.029    0.130
 - **NO-GO** nếu variant collinear (pairwise ≥ 0.80) HOẶC COVERAGE ≤ std + 0.10 dù oracle → đổi backward-path không thoát manifold surrogate; DỪNG, không chỉnh heuristic (khớp E75). Null dev30 = diagnostic hình học như E68.
 **Caveat:** cosine cls-grad x0 là proxy yếu (E75: ResNet-control cos thấp mà transfer cao) → GO đáng tin hơn NO-GO; nhưng diversity + coverage-vs-std độc lập thang đo. shallow/deep scale cố định (không tune). Chưa test causal attack (chỉ gate hình học).
 **Chạy:** `python scripts/e76_bpd.py`, log `results/e76/run.log`.
+
+### Kết quả E76-BPD @ dev30 (A4500, xong 20:54 GMT+7; `results/mechanism/e76_bpd.json`, log `results/e76/run.log`) — theo GO/NO-GO khóa: **E76 NO-GO cả 2 neo × mọi target**
+cos(variant, oracle cls-grad target); COVER = oracle chọn tổ hợp 5 variant; best-std = COVER − cos(std):
+```
+ANCHOR r50       (pairwise-cos variant = 0.697 -> CÓ đa dạng hướng)
+  target        std    rpn    roi  shallow deep  COVER  headroom
+  swin_t      0.110  0.071  0.096  0.120  0.100  0.139   +0.029
+  dino_swin_l 0.017  0.008  0.015  0.019  0.015  0.030   +0.014
+  convnext_t  0.134  0.090  0.123  0.141  0.124  0.172   +0.037
+ANCHOR convnext_t (pairwise-cos variant = 0.708 -> CÓ đa dạng hướng)
+  r101        0.130  0.082  0.115  0.124  0.122  0.163   +0.033
+  dino_r50    0.064  0.034  0.066  0.066  0.058  0.104   +0.040
+```
+**Hai phần tách bạch:** (1) **Đa dạng hướng CÓ THẬT** — pairwise-cos variant ~0.70, backward-variant (shallow/deep/rpn/roi) là các hướng khác nhau rõ. Tiền đề DC-BPD ("đổi backward tạo diversity") ĐÚNG. (2) **Diversity VÔ DỤNG cho cross-family** — dù ORACLE chọn tổ hợp tối ưu 5 variant, headroom chỉ +0.01…+0.04 (ngưỡng +0.10); best-variant-gain ≈ 0 (r101 còn −0.006). Các hướng mới sinh ra TRỰC GIAO với hướng target cần, không xoay về đó.
+**Đọc:** backward-path diversification tạo diversity nhưng **không có đòn bẩy** về phía target yếu — kể cả neo ConvNeXt→ResNet (hướng mình kỳ vọng nhất, headroom vẫn chỉ +0.033/+0.040). DC-BPD routing không có gì để khai thác → DỪNG (đúng gate user: NO-GO thay vì chỉnh heuristic). Khớp E75/E64/E72: manifold gradient của MỘT surrogate không chứa hướng cross-family, dù reweight objective (E75) hay gate backward-path (E76).
+**Caveat (như E75):** cosine cls-grad x0 là proxy YẾU (ConvNeXt→r101 cos chỉ 0.13 mà AP-transfer thực 84) → phần "coverage tuyệt đối thấp" đọc dè dặt; phần MẠNH & scale-độc-lập là "best-variant-gain ≈ 0, headroom ≪ ngưỡng" (so sánh, không phụ thuộc thang). Kiểm cuối cùng nếu muốn airtight: spot-check CAUSAL (sinh attack theo 1 variant, đo AP-drop) — nhưng best-variant-gain≈0 làm khả năng cứu vãn thấp.
+**CHỐT single-surrogate (tổng):** mọi đường thao tác gradient MỘT surrogate đã đóng nhất quán — tần số E64, vùng E72, ngân sách E74, reweight-objective E75, gate-backward-path E76. Cross-family direction KHÔNG với tới được từ một surrogate. Còn lại: (a) ENS-WP (2 surrogate, SOTA, pivot threat model); (b) distillation proxy (CKL-adjacent); (c) đóng gói chuỗi loại-trừ cơ chế làm novelty + ENS-WP.
