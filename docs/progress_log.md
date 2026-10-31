@@ -5227,3 +5227,18 @@ r101            0.944 | 85.1        0.905 | 74.5        0.954 | 85.4
 **Gate B FAIL:** corr(r50-retention, swin_l-retention) = −0.03 (≈0), swin_t = 0.19 (< 0.30). Neighborhood-stability quan sát từ R50 KHÔNG dự báo target-robustness. Lại đúng tường E68/E75/E78.
 **Đọc:** giả thuyết "ENS transfer tốt vì basin phẳng" SAI (Gate A bác trực tiếp); kể cả nếu đúng cũng vô dụng vì R50 không đo được (Gate B). Đóng hướng neighborhood-stability (đúng rule user: NO-GO thì dừng, không chỉnh loss cứu). WP-confound xác nhận: flatness-trên-surrogate đã có sẵn ở mọi method, không phải lever.
 **TỔNG (8 gate single-surrogate NO-GO): E64 tần số, E72 vùng, E74 budget, E75 objective, E76 backward-path, E77 failure-mode, E78 momentum-recoverability, E79 basin-flatness.** + E67/E68 khẳng định cơ chế + E78 lượng hoá động-học. Đã phủ first-order (gradient/direction), output-space (failure), optimization-dynamics (momentum), VÀ second-order (landscape). Không còn góc single-surrogate conceptually-distinct. **CHỐT: dừng vòng single-surrogate; consolidate contribution cơ chế + ENS-WP. Khuyến nghị dứt khoát, lặp lại lần 3.**
+
+---
+
+## 2026-10-31 — BÀN GIAO cuối phiên (user: "ghi note, trả máy mai tính tiếp"), ~22:x GMT+7
+**Trạng thái chốt phiên:** 8 gate single-surrogate NO-GO (E64/E72/E74/E75/E76/E77/E78/E79) phủ 4 tầng (first-order/output/dynamics/landscape) + E67/E68 khẳng định cơ chế + E78 lượng hoá động-học. **QUYẾT ĐỊNH (user duyệt): DỪNG tìm method single-surrogate; đóng gói paper = mechanism + impossibility, ENS-WP làm validation.**
+**Outline paper + tiêu đề (artifact, private):** https://claude.ai/artifact/6YsnRrRYVgNNKCU3G4UhcR — tiêu đề chốt: "Orthogonal by Architecture: The Backbone-Family Barrier in Transferable Object-Detection Attacks". Cấu trúc 10 section tiếng Việt đã gửi trong chat. Claim theo thứ tự novelty: (1) impossibility 8-gate [8–8.5] (2) mechanism loại-trừ+đo [8] (3) controlled family-gap detection [7] (4) ENS-WP validation [5–6, KHÔNG headline].
+**Khả năng venue:** Q2 khả thi cao nếu hoàn thiện; Q1 (TIFS/Pattern Recognition/Neurocomputing) với-tới-được nếu khung mechanism-first + hoàn thiện thực nghiệm.
+
+**VIỆC MAI (thực nghiệm còn thiếu — chỉ xác nhận/robustness cho bảng, KHÔNG tìm cơ chế mới):**
+- BẮT BUỘC: (1) bảng chính **n1000 full panel, ε∈{5,8}**, cùng máy: ENS-WP + OSFD + MI + M-DI² + RD-R50 + RD-CNX. (2) **OSFD-ensemble baseline** (2-surrogate OSFD) — phản biện "chỉ vì 2 model". (3) **compute-matched** single-surrogate B=72 vs ENS-WP B=36. (4) **CI dev100/dev300 cho E68 + E78** (hiện dev30) để lên hình chính.
+- NÊN (cửa Q1): dataset thứ 2 (VOC/split khác); 1–2 held-out backbone (Swin-S…) ngoài panel thiết kế.
+- KHÔNG cần: thêm gate single-surrogate.
+
+**⚠️ ARTIFACT CHƯA UPLOAD HF — SẼ MẤT KHI TRẢ MÁY** (user quyết upload hay không): PNG dev100 `dev300_B36_eps5_limit100_ens` (121M, ENS-WP/ENS-B2/SM...), `dev300_B36_eps5_limit100` (66M, RD-R50), `dev300_B36_eps5_limit100_sur-convnext_t` (233M, RD-CNX + B50 RD-CNX), `dev300_B50_eps5_limit100` (66M, OSFD-R50), `dev300_B75_eps5_limit100_sur-convnext_t` (37/100 PNG B75 dở). ENS-WP KHÔNG tái lập chính xác được (OSFD elem dùng Python random, bản gốc không seed per-block — xem E78). Số tổng hợp + json đã trong git. Tag HF phiên trước: `_a4500_dev30` (dev30 ens/sur-convnext).
+**GIT:** mọi commit phiên này LOCAL — user tự push tay (máy chỉ có HF_TOKEN). Uncommitted vặt: results/e74/run.sh (đã sửa B50-only), vài run limit2/5/B8 (debug, bỏ qua được), B75 dở.
