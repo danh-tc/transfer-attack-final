@@ -64,6 +64,7 @@ def main():
         del model
         import torch
         torch.cuda.empty_cache()
+        json.dump(res, open(OUT, "w"), indent=1, ensure_ascii=False)  # ghi SAU MỖI model -> eval resume per-model được
         print(key, {c.replace("RD-CNX-RGG-", "").replace("C2-OCT-1V-WP2-RD-CNX", "base"): round(res["drop"][key][c]["point"], 1) for c in CONDS}, flush=True)
     json.dump(res, open(OUT, "w"), indent=1, ensure_ascii=False)
     # Bảng + ablation then chốt
