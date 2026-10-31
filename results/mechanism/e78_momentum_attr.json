@@ -1,0 +1,48 @@
+{
+ "n_images": 30,
+ "n_cnx_blocks": 270,
+ "validation": [
+  {
+   "iid": 7088,
+   "mean_abs_delta": 4.761,
+   "max_abs_delta": 5.0
+  },
+  {
+   "iid": 7795,
+   "mean_abs_delta": 4.677,
+   "max_abs_delta": 5.0
+  },
+  {
+   "iid": 11615,
+   "mean_abs_delta": 4.742,
+   "max_abs_delta": 5.0
+  }
+ ],
+ "overall": {
+  "rotation": 0.6356,
+  "orth_frac": 0.7723,
+  "mag_ratio": 1.0041
+ },
+ "by_phase": {
+  "rotation": {
+   "early": 0.6108,
+   "mid": 0.6607,
+   "late": 0.6353
+  },
+  "orth_frac": {
+   "early": 0.7897,
+   "mid": 0.752,
+   "late": 0.7752
+  },
+  "mag_ratio": {
+   "early": 1.0026,
+   "mid": 1.0041,
+   "late": 1.0055
+  }
+ },
+ "corr_hist_selfsim": {
+  "vs_orth_frac": 0.2287,
+  "vs_rotation": -0.2258,
+  "n_valid": 240
+ }
+}

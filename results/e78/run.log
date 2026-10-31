@@ -1,0 +1,57 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.32s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.41s)
+creating index...
+index created!
+[validate 7088] ENS-WP replay: mean|δ|=4.76 max|δ|=5.00 (ε-ball OK)
+[e78] 1/30
+[validate 7795] ENS-WP replay: mean|δ|=4.68 max|δ|=5.00 (ε-ball OK)
+[e78] 2/30
+[validate 11615] ENS-WP replay: mean|δ|=4.74 max|δ|=5.00 (ε-ball OK)
+[e78] 3/30
+[e78] 4/30
+[e78] 5/30
+[e78] 6/30
+[e78] 7/30
+[e78] 8/30
+[e78] 9/30
+[e78] 10/30
+[e78] 11/30
+[e78] 12/30
+[e78] 13/30
+[e78] 14/30
+[e78] 15/30
+[e78] 16/30
+[e78] 17/30
+[e78] 18/30
+[e78] 19/30
+[e78] 20/30
+[e78] 21/30
+[e78] 22/30
+[e78] 23/30
+[e78] 24/30
+[e78] 25/30
+[e78] 26/30
+[e78] 27/30
+[e78] 28/30
+[e78] 29/30
+[e78] 30/30
+
+=== E78 Momentum Attribution (ConvNeXt block vs counterfactual R50) ===
+overall: {'rotation': 0.6356, 'orth_frac': 0.7723, 'mag_ratio': 1.0041}
+  rotation   by phase: {'early': 0.6108, 'mid': 0.6607, 'late': 0.6353}
+  orth_frac  by phase: {'early': 0.7897, 'mid': 0.752, 'late': 0.7752}
+  mag_ratio  by phase: {'early': 1.0026, 'mid': 1.0041, 'late': 1.0055}
+corr(R50 hist self-sim, ConvNeXt orth_frac) = 0.2287 | vs rotation = -0.2258 (n=240)
+
+--- GO/NO-GO (khóa trước khi đọc) ---
+Mechanistic GO (rotation<0.70 & orth_frac≥0.30): True  [rot 0.6356, orth 0.7723]
+Single-surrogate GO (|corr hist->orth| ≥ 0.40): False  [corr 0.2287]
+
+VERDICT: E78 MECHANISTIC-ONLY (ConvNeXt đóng góp hướng mới nhưng R50-history KHÔNG dự báo được) -> KHÔNG xây SMR; dùng attribution cho paper cơ chế
+[e78 XONG] 2026-10-31 21:26

@@ -5185,3 +5185,18 @@ fcos_r50     RD-R50  .203 .040 .234 .523 | 8.74  .108 | [.05,.29,.66]
 **Ranh giới threat model:** ENS-WP ở E78 CHỈ để phân tích. Method cuối (nếu có) KHÔNG được dùng ConvNeXt teacher / target grad / nhãn correction học từ ENS-WP — nếu dùng = distillation, khai báo threat model khác.
 **Caveat:** dev30; counterfactual seed = seed block thật (augmentation khớp); tín hiệu history là proxy tự-lặp đơn giản; corr dev30 nhiễu.
 **Chạy:** `python scripts/e78_momentum_attr.py`, log `results/e78/run.log`.
+
+### Kết quả E78-SMR @ dev30(=dev100[:30]) (A4500, xong ~21:4x GMT+7; `results/mechanism/e78_momentum_attr.json`, log `results/e78/run.log`) — theo GO/NO-GO khóa: **MECHANISTIC GO + SINGLE-SURROGATE NO-GO**
+Replay ENS-WP trung thực (seed torch+random per-block; validate ε-ball mean|δ|≈4.7). 240 block ConvNeXt, counterfactual R50 cùng (d_before,mom_before,seed):
+```
+overall: rotation cos(u_C,u_R)=0.636 | orth_frac ‖u_C⊥u_R‖/‖u_R‖=0.772 | mag_ratio ‖u_C‖/‖u_R‖=1.004
+by phase (early/mid/late):
+  rotation   0.611 / 0.661 / 0.635   (ổn định toàn quỹ đạo)
+  orth_frac  0.790 / 0.752 / 0.775
+  mag_ratio  1.003 / 1.004 / 1.006
+corr(R50 history self-sim, ConvNeXt orth_frac) = 0.229 | vs rotation = -0.226 (n=240)
+```
+**Mechanistic GO (rotation 0.636<0.70, orth_frac 0.772≥0.30):** block ConvNeXt KHÔNG chỉ đổi magnitude (mag_ratio≈1.0) mà **XOAY quỹ đạo**: thành phần hướng MỚI (trực giao phần R50 sẽ làm) ≈ 77% độ lớn update R50, ỔN ĐỊNH suốt early→late. Đây là lượng hoá "thông tin bổ sung" của ConvNeXt trong momentum chung. (So E68: tại x0 cos(R50,CNX)=0.09; dọc quỹ đạo update cos=0.64 — momentum chung kéo gần hơn nhưng vẫn phân kỳ lớn ở phần gradient.)
+**Single-surrogate NO-GO (|corr| 0.229 < 0.40):** tín hiệu CHỈ-R50 (tự-lặp lịch sử gradient) KHÔNG dự báo được lúc/mức ConvNeXt đóng góp (yếu, không = 0 nhưng xa ngưỡng hành động). → KHÔNG xây controller SMR: R50 không "thấy" được khi nào cần correction.
+**Đọc:** ENS-WP hiệu quả vì ConvNeXt bơm một hướng-sửa gần-trực-giao, đều magnitude, liên tục; hướng đó mang thông tin kiến-trúc ConvNeXt mà R50 không quan sát/dự báo được (nối E68 tĩnh → động). Đây là MẢNH CƠ CHẾ cuối cho paper: giải thích *vì sao* ensemble thắng và *vì sao* single-surrogate không thế chỗ được. Dùng attribution này làm bằng chứng, KHÔNG xây SMR.
+**TỔNG (7 gate single-surrogate NO-GO): E64 tần số, E72 vùng, E74 budget, E75 objective, E76 backward-path, E77 failure-mode, E78 momentum-recoverability.** Cộng E67 (feature-sim) + E68 (orthogonal) = 9 bằng chứng. Mọi đường single-surrogate đóng; ENS-WP (2 hướng trực giao) là method; E78 là lượng hoá động-học của cơ chế. **Khuyến nghị dứt khoát: dừng vòng single-surrogate, đóng gói contribution cơ chế + ENS-WP.**
