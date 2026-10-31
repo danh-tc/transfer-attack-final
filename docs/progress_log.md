@@ -4831,3 +4831,15 @@ RD-CNX − OSFD-CNX: **Swin-L +36.7 [+26.4, +41.6]**, T7 +16.2, mọi target h�
 - **GIỮ ĐƯỢC CẢ HAI** (trả lời câu user) nếu tồn tại ô: Swin-L ≥ 50 VÀ R50 ≥ 90 VÀ R101 ≥ 88 (gần mốc OSFD-R50 92.4). Không ô nào đạt → ghi: đánh đổi là nội tại ở cấu hình hiện có; lever giữ-cả-hai (nếu có) phải tới từ ρ-sweep / ensemble (threat model), user quyết.
 **Caveat:** dev30 xem xu hướng; CLS feature=False nên scale λ không ảnh hưởng (bước sign 1 số hạng); FEAT/CLS chưa từng chạy trên ConvNeXt.
 **Chạy:** `results/e66/run.sh`, log `results/e66/run.log`.
+
+### Kết quả E66 @ dev30 B36 (A4500, xong 13:30 GMT+7; `results/e66/panel_dev30.json`, `results/runs/dev300_B36_eps5_limit100_sur-convnext_t/*_e66_dev30.json`, log `results/e66/run.log`) — theo quy tắc: **BẮC CẦU = cls (chính) + feat (phụ); WP TRUNG TÍNH trên CNN nhưng +9.9 Swin-L; KHÔNG ô nào giữ được cả hai**
+Drop (R50/R101/ConvNeXt/Swin-T/FCOS/DINO-R50/YOLOv3/YOLOX-L/Swin-L | T7 | TCNN5 = R101+FCOS+DINO-R50+YOLOv3+YOLOX-L | Swin-L):
+- RD-CNX (OCT+feat+cls+WP): 83.7/82.2/95.4/87.1/85.0/83.6/71.7/75.1/62.8 | 78.2 | 79.5
+- NOWP (OCT+feat+cls):      86.7/83.5/98.6/88.5/83.4/86.3/76.1/70.2/52.9 | 77.3 | 79.9
+- FEAT (OCT+feat):          75.0/68.0/91.7/73.9/76.4/72.8/65.4/65.2/34.7 | 65.2 | 69.6
+- CLS  (OCT+cls):           76.6/73.3/97.7/84.0/75.1/79.0/61.7/56.6/43.1 | 67.5 | 69.1
+**Phân rã Swin-L:** cls = drop(NOWP) − drop(FEAT) = **+18.2** (≥15 → nguyên liệu chính); feat = drop(NOWP) − drop(CLS) = **+9.8** (phụ); WP = RD-CNX − NOWP = **+9.9 [+3.8, +14.5]** (CI loại 0). Ba thành phần đều dương, feat+cls cộng hưởng (riêng 34.7 / 43.1, gộp 52.9).
+**WP KHÔNG phải nút tilt:** RD-CNX − NOWP trên CNN: R101 −1.4, TCNN5 −0.4 (|ΔR101| < 2 → TRUNG TÍNH), R50 target −3.0; nhưng Swin-L +9.9 → **WP cho Swin-L gần như MIỄN PHÍ, không đổi bằng CNN**. Sửa giả thuyết trước đó ("WP là nút đánh đổi"): sai.
+**Trả lời câu "giữ cả hai":** KHÔNG ô nào đạt (Swin-L ≥ 50 VÀ R50 ≥ 90 VÀ R101 ≥ 88). Hụt ~10 điểm ở target ResNet (R101/FCOS/DINO-R50 ~82–85 vs R50-sur ~92–95) **có trong MỌI ô** (feat, cls, cả hai) → không phải do một nút gạt nào trong cấu hình hiện tại mà là **mất mát transfer nội tại ConvNeXt→ResNet** (khớp E64: δ_CNX không khuếch đại ở C4/C5 của R50). → lever lấy lại CNN phải tới từ NGOÀI 3 thành phần: (a) tăng B (E40: target CNN còn tăng tới B75, Swin-L bão hòa B36 — chưa kiểm trên ConvNeXt), (b) thành phần mới nhắm deep-stage xuyên họ, (c) ensemble (đổi threat model).
+**Novelty sạch cho paper:** cls = cầu chính CNN→Transformer (OSFD feature-only không có → E65), feat bổ trợ, WP nâng Transformer gần như miễn phí. Cơ chế: object-level cls signal (RoI) transfer xuyên họ tốt hơn feature-matching thuần.
+**Việc tiếp (user quyết):** E67 quét B ∈ {36, 50, 75} cho RD-CNX @ dev30 — kiểm "B tách Swin-L (bão hòa) khỏi CNN (còn tăng)"; nếu B75 kéo TCNN5 lên ~88 mà Swin-L giữ → đúng hướng "giữ cả hai", xác nhận dev100.
