@@ -4756,3 +4756,13 @@ DINO-Swin-L drop (R50 WB): RD 30.3 (98.0) | GQ30 30.8 (98.0) | GQ50 31.6 (98.8) 
 Drop A4500 (lệch so E46 3090): RD Swin-L 33.8 (+3.2), T8 80.3 (+1.3) | OSFD Swin-L 26.4 (−0.1), T8 77.3 (−0.3). ASR T8: RD 65.0 (−0.9), OSFD 70.0 (−0.6). Ngoài quy tắc: RD YOLOX-L 76.9 (+6.4); các target còn lại của RD và OSFD lệch ≤ 2.7 về drop.
 **Đọc:** (1) Theo quy tắc khóa, không đối chiếu số A4500 với 3090; A4500 là nền riêng, không chặn việc tiếp. (2) OSFD khớp sát 3090 (Swin-L, T8); phần lệch nằm ở RD trên Swin-L và YOLOX-L. Với n = 30, chưa tách được khác máy hay nhiễu dev30. RD − OSFD trên Swin-L ở đây +7.4 [+0.5, +14.7]. (3) Không xa phía V100 (RD Swin-L < 35). (4) Thời gian trên máy này: RD B36 3.03 s/ảnh, OSFD B50 3.96 s/ảnh, nên "B36 = cùng thời gian OSFD B50" không còn đúng ở đây; B36 giữ nguyên, thiệt về phía RD.
 **Việc tiếp:** khóa quy tắc GO cho RD (CA3 theo YOLOX-L) trước khi chạy full panel dev100 → dev300, toàn bộ trên A4500.
+
+---
+
+## 2026-10-31 — E63: surrogate ConvNeXt-T — CNN "kiểu Transformer" có làm cầu nối tới DINO-Swin-L không? RD port @ dev30 B36 full panel, A4500 (user: "1 thử", ~12:50 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** muốn Swin-L > 50 mà giữ MỘT surrogate CNN. Chưa từng chạy surrogate ConvNeXt (mới có Swin-T 58.0, DINO-R50 29.2). Cơ sở: δ_SwinT → ConvNeXt 85.2; R50 → ConvNeXt 84–86. **Đổi surrogate = rời mốc "surrogate R50 cố định"**; đây là thăm dò, chưa đổi threat model chính.
+**Port (đo trước khi khóa, không xem số transfer):** RD nguyên trạng không dùng được: WP chỉ phủ `Conv2d` = 6.7% trọng số backbone ConvNeXt (R50 99.8%); λ theo quy tắc `rd_calib` (trung vị 5 ảnh) = 0.21 (R50 5.32 -> λ 6) → λ = 6 làm L_cls lấn L_feat ~28×. Sửa: `weight_linear` (WP phủ cả nn.Linear; R50 không có Linear trong backbone nên ô cũ không đổi), λ = 0.2 theo quy tắc, không tune. `panel_table` thêm nhãn `NHÃN=TÊN@RUN:FILE`.
+**Ô:** **RD-CNX** (chính: λ 0.2, WP cả Linear, ρ 0.002); CNX-NOWP (λ 0.2, không WP) và CNX-NGUYEN (RD nguyên λ 6, WP chỉ Conv2d) chỉ MÔ TẢ. Mốc: RD-R50 của E62 cùng máy (Swin-L 33.8; T7 = r101, fcos, dino_r50, yolov3, yolox_l, swin_t, dino_swin_l: 79.6). T7 thay T8 vì ConvNeXt thành white-box.
+**Quy tắc (RD-CNX, dev30):** **HỢP LỆ** nếu white-box ConvNeXt ≥ 80, không thì đọc là port hỏng. **ĐẠT** nếu Swin-L ≥ 50 → dev100. **HỨA HẸN** nếu 38 ≤ Swin-L < 50 (≥ mốc + 4, sàn nhiễu dev30) → dev100. **KHÔNG** nếu Swin-L < 38 → đóng surrogate ConvNeXt. Mô tả cái giá: R50, R101, T7.
+**Caveat:** dev30, Swin-L phải xác nhận dev100 (E56→E58); ρ, OCT, k giữ theo R50, chưa hiệu chỉnh cho ConvNeXt nên có thể chưa hết tiềm năng; smoke 5 ảnh chỉ attack, chưa đọc số.
+**Chạy:** `results/e63/run.sh`, log `results/e63/run.log`.

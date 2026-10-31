@@ -457,7 +457,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
-                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None):
+                    weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
+                    weight_linear: bool = False):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -866,8 +867,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         assert weight_scope in ("backbone", "layer3", "nolayer3", "layer4", "head", "backbone+head")
         params, names = [], []
         if weight_scope != "head":
+            # weight_linear (E63, progress_log 2026-10-31): + nn.Linear — ConvNeXt 93% trọng số backbone là Linear (R50 không có).
+            wtypes = (torch.nn.Conv2d, torch.nn.Linear) if weight_linear else torch.nn.Conv2d
             named = [(n, m.weight) for n, m in model.backbone.named_modules()
-                     if isinstance(m, torch.nn.Conv2d) and m.weight.requires_grad]
+                     if isinstance(m, wtypes) and m.weight.requires_grad]
             if weight_scope == "layer4":
                 named = [(n, p) for n, p in named if n.startswith("layer4.")]
             elif weight_scope not in ("backbone", "backbone+head"):

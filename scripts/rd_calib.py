@@ -16,7 +16,7 @@ from attack.methods.pia import calib_cls_weight
 from attack.models import load_model
 from attack.preprocess import resize_to_model
 
-model = load_model("r50", "cuda:0")
+model = load_model(os.environ.get("SUR", "r50"), "cuda:0")  # SUR: surrogate khác R50 (E63)
 data = build_attack_dataset("dev300")
 for mode in (sys.argv[1:] or ["c2", "roi"]):
     raws = []

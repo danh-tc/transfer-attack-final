@@ -122,28 +122,30 @@ def main():
     # met[tên][chỉ số][model] = mảng [1 + N_BOOT] (phần tử 0 = điểm ước lượng)
     met = {}
     for cell in args.cells:
+        label, _, cell = cell.rpartition("=")  # NHÃN=TÊN@RUN:FILE (E63): cùng TÊN ở 2 run, vd đổi surrogate
         name, rest = cell.split("@")
+        label = label or name
         run, dfile = rest.split(":")
         ctrl = json.load(open(os.path.join(ART, run, dfile)))
-        met[name] = {m: {} for m in METRICS}
+        met[label] = {m: {} for m in METRICS}
         for k in models:
             if k in CTRL:
                 c, a = ctrl["clean"][k], ctrl[name][k]
             else:
                 g = json.load(open(os.path.join(ART, run, "gen_dets", f"{k}.json")))
                 c, a = g["clean"], g[name]
-            met[name]["drop"][k] = pct_drop(ap(coco, c, 0), ap(coco, a, 0))
+            met[label]["drop"][k] = pct_drop(ap(coco, c, 0), ap(coco, a, 0))
             agn = lambda ds: [dict(d, category_id=1) for d in ds]
-            met[name]["aploc"][k] = pct_drop(ap(coco1, agn(c), 1), ap(coco1, agn(a), 1))
+            met[label]["aploc"][k] = pct_drop(ap(coco1, agn(c), 1), ap(coco1, agn(a), 1))
             with quiet():
                 s = 100 * per_image_transfer(coco, c, a, ids)["suppression"]
-            met[name]["asr"][k] = np.array([np.nanmean(s[r]) for r in rows])
-            met[name]["asr_micro"][k] = 100 * ratio(asr_counts(coco, c, a, ids), rows)
+            met[label]["asr"][k] = np.array([np.nanmean(s[r]) for r in rows])
+            met[label]["asr_micro"][k] = 100 * ratio(asr_counts(coco, c, a, ids), rows)
             for key, thr in (("csr0", 0.0), ("csr3", DETECT_SCORE)):
-                met[name][key][k] = pct_drop(ratio(csr_counts(coco, c, ids, thr), rows),
-                                             ratio(csr_counts(coco, a, ids, thr), rows))
+                met[label][key][k] = pct_drop(ratio(csr_counts(coco, c, ids, thr), rows),
+                                              ratio(csr_counts(coco, a, ids, thr), rows))
         for m in METRICS:
-            met[name][m]["T8"] = np.nanmean([met[name][m][k] for k in T8 if k in met[name][m]], axis=0)
+            met[label][m]["T8"] = np.nanmean([met[label][m][k] for k in T8 if k in met[label][m]], axis=0)
 
     cols = models + ["T8"]
     r2 = lambda x: round(float(x), 2)
