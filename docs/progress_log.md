@@ -5065,3 +5065,15 @@ ENS-WP     95.2  92.1 95.2  88.0  91.1  92.8   80.0  79.1  55.3  82.6  ★
 
 ### E74 điều chỉnh (user: "tạm dừng tính b50 thôi"): DỪNG B75 ở 37/100 PNG, chỉ eval B50
 B50 sinh đủ 100 PNG; B75 dừng giữa chừng (PNG dở giữ lại ở `dev300_B75_eps5_limit100_sur-convnext_t`, resume được sau). e74_cnx_budget.py sửa NEW chỉ còn B50. Verdict giờ 2 nhánh: nếu B50 đã lấy lại ResNet + giữ Swin-L → VIABLE; nếu B50 chưa đủ → thiên về DIRECTION nhưng cần B75 để chốt TRẦN (chưa khẳng định mạnh bằng có B75). Mốc B36/ENS-WP/RD-R50 vẫn đọc từ e73_dev100.json.
+
+---
+
+## 2026-10-31 — E75-STDR: Single-Surrogate Transfer Direction Recovery — DIAGNOSTIC accessibility + recoverability @ dev30 (user dán đề xuất STDR + "thử") — khóa TRƯỚC khi đọc
+**Giả thuyết MỚI (E68 CHƯA kiểm):** cross-backbone gap một phần vì gradient tối ưu R50 ưu tiên hướng đặc thù ResNet, còn hướng dễ-transfer bị "chìm" khi GỘP các objective. → Trong tập input-gradient theo TỪNG objective R50 {loss_rpn_cls, loss_rpn_bbox, loss_cls, loss_bbox} (ảnh sạch x0, khung ảnh gốc), có TỔ HỢP TUYẾN TÍNH nào phủ hướng cls-gradient của target họ khác TỐT HƠN hướng R50 chuẩn (task-sum) không? Phân biệt rõ 2 câu khác nhau: ACCESSIBILITY (tồn tại hướng đó trong span — đo bằng oracle = gradient target, CHỈ phân tích) vs RECOVERABILITY (chọn được hướng đó chỉ bằng thông tin R50, không target). E66 cho prior: cls là cầu xuyên-họ → có khả năng gradient cls-term phủ tốt hơn feature.
+**Đo (`scripts/e75_stdr.py`, dev30, không sinh attack):** mỗi ảnh — 4 gradient objective R50 (A: 4×D), g_task=tổng; oracle gT = cls-grad target. Tính: cos_task (R50 chuẩn vs target), cos_clsterm, cos_bestsingle (term tốt nhất), **COVERAGE**=‖proj_A(gT)‖/‖gT‖ (accessibility, oracle chọn w tối ưu), **cos_normsel** (selector CHỈ-R50: w∝‖g_k‖, không target → recoverability), w* chuẩn-hoá + độ ổn định (std qua ảnh). Target: convnext_t/swin_t/dino_swin_l (bridge) + r101/dino_r50 (ResNet-control). Bootstrap 1000.
+**GO/NO-GO (khóa):**
+- **GATE-1 accessibility GO** (target họ Transformer) nếu COVERAGE ≥ max(cos_task,cos_bestsingle) + 0.10 VÀ COVERAGE ≥ 0.30 → hướng transfer CÓ trong span objective R50 nhưng RD trộn chìm.
+- **GATE-2 recoverability GO** (chỉ khi gate-1) nếu selector CHỈ-R50 (norm-sel) lấy lại ≥ 50% headroom VÀ w* ổn định.
+- **STDR GO** chỉ khi gate-1 ∧ gate-2 trên ≥1 target Transformer → đáng xây method direction-recovery 1-surrogate (RQ2/RQ3, không đổi threat model). **NO-GO** còn lại → hướng ConvNeXt/Swin không nằm (đủ/ổn định/chọn-được) trong objective-gradient R50 → single-surrogate recovery không khả thi từ objective-gradients, cần ensemble/distillation. Oracle TUYỆT ĐỐI không dùng chọn hyperparameter method cuối.
+**Kỳ vọng thấp (bản STDR tự nói):** E53–E72 đã đóng nhiều cách chỉnh gradient R50; chưa có bằng chứng R50 chứa đủ hướng ConvNeXt. Nhưng accessibility≠recoverability là câu hỏi hợp lệ chưa đo. Caveat: dev30 (diagnostic hình học như E68); chỉ objective-gradients (chưa gồm feature-stage disruption — degenerate tại x0, để follow-up); oracle=cls-grad tại x0.
+**Chạy:** `python scripts/e75_stdr.py` (sau khi E74-B50 eval xong để không tranh GPU), log `results/e75/run.log`.
