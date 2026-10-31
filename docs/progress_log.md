@@ -5242,3 +5242,11 @@ r101            0.944 | 85.1        0.905 | 74.5        0.954 | 85.4
 
 **⚠️ ARTIFACT CHƯA UPLOAD HF — SẼ MẤT KHI TRẢ MÁY** (user quyết upload hay không): PNG dev100 `dev300_B36_eps5_limit100_ens` (121M, ENS-WP/ENS-B2/SM...), `dev300_B36_eps5_limit100` (66M, RD-R50), `dev300_B36_eps5_limit100_sur-convnext_t` (233M, RD-CNX + B50 RD-CNX), `dev300_B50_eps5_limit100` (66M, OSFD-R50), `dev300_B75_eps5_limit100_sur-convnext_t` (37/100 PNG B75 dở). ENS-WP KHÔNG tái lập chính xác được (OSFD elem dùng Python random, bản gốc không seed per-block — xem E78). Số tổng hợp + json đã trong git. Tag HF phiên trước: `_a4500_dev30` (dev30 ens/sur-convnext).
 **GIT:** mọi commit phiên này LOCAL — user tự push tay (máy chỉ có HF_TOKEN). Uncommitted vặt: results/e74/run.sh (đã sửa B50-only), vài run limit2/5/B8 (debug, bỏ qua được), B75 dở.
+
+### Upload artifact dev100 lên HF (xong 22:23 GMT+7) — tag `_a4500_dev100`, tải lại: `python scripts/sync_artifacts.py download <run> --tag _a4500_dev100`
+- `dev300_B36_eps5_limit100_ens` (126.6MB, sha256 fb52d6c0…) — ENS-WP/ENS-B2/ENS-SM... + gen_dets
+- `dev300_B36_eps5_limit100` (68.4MB, sha256 ff1ccbe1…) — RD-R50 + OSFD-R50(B36?)/gen_dets
+- `dev300_B36_eps5_limit100_sur-convnext_t` (243.5MB, sha256 bc75cf3f…) — RD-CNX (B36) + RD-CNX-B50 + e66 ô
+- `dev300_B50_eps5_limit100` (68.3MB, sha256 d69ec6a4…) — OSFD-R50 (B50)
+- `dev300_B75_eps5_limit100_sur-convnext_t` (19.9MB, sha256 3356b073…) — RD-CNX B75 (37/100 PNG dở)
+⚠️ ENS-WP vẫn KHÔNG tái lập chính xác được (xem E78); PNG này là mẫu đã dùng cho E73/E77/E78/E79. Lưu ý cần nạp `.env` vào env (`set -a; . ./.env; set +a`) trước khi chạy sync — script đọc HF_TOKEN từ os.environ, không tự load .env.
