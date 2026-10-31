@@ -5019,3 +5019,12 @@ T7 / Swin-L (mAP drop; nền RD-CNX sur ConvNeXt B36):
 **Trả lời RQ:** "quan hệ gradient giữa vùng có cải thiện transfer vượt region importance độc lập không?" → **KHÔNG** (dev30; null = vô kết luận mạnh nhưng nhất quán qua 5 biến thể + 3 control). DINO-Swin-L held-out, không tune.
 **Đọc:** (1) Đóng hướng RGG/graph cho method. (2) **Củng cố E68:** tín hiệu transfer xuyên họ nằm ở HƯỚNG GRADIENT TOÀN CỤC (do kiến trúc backbone), KHÔNG ở quan hệ vùng trong một gradient — reweight vùng (dù theo quan hệ) không chạm được. Viết vào paper như bằng chứng loại trừ (cùng E2 semantic KG). (3) Chi phí: ~35 phút, đúng tinh thần gate-first (đóng hướng trước khi xây GNN).
 **CHỐT method cho paper:** đơn-surrogate = RD-CNX (surrogate-family lever + cơ chế); ensemble = ENS-WP (giữ cả hai họ, pivot threat model). Lõi novelty = E67 (phủ định tương đồng biểu diễn) + E68 (gradient-direction trực giao) + E72 (phủ định quan hệ vùng). KHÔNG đưa KG/graph vào paper.
+
+---
+
+## 2026-10-31 — E73: XÁC NHẬN dev100 — ENS-WP / RD-CNX / RD-R50 / OSFD-R50, panel 9 model, boot 300 (user: "b" = chạy thẳng dev100 boot 300; "approve all", ~17:17 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** bảng dev30 (E71) cho ENS-WP giữ cả hai họ (ResNet ~RD-R50, Swin-L ~RD-CNX, T7 86.2) + RD-CNX Swin-L 62.8. dev100 co CI để xem có sống sót không (bài học CWT: dev30 có thể là nhiễu). Thêm RD-R50 + OSFD-R50 làm baseline để bảng có nghĩa.
+**Ô (dev100, cùng đường eval inference-PNG):** OSFD-R50 (B50), RD-R50 (B36, sur R50), RD-CNX (B36, sur ConvNeXt), ENS-WP (B36, ensemble momentum-chung khối-2, 2 surrogate — tái dùng e71.attack). Panel 9 model. DINO-Swin-L báo cáo (không held-out ở bước xác nhận này).
+**Quy tắc đọc (dev100, paired bootstrap N=300):** XÁC NHẬN "giữ cả hai" nếu ENS-WP: RES3{R101,FCOS,DINO-R50} ≥ RD-R50 − 3 VÀ Swin-L ≥ RD-CNX − 5 VÀ T7 > max(RD-R50, RD-CNX, OSFD-R50). KHÔNG nếu một trong ba vỡ (ghi, user quyết). Mô tả CI từng target.
+**Caveat:** ENS-WP đổi threat model (2 surrogate); B lệch (OSFD B50 vs các method B36 — ENS/RD ít backward hơn mà vẫn so); boot 300 (pilot-mức); eval inference-PNG. Resume per-model (json ghi sau mỗi model). Artifact dev100 phiên này cần upload HF nếu giữ.
+**Chạy:** `results/e73/run.sh` (nền), log `results/e73/run.log`.
