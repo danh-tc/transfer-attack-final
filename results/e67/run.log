@@ -1,0 +1,68 @@
+loading annotations into memory...
+Done (t=0.39s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+[e67] 1/30
+[e67] 2/30
+[e67] 3/30
+[e67] 4/30
+[e67] 5/30
+[e67] 6/30
+[e67] 7/30
+[e67] 8/30
+[e67] 9/30
+[e67] 10/30
+[e67] 11/30
+[e67] 12/30
+[e67] 13/30
+[e67] 14/30
+[e67] 15/30
+[e67] 16/30
+[e67] 17/30
+[e67] 18/30
+[e67] 19/30
+[e67] 20/30
+[e67] 21/30
+[e67] 22/30
+[e67] 23/30
+[e67] 24/30
+[e67] 25/30
+[e67] 26/30
+[e67] 27/30
+[e67] 28/30
+[e67] 29/30
+[e67] 30/30
+{
+ "convnext_vs_target_deep": {
+  "r50": [
+   0.661,
+   0.644,
+   0.678
+  ],
+  "r101": [
+   0.697,
+   0.681,
+   0.714
+  ],
+  "swin_t": [
+   0.629,
+   0.602,
+   0.654
+  ],
+  "dino_swin_l": [
+   0.459,
+   0.443,
+   0.477
+  ]
+ },
+ "swin_minus_resnet_deep": [
+  -0.135,
+  -0.158,
+  -0.114
+ ]
+}
