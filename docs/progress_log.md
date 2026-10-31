@@ -4785,3 +4785,12 @@ RD-CNX − RD-R50: **Swin-L +29.0 [+17.9, +31.9]**, Swin-T +2.8 [−2.7, +8.5], 
 **Đọc (khai báo trước, trên R50):** **H_TẦN** nếu band_hi δ_C < δ_R ≥ 0.03 VÀ drop HP2(δ_R) − HP2(δ_C) ≥ 10 VÀ |drop LP2(δ_R) − LP2(δ_C)| < 10: δ_C thiếu đúng dải R50 nhạy. **H_HƯỚNG** nếu phổ gần nhau (chênh band_hi < 0.03) mà drop vẫn lệch: khác ở hướng chứ không ở dải tần. **H_CỠ** (cộng thêm được) nếu recall còn lại chênh tập trung ở một nhóm cỡ. D_k cho biết δ_C tắt ở stage nào của R50. MIX chỉ là phép dò hậu kỳ, dùng δ từ 2 surrogate nên không phải method.
 **Caveat:** n = 30; drop qua `inference_detector` trên file, không so trực tiếp số panel; không chọn gì từ đây vào method nếu chưa khóa entry riêng.
 **Chạy:** `python scripts/e64_cnx_drop.py`, log `results/e64/run.log`.
+
+### Kết quả E64 @ dev30 (A4500, xong ~13:10 GMT+7; `results/mechanism/e64_cnx_drop.json`, log `results/e64/run.log`) — theo khai báo: **KHÔNG khớp đủ H_TẦN lẫn H_HƯỚNG**, gần H_HƯỚNG; H_CỠ có
+Phổ δ thấp/trung/cao: δ_R .360/.351/.289, δ_C .419/.327/.254 (chênh band_hi 0.035, vừa qua ngưỡng 0.03 nên H_HƯỚNG trượt sát). cos(δ_R, δ_C) 0.09, đồng thuận dấu 0.546.
+Drop trên R50: FULL 98.7 vs 83.7; HP2 79.4 vs 44.1 (Δ 35.3); LP2 48.5 vs 22.9 (Δ 25.6 ≥ 10 nên H_TẦN trượt). δ_C yếu ở CẢ HAI dải.
+D_k trên R50 (stage 1→4): δ_R .340/.731/1.067/1.192, δ_C .326/.690/.899/.950, δ_O .342/.808/1.311/1.519. Trên DINO-Swin-L: δ_R .370/.457/.674/.821, δ_C .371/.478/.732/.912, δ_O .371/.475/.742/.909.
+Recall R50 nhỏ/vừa/lớn: sạch 55.6/83.1/91.7, δ_R 6.6/11.0/4.2, δ_C 21.4/35.6/43.8. FP / ảnh: sạch 8.7, δ_R 42.9, δ_C 20.9, δ_O 49.8.
+MIX = LP2(δ_C) + HP2(δ_R): R50 96.3, R101 86.2, ConvNeXt 80.1, Swin-T 72.5, DINO-Swin-L 29.3.
+**Đọc:** (1) Nguyên nhân chính là HƯỚNG, không phải thiếu tần cao: δ_C gần như không tương quan δ_R, yếu ở cả hai dải. (2) δ_C VÀO được R50 (stage 1–2 ngang δ_R) nhưng không được khuếch đại ở stage sâu (C4 −16%, C5 −20%). (3) Hệ quả: object lớn sống (43.8 vs 4.2), box giả giảm một nửa. (4) Độ lớn distortion KHÔNG giải thích transfer: trên Swin-L δ_O và δ_C có D_k gần bằng nhau mà drop 26.4 vs 62.8 → cái quyết định là hướng distortion. (5) MIX: lấy lại R50 nhưng Swin-L tụt 62.8 → 29.3: thành phần cao tần là chỗ hai họ TRANH NHAU, không tách theo dải được; chia dải tần cho từng họ là hướng đóng. Caveat: LP / HP co lại L∞ = 5 và phi tuyến, n = 30.
+**Điểm phải kiểm trước khi đổi surrogate:** so RD-CNX với OSFD-R50 là so lẫn hiệu ứng surrogate; CNX-NOWP 52.9 và CNX-NGUYEN 55.6 gợi ý phần lớn lợi đến từ surrogate. Cần OSFD chạy trên ConvNeXt mới biết phần của method.
