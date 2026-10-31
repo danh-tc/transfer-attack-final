@@ -458,7 +458,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
                     weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
-                    weight_linear: bool = False):
+                    weight_linear: bool = False, mom_in=None, return_state: bool = False):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -933,11 +933,14 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 (is_backward_hook(model, is_supp[0], is_supp[1], is_supp[2], is_supp[3],
                                   torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 21))
                  if is_supp is not None else contextlib.nullcontext()):
-            noise = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
-                                         epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
-                                         on_step=on_step, backward_per_step=backward_per_step,
-                                         season_sigma=season_sigma, dual=dual, weight_perturb=wp,
-                                         init_noise=init_noise, spike=spike, grad_transform=grad_transform)
+            assert not return_state or wp is None  # E70: ensemble luân phiên dùng NOWP (WP trễ-1-bước xung đột luân phiên)
+            _ret = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
+                                        epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
+                                        on_step=on_step, backward_per_step=backward_per_step,
+                                        season_sigma=season_sigma, dual=dual, weight_perturb=wp,
+                                        init_noise=init_noise, spike=spike, grad_transform=grad_transform,
+                                        mom_in=mom_in, return_state=return_state)
+            noise, mom_out = _ret if return_state else (_ret, None)
     finally:
         if mask_head is not None:
             model.roi_head.mask_head = mask_head
@@ -956,6 +959,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         log["roi_pos_frac"] = roi_stats["pos"] / max(1, roi_stats["total"])
     if info is not None:
         info.update(log)
+    if return_state:
+        return noise, mom_out
     return noise
 
 

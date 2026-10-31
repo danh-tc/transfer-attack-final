@@ -4918,3 +4918,15 @@ Full panel dev30 (mAP drop; OSFD B50, RD/ENS B36):
 (thứ tự cột: r50/r101/convnext/swin_t/fcos/dino_r50/yolov3/yolox_l/dino_swin_l)
 **ENS-RC − OSFD-R50:** Swin-L +28.6 (CI ENS-RC [42.8,62.5] vs OSFD [18.4,35.0] — loại nhau), Swin-T +12.4, YOLOv3 +9.4, YOLOX-L +7.7; thua ở head thuần ResNet-R50: R50 −7.7, FCOS −9.8, DINO-R50 −9.2, R101 −3.8. **T7 +5.1** (81.1 vs 76.0). Lưu ý CI trên là từng-ô (không paired, file không lưu samples) — chỉ tham khảo; dev100 mới paired.
 **Đọc:** ENS-RC vượt OSFD-R50 ở MỌI target khác họ (mục tiêu RQ) + T7 cao nhất, nhưng (1) budget lệch OSFD B50 vs ENS B36 (ENS ít backward hơn mà vẫn hơn T7 → lợi thế thật, nhưng claim chặt cần cùng B), (2) ENS = 2 surrogate, OSFD-R50 = 1 → không đồng giả định; đối thủ đồng hạng của ENS là OSFD-ensemble (chưa chạy). OSFD-CNX T7 62.0 (thấp nhất) khẳng định lại: đổi surrogate cho OSFD không giúp (E65) — lợi của ENS/RD-CNX là do method dùng cls đi theo hướng gradient (E66/E68), không do surrogate.
+
+---
+
+## 2026-10-31 — E70: ensemble momentum-CHUNG thật (luân phiên R50/ConvNeXt mỗi bước, 1 momentum MI) @ dev30, cùng B=36 (user: "Thử ensemble momentum-chung thật trên dev30 trước", ~14:32 GMT+7) — khóa TRƯỚC khi chạy; vẫn ĐỔI THREAT MODEL (2 surrogate)
+**Khác E69 (warm-start):** 1 δ + 1 momentum xuyên 36 bước, luân phiên surrogate; hai hướng gần trực giao (cos 0.14) CỘNG DỒN vào cùng vector momentum -> mỗi bước sign phản ánh cả hai subspace, đối xứng thứ tự. Cùng B=36, 1 backward/bước (KHÔNG x2).
+**Code:** thêm `mom_in`/`return_state` vào core.run_iterative_attack + geo_osfd_attack (mặc định None/False = trùng tuyệt đối bản cũ; **unit test: loss tất định diff 0.0 cả MI lẫn IFGSM**). Loss RD-NOWP mỗi surrogate (λ R50=6, CNX=0.2, OCT, L_OSFD C3-C5, cls RoI), bỏ WP (trễ-1-bước xung đột luân phiên). manual_seed(1000·ảnh+bước) cho view OCT đa dạng + tái lập.
+**Quy tắc (dev30, điểm; mốc ENS-RC: T7 81.1 / RES3{R101,FCOS,DINO-R50} 86.1 / Swin-L 55.0):**
+- **THẮNG (giữ cả hai)** nếu T7 ≥ 81.1 VÀ RES3 ≥ 88 VÀ Swin-L ≥ 55 → momentum-chung đạt giữ-cả-hai; bản ensemble để theo đuổi, dev100 + chính thức hóa pivot threat model.
+- **HƠN WARM-START chưa đủ** nếu T7 ≥ 81.1 nhưng RES3 < 88 hoặc Swin-L < 55 → cải thiện, chưa đạt ngưỡng cứng.
+- **KHÔNG hơn** nếu T7 < 81.1 → momentum-chung không hơn nối tiếp; ensemble cùng-B chạm trần ~81.
+**Caveat:** dev30 xu hướng; bỏ WP (ENS thiếu +~10 Swin-L mà RD-CNX có từ WP — so không hoàn toàn ngang RD-CNX); eval inference-PNG (so trong E69/E70, không trộn panel_table).
+**Chạy:** `python scripts/e70_ensemble_sm.py`, log `results/e70/run.log`.

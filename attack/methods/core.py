@@ -76,7 +76,9 @@ def run_iterative_attack(
     weight_perturb=None,
     init_noise: Optional[torch.Tensor] = None,
     spike: Optional[float] = None,
-) -> torch.Tensor:
+    mom_in: Optional[torch.Tensor] = None,
+    return_state: bool = False,
+):
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
     orig_pixels: ảnh GỐC [C,ori_h,ori_w] (AttackDataset `orig_inputs`). δ được tối ưu ở
@@ -131,7 +133,9 @@ def run_iterative_attack(
     noise = (torch.zeros_like(orig_pixels) if init_noise is None
              else torch.clamp(init_noise.detach().to(orig_pixels), min=-epsilon, max=epsilon))
     v_mem = torch.zeros_like(orig_pixels)  # E27: điện thế màng LIF (spike)
-    accumulated_grad = torch.zeros_like(orig_pixels)
+    # mom_in / return_state (E70, progress_log 2026-10-31): mang momentum MI qua các lần gọi (ensemble luân phiên
+    # surrogate, 1 step/lần, cùng δ + cùng momentum). Mặc định None/False = trùng tuyệt đối bản cũ.
+    accumulated_grad = torch.zeros_like(orig_pixels) if mom_in is None else mom_in.detach().clone()
     if season_sigma is not None:
         assert momentum > 0.0
         r = int(round(2 * season_sigma))
@@ -382,4 +386,6 @@ def run_iterative_attack(
             # views_fn của AugTrans), nên 1 lần chạy B lớn cho cả đường cong theo B.
             on_step(step_idx + 1, noise.detach())
 
+    if return_state:
+        return noise.detach(), accumulated_grad.detach()
     return noise.detach()
