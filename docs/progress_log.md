@@ -4895,3 +4895,14 @@ Phụ Swin-T: cos(ConvNeXt) 0.206 vs cos(R50) 0.111, Δ +0.095 [+0.077, +0.112] 
 - **KHÔNG** nếu cả hai thứ tự: Swin-L < 50 HOẶC TB ResNet < RD-CNX → ensemble warm-start không giúp.
 **Caveat:** warm-start momentum RESET ở chỗ đổi (yếu hơn momentum-chung thật); thứ tự ảnh hưởng (model cuối trội); dev30; eval qua inference-trên-PNG (so trong E69, không trộn số panel run_baselines). KQ dương = cận trên tiềm năng, KQ âm chưa loại ensemble thật.
 **Chạy:** `python scripts/e69_ensemble.py`, log `results/e69/run.log`.
+
+### Kết quả E69 @ dev30 (A4500, xong 14:14 GMT+7; `results/mechanism/e69_ensemble.json`, PNG `artifacts/runs/dev300_B36_eps5_limit100_ens/`, log `results/e69/run.log`) — theo quy tắc: **GIỮA "giữ cả hai" và "trộn tuyến tính"** — hụt sát ngưỡng cứng nhưng CÓ CỘNG HƯỞNG + T7 cao nhất
+Drop (R50/R101/ConvNeXt/Swin-T/FCOS/DINO-R50/YOLOv3/YOLOX-L/Swin-L | RES3={R101,FCOS,DINO-R50} | Swin-L | T7):
+- RD-R50:  98.7/92.5/85.8/84.3/95.1/92.7/81.7/76.9/33.8 | RES3 93.4 | SwinL 33.8 | T7 79.6
+- RD-CNX:  83.7/82.2/95.4/87.1/85.0/83.6/71.7/75.1/62.8 | RES3 83.6 | SwinL 62.8 | T7 78.2
+- **ENS-RC** (R50→ConvNeXt): 90.3/88.6/97.1/90.7/83.4/86.2/83.4/80.1/55.0 | RES3 86.1 | SwinL 55.0 [42.8,62.5] | **T7 81.1**
+- ENS-CR (ConvNeXt→R50): 96.3/90.4/86.0/81.2/89.0/90.7/78.3/71.1/31.8 | RES3 90.0 | SwinL 31.8 | T7 76.1
+**Phán quyết:** ENS-RC KHÔNG đạt ngưỡng cứng "giữ cả hai" (RES3 86.1 < 88, Swin-L 55.0 đúng sàn nhưng CI [42.8, 62.5] rộng). ENS-CR ≈ RD-R50 (model cuối R50 trội, Swin-L về 31.8). → warm-start: **model kết thúc quyết định họ nào mạnh** (đúng caveat momentum-reset).
+**NHƯNG không chỉ là trộn tuyến tính:** ENS-RC **vượt CẢ HAI single** ở YOLOv3 (83.4 > 81.7/71.7), YOLOX-L (80.1 > 76.9/75.1), Swin-T (90.7 > 84.3/87.1), ConvNeXt (97.1) — các target "khác họ thật" (không model nào white-box-trội). Và **T7 = 81.1 CAO NHẤT** (> RD-R50 79.6, RD-CNX 78.2). Chỉ ở head thuần ResNet-R50 (R50/R101/FCOS/DINO-R50) ENS-RC nội suy/kém nhẹ (FCOS 83.4 < cả hai) — vì đó là chỗ RD-R50 gần trần white-box mà nửa-budget R50 không với tới.
+**Đọc:** (1) Cơ chế E68 ĐÚNG — ensemble cross-family phủ bù: synergy rõ ở target khác-họ-thật, best T7. (2) Chưa "giữ cả hai" ở mức cao vì (a) warm-start yếu (momentum reset, không momentum-chung thật), (b) nửa-budget mỗi surrogate không đạt trần white-box ResNet. (3) ENS-RC T7 81.1 với CÙNG B=36 là method panel tốt nhất tới nay (dev30) — nhưng đổi threat model. (4) Đây là CẬN DƯỚI: ensemble momentum-chung thật (sửa core, mỗi bước backward 1 surrogate luân phiên, 1 momentum) kỳ vọng cao hơn.
+**Việc tiếp (user quyết):** (a) code ensemble momentum-chung thật (sửa run_iterative_attack nhận list model, luân phiên step) — nặng hơn nhưng là bản đúng; (b) dừng ở ENS-RC, dev100 xác nhận T7; (c) quay lại một-surrogate RD-CNX cho paper (threat model gốc). Mọi hướng ensemble = pivot idea.md §3, PHẢI duyệt chính thức + báo thầy trước khi vào bảng cuối.
