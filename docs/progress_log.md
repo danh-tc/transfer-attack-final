@@ -4777,3 +4777,11 @@ RD-CNX − RD-R50: **Swin-L +29.0 [+17.9, +31.9]**, Swin-T +2.8 [−2.7, +8.5], 
 **Kiểm toàn vẹn (sau khi thấy số):** 30/30 PNG, L∞ đúng 5, RMS 4.76; clean dets DINO-Swin-L và YOLOX-L trùng tuyệt đối với run R50; PNG khác RD-R50 thật (mean |diff| 4.5).
 **Đọc:** (1) Lần đầu vượt 50 ở ε = 5 với MỘT surrogate CNN; trần 33–38 là trần của R50, không phải của CNN → bức tường không đơn thuần "CNN ↔ Transformer": cần sửa câu RQ2 sau khi dev100 xác nhận. (2) Đổi lại mất ~10 điểm ở họ ResNet: gap chỉ dịch chỗ một phần, T7 gần như giữ (−1.4). (3) WP nhiễu cả Linear có vẻ góp phần (+9.9 so NOWP) nhưng là so sánh mô tả n = 30. (4) Số dev30, 1 máy; mốc Swin-T surrogate 58.0 là V100 dev100 với C2-OCT-1V, chưa so trực tiếp được.
 **Việc tiếp (user quyết):** E64 xác nhận dev100 cùng máy: RD-CNX, RD-R50, OSFD full panel. Đổi surrogate là rời "surrogate R50 cố định" của idea.md §5: nếu dùng làm method chính cần sửa plan có chủ đích.
+
+---
+
+## 2026-10-31 — E64: vì sao δ từ surrogate ConvNeXt-T yếu trên họ ResNet? @ dev30, PNG E62 / E63, chỉ forward (user: "Phân tích vì sao tuột trước", ~13:00 GMT+7) — MÔ TẢ, khai báo TRƯỚC khi đọc số
+**Đo (`scripts/e64_cnx_drop.py`):** δ_R (RD-R50), δ_C (RD-CNX), δ_O (OSFD). (1) phổ 3 dải, cos + đồng thuận dấu δ_R/δ_C; (2) D_k theo stage trên R50 / R101 / ConvNeXt / Swin-T / DINO-Swin-L; (3) AP drop LP2 / HP2 (như E16) + MIX = LP2(δ_C) + HP2(δ_R), kẹp ±5; (4) recall theo cỡ GT + FP / ảnh trên R50.
+**Đọc (khai báo trước, trên R50):** **H_TẦN** nếu band_hi δ_C < δ_R ≥ 0.03 VÀ drop HP2(δ_R) − HP2(δ_C) ≥ 10 VÀ |drop LP2(δ_R) − LP2(δ_C)| < 10: δ_C thiếu đúng dải R50 nhạy. **H_HƯỚNG** nếu phổ gần nhau (chênh band_hi < 0.03) mà drop vẫn lệch: khác ở hướng chứ không ở dải tần. **H_CỠ** (cộng thêm được) nếu recall còn lại chênh tập trung ở một nhóm cỡ. D_k cho biết δ_C tắt ở stage nào của R50. MIX chỉ là phép dò hậu kỳ, dùng δ từ 2 surrogate nên không phải method.
+**Caveat:** n = 30; drop qua `inference_detector` trên file, không so trực tiếp số panel; không chọn gì từ đây vào method nếu chưa khóa entry riêng.
+**Chạy:** `python scripts/e64_cnx_drop.py`, log `results/e64/run.log`.
