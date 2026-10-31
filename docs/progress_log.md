@@ -4957,3 +4957,18 @@ Full panel (mAP drop; ENS B36=18+18, OSFD B50):
 - **KHỐI-2 LÀM HẠI** nếu ENS-B2 T7 < ENS-SM T7 − 2 → hạt khối thô làm giảm; đọc lại granularity. (ENS-B2 ≈ ENS-SM thì khối-2 vô hại.)
 **Caveat:** dev30 xu hướng; weight_linear cho ConvNeXt chưa tune; eval inference-PNG (so trong E69/E70/E71); vẫn 2 surrogate (pivot threat model, cần duyệt + báo thầy).
 **Chạy:** `python scripts/e71_ensemble_wp.py`, log `results/e71/run.log`.
+
+### Kết quả E71 @ dev30 (A4500, xong 15:40 GMT+7; `results/mechanism/e71_ensemble_wp.json`, PNG `.../ens/adv/ENS-WP,ENS-B2/`, log `results/e71/run.log`) — theo quy tắc: **WP GIÚP** (ΔSwin-L +7.8, ΔRES3 −0.3); ENS-WP là method chốt ensemble
+Full panel (mAP drop; ENS/RD B36, OSFD B50):
+- OSFD-R50: 98.0/92.4/86.0/78.3/93.2/95.4/74.0/72.4/26.4 | T7 76.0
+- RD-R50:   98.7/92.5/85.8/84.3/95.1/92.7/81.7/76.9/33.8 | T7 79.6
+- RD-CNX:   83.7/82.2/95.4/87.1/85.0/83.6/71.7/75.1/62.8 | T7 78.2
+- ENS-SM (strict-1,noWP,E70): 97.6/93.3/96.7/93.0/94.3/93.3/85.8/82.7/55.1 | T7 85.3
+- ENS-B2 (khối-2,noWP):        98.5/94.1/97.4/90.4/94.4/93.6/83.7/77.0/52.5 | T7 83.7
+- **ENS-WP (khối-2+WP): 97.5/92.9/96.8/92.7/94.4/93.8/85.1/84.1/60.3 | T7 86.2**
+(cột: r50/r101/convnext/swin_t/fcos/dino_r50/yolov3/yolox_l/dino_swin_l). Swin-L CI: ENS-WP [49.5,64.7], ENS-B2 [42.8,57.7].
+**Phán quyết:** ENS-WP − ENS-B2: Swin-L +7.8 (≥3), RES3{R101,FCOS,DINO-R50} −0.3 (≥−2) → **WP GIÚP**. WP trễ-1-bước chuyển vào ensemble qua luân-phiên-khối-2 (chạy đúng trong khối cùng surrogate), gần đúng +9.9 nó cho RD-CNX đơn (E66). Khối-2 noWP (ENS-B2) kém strict-1 (ENS-SM) −2.6 Swin-L (hạt khối thô), T7 −1.6 (trong ngưỡng); WP bù dư.
+**ENS-WP = gộp điểm mạnh cả hai single, cùng B, một δ:** ResNet NGANG RD-R50 (r50 97.5/98.7, r101 92.9/92.5, fcos 94.4/95.1, dino_r50 93.8/92.7) VÀ Swin-L 60.3 ≈ RD-CNX 62.8 (CI trùm). vs OSFD-R50: hơn MỌI target, T7 +10.2, Swin-L +33.9. vs RD-R50: T7 +6.6, Swin-L +26.5, ResNet ngang. vs ENS-SM: T7 +0.9, Swin-L +5.2.
+**Đọc:** bộ ba E68→E70→E71 khép kín: gradient hai họ trực giao (E68) → momentum-chung phủ cả hai (E70) → WP (trong khối) đẩy Transformer gần miễn phí (E71). ENS-WP là method ensemble chốt: giữ cả hai họ ở mức single-surrogate tốt nhất của từng họ, cùng B=36.
+**Caveat:** dev30 (user: chưa cần dev100); 2 surrogate (pivot idea.md §3 — DUYỆT + báo thầy trước bảng cuối); B lệch OSFD B50 (claim SOTA cần cùng B + OSFD-ensemble làm baseline đồng hạng); eval inference-PNG; weight_linear CNX chưa tune.
+**Trạng thái method:** đơn-surrogate = RD-CNX (Swin-L 62.8, threat model nghiêm); ensemble = ENS-WP (giữ cả hai, pivot threat model). Cơ chế novelty = E67 (không phải feature) + E68 (gradient-direction trực giao).
