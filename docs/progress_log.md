@@ -4751,3 +4751,8 @@ DINO-Swin-L drop (R50 WB): RD 30.3 (98.0) | GQ30 30.8 (98.0) | GQ50 31.6 (98.8) 
 **Dù kết quả nào:** bảng paper sinh TOÀN BỘ trên một máy, không ghép số giữa các máy; KHỚP không cho phép ghép.
 **Caveat:** dev30 chỉ phát hiện lệch lớn cỡ máy; n = 30, không đọc hiệu method từ đây.
 **Chạy:** `results/e62/run.sh`, log `results/e62/run.log`.
+
+### Kết quả E62 @ dev30 (RTX A4500, xong ~12:13 GMT+7; `results/e62/panel_dev30.json`, `results/runs/dev300_B{36,50}_eps5_limit100/*_e62_dev30.json`, log `results/e62/run.log`) — theo quy tắc: **XÁM** (RD Swin-L lệch +3.2, trong khoảng 2–4)
+Drop A4500 (lệch so E46 3090): RD Swin-L 33.8 (+3.2), T8 80.3 (+1.3) | OSFD Swin-L 26.4 (−0.1), T8 77.3 (−0.3). ASR T8: RD 65.0 (−0.9), OSFD 70.0 (−0.6). Ngoài quy tắc: RD YOLOX-L 76.9 (+6.4); các target còn lại của RD và OSFD lệch ≤ 2.7 về drop.
+**Đọc:** (1) Theo quy tắc khóa, không đối chiếu số A4500 với 3090; A4500 là nền riêng, không chặn việc tiếp. (2) OSFD khớp sát 3090 (Swin-L, T8); phần lệch nằm ở RD trên Swin-L và YOLOX-L. Với n = 30, chưa tách được khác máy hay nhiễu dev30. RD − OSFD trên Swin-L ở đây +7.4 [+0.5, +14.7]. (3) Không xa phía V100 (RD Swin-L < 35). (4) Thời gian trên máy này: RD B36 3.03 s/ảnh, OSFD B50 3.96 s/ảnh, nên "B36 = cùng thời gian OSFD B50" không còn đúng ở đây; B36 giữ nguyên, thiệt về phía RD.
+**Việc tiếp:** khóa quy tắc GO cho RD (CA3 theo YOLOX-L) trước khi chạy full panel dev100 → dev300, toàn bộ trên A4500.
