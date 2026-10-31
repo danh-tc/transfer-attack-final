@@ -933,7 +933,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 (is_backward_hook(model, is_supp[0], is_supp[1], is_supp[2], is_supp[3],
                                   torch.Generator(device=orig_pixels.device).manual_seed(torch.initial_seed() + 21))
                  if is_supp is not None else contextlib.nullcontext()):
-            assert not return_state or wp is None  # E70: ensemble luân phiên dùng NOWP (WP trễ-1-bước xung đột luân phiên)
+            # E70: mom_in/return_state mang momentum qua các lần gọi. E71: cho phép kèm WP khi gọi theo KHỐI ≥ 2 bước
+            # (WP trễ-1-bước chạy đúng TRONG khối cùng surrogate; momentum mang xuyên khối). 1-step + WP thì WP vô hiệu.
             _ret = run_iterative_attack(model, orig_pixels, data_sample, loss_fn=None, steps=steps,
                                         epsilon=epsilon, alpha=alpha, momentum=momentum, views_fn=views_fn,
                                         on_step=on_step, backward_per_step=backward_per_step,

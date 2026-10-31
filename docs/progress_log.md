@@ -4944,3 +4944,16 @@ Full panel (mAP drop; ENS B36=18+18, OSFD B50):
 **Đọc:** (1) Momentum-chung tạo khác biệt lớn so warm-start: cộng dồn 2 hướng gần-trực-giao (cos 0.14, E68) vào CÙNG vector -> δ phủ cả hai subspace mỗi bước; nối tiếp thì ghi đè -> mất một bên. Bằng chứng NHÂN QUẢ cho cơ chế E68. (2) "Giữ CNN + được Swin-L cùng B" = CÓ, qua ensemble cross-family momentum-chung. (3) Còn headroom: ENS bỏ WP (xung đột luân phiên) -> Swin-L 55.1 < RD-CNX 62.8 (có WP); gắn WP kiểu same-step (SAM) có thể đẩy tiếp.
 **Caveat:** dev30 (cần dev100; nhưng +5.7 T7 / +21 Swin-L ≫ sàn nhiễu); đổi threat model (2 surrogate, pivot idea.md §3, cần duyệt + báo thầy); B lệch với OSFD B50 (claim SOTA cần cùng B); eval inference-PNG (so trong E69/E70).
 **Việc tiếp (user quyết):** (a) dev100 xác nhận ENS-SM (bảng vs OSFD/RD-R50/RD-CNX cùng B); (b) thử gắn WP same-step vào ensemble đẩy Swin-L; (c) chốt câu chuyện paper: RQ3 = ensemble cross-family momentum-chung, cơ chế = gradient-direction (E67/E68), giữ cả hai họ. Mọi hướng ensemble cần duyệt pivot threat model chính thức.
+
+---
+
+## 2026-10-31 — E71: WP-trong-ensemble — luân phiên theo KHỐI 2 bước + WP, momentum chung, cùng B=36 @ dev30 (user: "Approve WP", ~14:57 GMT+7) — khóa TRƯỚC khi chạy; vẫn pivot threat model (2 surrogate)
+**Vì sao:** ENS-SM (E70, bỏ WP) Swin-L 55.1 < RD-CNX 62.8 (có WP, E66 WP = +9.9 Swin-L). WP trễ-1-bước xung đột luân phiên-từng-bước, nhưng chạy ĐÚNG trong KHỐI ≥ 2 bước cùng surrogate. Mục tiêu: lấy lại ~+7 Swin-L, giữ ResNet (~93), cùng B.
+**Code:** nới assert để `return_state` kèm WP (momentum độc lập cơ chế WP); tái dùng toàn bộ code WP. Luân phiên khối 2 bước (18 khối = 9 R50 + 9 ConvNeXt), momentum + δ mang xuyên khối (mom_in/return_state). manual_seed theo (ảnh, khối). **Unit smoke: momentum cộng dồn qua khối, δ→ε=5 OK.**
+**Hai ô:** ENS-WP (khối-2 + WP ρ0.002, weight_linear cho CNX), ENS-B2 (khối-2 KHÔNG WP — đối chứng tách 'khối-2' khỏi 'WP'). So E70 ENS-SM (strict-1, noWP) + mốc E69.
+**Quy tắc (dev30, điểm; mốc ENS-SM: Swin-L 55.1 / RES3{R101,FCOS,DINO-R50} 93.6 / T7 85.3):**
+- **WP GIÚP** nếu ENS-WP − ENS-B2: ΔSwin-L ≥ +3 VÀ ΔRES3 ≥ −2 → WP đẩy Swin-L trong ensemble, giữ ResNet; ENS-WP là method chốt.
+- **WP TRUNG TÍNH** nếu |ΔSwin-L| < 3 → WP không chuyển sang được ensemble (khác đơn-surrogate); giữ ENS-SM/ENS-B2.
+- **KHỐI-2 LÀM HẠI** nếu ENS-B2 T7 < ENS-SM T7 − 2 → hạt khối thô làm giảm; đọc lại granularity. (ENS-B2 ≈ ENS-SM thì khối-2 vô hại.)
+**Caveat:** dev30 xu hướng; weight_linear cho ConvNeXt chưa tune; eval inference-PNG (so trong E69/E70/E71); vẫn 2 surrogate (pivot threat model, cần duyệt + báo thầy).
+**Chạy:** `python scripts/e71_ensemble_wp.py`, log `results/e71/run.log`.
