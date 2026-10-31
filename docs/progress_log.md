@@ -4930,3 +4930,17 @@ Full panel dev30 (mAP drop; OSFD B50, RD/ENS B36):
 - **KHÔNG hơn** nếu T7 < 81.1 → momentum-chung không hơn nối tiếp; ensemble cùng-B chạm trần ~81.
 **Caveat:** dev30 xu hướng; bỏ WP (ENS thiếu +~10 Swin-L mà RD-CNX có từ WP — so không hoàn toàn ngang RD-CNX); eval inference-PNG (so trong E69/E70, không trộn panel_table).
 **Chạy:** `python scripts/e70_ensemble_sm.py`, log `results/e70/run.log`.
+
+### Kết quả E70 @ dev30 (A4500, xong 14:35 GMT+7; `results/mechanism/e70_ensemble_sm.json`, PNG `.../ens/adv/ENS-SM/`, log `results/e70/run.log`) — theo quy tắc: **THẮNG (giữ cả hai)**
+Full panel (mAP drop; ENS B36=18+18, OSFD B50):
+- OSFD-R50: 98.0/92.4/86.0/78.3/93.2/95.4/74.0/72.4/26.4 | T7 76.0
+- RD-R50:   98.7/92.5/85.8/84.3/95.1/92.7/81.7/76.9/33.8 | T7 79.6
+- RD-CNX:   83.7/82.2/95.4/87.1/85.0/83.6/71.7/75.1/62.8 | T7 78.2
+- ENS-RC (warm-start): 90.3/88.6/97.1/90.7/83.4/86.2/83.4/80.1/55.0 | T7 81.1
+- **ENS-SM (mom-chung): 97.6/93.3/96.7/93.0/94.3/93.3/85.8/82.7/55.1 | T7 85.3**
+(cột: r50/r101/convnext/swin_t/fcos/dino_r50/yolov3/yolox_l/dino_swin_l)
+**Phán quyết:** T7 85.3 ≥ 81.1 VÀ RES3{R101,FCOS,DINO-R50} 93.6 ≥ 88 VÀ Swin-L 55.1 [44.9,59.6] ≥ 55 → **THẮNG giữ cả hai**.
+**ENS-SM vs mốc:** vs RD-R50: ResNet NGANG (R50 −1.1, R101 +0.8, FCOS −0.8, DINO-R50 +0.6), Swin-L +21.3, Swin-T +8.7, YOLOX +5.8, YOLOv3 +4.1, T7 +5.7. vs OSFD-R50: hơn MỌI target, T7 +9.3, Swin-L +28.7. vs ENS-RC: lấy lại toàn bộ nhóm ResNet (RES3 86.1→93.6) mà giữ Swin-L (55.0→55.1), T7 81.1→85.3.
+**Đọc:** (1) Momentum-chung tạo khác biệt lớn so warm-start: cộng dồn 2 hướng gần-trực-giao (cos 0.14, E68) vào CÙNG vector -> δ phủ cả hai subspace mỗi bước; nối tiếp thì ghi đè -> mất một bên. Bằng chứng NHÂN QUẢ cho cơ chế E68. (2) "Giữ CNN + được Swin-L cùng B" = CÓ, qua ensemble cross-family momentum-chung. (3) Còn headroom: ENS bỏ WP (xung đột luân phiên) -> Swin-L 55.1 < RD-CNX 62.8 (có WP); gắn WP kiểu same-step (SAM) có thể đẩy tiếp.
+**Caveat:** dev30 (cần dev100; nhưng +5.7 T7 / +21 Swin-L ≫ sàn nhiễu); đổi threat model (2 surrogate, pivot idea.md §3, cần duyệt + báo thầy); B lệch với OSFD B50 (claim SOTA cần cùng B); eval inference-PNG (so trong E69/E70).
+**Việc tiếp (user quyết):** (a) dev100 xác nhận ENS-SM (bảng vs OSFD/RD-R50/RD-CNX cùng B); (b) thử gắn WP same-step vào ensemble đẩy Swin-L; (c) chốt câu chuyện paper: RQ3 = ensemble cross-family momentum-chung, cơ chế = gradient-direction (E67/E68), giữ cả hai họ. Mọi hướng ensemble cần duyệt pivot threat model chính thức.
