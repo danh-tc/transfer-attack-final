@@ -5213,3 +5213,17 @@ corr(R50 history self-sim, ConvNeXt orth_frac) = 0.229 | vs rotation = -0.226 (n
 - **GO** = cả hai → E79b dev100. **NO-GO** = thiếu bất kỳ → đóng hướng neighborhood-stability (không chỉnh loss cứu). Novelty chỉ nếu phát hiện flatness detection-specific, không phải flatness thường (prior art SAM/flatness-attacks).
 **Caveat:** pilot dev30, per-ảnh AP nhiễu; 1 mức σ; Gate B là screen correlation (chưa partial-corr/out-of-sample). Reuse δ từ ENS-WP chỉ để phân tích — method cuối không được truy cập ConvNeXt/ENS-WP.
 **Chạy:** `python scripts/e79_basin.py`, log `results/e79/run.log`.
+
+### Kết quả E79a-Basin @ dev30 (A4500, xong ~22:0x GMT+7; `results/mechanism/e79_basin.json`, log `results/e79/run.log`) — theo GO/NO-GO khóa: **NO-GO cả hai gate; giả thuyết flatness BỊ BÁC**
+Saturation kiểm soát OK (moved-after-clip ≈ 0.88 đều cả 3 cond). retention = APdrop(δ')/APdrop(δ):
+```
+model          RD-R50 (ret|base)   RD-CNX (ret|base)   ENS-WP (ret|base)
+r50             0.964 | 95.8        0.915 | 73.6        0.961 | 93.2
+dino_swin_l     0.843 | 34.0        0.832 | 48.7        0.815 | 49.3
+swin_t          0.899 | 72.6        0.867 | 78.6        0.915 | 81.8
+r101            0.944 | 85.1        0.905 | 74.5        0.954 | 85.4
+```
+**Gate A FAIL:** trên dino_swin_l, retention ENS 0.815 THẤP hơn RD-R50 0.843 & RD-CNX 0.832 — ENS KHÔNG phẳng hơn (hơi kém hơn) ở target khó nhất; swin_t ENS nhỉnh (+0.016 vs RD-R50) nhưng không nhất quán. → ENS-WP KHÔNG nằm basin target phẳng hơn; lợi thế của nó KHÔNG phải flatness. (Mọi method retention Swin-L ~0.82-0.84 = fragile nhất, không method nào có basin Swin-L đặc biệt phẳng.)
+**Gate B FAIL:** corr(r50-retention, swin_l-retention) = −0.03 (≈0), swin_t = 0.19 (< 0.30). Neighborhood-stability quan sát từ R50 KHÔNG dự báo target-robustness. Lại đúng tường E68/E75/E78.
+**Đọc:** giả thuyết "ENS transfer tốt vì basin phẳng" SAI (Gate A bác trực tiếp); kể cả nếu đúng cũng vô dụng vì R50 không đo được (Gate B). Đóng hướng neighborhood-stability (đúng rule user: NO-GO thì dừng, không chỉnh loss cứu). WP-confound xác nhận: flatness-trên-surrogate đã có sẵn ở mọi method, không phải lever.
+**TỔNG (8 gate single-surrogate NO-GO): E64 tần số, E72 vùng, E74 budget, E75 objective, E76 backward-path, E77 failure-mode, E78 momentum-recoverability, E79 basin-flatness.** + E67/E68 khẳng định cơ chế + E78 lượng hoá động-học. Đã phủ first-order (gradient/direction), output-space (failure), optimization-dynamics (momentum), VÀ second-order (landscape). Không còn góc single-surrogate conceptually-distinct. **CHỐT: dừng vòng single-surrogate; consolidate contribution cơ chế + ENS-WP. Khuyến nghị dứt khoát, lặp lại lần 3.**
