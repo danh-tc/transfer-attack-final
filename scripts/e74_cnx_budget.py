@@ -26,9 +26,8 @@ E73 = os.path.join(REPO_ROOT, "results/mechanism/e73_dev100.json")
 PANEL = ["r50", "r101", "convnext_t", "swin_t", "fcos_r50", "dino_r50", "yolov3_d53", "yolox_l", "dino_swin_l"]
 T7 = ["r101", "fcos_r50", "dino_r50", "yolov3_d53", "yolox_l", "swin_t", "dino_swin_l"]
 RES3 = ["r101", "fcos_r50", "dino_r50"]
-# cond -> (run dir, tên thư mục adv) — CHỈ 2 ô mới cần sinh+eval; B36/ENS/RD-R50 lấy từ e73
-NEW = {"RD-CNX-B50": ("dev300_B50_eps5_limit100_sur-convnext_t", "C2-OCT-1V-WP2-RD-CNX"),
-       "RD-CNX-B75": ("dev300_B75_eps5_limit100_sur-convnext_t", "C2-OCT-1V-WP2-RD-CNX")}
+# cond -> (run dir, tên thư mục adv) — B50 (user dừng B75); B36/ENS/RD-R50 lấy từ e73
+NEW = {"RD-CNX-B50": ("dev300_B50_eps5_limit100_sur-convnext_t", "C2-OCT-1V-WP2-RD-CNX")}
 BOOT_SEED, N_BOOT = 2026, 300
 
 
@@ -74,13 +73,13 @@ def main():
     e73 = json.load(open(E73))["drop"]
     pt = lambda c, m: (res["drop"][m][c]["point"] if c in NEW else e73[m][c]["point"])
     t7 = lambda c: sum(pt(c, m) for m in T7) / 7
-    ROWS = ["RD-R50", "RD-CNX", "RD-CNX-B50", "RD-CNX-B75", "ENS-WP"]  # RD-CNX = B36 từ e73
+    ROWS = ["RD-R50", "RD-CNX", "RD-CNX-B50", "ENS-WP"]  # RD-CNX = B36 từ e73; B75 user đã dừng
     print("\n" + " " * 11 + " ".join(m[:9].rjust(9) for m in PANEL) + "    T7")
     for c in ROWS:
         print(f"{c:11}" + " ".join(f"{pt(c, m):9.1f}" for m in PANEL) + f" {t7(c):6.1f}")
 
     print("\n--- lever single-surrogate: B có lấy lại ResNet & giữ Swin-L? ---")
-    for c in ("RD-CNX", "RD-CNX-B50", "RD-CNX-B75"):
+    for c in ("RD-CNX", "RD-CNX-B50"):
         res3 = np.mean([pt(c, m) for m in RES3])
         print(f"{c:11} RES3avg {res3:5.1f} (R101 {pt(c,'r101'):.1f} FCOS {pt(c,'fcos_r50'):.1f} DINO-R50 {pt(c,'dino_r50'):.1f})"
               f"  SwinL {pt(c,'dino_swin_l'):5.1f}  T7 {t7(c):5.1f}")
@@ -91,17 +90,17 @@ def main():
     swin_floor = pt("RD-CNX", "dino_swin_l") - 5
     rd_r50 = {m: pt("RD-R50", m) for m in RES3}
     viable = []
-    for c in ("RD-CNX-B50", "RD-CNX-B75"):
+    for c in ("RD-CNX-B50",):
         ok_res = all(pt(c, m) >= rd_r50[m] - 3 for m in RES3)
         ok_swin = pt(c, "dino_swin_l") >= swin_floor
         ok_t7 = t7(c) >= t7("ENS-WP") - 2
         print(f"[rule] {c}: RES3≥RD-R50−3 {ok_res}  SwinL≥RD-CNX−5 {ok_swin}  T7≥ENS−2 {ok_t7}")
         if ok_res and ok_swin and ok_t7:
             viable.append(c)
-    gain = np.mean([pt("RD-CNX-B75", m) for m in RES3]) - np.mean([pt("RD-CNX", m) for m in RES3])
-    print(f"\nResNet gain B36->B75 = {gain:+.1f}  (|< +3 và vẫn xa RD-R50| => HƯỚNG, không phải ngân sách)")
+    gain = np.mean([pt("RD-CNX-B50", m) for m in RES3]) - np.mean([pt("RD-CNX", m) for m in RES3])
+    print(f"\nResNet gain B36->B50 = {gain:+.1f}  (|< +2 và vẫn xa RD-R50| => HƯỚNG, không phải ngân sách; B75 user dừng)")
     print("VERDICT:", "SINGLE-SURROGATE GIỮ-CẢ-HAI VIABLE @ " + ",".join(viable) if viable
-          else "BUDGET != DIRECTION -> đóng lever single-surrogate-qua-B (cần nguồn hướng thứ 2)")
+          else "B50 KHÔNG đủ -> hướng thiên về DIRECTION; cần B75 để chốt trần HOẶC nguồn-hướng-thứ-2")
 
 
 if __name__ == "__main__":

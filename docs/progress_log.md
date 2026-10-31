@@ -5062,3 +5062,6 @@ ENS-WP     95.2  92.1 95.2  88.0  91.1  92.8   80.0  79.1  55.3  82.6  ★
 - Báo Swin-L theo B (kỳ vọng bão hòa, E40/E66) + chi phí backward.
 **Caveat:** B75 = 75 backward vs ENS/RD B36 → nếu dương là "giữ cả hai ở 2× compute" (yếu hơn ENS). boot 300 pilot-mức. eval inference-PNG. Resume per-model + per-B (run_baselines bỏ qua PNG đã có). Artifact B50/B75 cần upload HF nếu giữ.
 **Chạy:** `results/e74/run.sh` (nền), log `results/e74/run.log`. Ước ~2h (sinh B50+B75 ConvNeXt + eval 9 model × 2 ô boot 300).
+
+### E74 điều chỉnh (user: "tạm dừng tính b50 thôi"): DỪNG B75 ở 37/100 PNG, chỉ eval B50
+B50 sinh đủ 100 PNG; B75 dừng giữa chừng (PNG dở giữ lại ở `dev300_B75_eps5_limit100_sur-convnext_t`, resume được sau). e74_cnx_budget.py sửa NEW chỉ còn B50. Verdict giờ 2 nhánh: nếu B50 đã lấy lại ResNet + giữ Swin-L → VIABLE; nếu B50 chưa đủ → thiên về DIRECTION nhưng cần B75 để chốt TRẦN (chưa khẳng định mạnh bằng có B75). Mốc B36/ENS-WP/RD-R50 vẫn đọc từ e73_dev100.json.
