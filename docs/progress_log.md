@@ -5049,3 +5049,16 @@ ENS-WP     95.2  92.1 95.2  88.0  91.1  92.8   80.0  79.1  55.3  82.6  ★
 3. Cơ chế nhất quán E70/E71: momentum-chung giữa 2 surrogate gần-trực-giao (E68 cos 0.09–0.14) → mỗi họ đóng góp hướng riêng, cộng dồn giữ cả hai. B=36 (ít backward hơn OSFD B50).
 **CẢNH BÁO:** ENS-WP đổi threat model (2 surrogate) — cần thầy duyệt trước khi claim. B lệch với OSFD (B50) — ENS/RD ít backward hơn mà vẫn hơn (ưu thế, không bất lợi). Artifact dev100 phiên này (gồm ENS-WP) CHƯA upload HF.
 **Bước tiếp (user quyết):** (a) nâng n (dev300 → n1000) để chốt bảng paper; (b) thêm OSFD-ensemble baseline (so ensemble công bằng, không phải chỉ single-OSFD); (c) duyệt threat-model pivot với thầy; (d) upload artifact dev100 lên HF nếu giữ.
+
+---
+
+## 2026-10-31 — E74: lever single-surrogate còn lại — quét ngân sách B cho RD-CNX (ConvNeXt đơn) @ dev100 (user: "Approve" cho chẩn đoán single-surrogate; THAY cho E74-phân-rã-tần-số vì E64 đã làm & đóng hướng đó) — khóa TRƯỚC khi chạy
+**Vì sao THAY đề xuất cũ:** E74 ban đầu (phân rã δ_ENS theo không-gian-con R50/ConvNeXt + lọc dải tần) TRÙNG E64 — E64 đã đo cos(δ_R,δ_C)=0.09 (pixel), phổ 3 dải, MIX=LP(δ_C)+HP(δ_R): Swin-L sập 62.8→29.3 → cầu nối KHÔNG tách theo dải tần, nguyên nhân là HƯỚNG. Chạy lại = lãng phí. Chuyển sang lever single-surrogate DUY NHẤT chưa đo: tăng B.
+**RQ:** tăng ngân sách gradient B (36→50→75) trên ConvNeXt ĐƠN có lấy lại transfer họ ResNet (R101/FCOS/DINO-R50) mà vẫn giữ Swin-L không? = "giữ cả hai" KHÔNG đổi threat model, chỉ thêm compute. E66 ghi là "việc tiếp" (E40: target CNN còn tăng tới B75 với surrogate R50; Swin-L bão hòa B36) nhưng chưa chạy trên ConvNeXt.
+**Ô (dev100, ConvNeXt-T, ε=5, cùng OCT/feat C3-C5/cls RoI/WP ρ0.002 weight_linear — y hệt RD-CNX, chỉ đổi B):** B50, B75 (sinh mới); B36 = E73. Mốc đọc lại từ e73_dev100.json: RD-CNX(B36), RD-R50(B36), ENS-WP(B36). Panel 9 model, boot 300.
+**Quy tắc đọc (dev100, khóa):**
+- **SINGLE-SURROGATE GIỮ-CẢ-HAI VIABLE** (không pivot) nếu ∃ B*∈{50,75}: R101 & FCOS & DINO-R50 mỗi cái ≥ RD-R50 − 3 VÀ Swin-L ≥ RD-CNX(B36) − 5 VÀ T7 ≥ ENS-WP − 2 → ConvNeXt đơn + thêm B thay được ensemble (claim yếu hơn ENS vì tốn 2× backward, nhưng 1 surrogate).
+- **BUDGET ≠ DIRECTION → đóng lever** nếu ResNet-family gain B36→B75 < +3 trung bình VÀ vẫn ≥ ~8 dưới RD-R50 → khẳng định E64 (hụt ResNet là HƯỚNG, không hội tụ); lever giữ-cả-hai buộc phải tới từ nguồn-hướng-thứ-2 (ensemble, hoặc proxy chưng cất — gate (a)/(b)). Null ở đây CÓ lực (dev100, CI 300).
+- Báo Swin-L theo B (kỳ vọng bão hòa, E40/E66) + chi phí backward.
+**Caveat:** B75 = 75 backward vs ENS/RD B36 → nếu dương là "giữ cả hai ở 2× compute" (yếu hơn ENS). boot 300 pilot-mức. eval inference-PNG. Resume per-model + per-B (run_baselines bỏ qua PNG đã có). Artifact B50/B75 cần upload HF nếu giữ.
+**Chạy:** `results/e74/run.sh` (nền), log `results/e74/run.log`. Ước ~2h (sinh B50+B75 ConvNeXt + eval 9 model × 2 ô boot 300).
