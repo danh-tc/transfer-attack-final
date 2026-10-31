@@ -4780,13 +4780,13 @@ RD-CNX − RD-R50: **Swin-L +29.0 [+17.9, +31.9]**, Swin-T +2.8 [−2.7, +8.5], 
 
 ---
 
-## 2026-10-31 — E64: vì sao δ từ surrogate ConvNeXt-T yếu trên họ ResNet? @ dev30, PNG E62 / E63, chỉ forward (user: "Phân tích vì sao tuột trước", ~13:00 GMT+7) — MÔ TẢ, khai báo TRƯỚC khi đọc số
+## 2026-10-31 — E64: vì sao δ từ surrogate ConvNeXt-T yếu trên họ ResNet? @ dev30, PNG E62 / E63, chỉ forward (user: "Phân tích vì sao tuột trước", ~12:45 GMT+7) — MÔ TẢ, khai báo TRƯỚC khi đọc số
 **Đo (`scripts/e64_cnx_drop.py`):** δ_R (RD-R50), δ_C (RD-CNX), δ_O (OSFD). (1) phổ 3 dải, cos + đồng thuận dấu δ_R/δ_C; (2) D_k theo stage trên R50 / R101 / ConvNeXt / Swin-T / DINO-Swin-L; (3) AP drop LP2 / HP2 (như E16) + MIX = LP2(δ_C) + HP2(δ_R), kẹp ±5; (4) recall theo cỡ GT + FP / ảnh trên R50.
 **Đọc (khai báo trước, trên R50):** **H_TẦN** nếu band_hi δ_C < δ_R ≥ 0.03 VÀ drop HP2(δ_R) − HP2(δ_C) ≥ 10 VÀ |drop LP2(δ_R) − LP2(δ_C)| < 10: δ_C thiếu đúng dải R50 nhạy. **H_HƯỚNG** nếu phổ gần nhau (chênh band_hi < 0.03) mà drop vẫn lệch: khác ở hướng chứ không ở dải tần. **H_CỠ** (cộng thêm được) nếu recall còn lại chênh tập trung ở một nhóm cỡ. D_k cho biết δ_C tắt ở stage nào của R50. MIX chỉ là phép dò hậu kỳ, dùng δ từ 2 surrogate nên không phải method.
 **Caveat:** n = 30; drop qua `inference_detector` trên file, không so trực tiếp số panel; không chọn gì từ đây vào method nếu chưa khóa entry riêng.
 **Chạy:** `python scripts/e64_cnx_drop.py`, log `results/e64/run.log`.
 
-### Kết quả E64 @ dev30 (A4500, xong ~13:10 GMT+7; `results/mechanism/e64_cnx_drop.json`, log `results/e64/run.log`) — theo khai báo: **KHÔNG khớp đủ H_TẦN lẫn H_HƯỚNG**, gần H_HƯỚNG; H_CỠ có
+### Kết quả E64 @ dev30 (A4500, xong ~12:48 GMT+7; `results/mechanism/e64_cnx_drop.json`, log `results/e64/run.log`) — theo khai báo: **KHÔNG khớp đủ H_TẦN lẫn H_HƯỚNG**, gần H_HƯỚNG; H_CỠ có
 Phổ δ thấp/trung/cao: δ_R .360/.351/.289, δ_C .419/.327/.254 (chênh band_hi 0.035, vừa qua ngưỡng 0.03 nên H_HƯỚNG trượt sát). cos(δ_R, δ_C) 0.09, đồng thuận dấu 0.546.
 Drop trên R50: FULL 98.7 vs 83.7; HP2 79.4 vs 44.1 (Δ 35.3); LP2 48.5 vs 22.9 (Δ 25.6 ≥ 10 nên H_TẦN trượt). δ_C yếu ở CẢ HAI dải.
 D_k trên R50 (stage 1→4): δ_R .340/.731/1.067/1.192, δ_C .326/.690/.899/.950, δ_O .342/.808/1.311/1.519. Trên DINO-Swin-L: δ_R .370/.457/.674/.821, δ_C .371/.478/.732/.912, δ_O .371/.475/.742/.909.
@@ -4803,3 +4803,15 @@ MIX = LP2(δ_C) + HP2(δ_R): R50 96.3, R101 86.2, ConvNeXt 80.1, Swin-T 72.5, DI
 **Quy tắc (Δ = RD-CNX − OSFD-CNX, dev30, điểm; sàn nhiễu Swin-L ~4):** **HỢP LỆ** mỗi baseline nếu white-box ConvNeXt ≥ 80. **METHOD GÓP** nếu ΔSwin-L ≥ +4 VÀ ΔT7 ≥ −2. **CHỈ SURROGATE** nếu |ΔSwin-L| < 4: lợi chủ yếu do ConvNeXt, RD không đóng góp rõ trên Swin-L. **OSFD-CNX THẮNG** nếu ΔSwin-L ≤ −4. Còn lại XÁM. Mô tả: phần surrogate = (OSFD-CNX − OSFD-R50) / (RD-CNX − OSFD-R50) trên Swin-L; từng target.
 **Caveat:** dev30 chỉ xem xu hướng, không kết luận; B lệch (36 vs 50) thiệt cho RD; dev100 xác nhận sau, user quyết.
 **Chạy:** `results/e65/run.sh`, log `results/e65/run.log`.
+
+### Kết quả E65 @ dev30 (A4500, xong 13:08 GMT+7; `results/e65/panel_dev30.json`, `results/runs/dev300_B50_eps5_limit100_sur-convnext_t/*_e65_dev30.json`, log `results/e65/run.log`) — theo quy tắc: **HỢP LỆ, METHOD GÓP**
+R50 / R101 / ConvNeXt / Swin-T / FCOS / DINO-R50 / YOLOv3 / YOLOX-L / DINO-Swin-L | T7 drop | ASR T7:
+- RD-CNX B36: 83.7 / 82.2 / 95.4 / 87.1 / 85.0 / 83.6 / 71.7 / 75.1 / **62.8** | 78.2 | 60.8
+- OSFD-CNX B50: 74.9 / 65.1 / 95.6 / 73.0 / 79.1 / 75.1 / 61.4 / 54.3 / **26.1** | 62.0 | 55.5
+- MI-CNX B50: 47.5 / 40.8 / 99.0 / 52.4 / 47.0 / 45.1 / 33.0 / 31.9 / 21.9 | 38.9 | 26.7
+- M-DI²-CNX B50: 74.9 / 69.2 / 99.9 / 75.5 / 70.1 / 66.3 / 51.8 / 52.4 / 37.9 | 60.5 | 41.1
+- OSFD-R50 B50 (E62): 98.0 / 92.4 / 86.0 / 78.3 / 93.2 / 95.4 / 74.0 / 72.4 / 26.4 | 76.0 | 69.7
+RD-CNX − OSFD-CNX: **Swin-L +36.7 [+26.4, +41.6]**, T7 +16.2, mọi target hộp đen > 0 với CI loại 0. RD-CNX − M-DI²-CNX: Swin-L +24.9 [+13.7, +28.1]. Phần surrogate theo công thức khai báo ≈ 0 ((26.1 − 26.4) / (62.8 − 26.4)). Thời gian: RD-CNX 4.17 s/ảnh, OSFD-CNX 6.62 s/ảnh.
+**Đính chính:** T7 của OSFD-R50 là **76.0**; số 77.2 ở khai báo E65 và trong tin nhắn báo cáo E63 là tính sai. Quy tắc không dùng số này nên phán quyết không đổi. Giờ của E64 sửa lại theo thực tế (~12:45, xong ~12:48).
+**Đọc:** (1) Giả thuyết "lợi chủ yếu do surrogate" (E64) BỊ BÁC: chỉ đổi surrogate cho OSFD không tăng gì. (2) Bảng 2×2 Swin-L: OSFD-R50 26.4, RD-R50 33.8, OSFD-CNX 26.1, RD-CNX 62.8 → tương tác surrogate × method ≈ +29.3: bước nhảy chỉ có khi có CẢ HAI. T7 2×2: 76.0 / 79.6 / 62.0 / 78.2. (3) Nguyên liệu khả dĩ: phần chung của 3 ô CNX Swin-L > 50 là OCT + loss cls (NOWP 52.9, nguyên 55.6) so OSFD-CNX 26.1 (RRB + feature), WP thêm khoảng +10; chưa ablation riêng, chỉ là suy đoán. (4) So đối thủ thực tế OSFD-R50: Swin-L +36.4 [+22.6, +41.1], T7 +2.2, nhưng R50 / R101 / FCOS / DINO-R50 giảm 8–14 (CI < 0), ASR T7 −8.9. RD-CNX vs RD-R50 vẫn là đánh đổi (T7 −1.4). (5) λ và WP đã port cho RD, OSFD chạy nguyên cấu hình protocol; OSFD-CNX có thể chưa phát huy hết. dev30 chỉ xem xu hướng.
+**Việc tiếp (user quyết):** dev100 bảng 2×2 (RD-CNX, RD-R50, OSFD-CNX, OSFD-R50) để xác nhận tương tác.
