@@ -48,8 +48,9 @@ def run_block(models, key, orig, ds_s, delta_in, mom_in, seed):
 
 def main():
     dev = "cuda:0"
-    keep = set(load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev30.csv")))
-    ids = [i for i in load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev300.csv")) if i in keep]
+    # PNG ENS-WP trên đĩa do E73 sinh theo thứ tự dev100 (seed = 1000*(n_dev100+1)+b) -> replay PHẢI theo dev100.
+    # Phân tích 30 ảnh ĐẦU của dev100 (n = vị trí dev100, khớp seed đã sinh).
+    ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev100.csv"))[:30]
     assert len(ids) == 30
     models = {k: load_model(k, dev) for k in ORDER}
     ds = {k: {s["img_id"]: s for s in target_dataset(k, ids)} for k in ORDER}
