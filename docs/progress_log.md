@@ -5011,3 +5011,11 @@ Upload HF `congdanh99/transfer-attack` (private), tag **`_a4500_dev30`** — t�
 - Mô tả kèm ngưỡng thăm dò đề xuất (R101 ≥87, Swin-L ≥58, T7 ≥81).
 **Caveat:** dev30 n=30, null = VÔ KẾT LUẬN (không đủ lực phủ định mạnh); DINO-Swin-L HELD-OUT (không đọc để tune); bootstrap N=300 (pilot); eval inference-PNG.
 **Chạy:** `results/e72/run.sh`, log `results/e72/run.log`.
+
+### Kết quả E72-RGG @ dev30 (A4500, xong 16:56 GMT+7; `results/mechanism/e72_rgg.json`, log `results/e72/run.log`) — theo quy tắc: **GRAPH = REGION WEIGHTING (NULL)** — đóng hướng RGG
+T7 / Swin-L (mAP drop; nền RD-CNX sur ConvNeXt B36):
+- base 78.2 / 62.8 | node 78.8 / 62.7 | shuffle 78.7 / 62.9 | smooth 78.5 / 60.2 | **grad 77.9 / 61.0** | spatial 77.7 / 59.6
+**Ablation quyết định:** grad − max(node, smooth, shuffle) trên T7 = **−0.9** (< +2); Swin-L grad 61.0 < max control 62.9 < base 62.8. → quan hệ gradient KHÔNG vượt region-importance/làm-mượt/topology-xáo. grad nằm nhóm KÉM NHẤT; shuffle ≈ node > grad → cấu trúc cạnh vô dụng. Ngay region-importance (node) cũng chỉ +0.6 T7 (nhiễu n=30).
+**Trả lời RQ:** "quan hệ gradient giữa vùng có cải thiện transfer vượt region importance độc lập không?" → **KHÔNG** (dev30; null = vô kết luận mạnh nhưng nhất quán qua 5 biến thể + 3 control). DINO-Swin-L held-out, không tune.
+**Đọc:** (1) Đóng hướng RGG/graph cho method. (2) **Củng cố E68:** tín hiệu transfer xuyên họ nằm ở HƯỚNG GRADIENT TOÀN CỤC (do kiến trúc backbone), KHÔNG ở quan hệ vùng trong một gradient — reweight vùng (dù theo quan hệ) không chạm được. Viết vào paper như bằng chứng loại trừ (cùng E2 semantic KG). (3) Chi phí: ~35 phút, đúng tinh thần gate-first (đóng hướng trước khi xây GNN).
+**CHỐT method cho paper:** đơn-surrogate = RD-CNX (surrogate-family lever + cơ chế); ensemble = ENS-WP (giữ cả hai họ, pivot threat model). Lõi novelty = E67 (phủ định tương đồng biểu diễn) + E68 (gradient-direction trực giao) + E72 (phủ định quan hệ vùng). KHÔNG đưa KG/graph vào paper.
