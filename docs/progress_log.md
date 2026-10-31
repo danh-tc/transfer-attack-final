@@ -4989,3 +4989,12 @@ Full panel (mAP drop; ENS/RD B36, OSFD B50):
 **QUYẾT ĐỊNH hướng (đồng thuận):**
 - Paper hiện tại: KHÔNG thêm KG để tăng module. Củng cố RD-CNX + ENS-WP + gradient geometry (E67/E68) + baseline công bằng; làm chặt dev100/n1000 + OSFD-ensemble đồng hạng.
 - Research bet mới (chỉ khi thầy muốn contribution "single-model-at-test"): **relational gradient distillation** > semantic KG, 2 cổng BẮT BUỘC: (a) feasibility — student 1-surrogate giữ phần đáng kể gain ENS-WP? (b) graph-necessity — graph > predictor không-graph cùng capacity? Cả hai dương mới đáng. Eyes-open: vượt CKL, distillation mất mát (student yếu hơn ENS-WP), nới threat model.
+
+---
+
+## 2026-10-31 — Bảo toàn artifact dev30 lên HF (user thêm .env, ~16:09 GMT+7)
+Upload HF `congdanh99/transfer-attack` (private), tag **`_a4500_dev30`** — tải lại: `python scripts/sync_artifacts.py download <run> --tag _a4500_dev30`:
+- `dev300_B36_eps5_limit100_ens` (85.8MB, sha256 8006593e…) — PNG ENS-RC/ENS-CR/ENS-SM/ENS-B2/ENS-WP + gen_dets (E69/E70/E71). KHÔNG tái tạo dễ.
+- `dev300_B36_eps5_limit100_sur-convnext_t` (117.6MB, sha256 5bde2c7d…) — RD-CNX, RD-CNX-NOWP, RD-CNX-FEAT/CLS (E63/E66) + gen_dets.
+- `dev300_B50_eps5_limit100_sur-convnext_t` (71.8MB, sha256 c759f000…) — OSFD/MI/M-DI² trên ConvNeXt (E65).
+**⚠️ GitHub push BỊ CHẶN:** máy chỉ có HF_TOKEN, KHÔNG có credential GitHub → mọi commit từ 67267af…c75c2a7 (+ note này) CHỈ nằm local, CHƯA lên origin. User phải tự push (hoặc cấp GitHub token) trước khi trả máy, nếu không mất toàn bộ code E62–E71 + progress_log phiên này. RD-R50/OSFD-R50 dev30 PNG (run B36/B50 không tag) chưa upload — tái tạo được bằng results/e62/run.sh.
