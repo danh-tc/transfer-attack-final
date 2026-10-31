@@ -4815,3 +4815,19 @@ RD-CNX − OSFD-CNX: **Swin-L +36.7 [+26.4, +41.6]**, T7 +16.2, mọi target h�
 **Đính chính:** T7 của OSFD-R50 là **76.0**; số 77.2 ở khai báo E65 và trong tin nhắn báo cáo E63 là tính sai. Quy tắc không dùng số này nên phán quyết không đổi. Giờ của E64 sửa lại theo thực tế (~12:45, xong ~12:48).
 **Đọc:** (1) Giả thuyết "lợi chủ yếu do surrogate" (E64) BỊ BÁC: chỉ đổi surrogate cho OSFD không tăng gì. (2) Bảng 2×2 Swin-L: OSFD-R50 26.4, RD-R50 33.8, OSFD-CNX 26.1, RD-CNX 62.8 → tương tác surrogate × method ≈ +29.3: bước nhảy chỉ có khi có CẢ HAI. T7 2×2: 76.0 / 79.6 / 62.0 / 78.2. (3) Nguyên liệu khả dĩ: phần chung của 3 ô CNX Swin-L > 50 là OCT + loss cls (NOWP 52.9, nguyên 55.6) so OSFD-CNX 26.1 (RRB + feature), WP thêm khoảng +10; chưa ablation riêng, chỉ là suy đoán. (4) So đối thủ thực tế OSFD-R50: Swin-L +36.4 [+22.6, +41.1], T7 +2.2, nhưng R50 / R101 / FCOS / DINO-R50 giảm 8–14 (CI < 0), ASR T7 −8.9. RD-CNX vs RD-R50 vẫn là đánh đổi (T7 −1.4). (5) λ và WP đã port cho RD, OSFD chạy nguyên cấu hình protocol; OSFD-CNX có thể chưa phát huy hết. dev30 chỉ xem xu hướng.
 **Việc tiếp (user quyết):** dev100 bảng 2×2 (RD-CNX, RD-R50, OSFD-CNX, OSFD-R50) để xác nhận tương tác.
+
+---
+
+## 2026-10-31 — E66: nguyên liệu nào bắc cầu CNN↔Transformer trên surrogate ConvNeXt? Tách OCT-feat / cls / WP @ dev30 B36 (user: "Thực hiện 1", ~13:21 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** E65 cho thấy METHOD GÓP (RD-CNX ≫ OSFD-CNX) nhưng chưa biết thành phần nào tạo cầu, và đâu là nút đánh đổi CNN↔Transformer. Cần tách để (a) claim cơ chế = novelty, (b) tìm xem có cấu hình giữ ResNet mà vẫn được Swin-L không.
+**Ô (ConvNeXt-T, B36, dev30; RD-CNX = OCT + feat C3-C5 + cls RoI + WP):**
+- RD-CNX = cả bốn (E63: Swin-L 62.8, R50 83.7, R101 82.2, T7 78.2)
+- NOWP = OCT + feat + cls, bỏ WP (E63: Swin-L 52.9, R50 86.7, R101 83.5)
+- FEAT = OCT + feat, bỏ cls + WP (mới)
+- CLS = OCT + cls, bỏ feat + WP (mới; feature=False)
+**Quy tắc đọc (dev30, điểm; sàn nhiễu Swin-L ~4):** mỗi thành phần X: đóng góp Swin-L = drop(ô có X) − drop(ô bỏ X); giá CNN = drop R50/R101 tương ứng.
+- **BẮC CẦU = cls** nếu drop(NOWP) − drop(FEAT) ≥ +15 trên Swin-L (cls là nguyên liệu chính), **= feat** nếu drop(NOWP) − drop(CLS) ≥ +15, **= cả hai** nếu cả hai ≤ +15 (bổ trợ).
+- **WP là NÚT TILT** nếu RD-CNX − NOWP: ΔSwin-L ≥ +4 VÀ ΔR101 ≤ −2 (được Transformer, mất ResNet) → ρ-sweep là lever giữ-cả-hai (entry sau). **WP TRUNG TÍNH** nếu |ΔR101| < 2.
+- **GIỮ ĐƯỢC CẢ HAI** (trả lời câu user) nếu tồn tại ô: Swin-L ≥ 50 VÀ R50 ≥ 90 VÀ R101 ≥ 88 (gần mốc OSFD-R50 92.4). Không ô nào đạt → ghi: đánh đổi là nội tại ở cấu hình hiện có; lever giữ-cả-hai (nếu có) phải tới từ ρ-sweep / ensemble (threat model), user quyết.
+**Caveat:** dev30 xem xu hướng; CLS feature=False nên scale λ không ảnh hưởng (bước sign 1 số hạng); FEAT/CLS chưa từng chạy trên ConvNeXt.
+**Chạy:** `results/e66/run.sh`, log `results/e66/run.log`.
