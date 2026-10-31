@@ -4998,3 +4998,16 @@ Upload HF `congdanh99/transfer-attack` (private), tag **`_a4500_dev30`** — t�
 - `dev300_B36_eps5_limit100_sur-convnext_t` (117.6MB, sha256 5bde2c7d…) — RD-CNX, RD-CNX-NOWP, RD-CNX-FEAT/CLS (E63/E66) + gen_dets.
 - `dev300_B50_eps5_limit100_sur-convnext_t` (71.8MB, sha256 c759f000…) — OSFD/MI/M-DI² trên ConvNeXt (E65).
 **⚠️ GitHub push BỊ CHẶN:** máy chỉ có HF_TOKEN, KHÔNG có credential GitHub → mọi commit từ 67267af…c75c2a7 (+ note này) CHỈ nằm local, CHƯA lên origin. User phải tự push (hoặc cấp GitHub token) trước khi trả máy, nếu không mất toàn bộ code E62–E71 + progress_log phiên này. RD-R50/OSFD-R50 dev30 PNG (run B36/B50 không tag) chưa upload — tái tạo được bằng results/e62/run.sh.
+
+---
+
+## 2026-10-31 — E72-RGG: Relational Gradient Graph — quan hệ gradient giữa vùng có vượt region-importance? @ dev30 B36, 1 surrogate ConvNeXt (user: "Chạy thử đi", ~16:17 GMT+7) — khóa TRƯỚC khi chạy; GIỮ 1-surrogate (không pivot threat model)
+**RQ:** cấu trúc quan hệ gradient giữa các vùng ảnh có dự đoán/khai thác được phần gradient dễ transfer, VƯỢT region importance độc lập không? (khác E2 semantic KG: graph động theo ảnh/gradient-state, edge tác động thẳng vào update).
+**Code:** `pia._rgg_transform(mode,G=6,lam=1)` dựng grad_transform (áp lên gradient TRƯỚC momentum, tận dụng hook có sẵn); lưới 6×6, a chuẩn hóa mean=1 (giữ biên độ -> so sánh công bằng). Unit: δ_RGG khác δ_RD-CNX mean|·| 3.3-3.5 (không suy biến); +0.3 s/ảnh.
+**5 ô (nền RD-CNX: λ0.2, OCT, WP ρ0.002 weight_linear, cùng 36 backward):** node (trọng số ‖g‖ ô), spatial (TB ‖g‖ lân cận — topology không hướng), **grad** (r_i = TB cos(desc,desc) lân cận — quan hệ gradient có dấu), shuffle (grad nhưng hoán vị gán lân cận — giữ degree), smooth (Gauss lowpass ‖g‖ — đối chứng 'graph = làm mượt'). desc ô = pool g→48 chiều, L2.
+**Quy tắc (dev30; mốc RD-CNX E63: R101 82.2 / Swin-L 62.8 / T7 78.2):**
+- **GRAPH CÓ GIÁ TRỊ** nếu grad − max(node, smooth, shuffle) ≥ +2 trên T7 VÀ grad ≥ RD-CNX trên T7 → cấu trúc quan hệ gradient thêm thông tin vượt region-importance/làm-mượt/topology → đáng xây GNN (E71-full / distillation). dev100 xác nhận trước khi claim.
+- **GRAPH = REGION WEIGHTING** nếu |grad − max(node,smooth,shuffle)| < 2 → không vượt đối chứng → đóng hướng graph; CỦNG CỐ E68 (tín hiệu transfer ở HƯỚNG TOÀN CỤC, không ở quan hệ vùng). Null = kết quả có giá trị cho paper.
+- Mô tả kèm ngưỡng thăm dò đề xuất (R101 ≥87, Swin-L ≥58, T7 ≥81).
+**Caveat:** dev30 n=30, null = VÔ KẾT LUẬN (không đủ lực phủ định mạnh); DINO-Swin-L HELD-OUT (không đọc để tune); bootstrap N=300 (pilot); eval inference-PNG.
+**Chạy:** `results/e72/run.sh`, log `results/e72/run.log`.

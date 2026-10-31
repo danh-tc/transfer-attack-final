@@ -440,6 +440,52 @@ def _cwt_apply(img, spec):
     return torch.cat(rows, dim=-2)
 
 
+def _rgg_transform(mode: str, G: int = 6, lam: float = 1.0, seed: int = 0):
+    """E72 RGG (progress_log 2026-10-31): trả grad_transform(g) reweight gradient theo lưới G×G (node = ô), ÁP trước momentum.
+    a[G,G] chuẩn hóa mean=1 (giữ biên độ tổng -> so sánh công bằng giữa các biến thể), upsample lên [H,W], g <- g * a.
+    Biến thể: node (‖g‖ ô), spatial (TB ‖g‖ lân cận), smooth (Gauss lowpass ‖g‖), grad (r_i = TB cos(desc_i,desc_j) lân cận),
+    shuffle (grad nhưng gán lân cận hoán vị). desc ô = pool g về 4×4×3 = 48 chiều, chuẩn hóa L2."""
+    import torch.nn.functional as F
+    gen = torch.Generator().manual_seed(seed)
+    N = G * G
+    # ma trận kề 4-hướng lưới G×G (dense [N,N]); shuffle: ô i mượn lân cận của π(i) (giữ phân phối degree)
+    A = torch.zeros(N, N)
+    for a in range(G):
+        for b in range(G):
+            i = a * G + b
+            for da, db in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                na, nb_ = a + da, b + db
+                if 0 <= na < G and 0 <= nb_ < G:
+                    A[i, na * G + nb_] = 1.0
+    perm = torch.randperm(N, generator=gen)
+    A_shuf = A[perm]  # hàng i = lân cận của π(i)
+    kG = torch.tensor([[1., 2, 1], [2, 4, 2], [1, 2, 1]]); kG = kG / kG.sum()
+
+    def tf(g):
+        dev = g.device
+        adj = (A_shuf if mode == "shuffle" else A).to(dev)
+        mag = F.adaptive_avg_pool2d(g.detach().pow(2).mean(0, keepdim=True), (G, G))[0].sqrt()  # [G,G]
+        if mode == "node":
+            a = mag.flatten()
+        elif mode == "spatial":  # TB ‖g‖ trên chính ô + lân cận (không hướng)
+            selfadj = adj + torch.eye(N, device=dev)
+            a = (selfadj @ mag.flatten()) / selfadj.sum(1)
+        elif mode == "smooth":  # Gauss lowpass ‖g‖ (đối chứng 'graph = làm mượt?')
+            a = F.conv2d(mag[None, None], kG.to(dev)[None, None], padding=1)[0, 0].flatten()
+        else:  # grad | shuffle: r_i = TB cos(desc_i, desc_j) trên lân cận
+            d = F.adaptive_avg_pool2d(g.detach(), (G * 4, G * 4))  # [3,4G,4G]
+            d = d.reshape(3, G, 4, G, 4).permute(1, 3, 0, 2, 4).reshape(N, 48)
+            d = d / (d.norm(dim=1, keepdim=True) + 1e-8)
+            cosM = d @ d.t()  # [N,N]
+            r = (cosM * adj).sum(1) / adj.sum(1).clamp(min=1)
+            a = 1.0 + lam * (r - r.mean())
+        a = a.clamp(min=0.0)
+        a = a / (a.mean() + 1e-8)  # mean=1 giữ biên độ tổng
+        a_up = F.interpolate(a.reshape(1, 1, G, G), size=g.shape[-2:], mode="nearest")[0]
+        return g * a_up
+    return tf
+
+
 def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float = 5.0,
                     alpha: float = 1.0, k: float = 3.0, momentum: float = 1.0, geo: str = "pia",
                     n_views: int = 2, backward_per_step: int = 1, delta_max: float = DELTA_PAPER,
@@ -458,7 +504,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
                     weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
-                    weight_linear: bool = False, mom_in=None, return_state: bool = False):
+                    weight_linear: bool = False, mom_in=None, return_state: bool = False, rgg=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -525,6 +571,14 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         def grad_transform(g):  # noqa: E306,F811
             t = torch.quantile(g.detach().abs().float().flatten(), gflush)
             return g * (g.abs() >= t)
+    if rgg is not None:
+        # E72 RGG (progress_log 2026-10-31): reweight gradient theo VÙNG trước momentum (grad_transform). Lưới G×G, mỗi ô 1 node.
+        # mode: "node" (trọng số theo ‖g‖ ô — region importance), "spatial" (làm mịn ‖g‖ theo lân cận, KHÔNG hướng),
+        # "grad" (r_i = TB cos(desc_i, desc_j) lân cận — quan hệ gradient có dấu), "shuffle" (grad nhưng hoán vị gán lân cận),
+        # "smooth" (Gauss lowpass ‖g‖ — đối chứng 'graph = làm mượt?'). a chuẩn hóa mean=1 (giữ biên độ, so sánh công bằng).
+        assert pix_region is None and gflush is None and rgg[0] in ("node", "spatial", "grad", "shuffle", "smooth")
+        grad_transform = _rgg_transform(rgg[0], G=rgg[1] if len(rgg) > 1 else 6,
+                                        lam=rgg[2] if len(rgg) > 2 else 1.0, seed=torch.initial_seed() + 29)
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"
