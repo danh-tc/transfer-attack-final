@@ -9,9 +9,9 @@ Counterfactual chỉ đo hình học update cục bộ — KHÔNG suy AP-drop. T
   python scripts/e78_momentum_attr.py   -> results/mechanism/e78_momentum_attr.json"""
 import json
 import os
+import random
 import sys
 
-import mmcv
 import numpy as np
 import torch
 
@@ -21,9 +21,8 @@ sys.path.insert(0, REPO_ROOT)
 from attack.data import load_image_ids
 from attack.methods.pia import geo_osfd_attack
 from attack.models import load_model
-from attack.preprocess import to_adv_image
 from attack.targets import target_dataset
-from scripts.e71_ensemble_wp import ART, RUN, COMMON, KW_WP, BLOCK, STEPS
+from scripts.e71_ensemble_wp import COMMON, KW_WP, BLOCK, STEPS
 
 OUT = os.path.join(REPO_ROOT, "results/mechanism/e78_momentum_attr.json")
 ORDER = ["r50", "convnext_t"]
@@ -40,8 +39,9 @@ def cosf(a, b):
 
 
 def run_block(models, key, orig, ds_s, delta_in, mom_in, seed):
-    """1 block (BLOCK bước) từ (delta_in, mom_in) với seed cố định -> (delta_out, mom_out)."""
-    torch.manual_seed(seed)
+    """1 block (BLOCK bước) từ (delta_in, mom_in). Seed CẢ torch LẪN python-random (OCT elem dùng random) ->
+    quỹ đạo trung thực + tái lập được; counterfactual cùng seed = cùng augmentation (so sánh sạch)."""
+    torch.manual_seed(seed); random.seed(seed)
     return geo_osfd_attack(models[key], orig, ds_s["data_sample"], steps=BLOCK,
                            init_noise=delta_in, mom_in=mom_in, return_state=True, **KW_WP[key], **COMMON)
 
@@ -69,13 +69,13 @@ def main():
             seed = 1000 * (n + 1) + b
             delta, mom = run_block(models, key, orig, ds[key][iid], delta, mom, seed)
             states.append((b, key, d_before if key != "r50" else None, mom_before, seed, flat(delta - d_before).cpu()))
-        if n < 3:  # VALIDATE: mean-abs-diff (bỏ qua lật-dấu pixel undecided do CUDA nondeterminism + MI sign)
-            adv = to_adv_image(orig, delta).permute(1, 2, 0).cpu().numpy()
-            ref = mmcv.imread(os.path.join(ART, RUN, "adv", "ENS-WP", f"{iid}.png")).astype(np.float32)
-            mad = float(np.abs(adv - ref).mean()); pbig = float((np.abs(adv - ref) > 2).mean())
-            vdiag.append({"iid": iid, "mean_abs_diff": round(mad, 3), "frac_pix_>2": round(pbig, 3)})
-            assert mad <= 1.5, f"replay LỆCH quỹ đạo ENS-WP (mean-abs-diff {mad}) -> bug, dừng"
-            print(f"[validate {iid}] mean-abs-diff={mad:.3f} frac|Δ|>2={pbig:.3f} (OK, lệch chỉ do sign-flip nondeterm)", flush=True)
+        if n < 3:  # SANITY: quỹ đạo là ENS-WP hợp lệ (ε-ball + có nhiễu thực). KHÔNG khớp PNG cũ (bản gốc dùng
+            # random KHÔNG seed per-block -> không tái lập giữa process); replay này là mẫu ENS-WP trung thực, đã seed.
+            d = delta.abs()
+            mad = float(d.mean()); mx = float(d.max())
+            vdiag.append({"iid": iid, "mean_abs_delta": round(mad, 3), "max_abs_delta": round(mx, 3)})
+            assert mx <= 5.0 + 1e-3 and mad > 1.0, f"delta bất thường (mean {mad}, max {mx}) -> dừng"
+            print(f"[validate {iid}] ENS-WP replay: mean|δ|={mad:.2f} max|δ|={mx:.2f} (ε-ball OK)", flush=True)
         # --- PHA 2: counterfactual R50 tại ĐÚNG (d_before, mom_before, seed) từng block ConvNeXt (không đụng quỹ đạo thật) ---
         r50_u = []
         for (b, key, d_before, mom_before, seed, u) in states:
