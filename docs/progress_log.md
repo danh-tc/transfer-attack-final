@@ -4794,3 +4794,12 @@ Recall R50 nhỏ/vừa/lớn: sạch 55.6/83.1/91.7, δ_R 6.6/11.0/4.2, δ_C 21.
 MIX = LP2(δ_C) + HP2(δ_R): R50 96.3, R101 86.2, ConvNeXt 80.1, Swin-T 72.5, DINO-Swin-L 29.3.
 **Đọc:** (1) Nguyên nhân chính là HƯỚNG, không phải thiếu tần cao: δ_C gần như không tương quan δ_R, yếu ở cả hai dải. (2) δ_C VÀO được R50 (stage 1–2 ngang δ_R) nhưng không được khuếch đại ở stage sâu (C4 −16%, C5 −20%). (3) Hệ quả: object lớn sống (43.8 vs 4.2), box giả giảm một nửa. (4) Độ lớn distortion KHÔNG giải thích transfer: trên Swin-L δ_O và δ_C có D_k gần bằng nhau mà drop 26.4 vs 62.8 → cái quyết định là hướng distortion. (5) MIX: lấy lại R50 nhưng Swin-L tụt 62.8 → 29.3: thành phần cao tần là chỗ hai họ TRANH NHAU, không tách theo dải được; chia dải tần cho từng họ là hướng đóng. Caveat: LP / HP co lại L∞ = 5 và phi tuyến, n = 30.
 **Điểm phải kiểm trước khi đổi surrogate:** so RD-CNX với OSFD-R50 là so lẫn hiệu ứng surrogate; CNX-NOWP 52.9 và CNX-NGUYEN 55.6 gợi ý phần lớn lợi đến từ surrogate. Cần OSFD chạy trên ConvNeXt mới biết phần của method.
+
+---
+
+## 2026-10-31 — E65: lợi của RD-CNX do SURROGATE hay do METHOD? OSFD / MI / M-DI² trên surrogate ConvNeXt-T @ dev30 B50 full panel, A4500 (user: "approve nhưng dev30 thôi", ~12:51 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** E63 so RD-CNX với mốc surrogate R50, lẫn hiệu ứng surrogate; E63 CNX-NOWP 52.9, CNX-NGUYEN 55.6 gợi ý phần lớn lợi đến từ ConvNeXt. Phải so CÙNG surrogate trước khi đổi.
+**Ô:** OSFD, MI-FGSM, M-DI²-FGSM trên ConvNeXt-T, B50, cấu hình protocol_lock, không chỉnh gì. Mốc: RD-CNX B36 (E63: Swin-L 62.8, T7 78.2), OSFD-R50 B50 (E62: Swin-L 26.4, T7 77.2).
+**Quy tắc (Δ = RD-CNX − OSFD-CNX, dev30, điểm; sàn nhiễu Swin-L ~4):** **HỢP LỆ** mỗi baseline nếu white-box ConvNeXt ≥ 80. **METHOD GÓP** nếu ΔSwin-L ≥ +4 VÀ ΔT7 ≥ −2. **CHỈ SURROGATE** nếu |ΔSwin-L| < 4: lợi chủ yếu do ConvNeXt, RD không đóng góp rõ trên Swin-L. **OSFD-CNX THẮNG** nếu ΔSwin-L ≤ −4. Còn lại XÁM. Mô tả: phần surrogate = (OSFD-CNX − OSFD-R50) / (RD-CNX − OSFD-R50) trên Swin-L; từng target.
+**Caveat:** dev30 chỉ xem xu hướng, không kết luận; B lệch (36 vs 50) thiệt cho RD; dev100 xác nhận sau, user quyết.
+**Chạy:** `results/e65/run.sh`, log `results/e65/run.log`.
