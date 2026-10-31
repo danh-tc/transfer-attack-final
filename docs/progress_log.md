@@ -5200,3 +5200,16 @@ corr(R50 history self-sim, ConvNeXt orth_frac) = 0.229 | vs rotation = -0.226 (n
 **Single-surrogate NO-GO (|corr| 0.229 < 0.40):** tín hiệu CHỈ-R50 (tự-lặp lịch sử gradient) KHÔNG dự báo được lúc/mức ConvNeXt đóng góp (yếu, không = 0 nhưng xa ngưỡng hành động). → KHÔNG xây controller SMR: R50 không "thấy" được khi nào cần correction.
 **Đọc:** ENS-WP hiệu quả vì ConvNeXt bơm một hướng-sửa gần-trực-giao, đều magnitude, liên tục; hướng đó mang thông tin kiến-trúc ConvNeXt mà R50 không quan sát/dự báo được (nối E68 tĩnh → động). Đây là MẢNH CƠ CHẾ cuối cho paper: giải thích *vì sao* ensemble thắng và *vì sao* single-surrogate không thế chỗ được. Dùng attribution này làm bằng chứng, KHÔNG xây SMR.
 **TỔNG (7 gate single-surrogate NO-GO): E64 tần số, E72 vùng, E74 budget, E75 objective, E76 backward-path, E77 failure-mode, E78 momentum-recoverability.** Cộng E67 (feature-sim) + E68 (orthogonal) = 9 bằng chứng. Mọi đường single-surrogate đóng; ENS-WP (2 hướng trực giao) là method; E78 là lượng hoá động-học của cơ chế. **Khuyến nghị dứt khoát: dừng vòng single-surrogate, đóng gói contribution cơ chế + ENS-WP.**
+
+---
+
+## 2026-10-31 — E79a-Basin: Transferable Basin Test — PILOT dev30 (user đề xuất; góc second-order/flatness, khác E64-E78 first-order) — khóa TRƯỚC khi đọc
+**Giả thuyết:** ENS-WP transfer tốt vì δ nằm trong basin detection-loss PHẲNG (ít nhạy nhiễu nhỏ), không chỉ loss cao tại điểm đặc thù surrogate → nếu đúng, objective R50-only tối ưu robustness (không cần grad ConvNeXt). Khác E64-E78 (gradient/trajectory); đây là độ cong landscape quanh nghiệm cuối.
+**Phản biện đã nêu với user:** (1) WP-confound — RD-R50 ĐÃ có WP (SAM-flatness) mà Swin-L vẫn 34.8 → phẳng-trên-surrogate KHÔNG phải lever; Gate A chỉ còn cửa ở target-side flatness sau kiểm soát base. (2) Gate B dự đoán ~85-90% NO-GO (cùng tường E68/E75/E78: tính chất target-relevant trực giao R50; E78 corr R50→contribution 0.23).
+**Đo (`scripts/e79_basin.py`, reuse δ=adv_png−clean_jpg như E64, dev100[:30]):** sinh lân cận δ'=clip(δ+N(0,σ=2),±5), K=3. Eval AP per-ảnh. retention = APdrop(δ')/APdrop(δ). Models: r50 (quan sát-từ-surrogate, Gate B) + dino_swin_l/swin_t (khác họ) + r101. Kiểm soát saturation: báo mean‖δ'−δ‖ thực sau clip.
+**GO/NO-GO (khóa):**
+- **Gate A** (mechanism): retention ENS-WP ≥ max(RD-R50, RD-CNX) + 0.03 trên CẢ dino_swin_l VÀ swin_t (kiểm soát base-APdrop bằng tỷ số, chống tautology "mạnh hơn trông phẳng hơn").
+- **Gate B** (recoverability): retention quan sát-từ-R50 dự báo retention target khác-họ, |corr| theo ảnh×cond ≥ 0.30 cả hai target (pilot screen; E79b mới làm out-of-sample predictive gain ≥10%).
+- **GO** = cả hai → E79b dev100. **NO-GO** = thiếu bất kỳ → đóng hướng neighborhood-stability (không chỉnh loss cứu). Novelty chỉ nếu phát hiện flatness detection-specific, không phải flatness thường (prior art SAM/flatness-attacks).
+**Caveat:** pilot dev30, per-ảnh AP nhiễu; 1 mức σ; Gate B là screen correlation (chưa partial-corr/out-of-sample). Reuse δ từ ENS-WP chỉ để phân tích — method cuối không được truy cập ConvNeXt/ENS-WP.
+**Chạy:** `python scripts/e79_basin.py`, log `results/e79/run.log`.
