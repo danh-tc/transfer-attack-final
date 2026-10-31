@@ -4972,3 +4972,20 @@ Full panel (mAP drop; ENS/RD B36, OSFD B50):
 **Đọc:** bộ ba E68→E70→E71 khép kín: gradient hai họ trực giao (E68) → momentum-chung phủ cả hai (E70) → WP (trong khối) đẩy Transformer gần miễn phí (E71). ENS-WP là method ensemble chốt: giữ cả hai họ ở mức single-surrogate tốt nhất của từng họ, cùng B=36.
 **Caveat:** dev30 (user: chưa cần dev100); 2 surrogate (pivot idea.md §3 — DUYỆT + báo thầy trước bảng cuối); B lệch OSFD B50 (claim SOTA cần cùng B + OSFD-ensemble làm baseline đồng hạng); eval inference-PNG; weight_linear CNX chưa tune.
 **Trạng thái method:** đơn-surrogate = RD-CNX (Swin-L 62.8, threat model nghiêm); ensemble = ENS-WP (giữ cả hai, pivot threat model). Cơ chế novelty = E67 (không phải feature) + E68 (gradient-direction trực giao).
+
+---
+
+## 2026-10-31 — THẢO LUẬN hướng KG / gradient-distillation + prior art CKL 2024 (user phản biện, ~15:56 GMT+7) — KHÔNG phải thí nghiệm, ghi để giữ context
+**Bối cảnh:** sau E71 (ENS-WP, 2 surrogate), user hỏi có thêm KG để về 1-surrogate + claim novelty/SOTA không. Claude phản biện "KG không thay được surrogate 2 (cơ chế)"; user phản biện lại — Claude RÚT LẠI 4 overclaim:
+1. "1 surrogate không suy được hướng surrogate kia" = SAI nguyên tắc: hàm offline ĝ_CNX = h_φ(x, f_R50, g_R50) có thể dự đoán một phần gradient ConvNeXt (nhầm "không quan sát" với "không dự đoán được").
+2. "E64/E68 chứng minh object relations không liên quan" = overreach: E64/E68 đo cosine gradient + CKA, KHÔNG kiểm định graph quan hệ có thêm thông tin dự đoán.
+3. "E2 thất bại ⇒ mọi graph thất bại" = không suy ra: E2 là semantic pair-crop, khác gradient-based graph. Prior yếu chỉ áp semantic KG.
+4. "Trần 1-surrogate đã biết" = SAI: E55/E29 trượt ≠ upper bound. Không có chứng minh bất khả thi.
+**Câu chốt đã sửa:** không có bằng chứng KG thay được surrogate-2 trong strict-one-surrogate; semantic KG prior yếu (E2); NHƯNG E64/E68 không chứng minh chuyển giao gradient xuyên kiến trúc là bất khả thi.
+**PRIOR ART MỚI (user cung cấp, PHẢI vượt nếu đi hướng distillation):**
+- **CKL — Common Knowledge Learning for Generating Transferable Adversarial Examples (2024, journal.hep.com.cn):** multi-teacher khác kiến trúc → distill sang 1 student + ràng buộc input-gradient + gradient projection giảm xung đột teacher → sinh từ student. Chủ yếu classification. → "distill ensemble → single student" KHÔNG còn đủ novelty tự thân.
+- **CVPR 2025:** nhiều checkpoint của 1 model tạo gradient diversity (không cần kiến trúc surrogate khác nhau).
+**Nuance threat model:** distillation (2-teacher offline → 1-student online) KHÔNG trả lại strict-one-surrogate — nó DỜI phụ thuộc nhiều-model từ lúc-sinh sang lúc-train. Benchmark threat model quan tâm lúc-sinh (1 detector) nên có thể biện minh, nhưng NỚI idea.md §3 "exactly one surrogate" → phải khai báo + thầy duyệt.
+**QUYẾT ĐỊNH hướng (đồng thuận):**
+- Paper hiện tại: KHÔNG thêm KG để tăng module. Củng cố RD-CNX + ENS-WP + gradient geometry (E67/E68) + baseline công bằng; làm chặt dev100/n1000 + OSFD-ensemble đồng hạng.
+- Research bet mới (chỉ khi thầy muốn contribution "single-model-at-test"): **relational gradient distillation** > semantic KG, 2 cổng BẮT BUỘC: (a) feasibility — student 1-surrogate giữ phần đáng kể gain ENS-WP? (b) graph-necessity — graph > predictor không-graph cùng capacity? Cả hai dương mới đáng. Eyes-open: vượt CKL, distillation mất mát (student yếu hơn ENS-WP), nới threat model.
