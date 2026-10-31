@@ -4741,3 +4741,13 @@ DINO-Swin-L drop (R50 WB): RD 30.3 (98.0) | GQ30 30.8 (98.0) | GQ50 31.6 (98.8) 
 Đường liều Swin-L drop (R50 WB): RD 30.3(98) | GQ30 30.8(98) | GQ50 31.6(98.8) | **GQ70 32.7(98.2, đỉnh)** | GQ80 31.9(98.2) | GQ90 31.0(97.2). Mốc V100 = 37.7.
 **Đọc:** (1) Chữ U ngược, đỉnh p=0.7 +2.4 — flush thành phần nhỏ là lever THẬT nhưng chỉ tái tạo **~1/3** lợi thế V100 (2.4/7.7). (2) R50 WB giữ ~98 tới p=0.8, p=0.9 bắt đầu nhẹ (97.2) → flush quá mạnh mất cả thành phần hữu ích. (3) Phần ~5 điểm còn lại của V100 KHÔNG bắt được bằng flush gradient hậu kỳ → là hiệu ứng tích lũy fp16 sâu hơn (đổi cả thành phần lớn qua 36 bước), chỉ tái tạo được trên chính Volta. (4) +2.4 CI chạm 0, đỉnh kiểu CWT → khả năng không sống sót dev100.
 **KẾT LUẬN truy tìm V100 (E47→E61):** root cause = kernel fp16 Volta lúc SINH δ (loại seed E59, code E60-checkout, eval probe). Mẫu dấu khác (cos 0.30) cùng thống kê bậc thấp. Khai thác hậu kỳ (RD-GQ) tái tạo ~1/3 (+2.4), không đủ. **Trần Swin-L một-R50-chuẩn ~33–38** (3090 dev100 33.8; V100 37.7; cùng-họ Swin-T 54–59). 50 cần đổi surrogate (robust/cùng-họ) — ngoài ràng buộc. **DỪNG hướng numerics/flush.** Method chốt = RD (E58: +9.8 Swin-L so OSFD dev100, CI loại 0). Việc tiếp user quyết: dựng bảng paper quanh RQ1 + cơ chế (E41/E51/E53/E54/E59) + RD; hoặc nới ràng buộc surrogate.
+
+---
+
+## 2026-10-31 — E62: kiểm máy mới RTX A4500 — RD B36 + OSFD B50 @ dev30 full panel có khớp mốc 3090 không? (user: "run 1 trước", ~12:05 GMT+7) — CHẨN ĐOÁN, khóa TRƯỚC khi chạy
+**Vì sao:** máy phiên này là RTX A4500 20GB (Ampere, compute capability 8.6 như 3090; torch 2.1.2+cu118, driver 570.158.01), chưa có trong docs. E59–E61: kernel GPU lúc SINH δ đổi được Swin-L ~8 điểm (V100 vs 3090) → phải đo trước khi diễn giải số máy này. PNG 3090 đã mất, nên chỉ so được số tổng hợp, KHÔNG đo được đồng thuận dấu δ.
+**Ô:** RD B36, OSFD B50, seed 0, dev30, full panel (cùng lệnh E46). Mốc 3090: Swin-L RD 30.6 (E46; E47 31.5, E60 30.3), OSFD 26.5; T8 drop RD 79.0, OSFD 77.6.
+**Quy tắc (điểm):** **KHỚP AMPERE** nếu |RD Swin-L − 30.6| ≤ 2 VÀ |OSFD Swin-L − 26.5| ≤ 2 VÀ |T8 drop − mốc| ≤ 2 ở cả hai method → dùng 3090 làm mốc diễn giải. **LỆCH** nếu một trong ba độ lệch > 4 (trên spread seed 3.2, E59) hoặc RD Swin-L ≥ 35 (phía V100) → coi A4500 là nền riêng, không đối chiếu số với 3090. Còn lại XÁM (xử như LỆCH khi so số, nhưng không chặn việc tiếp).
+**Dù kết quả nào:** bảng paper sinh TOÀN BỘ trên một máy, không ghép số giữa các máy; KHỚP không cho phép ghép.
+**Caveat:** dev30 chỉ phát hiện lệch lớn cỡ máy; n = 30, không đọc hiệu method từ đây.
+**Chạy:** `results/e62/run.sh`, log `results/e62/run.log`.
