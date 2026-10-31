@@ -4883,3 +4883,15 @@ Phụ Swin-T: cos(ConvNeXt) 0.206 vs cos(R50) 0.111, Δ +0.095 [+0.077, +0.112] 
 **Giới hạn còn lại (ResNet tụt ~10):** cos gradient ConvNeXt→ResNet (R50 0.143, R101 0.141) THẤP HƠN R50→ResNet white-box, nên δ_CNX không trỏ sâu vào ResNet bằng chính R50 → tụt ~10 là do mất lợi thế white-box/cùng-họ của R50-surrogate, **không gỡ được bằng tinh chỉnh loss** (cos gradient là tính chất kiến trúc cố định). Lever giữ-cả-hai cùng-budget: tăng trọng số HƯỚNG CHUNG (cls, cos cao nhất xuyên họ) — nhưng cos tuyệt đối nhỏ (0.04–0.2) nên trần có hạn; hoặc ensemble (đổi threat model).
 **Novelty paper (cơ chế SẠCH):** "transferable direction" xuyên họ là một tính chất của ĐƯỜNG GRADIENT backbone, KHÔNG của tương đồng biểu diễn; surrogate ConvNeXt bắc cầu vì gradient của nó trỏ gần vùng Transformer đồng thuận, và method phải dùng loss cls để đi theo hướng đó. Giải thích vì sao OSFD (feature thuần) không hưởng.
 **Việc tiếp:** đủ lý do cơ chế — dừng chuỗi probe. Chờ user: (a) dev100 xác nhận bảng 2×2 + E68 trên dev100; (b) dựng câu chuyện paper quanh chuỗi E65→E68; (c) thử lever "tăng trọng số hướng chung" nếu muốn đẩy ResNet.
+
+---
+
+## 2026-10-31 — E69: ensemble cross-family R50 ⊕ ConvNeXt CÙNG budget B=36 — giữ cả hai họ? @ dev30 (user: "Test thử luôn", ~14:06 GMT+7) — khóa TRƯỚC khi chạy; ĐỔI THREAT MODEL (2 surrogate), pivot idea.md §3 cần duyệt chính thức
+**Cơ chế (E68):** ∇R50 trỏ ResNet, ∇ConvNeXt trỏ Swin-L, gần trực giao (cos 0.14) -> δ qua CẢ HAI phủ cả hai subspace. Dự đoán: giữ Swin-L + nâng ResNet.
+**MVP warm-start (không sửa core, cùng B):** 18 bước RD surrogate A -> δ1; 18 bước RD surrogate B khởi tạo δ1. Tổng 36 backward = cùng B (KHÔNG x2 thời gian; ~3.6 s/ảnh). Hai thứ tự: **ENS-RC** (R50->ConvNeXt, kết ở ConvNeXt), **ENS-CR** (ConvNeXt->R50, kết ở R50). Config RD khóa (λ R50=6, CNX=0.2, WP ρ0.002, weight_linear cho CNX). So RD-CNX (E63) + RD-R50 (E62) cùng đường eval (inference PNG, 9 model panel).
+**Quy tắc (dev30, điểm; mốc RD-CNX Swin-L 62.8 / R101 82.2 / DINO-R50 83.6 / R50-target 83.7; RD-R50 Swin-L 33.8 / R101 92.5):**
+- **GIỮ CẢ HAI (thắng)** nếu tồn tại thứ tự: Swin-L ≥ 55 (giữ ~RD-CNX, cho sai số dev30) VÀ TB{R101, FCOS, DINO-R50} ≥ 88 (nâng ~5 so RD-CNX ~83, tiến về RD-R50 ~92) → ensemble là method giữ-cả-hai, xác nhận dev100 + chính thức hóa pivot threat model.
+- **CHỈ TRỘN TUYẾN TÍNH** nếu Swin-L và ResNet đều nằm GIỮA RD-R50 và RD-CNX theo tỉ lệ ~ thứ tự (kết ở model nào thì nghiêng họ đó) → warm-start chỉ nội suy, không cộng hưởng; cần ensemble momentum-chung thật (sửa core) mới kết luận.
+- **KHÔNG** nếu cả hai thứ tự: Swin-L < 50 HOẶC TB ResNet < RD-CNX → ensemble warm-start không giúp.
+**Caveat:** warm-start momentum RESET ở chỗ đổi (yếu hơn momentum-chung thật); thứ tự ảnh hưởng (model cuối trội); dev30; eval qua inference-trên-PNG (so trong E69, không trộn số panel run_baselines). KQ dương = cận trên tiềm năng, KQ âm chưa loại ensemble thật.
+**Chạy:** `python scripts/e69_ensemble.py`, log `results/e69/run.log`.
