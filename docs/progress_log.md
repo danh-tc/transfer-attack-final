@@ -5299,3 +5299,24 @@ RES3           91.0   94.6   +3.6
 - Ô này cũng là số lệch máy ĐẦU TIÊN đo được cho ENS-WP (trước nay chỉ có cho RD) — bổ sung E59–E62.
 **Chi phí:** sinh B36 5.1 s/ảnh, B50 5.6 s/ảnh (30 ảnh mỗi ô ~2.5 ph), eval 4 model × (clean + 2 adv) boot 100 ~3.5 ph. Tổng cả hai lần chạy ~14 ph.
 **Việc tiếp:** (1) **strict-1 + WP** (sửa core `wp_in`/`wp_out`, ~1–1.5h) = lever Swin-L duy nhất còn lại; (2) nếu muốn claim "B mua họ ResNet" thì xác nhận dev100; (3) ghi lại CLAUDE.md: lệch máy là đặc tính per-method.
+
+## 2026-11-09 — E81: hai trục KHÔNG CẦN SỬA CORE cho Swin-L — phân bổ ngân sách giữa 2 surrogate + liều ρ của WP @ dev30 B36, V100 (user: "đồng ý", ~22:45 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** E80 đóng lever ngân sách cho Swin-L (ΔSwin-L +2.1, CI chứa 0) nhưng cho thấy ENS-WP đã gần trần ở họ ResNet (91–95) còn Swin-L mới 60.3 → chỗ còn lại phải lấy từ Swin-L. Hai trục chưa từng quét, đều chỉ đổi tham số (KHÔNG sửa core, khác strict-1+WP cần `wp_in`/`wp_out`).
+**Trục 1 — PHÂN BỔ (allocation).** ENS-WP chia 9 khối R50 / 9 khối ConvNeXt (1:1), chưa bao giờ thử khác. E68: mỗi họ góp hướng riêng, ConvNeXt là bên mang Swin-L → dồn khối sang ConvNeXt có thể mua Swin-L ở CÙNG B=36 (phân bổ lại, không thêm compute).
+> **PRIOR YẾU đã khai báo TRƯỚC khi chạy:** trục này bị CHẶN TRÊN bởi điểm cuối ConvNeXt-thuần = RD-CNX (dev30 A4500: Swin-L **62.8**). ENS 1:1 = 60.3 < 62.8 → trên Swin-L ensemble đang NỘI SUY, không cộng hưởng (khác yolov3/yolox/swin_t nơi E70/E71 có synergy). Nên gain kỳ vọng ≤ **+2.5**, DƯỚI ngưỡng +4. Chạy 1 ô ở điểm cực (3/15) thay vì quét dày — nếu điểm cực không đạt thì cả trục đóng.
+**Trục 2 — LIỀU ρ của WP.** ρ=0.002 bê nguyên từ single-surrogate R50 (E71 caveat ghi "weight_linear CNX chưa tune"). E66: bật WP = **+9.9 Swin-L** trên RD-CNX, gần như miễn phí ở CNN (R101 −1.4) → trục WP có năng suất, liều chưa dò. Không bị chặn bởi điểm cuối nào đã biết.
+**4 ô (tất cả B=36, BLOCK=2, 18 khối, momentum chung, λ R50=6 / CNX=0.2, OCT 1V, L_OSFD C3–C5 + cls RoI, ε=5, seed 1000·(n+1)+b; chỉ đổi đúng thứ ghi):**
+| ô | phân bổ | ρ |
+|---|---|---|
+| `ENS-WP-B36` (mốc, PNG đã có trên V100) | 9 R50 / 9 CNX | 0.002 |
+| `ENS-A315` | **3 R50 / 15 CNX** | 0.002 |
+| `ENS-RHO5` | 9 / 9 | **0.005** |
+| `ENS-RHO10` | 9 / 9 | **0.010** |
+**QUY TẮC KHÓA (dev30, V100, trong-cùng-máy; Δ = ô − `ENS-WP-B36`, CI hiệu số PAIRED cùng bộ W):**
+- **CÓ ĐÒN BẨY** nếu tồn tại ô: ΔSwin-L ≥ **+4** VÀ cận dưới CI paired > 0 VÀ RES3 ≥ RES3(mốc) − 3 → xác nhận dev100 trước khi vào bảng.
+- **ĐÁNH ĐỔI** nếu ΔSwin-L ≥ +4 nhưng RES3 tụt > 3 → chỉ dịch chỗ trên đường đánh đổi (như RD-CNX vs RD-R50), KHÔNG phải lever thật; ghi đường cong, user chọn điểm vận hành.
+- **ρ QUÁ LIỀU** nếu RES3 < RES3(mốc) − 10 → ρ phá surrogate; đọc ô ρ nhỏ hơn làm trần của trục.
+- **KHÔNG / TRUNG TÍNH** nếu mọi ô ΔSwin-L < 4 hoặc CI chứa 0 → đóng CẢ HAI trục không-sửa-core; lever Swin-L duy nhất còn lại = **strict-1 + WP** (sửa core, ~1–1.5h).
+- Phụ, tăng độ tin: **đơn điệu theo liều** ở trục ρ (0.002 → 0.005 → 0.010), như E57. Đơn điệu + CI loại 0 đáng tin hơn một điểm lẻ.
+**Caveat:** (1) dev30 n=30 boot 100 — mức sàng lọc, sàn nhiễu Swin-L ~4, null YẾU; (2) **quét siêu tham số trên dev30 = forking path** → ô thắng BẮT BUỘC xác nhận dev100, số cuối phải trên n300/n1000 (chưa dính lựa chọn nào); (3) ρ đổi cho CẢ HAI surrogate (không tách R50/CNX — ít lựa chọn hơn); (4) panel gọn 4 model, không có white-box nên guard là RES3; (5) eval inference-PNG.
+**Chạy:** `python scripts/e81_ens_alloc_rho.py` (nền), log `results/e81/run.log`.
