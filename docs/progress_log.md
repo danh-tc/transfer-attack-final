@@ -5264,3 +5264,20 @@ r101            0.944 | 85.1        0.905 | 74.5        0.954 | 85.4
 **Panel GỌN 4 model (user chọn):** `dino_swin_l` (trục chính) + `r101`/`fcos_r50`/`dino_r50` (RES3). boot **100** (mức sàng lọc, không phải 300 của bảng paper). dev30, eval inference-PNG.
 **Caveat:** (1) lệch máy — xem trên, đây là caveat CHÍNH; (2) 50/2 = 25 khối → **13 khối R50 / 12 khối ConvNeXt** (E71 B36 cân 9/9); lệch 1 khối nghiêng nhẹ về R50 nên có thể kéo Swin-L xuống ~0.5, tức nhánh "NGƯỢC" hơi anti-conservative — ghi rõ, không sửa vì user đã chốt B=50 (khớp ngân sách OSFD B50); (3) dev30 n=30, sàn nhiễu Swin-L ~4; (4) 1 ô, không có đối chứng cùng máy.
 **Chạy:** `python scripts/e80_ens_budget.py` (nền), log `results/e80/run.log`.
+
+### E80-ENSB kết quả ô B50 @ dev30 (V100, xong 22:23:07 GMT+7; `results/mechanism/e80_ens_budget.json`, log `results/e80/run.log`) — theo quy tắc một chiều: **LẪN** (đúng nhánh dự đoán)
+`ENS-WP-B50`: dino_swin_l **62.4** CI [51.4, 66.8] | r101 93.6, fcos_r50 95.6, dino_r50 94.7 → RES3 **94.6**. Thời gian: sinh 5.6 s/ảnh (30 ảnh ~2.5 ph), eval 4 model boot 100 ~3.5 ph, **tổng 6 ph**.
+**Phán quyết:** Swin-L 62.4 ≥ 60.3 (mốc A4500 B36) → nhánh **LẪN**: chênh +2.1 nằm gọn trong biên lệch V100–Ampere (~8) → KHÔNG được đọc là "B50 > B36". RES3 94.6 vs 93.7: họ ResNet không vỡ khi tăng B (cùng lệch máy, chỉ mô tả).
+
+### E80-ENSB MỞ RỘNG (user: "chạy luôn", ~22:26 GMT+7) — thêm ô `ENS-WP-B36` TRÊN CÙNG V100 + CI hiệu số paired; khóa TRƯỚC khi chạy
+**Vì sao sửa thiết kế đã khóa:** ước chi phí ban đầu SAI 5 lần (Claude ước sinh-lại-B36 25–35 ph, thực đo 6 ph — vì lấy mốc E74 eval 9 model boot 300, trong khi panel gọn 4 model boot 100 rẻ hơn nhiều). Chi phí thật ~6 ph đổi được "không đọc được" → so sánh trong-cùng-máy hợp lệ, vẫn trong ngân sách 15 ph user đặt. Lý do ghi trước khi chạy theo quy ước.
+**Ô thêm:** `ENS-WP-B36` = **y hệt E71 ENS-WP** (18 khối, cân 9 R50 / 9 ConvNeXt, cùng KW_WP, cùng seed `1000·(n+1)+b`), chỉ khác MÁY (V100 thay A4500). Run dir `dev300_B36_eps5_limit100_ens_v100`.
+**Thay đổi cách đo (quan trọng):** script tính **CI hiệu số PAIRED** trong cùng tiến trình (cùng bộ trọng số bootstrap W, BOOT_SEED 2026, N_BOOT 100) — khắc phục chỗ E73/E74 chỉ lưu `point`/`ci95`/`p_le_0` nên hậu kỳ KHÔNG tính được CI của hiệu số (đã gặp khi so RD-CNX-B50 vs ENS-WP: +3.7 không có CI nào đỡ).
+**QUY TẮC KHÓA (dev30, trong-cùng-máy; Δ = B50 − B36):**
+- **NGÂN SÁCH LÀ ĐÒN BẨY** nếu ΔSwin-L ≥ **+4** VÀ cận dưới CI paired > 0 VÀ RES3(B50) ≥ RES3(B36) − 2 → xác nhận dev100 trước khi vào bảng.
+- **TRUNG TÍNH** nếu |ΔSwin-L| < 4 HOẶC CI paired chứa 0 → không đủ để theo; đóng lever-B ở mức dev30, dồn sức sang strict-1+WP. (n=30 → null YẾU, không đọc là "B chắc chắn không giúp".)
+- **HẠI** nếu ΔSwin-L ≤ −4 với CI loại 0 → tăng B làm xấu ensemble, đóng dứt.
+- Mốc A4500 (60.3 / 93.7) từ đây chỉ dùng để đo ĐỘ LỆCH MÁY (B36@V100 − B36@A4500), KHÔNG dùng cho phán quyết ngân sách.
+**Giá trị phụ:** B36@V100 − B36@A4500 cho số lệch máy của ENS-WP (trước nay chỉ có cho RD) — bổ sung E59–E62.
+**Caveat:** vẫn dev30 n=30 boot 100 (sàng lọc); B50 lệch khối 13/12 vs B36 cân 9/9; eval inference-PNG.
+**Chạy:** `python scripts/e80_ens_budget.py` (nền), log `results/e80/run2.log`.
