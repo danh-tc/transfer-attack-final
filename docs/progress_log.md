@@ -5281,3 +5281,21 @@ r101            0.944 | 85.1        0.905 | 74.5        0.954 | 85.4
 **Giá trị phụ:** B36@V100 − B36@A4500 cho số lệch máy của ENS-WP (trước nay chỉ có cho RD) — bổ sung E59–E62.
 **Caveat:** vẫn dev30 n=30 boot 100 (sàng lọc); B50 lệch khối 13/12 vs B36 cân 9/9; eval inference-PNG.
 **Chạy:** `python scripts/e80_ens_budget.py` (nền), log `results/e80/run2.log`.
+
+### Kết quả E80-ENSB MỞ RỘNG @ dev30, TRONG-CÙNG-MÁY V100 (xong 22:35:05 GMT+7; `results/mechanism/e80_ens_budget.json`, log `results/e80/run2.log`) — theo quy tắc khóa: **TRUNG TÍNH trên Swin-L** (đóng lever-B cho Swin-L)
+```
+model           B36    B50      Δ   CI(Δ paired, boot 100)
+dino_swin_l    60.3   62.4   +2.1   [-0.3, 7.1]   <- trục phán quyết
+r101           91.1   93.6   +2.5   [ 0.2, 6.4]
+fcos_r50       91.9   95.6   +3.7   [ 0.6, 9.5]
+dino_r50       89.9   94.7   +4.7   [ 1.0, 7.8]
+RES3           91.0   94.6   +3.6
+```
+**Phán quyết (quy tắc khóa, trục Swin-L):** ΔSwin-L +2.1 < +4 VÀ CI paired [−0.3, 7.1] CHỨA 0 → **TRUNG TÍNH**. Tăng B 36→50 KHÔNG mua được Swin-L. Khớp E40/E66 ("Swin-L bão hòa từ B36") và E74 (RD-CNX B36→B50 chỉ +2.4 Swin-L). → **đóng lever ngân sách cho Swin-L**; lever Swin-L còn lại = strict-1 + WP (chưa code). Caveat: n=30, boot 100 → null YẾU, không đọc là "B chắc chắn không giúp".
+**Quan sát HẬU KỲ (không pre-register cho mục đích này — RES3 khai báo là "mô tả, không làm cổng"):** cả 3 target họ ResNet đều tăng với CI loại 0 (r101 +2.5, fcos +3.7, dino_r50 +4.7; RES3 **+3.6**). Tức **ngân sách mua được họ ResNet, không mua được Swin-L** — tái lập đúng mẫu E40 (target CNN còn tăng tới B75) và E74 (RD-CNX RES3 +3.4 / Swin-L +2.4) NHƯNG lần này trong ensemble. Vì có prior E40/E74 nên không phải mò, song **phải xác nhận dev100 trước khi claim**.
+**⚠️ PHÁT HIỆN SỬA GIẢ ĐỊNH: ENS-WP gần như KHÔNG có lệch máy V100↔Ampere trên Swin-L.** B36@V100 − B36@A4500: dino_swin_l **+0.0** (60.3 vs 60.3), r101 −1.8, fcos_r50 −2.5, dino_r50 −3.9.
+- Lệch ~8 điểm Swin-L mà CLAUDE.md khóa (E59/E60/E61) là của **RD (1 surrogate R50)**, **KHÔNG tổng quát cho ENS-WP**. Giả thuyết: δ_ENS do hướng ConvNeXt chi phối phần Swin-L, không đi qua đúng đường kernel fp16 Volta mà E59–E61 định vị; hoặc cộng dồn 2 surrogate làm phẳng nhiễu kernel.
+- Hệ quả quy trình: **"lệch máy" phải kiểm theo từng method, không suy từ RD sang method khác.** Suy diễn một chiều ở lần chạy đầu E80 ("V100 kéo Swin-L lên ~8 nên 62.4 là LẪN") dựa trên ngoại suy từ RD và **ĐÃ SAI**; may là đã sinh lại B36 cùng máy nên bắt được. Lệch có thật nhưng ở họ ResNet và chiều ÂM (−1.8…−3.9).
+- Ô này cũng là số lệch máy ĐẦU TIÊN đo được cho ENS-WP (trước nay chỉ có cho RD) — bổ sung E59–E62.
+**Chi phí:** sinh B36 5.1 s/ảnh, B50 5.6 s/ảnh (30 ảnh mỗi ô ~2.5 ph), eval 4 model × (clean + 2 adv) boot 100 ~3.5 ph. Tổng cả hai lần chạy ~14 ph.
+**Việc tiếp:** (1) **strict-1 + WP** (sửa core `wp_in`/`wp_out`, ~1–1.5h) = lever Swin-L duy nhất còn lại; (2) nếu muốn claim "B mua họ ResNet" thì xác nhận dev100; (3) ghi lại CLAUDE.md: lệch máy là đặc tính per-method.
