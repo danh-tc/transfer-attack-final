@@ -5320,3 +5320,44 @@ RES3           91.0   94.6   +3.6
 - Phụ, tăng độ tin: **đơn điệu theo liều** ở trục ρ (0.002 → 0.005 → 0.010), như E57. Đơn điệu + CI loại 0 đáng tin hơn một điểm lẻ.
 **Caveat:** (1) dev30 n=30 boot 100 — mức sàng lọc, sàn nhiễu Swin-L ~4, null YẾU; (2) **quét siêu tham số trên dev30 = forking path** → ô thắng BẮT BUỘC xác nhận dev100, số cuối phải trên n300/n1000 (chưa dính lựa chọn nào); (3) ρ đổi cho CẢ HAI surrogate (không tách R50/CNX — ít lựa chọn hơn); (4) panel gọn 4 model, không có white-box nên guard là RES3; (5) eval inference-PNG.
 **Chạy:** `python scripts/e81_ens_alloc_rho.py` (nền), log `results/e81/run.log`.
+
+### Kết quả E81 @ dev30, V100, trong-cùng-máy (xong 23:04:59 GMT+7; `results/mechanism/e81_ens_alloc_rho.json`, log `results/e81/run.log`) — theo quy tắc khóa: **KHÔNG / TRUNG TÍNH — đóng CẢ HAI trục không-sửa-core**
+```
+ô             Swin-L  ΔSwin-L     CI(Δ paired)   RES3  ΔRES3
+ENS-WP-B36      60.3    (mốc)                    91.0
+ENS-A315        59.4     -0.9      [-3.7, 4.7]   89.7   -1.3
+ENS-RHO5        49.1    -11.2    [-15.4, -3.9]   90.7   -0.3
+ENS-RHO10       39.8    -20.5   [-24.6, -12.9]   88.0   -3.0
+
+từng target:   ENS-WP-B36  ENS-A315  ENS-RHO5  ENS-RHO10
+dino_swin_l          60.3      59.4      49.1       39.8
+r101                 91.1      89.8      90.9       87.9
+fcos_r50             91.9      89.2      92.7       88.6
+dino_r50             89.9      90.0      88.3       87.5
+```
+**Trục PHÂN BỔ — ĐÓNG.** Điểm cực 3 R50 / 15 CNX cho ΔSwin-L **−0.9 [−3.7, 4.7]** (phẳng, CI chứa 0), RES3 −1.3. **Prior yếu khai báo trước khi chạy ĐÚNG**: trục bị chặn trên bởi ConvNeXt-thuần (RD-CNX 62.8) và ENS 1:1 đang nội suy → không có gì để lấy. Dồn 83% ngân sách sang ConvNeXt KHÔNG kéo Swin-L về phía 62.8 → tỷ lệ 9/9 không phải chỗ nghẽn; phần Swin-L của ENS không bị hạn chế bởi "ít khối ConvNeXt".
+**Trục ρ — ĐÓNG, và theo chiều NGƯỢC kỳ vọng.** ρ 0.002 → 0.005 → 0.010 cho Swin-L 60.3 → 49.1 → 39.8, tức **đơn điệu GIẢM**, hai ô CI loại 0 (−11.2 [−15.4, −3.9]; −20.5 [−24.6, −12.9]). (⚠️ Nhãn script in "[không đơn điệu]" là **lỗi kiểm của Claude**: chỉ test chiều TĂNG `mono[0]<mono[1]<mono[2]`. Thực tế đơn điệu giảm rõ — đọc theo bảng, không theo nhãn.)
+**PHÁT HIỆN CƠ CHẾ (giá trị chính của E81):** ρ phá Swin-L rất nặng mà **họ ResNet gần như trơ** — ở ρ0.005 Swin-L mất 11.2 điểm còn RES3 chỉ **−0.3**. Ghép E66 (bật WP 0 → 0.002 = **+9.9** Swin-L, gần miễn phí ở CNN), đường đáp ứng theo liều là:
+```
+ρ:        0   →  0.002  →  0.005  →  0.010
+Swin-L:  ~50      60.3      49.1      39.8     <- ĐỈNH NHỌN quanh 0.002
+RES3:     ~91     91.0      90.7      88.0     <- BẸT
+```
+→ WP **không phải "làm phẳng nói chung"**: nó là một **liều hẹp tác động riêng vào hướng Transformer**, họ ResNet không nhạy với liều. ρ=0.002 bê nguyên từ single-surrogate R50 (chưa từng tune) hóa ra rơi gần đỉnh — may, không phải do chọn. Đây là mảnh cơ chế bổ sung cho E66/E71 (vì sao WP nâng Transformer "gần miễn phí") và đáng vào paper cùng E67/E68.
+**Việc tiếp:** **strict-1 + WP là lever Swin-L DUY NHẤT còn lại** (sửa core `wp_in`/`wp_out`, ~1–1.5h; đường trống: E70 strict-1 noWP Swin-L 55.1 > E71 khối-2 noWP 52.5, mà WP cho +7.8 → nếu cộng được thì ~63). Nếu muốn dò ρ kỹ hơn thì chỉ còn khoảng 0.001–0.003 (đỉnh nhọn), gain nhỏ.
+**Caveat:** dev30 n=30 boot 100, null yếu; nhưng hai ô ρ có CI loại 0 nên phần "ρ lớn làm xấu" là KẾT LUẬN DƯƠNG, không phải null.
+
+---
+
+## 2026-11-09 — BÀN GIAO cuối phiên (user: "xong commit r trả máy", ~23:10 GMT+7) — phiên V100, KHÔNG push được
+**Máy phiên này:** Tesla V100-SXM2-16GB (Volta), torch 2.1.2+cu118, mmdet 3.3.0, COCO val2017 đủ, 12/12 checkpoint. **KHÔNG có `.env`/HF_TOKEN, KHÔNG có git credential.**
+**Làm được trong phiên (~1h, chỉ dev30 panel gọn 4 model, boot 100, tất cả trong-cùng-máy + CI hiệu số paired):**
+1. **E80-ENSB** — ngân sách B36 → B50 cho ENS-WP: **TRUNG TÍNH trên Swin-L** (Δ +2.1, CI [−0.3, 7.1]) → đóng lever ngân sách cho Swin-L. Hậu kỳ: ngân sách MUA được họ ResNet (RES3 +3.6, cả 3 target CI loại 0) — tái lập E40/E74 trong ensemble, cần dev100 nếu muốn claim.
+2. **E80 sửa giả định quan trọng** — **ENS-WP gần như KHÔNG lệch máy V100↔Ampere trên Swin-L** (B36 60.3 vs 60.3 = +0.0); lệch nằm ở họ ResNet, chiều âm (−1.8…−3.9). Lệch ~8 điểm trong CLAUDE.md là **của RD (1 surrogate R50), KHÔNG tổng quát**. → **"lệch máy" phải kiểm PER-METHOD.** Lần chạy đầu E80 Claude suy một chiều từ RD sang ENS-WP và đã SAI.
+3. **E81** — phân bổ 2 surrogate (điểm cực 3/15) + liều ρ (0.005 / 0.010): **cả hai trục ĐÓNG**. Phát hiện cơ chế: **WP có đỉnh liều NHỌN quanh ρ0.002, chỉ tác động hướng Transformer, họ ResNet trơ với liều.**
+**Trạng thái method (không đổi):** ensemble = **ENS-WP** (2 surrogate, dev100 T7 82.6 / Swin-L 55.3, E73); single = **RD-CNX B50** (dev100 T7 78.4 / Swin-L 59.0, E74). Hướng paper giữ nguyên bàn giao 10-31: mechanism + impossibility, ENS-WP làm validation.
+**Lever Swin-L còn lại DUY NHẤT: strict-1 + WP** (sửa core `wp_in`/`wp_out` ~1–1.5h, GPU ~6 ph ở dev30 panel gọn). Mọi trục không-sửa-core đã đóng (ngân sách E80, phân bổ E81, liều ρ E81).
+**PHÁT HIỆN VỀ PRIOR ART (chưa verify — user cắt tìm web):** user dán literature scan nêu **SVul-Attack** (feature + task loss + frequency + neighborhood, 22 detectors), **CTSTA**, **FUGEA**, **CWA ICLR'24** (ensemble + flatness, gần trùng recipe ENS-WP). **PHẢI đọc trước khi chốt câu chữ novelty** — nhất là SVul-Attack (đụng lõi RD = feature + cls loss) và CWA (đụng ENS-WP = ensemble + WP/flatness).
+**ĐỌC PAPER BENCHMARK (`papers/2602.16494v1.pdf`, đã verify trong repo):** benchmark CÓ 2 method nhiều surrogate — **CAA** (Faster R-CNN + YOLOv3, đúng 2 surrogate, transfer-based black-box) và **EBAD** (ensemble + QUERY victim → grey-box). → **giả định 2-surrogate của ENS-WP có TIỀN LỆ ngay trong benchmark nguồn taxonomy, và NHẸ HƠN EBAD (zero query)**; pivot threat model đỡ nặng hơn progress_log trước nay giả định. Số của họ trên DINO-Swin-L (VOC2007): CAA 3.8, EBAD 4.5, OSFD tốt nhất 40.2, PhantomSponges 2.3. Câu kết của họ: *"no attacks in our benchmark capable of compromising modern detectors in a realistic black-box scenario, future research must focus on..."* → ENS-WP trả lời đúng bài toán mở này (khác protocol: VOC2007, ε=10/30 vs COCO ε=5 — không so trực tiếp).
+**⚠️ ARTIFACT SẼ MẤT:** `artifacts/runs/dev300_B36_eps5_limit100_ens_v100` (66M: ENS-WP-B36, ENS-A315, ENS-RHO5, ENS-RHO10) + `dev300_B50_eps5_limit100_ens_v100` (17M: ENS-WP-B50). **KHÔNG upload HF được** (không có HF_TOKEN). Tái tạo bằng `results/e8{0,1}/run.sh` (~14 ph tổng) nhưng **CHỈ seed torch**, chưa seed python-random như E78 đã sửa → có thể không trùng bit-chính-xác. Số tổng hợp + CI đã trong git (`results/mechanism/e8{0,1}_*.json`).
+**⚠️ GIT: KHÔNG PUSH ĐƯỢC** — máy không có credential GitHub (`git remote` = https://github.com/danh-tc/transfer-attack-final.git, không có helper/`~/.git-credentials`). Mọi commit phiên này CHỈ LOCAL. **User phải tự push trước khi trả máy**, nếu không mất E80 + E81 + note này.

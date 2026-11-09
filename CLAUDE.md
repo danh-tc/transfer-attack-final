@@ -14,34 +14,55 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-**Trạng thái (cập nhật 2026-10-30 ~16:45 GMT+7, máy RTX 3090): TẠM DỪNG — đọc đuôi `docs/progress_log.md` (E46→E61).** Phiên nay chạy trên 3090 (KHÁC V100 phiên 10-28 — xem mục "lệch phần cứng" dưới).
+**Trạng thái (cập nhật 2026-11-09 ~23:10 GMT+7, máy V100): TẠM DỪNG — đọc đuôi `docs/progress_log.md` (E62→E81 + 2 entry BÀN GIAO).**
 
-**METHOD CHỐT = `C2-OCT-1V-WP2-RD` ("RD")** (L_OSFD C3–C5 + 6·loss_cls RoI, OCT 1V, MI, WP ρ = 0.002, B36 = cùng thời gian OSFD B50). **E58 XÁC NHẬN @ dev100 cùng máy 3090, CI loại 0: RD − OSFD trên DINO-Swin-L = +9.8 [5.1, 13.1]**, hơn ConvNeXt +6.6, Swin-T +5.4 — SOTA-competitive ở target khác họ backbone. (RD-CV = +0.3·vanishing: E46 nhỉnh drop/APloc nhưng ASR chưa qua ngưỡng; để phụ.)
+**QUYẾT ĐỊNH LỚN (user duyệt 2026-10-31): DỪNG tìm method single-surrogate. Paper = mechanism + impossibility, ENS-WP làm validation.** Cơ sở: **8 gate single-surrogate NO-GO** phủ 4 tầng — tần số E64, vùng E72, ngân sách E74, objective E75, backward-path E76, failure-mode E77, momentum-recoverability E78, basin-flatness E79 — cộng E67/E68 khẳng định cơ chế. Outline + tiêu đề: "Orthogonal by Architecture: The Backbone-Family Barrier in Transferable Object-Detection Attacks".
 
-**⚠️ LỆCH PHẦN CỨNG (quan trọng cho mọi so sánh Swin-L):** cùng code RD, V100 → Swin-L ~38, 3090 → ~31–34. Root cause ĐÃ CHỐT (E59/E60/E61): **kernel fp16 Volta lúc SINH δ** (loại seed, code, eval; δ V100 eval trên 3090 = 37.7). Mẫu dấu khác (cos 0.30) cùng mọi thống kê bậc thấp. Khai thác hậu kỳ (RD-GQ = flush gradient nhỏ) chỉ tái tạo ~1/3 (+2.4, đỉnh p=0.7). → **KHÔNG ghép số Swin-L giữa máy V100 và Ampere; số dev30 Swin-L ≤ ~4 coi là nhiễu tới khi dev100 xác nhận** (bài học E56→E58: CWT +4 dev30 chết ở dev100). Số Swin-L trung thực của RD trên 3090 = **33.8 dev100**.
+**METHOD HIỆN TẠI (2 mức giả định, dev100 trên A4500, E73/E74):**
+| | Method | T7 | DINO-Swin-L | Ghi chú |
+|---|---|---|---|---|
+| **Ensemble** (2 surrogate) | **ENS-WP** | **82.6** | 55.3 | R50 ⊕ ConvNeXt-T, momentum chung, luân phiên khối 2 bước, WP ρ0.002, B36. Hơn OSFD +8.5 T7 / +30.9 Swin-L |
+| **1 surrogate** | **RD-CNX B50** | 78.4 | **59.0** | surrogate ConvNeXt-T, B50 |
+| baseline | OSFD-R50 B50 | 74.2 | 24.4 | |
+| baseline | RD-R50 B36 | 77.6 | 34.8 | |
 
-**Trần Swin-L một-R50-chuẩn ~33–38** (3090 dev100 33.8; V100 37.7; δ cùng-họ Swin-T 54–59). **50 gần như = xóa gap RQ1 → cần đổi surrogate (robust-AT / cùng-họ), ngoài ràng buộc "KHÔNG fine-tune surrogate".** Các hướng single-R50 đã thử & ĐÓNG phiên này: RD-CV/RD-V (đánh đổi ASR↔drop), RD-SCR (regularizer bền-xáo, E55: scramble là chỉ báo không phải đòn bẩy), RD-CWT (E56 dev30 +4 → E58 dev100 +0.6, chết), kênh ngữ cảnh/nền (E50/E51/E52: oracle WB chỉ-nền 66% nhưng R50 không với tới), RD-GQ (flush fp16, +2.4 không đủ). Cơ chế cho RQ2: **gap = SAI THỨ TỰ ĐỘ DỐC** (E53: hướng R50 dốc hơn hướng chung ~1.9× trên loss R50; δ_S mạnh hơn ~2.1× trên Swin-L), δ_R50 overfit vị trí cục bộ (E54).
+**THREAT MODEL — tin tốt (đọc `papers/2602.16494v1.pdf`, verify 2026-11-09):** benchmark nguồn taxonomy CÓ 2 method nhiều surrogate — **CAA** (Faster R-CNN + YOLOv3, đúng 2 surrogate, transfer-based black-box) và **EBAD** (ensemble + QUERY victim → grey-box). → giả định 2-surrogate của ENS-WP **có tiền lệ** và **nhẹ hơn EBAD** (ENS-WP zero query). Pivot idea.md §3 vẫn cần duyệt chính thức nhưng KHÔNG nặng như progress_log trước nay giả định. Số họ trên DINO-Swin-L (VOC2007): CAA 3.8, EBAD 4.5, OSFD 40.2. Câu kết của họ: *"no attacks ... capable of compromising modern detectors in a realistic black-box scenario"* → ENS-WP trả lời bài toán mở đó.
 
-**Panel CHỐT (10-28, giữ nguyên):** surrogate Mask R-CNN R50; A FCOS-R50 / DINO-R50 | B YOLOv3-D53 / YOLOX-L | C Mask R-CNN Swin-T / DINO-Swin-L; Controlled R101 / ConvNeXt-T / Swin-T; phụ YOLOX-S, DETR-R50; held-out Swin-S; metric AP drop + ASR (`scripts/panel_table.py`, có `--gen-models` chạy gọn + APloc/CSR/ASR-micro). Nguyên tắc user: KHÔNG fine-tune surrogate; khóa quy tắc + commit TRƯỚC khi chạy; quick test dev30 trước (nhưng Swin-L phải xác nhận dev100); trả lời ngắn gọn; báo giờ GMT+7.
+**CƠ CHẾ (lõi novelty, không nằm ở optimizer):**
+- **E67:** ConvNeXt về FEATURE sạch giống ResNet (CKA sâu 0.66–0.70), KHÔNG giống Swin → bác câu chuyện hiển nhiên "ConvNeXt ≈ Swin nên bắc cầu".
+- **E68:** NHƯNG ∇ₓ loss cls qua ConvNeXt gần hướng Swin-L **~2.3×** R50; ∇R50 ⊥ ∇ConvNeXt (cos 0.14) → "transferable direction" là tính chất **ĐƯỜNG GRADIENT**, không phải tương đồng biểu diễn.
+- **E70/E71:** momentum-chung cộng 2 hướng gần-trực-giao vào CÙNG vector → phủ cả hai họ (bằng chứng nhân quả cho E68).
+- **E78:** block ConvNeXt XOAY quỹ đạo (orth_frac 0.77, mag_ratio ≈1.0, ổn định early→late) — lượng hoá động-học.
+- **E77:** composition thất bại [cls, loc, supp] ≈ [0.05–0.12, 0.33–0.45, 0.45–0.66] **BẤT BIẾN** qua mọi attack × target × họ → gap thuần là ĐỘ LỚN của cùng một kiểu hỏng.
+- **E81 (mới):** **WP có ĐỈNH LIỀU NHỌN quanh ρ0.002, chỉ tác động hướng Transformer; họ ResNet TRƠ với liều.** ρ: 0 → 0.002 → 0.005 → 0.010 cho Swin-L ~50 → 60.3 → 49.1 → 39.8 (RES3 bẹt: ~91 → 91.0 → 90.7 → 88.0). WP không phải "làm phẳng nói chung".
 
-**VIỆC MAI (user quyết):** (1) **Chốt RD → dựng bảng paper**: full panel + OSFD + MI + M-DI² @ dev100/dev300 CÙNG MÁY (đừng trộn V100), rồi n300 GO → n1000 → ε=8; verify clean AP full val2017 panel A/B/C; kiểm surrogate FRC-R50. HOẶC (2) **nới ràng buộc surrogate** (robust-AT / cùng-họ) để đuổi 50 — đổi threat model, cần duyệt rõ. Code mới phiên nay: `pia.{_scramble,_cwt_spec/_cwt_apply,_with_scramble, params scr/cwt/pix_region/box_feat/gflush}`, `--seed-base`/`--no-tf32` trong run_baselines, `panel_table --gen-models`, `scripts/e5{3,4,9}_*.py`, `e51_wb_bgmask.py`, `e50_bg_mask.py`. Ô: `C2-OCT-1V-WP2-RD-{CV,V,SCR*,CWT*,GQ*}`, `RD-{OUT,RING}{F,O}`.
+**LEVER Swin-L CÒN LẠI DUY NHẤT: strict-1 + WP.** Mọi trục không-sửa-core đã ĐÓNG phiên 11-09: ngân sách B36→B50 (E80, ΔSwin-L +2.1 CI chứa 0), phân bổ khối 9/9 → 3/15 (E81, −0.9), liều ρ (E81, đơn điệu GIẢM). Đường trống: E70 strict-1 noWP Swin-L 55.1 > E71 khối-2 noWP 52.5, mà WP cho +7.8 → nếu cộng được thì ~63. Cần sửa core `wp_in`/`wp_out` (~1–1.5h; WP2 đặt θ' ở CUỐI bước nên với `steps=1` bị caller khôi phục ngay, không bao giờ dùng — xem `attack/methods/core.py` nhánh WP mặc định). GPU chỉ ~6 ph ở dev30 panel gọn.
 
-**⚠️ ARTIFACT 3090 phiên nay MẤT khi trả máy, CHƯA upload HF** (số tổng hợp + dets đã trong `results/` git). PNG tải HF tag `_1028v100` là của V100 (giải nén ra `artifacts/runs/dev300_B36_eps5_limit100/` — ⚠️ TRỘN với tên không tag; δ V100 ≠ 3090). Mai cần dev100/dev300 thì sinh lại trên máy mới (`results/e*/run.sh`). `.env` (HF_TOKEN) đã có nhưng gitignored → máy mới tạo lại.
+**⚠️ LỆCH PHẦN CỨNG — PHẢI KIỂM PER-METHOD (sửa 2026-11-09):** lệch ~8 điểm Swin-L giữa V100 và Ampere (E59/E60/E61) là **CỦA RD (1 surrogate R50), KHÔNG tổng quát**. E80 đo trực tiếp: **ENS-WP B36 Swin-L V100 60.3 vs A4500 60.3 = +0.0**; lệch nằm ở họ ResNet và chiều ÂM (r101 −1.8, fcos −2.5, dino_r50 −3.9). → **không suy lệch máy từ method này sang method khác; sinh cả ô mốc trên CÙNG máy khi so.** Bảng paper vẫn sinh toàn bộ trên một máy.
+
+**QUY TRÌNH đã rút ra (áp dụng từ nay):**
+- **CI hiệu số PAIRED phải tính TRONG cùng tiến trình** (`summarize` chỉ lưu point/ci95/p_le_0 → hậu kỳ KHÔNG tính lại được; đã vướng khi so RD-CNX-B50 vs ENS-WP, +3.7 không có CI nào đỡ). Xem `scripts/e8{0,1}_*.py` làm mẫu.
+- **Panel gọn + boot 100 cho sàng lọc rẻ hơn ~10× bảng đầy đủ:** 4 model (dino_swin_l + RES3) × dev30 ≈ 3.5 ph eval, sinh ~2.5 ph/ô → **1 ô ≈ 6 ph**. Dùng mốc E74 (9 model, boot 300) để ước sẽ cao gấp 5 lần.
+
+**VIỆC MAI (ưu tiên theo thứ tự):**
+1. **Verify prior art** (chưa làm, user cắt tìm web): **SVul-Attack** (feature + task loss + frequency, 22 detectors — đụng lõi RD), **CWA ICLR'24** (ensemble + flatness — đụng ENS-WP), CTSTA, FUGEA. Phải xong trước khi chốt câu chữ novelty.
+2. **strict-1 + WP** (lever Swin-L cuối) — sửa core + unit test đường mặc định không đổi, rồi dev30 panel gọn.
+3. **Bảng chính:** n1000 full panel ε∈{5,8} CÙNG MÁY; **OSFD-ensemble baseline** (phản biện "chỉ vì 2 model"); compute-matched single B72 vs ENS B36; CI dev100 cho E68 + E78 (hiện dev30).
+4. NÊN (cửa Q1): dataset thứ 2 (VOC), 1–2 held-out backbone (Swin-S).
+5. KHÔNG cần: thêm gate single-surrogate; thêm trục không-sửa-core cho ENS.
+
+**Panel CHỐT (10-28, giữ nguyên):** surrogate Mask R-CNN R50; A FCOS-R50 / DINO-R50 | B YOLOv3-D53 / YOLOX-L | C Mask R-CNN Swin-T / DINO-Swin-L; Controlled R101 / ConvNeXt-T / Swin-T; phụ YOLOX-S, DETR-R50; held-out Swin-S; metric AP drop + ASR (`scripts/panel_table.py --gen-models`). Nguyên tắc user: KHÔNG fine-tune surrogate; **khóa quy tắc + commit TRƯỚC khi chạy**; quick test dev30 trước (Swin-L phải xác nhận dev100 — bài học E56→E58: CWT +4 dev30 chết ở dev100); trả lời ngắn gọn; báo giờ GMT+7.
+
+**⚠️ ARTIFACT + GIT:** phiên 11-09 KHÔNG có `.env`/HF_TOKEN và KHÔNG có git credential → PNG V100 (83M, `artifacts/runs/*_v100/`) **mất khi trả máy**, commit **chỉ nằm local, user phải tự push**. Artifact Ampere trên HF `congdanh99/transfer-attack` (private), tag `_a4500_dev30` và `_a4500_dev100` — tải: `set -a; . ./.env; set +a` rồi `python scripts/sync_artifacts.py download <run> --tag _a4500_dev100`. ENS-WP **không tái lập bit-chính-xác** (E78: OSFD elem dùng python-random, `e8{0,1}` chỉ seed torch).
 
 Tóm tắt đường đi tới đây (chi tiết + số liệu trong progress_log):
-- RQ1 PASS @ n300; Generalization Panel ĐI TIẾP; Mechanism A1–A4 không đạt tiêu chí; 5 pilot đoán-cơ-chế (A′1, P1, P2, KG, R1/SGM) đều NO-GO → mở lại RQ3 theo plan mới: **phân tích SOTA (OSFD) trước, method sau.**
-- **Ablation OSFD** (dev100 → dev300): nguyên liệu = **RRB (+32), xoay trong RRB (+5.5), MI (+3.7)**; KHÔNG phải: resize, k, nhiễu σ, **loss feature** (task loss + RRB ≥ OSFD).
-- **Cơ chế:** RRB/xoay làm δ tần thấp hơn, bớt đặc thù surrogate (D₄ R50 giảm, D₄ target tăng); D₄ trên target dự đoán suppression theo ảnh. **DINO-Swin-L bền** vì attack chỉ lệch vừa feature Swin-L và encoder DINO "sửa" (cosd 0.42 → 0.07); object giả bị chặn; chỉ hạ confidence phân loại còn lọt. Phá định vị: có thật nhưng đóng góp nhỏ. Feature loss mạnh ở YOLOX/CNN, loss phân loại mạnh ở DINO-Swin-L → bổ trợ.
-- **Method C2** (đóng băng) = MI + RRB (co-transform GT) + L_OSFD + 4·(loss_rpn_cls + loss_cls), 1 forward/view, B = 50, ε = 5 (`PROBE-osfd+cls` trong `scripts/run_baselines.py`). **Sàng lọc dev300 QUA:** CrossAvg₃ +4.7 [1.7, 6.0] so OSFD, cả 3 target khác họ > 0, DINO-Swin-L +7.0.
+- RQ1 PASS @ n300; Generalization Panel ĐI TIẾP; Mechanism A1–A4 không đạt tiêu chí; 5 pilot đoán-cơ-chế (A′1, P1, P2, KG, R1/SGM) đều NO-GO.
+- **Ablation OSFD** (dev100 → dev300): nguyên liệu = **RRB (+32), xoay trong RRB (+5.5), MI (+3.7)**; KHÔNG phải: resize, k, nhiễu σ, **loss feature**.
+- **E65 bảng 2×2 Swin-L** (dev30): OSFD-R50 26.4 / RD-R50 33.8 / OSFD-CNX 26.1 / **RD-CNX 62.8** → tương tác surrogate × method ≈ **+29**: bước nhảy chỉ có khi CÓ CẢ HAI. Đổi riêng surrogate cho OSFD không giúp gì.
+- **E66:** cls RoI = **cầu chính** CNN→Transformer (+18.2 Swin-L), feat phụ (+9.8), WP +9.9 gần miễn phí. Giải thích vì sao OSFD (feature thuần) không hưởng.
+- **Trần single-R50 Swin-L ~33–38** — vượt được bằng ĐỔI HỌ SURROGATE (ConvNeXt), không bằng tinh chỉnh loss trên R50.
 
-**GO @ n300 cho C2 CŨ (RRB; đã bị C2-OCT-1V thay — chỉ để tham khảo lệnh):** `run_baselines.py --split n300 --methods OSFD PROBE-osfd+cls --out metrics_go_c2.json` rồi `eval_generalization.py --run n300_B50_eps5 --models yolox_s dino_swin_l ... --dets dets_go_c2.json --out generalization_go_c2.json` (log `results/go_c2/run.log`; resume được — chạy lại đúng lệnh). Cần PNG baseline `artifacts/runs/n300_B50_eps5/` (HF, `scripts/sync_artifacts.py download n300_B50_eps5`, token ở `.env` — gitignored, KHÔNG in ra). Khi xong:
-```bash
-python scripts/ablation_screen.py --run n300_B50_eps5 --dets dets_go_c2.json --tag go_c2_n300 --cells PROBE-osfd+cls
-python scripts/go_check.py --tag go_c2_n300 --cand PROBE-osfd+cls   # tiêu chí GO khóa, chạy 1 lần
-```
-GO → bước 4.2 (n1000, B ∈ {50, 200}, ε ∈ {5, 8}, rà literature baseline mới). NO-GO → ghi log, user quyết.
-
-Quy tắc cứng: dev300 là tập development DUY NHẤT; không tune trên n300/n1000; mọi quy tắc quyết định khóa + commit TRƯỚC khi chạy. Artifact chưa upload HF: `artifacts/runs/dev300_B50_eps5/` (mọi ô ablation/pilot).
+Quy tắc cứng: dev300 là tập development DUY NHẤT; **không tune trên n300/n1000**; mọi quy tắc quyết định khóa + commit TRƯỚC khi chạy. Quét siêu tham số trên dev30 = forking path → ô thắng BẮT BUỘC xác nhận dev100, số cuối trên n300/n1000.
 
 ## Chạy môi trường
 
