@@ -5250,3 +5250,17 @@ r101            0.944 | 85.1        0.905 | 74.5        0.954 | 85.4
 - `dev300_B50_eps5_limit100` (68.3MB, sha256 d69ec6a4…) — OSFD-R50 (B50)
 - `dev300_B75_eps5_limit100_sur-convnext_t` (19.9MB, sha256 3356b073…) — RD-CNX B75 (37/100 PNG dở)
 ⚠️ ENS-WP vẫn KHÔNG tái lập chính xác được (xem E78); PNG này là mẫu đã dùng cho E73/E77/E78/E79. Lưu ý cần nạp `.env` vào env (`set -a; . ./.env; set +a`) trước khi chạy sync — script đọc HF_TOKEN từ os.environ, không tự load .env.
+
+## 2026-11-09 — E80-ENSB: quét ngân sách B cho ENS-WP (B36 → B50) @ dev30, panel gọn 4 model, máy **V100** (user: "quick test 15p trước đi", ~22:15 GMT+7) — khóa TRƯỚC khi chạy
+**Bối cảnh phiên:** máy mới = **Tesla V100-SXM2-16GB (Volta)**, torch 2.1.2+cu118, mmdet 3.3.0, COCO val2017 đủ 5000 ảnh, 12/12 checkpoint. **KHÔNG có `artifacts/`, KHÔNG có `.env`/HF_TOKEN** → không tải được PNG cũ, mọi ô phải sinh mới.
+**Vì sao E80:** câu hỏi user = "đẩy method lên nữa được không". Đòn bẩy chưa chạm: (a) ENS-WP chưa từng chạy quá B=36; (b) luân phiên từng-bước + WP (cần sửa core, ~1–1.5h, chưa làm). E74 tiền lệ: RD-CNX B36→B50 được **+2.4 Swin-L**, +3.4 RES3 → đòn bẩy (a) đáng đo, rẻ (đổi 1 hằng số, không sửa core).
+**⚠️ LỆCH MÁY — giới hạn nền tảng của entry này:** mốc so sánh (E71 ENS-WP B36 @ dev30: Swin-L **60.3**, RES3{r101 92.9, fcos 94.4, dino_r50 93.8} = **93.7**) sinh trên **A4500 (Ampere)**. CLAUDE.md khóa: KHÔNG ghép số Swin-L giữa V100 và Ampere (lệch ~8 điểm, nguyên nhân = kernel fp16 Volta lúc SINH δ, E59/E60/E61). Thiết kế đúng = sinh LẠI cả B36 trên V100 (~25–35 ph); **user chọn chỉ chạy B50 (~15 ph)**, biết rõ đánh đổi. Claude đã nêu rằng nhiễu máy (~8) lớn gấp ~3 tín hiệu kỳ vọng (+2.4) và không khuyến nghị, user vẫn chọn → ghi lại ở đây.
+**→ QUY TẮC ĐỌC MỘT CHIỀU (khóa):** lệch V100 kéo Swin-L **LÊN** (V100 ~38 vs Ampere ~31–34 cho RD).
+- **NGƯỢC (có lực)** nếu Swin-L(B50@V100) ≤ 60.3 − 4 = **56.3**: thấp hơn mốc DÙ lệch máy đã phải kéo lên → bằng chứng ngược cho đòn bẩy ngân sách ở ensemble → đóng lever-B cho ENS, dồn sức sang strict-1+WP.
+- **NGHIÊNG NGƯỢC (yếu)** nếu 56.3 < Swin-L < 60.3: vô kết luận, không đọc là "B không giúp".
+- **LẪN** nếu Swin-L ≥ 60.3: KHÔNG tách được ngân sách khỏi lệch máy → bắt buộc sinh lại B36 trên V100 mới kết luận. Không được báo cáo là "B50 > B36".
+- RES3 chỉ để canh không vỡ họ ResNet (mô tả, cùng lệch máy): ghi điểm, không dùng làm cổng.
+**Ô (đúng 1):** `ENS-WP-B50` = y hệt E71 ENS-WP, **chỉ đổi STEPS 36 → 50**. Luân phiên khối 2 bước, momentum chung (mom_in/return_state), WP ρ0.002 (weight_linear cho ConvNeXt), λ R50=6 / CNX=0.2, OCT 1V, L_OSFD C3–C5 + cls RoI, ε=5, seed `1000·(n+1)+b`. Run dir `dev300_B50_eps5_limit100_ens_v100` (tên có `_v100` để KHÔNG trộn với PNG Ampere).
+**Panel GỌN 4 model (user chọn):** `dino_swin_l` (trục chính) + `r101`/`fcos_r50`/`dino_r50` (RES3). boot **100** (mức sàng lọc, không phải 300 của bảng paper). dev30, eval inference-PNG.
+**Caveat:** (1) lệch máy — xem trên, đây là caveat CHÍNH; (2) 50/2 = 25 khối → **13 khối R50 / 12 khối ConvNeXt** (E71 B36 cân 9/9); lệch 1 khối nghiêng nhẹ về R50 nên có thể kéo Swin-L xuống ~0.5, tức nhánh "NGƯỢC" hơi anti-conservative — ghi rõ, không sửa vì user đã chốt B=50 (khớp ngân sách OSFD B50); (3) dev30 n=30, sàn nhiễu Swin-L ~4; (4) 1 ô, không có đối chứng cùng máy.
+**Chạy:** `python scripts/e80_ens_budget.py` (nền), log `results/e80/run.log`.
