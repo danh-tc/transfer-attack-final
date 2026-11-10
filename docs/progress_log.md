@@ -5403,3 +5403,26 @@ RES3:     ~91     91.0      90.7      88.0     <- BẸT
 - **NO-GO** (ngược lại, ở dev30 hoặc dev100) → giữ ENS-WP hiện tại.
 - Sau E82 (bất kể kết quả): **ĐÓNG BĂNG** ENS-WP (bản thắng) + RD-CNX B50; ghi đủ config. Không tối ưu method thêm.
 **Caveat:** dev30 n=30, boot 100 (null yếu); strict-1 đổi cả hạt luân phiên lẫn WP (E70 vs E71 đã cho thấy hạt luân phiên có hiệu ứng riêng ~2.6) → nếu GO, phần lợi là của tổ hợp; ô tách riêng KHÔNG chạy (không mở rộng scope).
+
+## 2026-11-10 — E82 kết quả @ dev30 (V100-PCIE-16GB, xong 21:13 GMT+7; `results/mechanism/e82_strict1_wp_dev30_small.json`, log `results/e82/run.log`) — theo quy tắc khóa: **NO-GO → giữ ENS-WP, ĐÓNG BĂNG**
+**Regression test** `scripts/wp_carry_unit_test.py` (ref `f5c003e`): **QUA cả 4** (T1–T4, 2 ảnh × 2 surrogate). Ghi chú T1 R50 ảnh 7088: mới 0.0231 vs mốc cũ-vs-cũ 0.0174 — trong dung sai test (ROIAlign backward không tất định); ConvNeXt trùng tuyệt đối 0.0000.
+**Bảng** (relative AP drop %, dev30, boot 100, CI hiệu số paired trong cùng tiến trình, cả 2 ô sinh + eval trên CÙNG máy):
+
+| model | ENS-WP-B36 | ENS-S1WP | Δ | CI(Δ) |
+|---|---|---|---|---|
+| dino_swin_l | 57.5 | 56.9 | −0.6 | [−2.1, 3.7] |
+| r101 | 92.0 | 90.1 | −1.9 | [−4.9, 0.2] |
+| fcos_r50 | 92.7 | 90.8 | −1.8 | [−4.4, 1.3] |
+| dino_r50 | 88.6 | 91.3 | +2.6 | [−4.3, 5.8] |
+| RES3 | 91.1 | 90.7 | −0.4 | [−3.5, 1.5] |
+
+**Phán quyết:** ΔSwin-L −0.6 < +4 và CI chứa 0 → **NO-GO** (không cần xác nhận dev100). Kỳ vọng thô "~63" (cộng E70 strict-1 + WP) **không thành**: mang θ' qua lượt (WP có hiệu lực thật, T3 xác nhận) cộng luân phiên từng bước không cho thêm gì trên Swin-L. Lever Swin-L cuối cùng của ENS-WP đã đóng.
+**Mô tả (không dùng phán quyết):** mốc ENS-WP-B36 Swin-L dev30 trên máy này 57.5 vs 60.3 ở V100-SXM2 (E80/E81). Khác cả máy (PCIE vs SXM2) lẫn quy tắc seed (giờ seed torch + python random + numpy) → không tách được, không so chéo máy.
+**Phần cứng:** sinh ~10.4 s/ảnh ô B36 (vs ~4.8 s/ảnh V100-SXM2 E81), GPU util chỉ ~20%, tiến trình ~750% CPU → **nghẽn CPU** (Xeon Silver 4214 @2.2GHz, host có dấu hiệu chia sẻ). Thuê máy cho n1000 nên chọn CPU mạnh hoặc thử giới hạn `OMP_NUM_THREADS`.
+**Artifact:** PNG `artifacts/runs/dev300_B36_eps5_limit100_ens_e82_v100pcie16gb/` (33M). Không có `.env`/HF_TOKEN → **chưa upload HF, mất khi trả máy**; tái tạo bằng `bash results/e82/run.sh` (~17 ph, đã seed đủ torch+random+numpy).
+
+### ĐÓNG BĂNG recipe (bước 2 `docs/plan_paper_lock.md` hoàn tất) — từ đây KHÔNG tối ưu method thêm
+Chung: ε=5/255, `geo_osfd_attack` (`attack/methods/pia.py`), MI momentum=1.0, alpha=1.0, OCT 1 view (`geo="elem"`, scale=ln2/2, shift="ph8", n_views=1, skip_mask, amp), `cls_mode="roi"`, `stage_w=(0,1,1,1)` (L_OSFD C3–C5 + loss cls RoI), WP2 ρ=0.002.
+- **ENS-WP (Track M):** surrogate Mask R-CNN R50 + Mask R-CNN ConvNeXt-T; B=36; khối 2 bước luân phiên R50/CNX (18 khối, 9/9), **momentum chung** qua khối; λ_cls R50=6.0 / CNX=0.2; WP: R50 chỉ Conv2d, CNX `weight_linear=True`; θ' KHÔNG mang qua khối. Seed 1000·(n+1)+b (torch+random+numpy). Cài đặt tham chiếu: `scripts/e82_strict1_wp.py` ô `ENS-WP-B36` (`kw_for` + `COMMON` từ `scripts/e81_ens_alloc_rho.py`).
+- **RD-CNX B50 (Track S):** surrogate Mask R-CNN ConvNeXt-T đơn; B=50; method `C2-OCT-1V-WP2-RD-CNX` (`scripts/run_baselines.py:417`): λ_cls=0.2, WP ρ0.002 `weight_linear=True`. Run E74: `dev300_B50_eps5_limit100_sur-convnext_t`. Ở final áp quy tắc seed 3.6 (python+numpy+torch theo ảnh).
+**Việc tiếp:** bước 3 `docs/plan_paper_lock.md` — 3a factorial {R50, CNX} × {FEAT-only, CLS-only, FEAT+CLS} @ dev100, cùng máy; khóa B (đề xuất 36) + quy tắc + commit TRƯỚC khi chạy.

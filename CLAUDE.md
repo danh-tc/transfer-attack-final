@@ -14,7 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-**Trạng thái (cập nhật 2026-11-10): PLAN PAPER ĐÃ KHÓA — đọc [docs/plan_paper_lock.md](docs/plan_paper_lock.md) TRƯỚC mọi thứ khác (thay mục "VIỆC MAI" bên dưới).** Primary endpoint = interaction surrogate × objective (factorial dev100); gradient alignment là claim có điều kiện; RD-CNX B50 (Track S) và ENS-WP (Track M) là 2 kết quả ngang hàng. Việc tiếp: bước 1 rà prior art (không cần GPU) → bước 2 strict-1 + WP rồi đóng băng.
+**Trạng thái (cập nhật 2026-11-10 tối): BƯỚC 1 + 2 XONG (E82 NO-GO, recipe đóng băng) → tiếp bước 3a. PLAN PAPER ĐÃ KHÓA — đọc [docs/plan_paper_lock.md](docs/plan_paper_lock.md) TRƯỚC mọi thứ khác (thay mục "VIỆC MAI" bên dưới).** Primary endpoint = interaction surrogate × objective (factorial dev100); gradient alignment là claim có điều kiện; RD-CNX B50 (Track S) và ENS-WP (Track M) là 2 kết quả ngang hàng. Việc tiếp: bước 1 rà prior art (không cần GPU) → bước 2 strict-1 + WP rồi đóng băng.
 
 **(Lịch sử) QUYẾT ĐỊNH 2026-10-31: DỪNG tìm method single-surrogate trên R50.** Cơ sở: **8 gate single-R50 NO-GO** (E64, E72, E74–E79) + E67/E68. ⚠️ Định vị "impossibility" và tiêu đề "Orthogonal by Architecture…" đã **BỎ** ngày 2026-11-10: 8 gate chỉ là giới hạn thực nghiệm của R50, không phải bất khả thi (RD-CNX 1 surrogate đạt Swin-L 59.0).
 
@@ -36,7 +36,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 - **E77:** composition thất bại [cls, loc, supp] ≈ [0.05–0.12, 0.33–0.45, 0.45–0.66] **BẤT BIẾN** qua mọi attack × target × họ → gap thuần là ĐỘ LỚN của cùng một kiểu hỏng.
 - **E81 (mới):** ρ0.002 tốt hơn rõ các liều 0.005 / 0.010 đã thử, chỉ tác động hướng Transformer; họ ResNet gần như trơ với liều. ρ: 0 → 0.002 → 0.005 → 0.010 cho Swin-L ~50 → 60.3 → 49.1 → 39.8 (RES3 bẹt: ~91 → 91.0 → 90.7 → 88.0). Gợi ý Swin-L rất nhạy với ρ; chưa quét dày hai phía nên CHƯA xác định được cực đại.
 
-**LEVER Swin-L CÒN LẠI DUY NHẤT: strict-1 + WP.** Mọi trục không-sửa-core đã ĐÓNG phiên 11-09: ngân sách B36→B50 (E80, ΔSwin-L +2.1 CI chứa 0), phân bổ khối 9/9 → 3/15 (E81, −0.9), liều ρ (E81, đơn điệu GIẢM). Đường trống: E70 strict-1 noWP Swin-L 55.1 > E71 khối-2 noWP 52.5, mà WP cho +7.8 → nếu cộng được thì ~63. Cần sửa core `wp_in`/`wp_out` (~1–1.5h; WP2 đặt θ' ở CUỐI bước nên với `steps=1` bị caller khôi phục ngay, không bao giờ dùng — xem `attack/methods/core.py` nhánh WP mặc định). GPU chỉ ~6 ph ở dev30 panel gọn.
+**E82 strict-1 + WP (2026-11-10, dev30 V100-PCIE): NO-GO** — ΔSwin-L −0.6 CI [−2.1, 3.7], ΔRES3 −0.4. Lever Swin-L cuối đã đóng → **ĐÓNG BĂNG ENS-WP (khối 2) + RD-CNX B50**, config đầy đủ trong entry E82 của progress_log. Việc tiếp: **bước 3a factorial** (`docs/plan_paper_lock.md`). Máy V100-PCIE phiên này nghẽn CPU (~10 s/ảnh ô B36, ~2× V100-SXM2).
 
 **⚠️ LỆCH PHẦN CỨNG — PHẢI KIỂM PER-METHOD (sửa 2026-11-09):** lệch ~8 điểm Swin-L giữa V100 và Ampere (E59/E60/E61) là **CỦA RD (1 surrogate R50), KHÔNG tổng quát**. E80 đo trực tiếp: **ENS-WP B36 Swin-L V100 60.3 vs A4500 60.3 = +0.0**; lệch nằm ở họ ResNet và chiều ÂM (r101 −1.8, fcos −2.5, dino_r50 −3.9). → **không suy lệch máy từ method này sang method khác; sinh cả ô mốc trên CÙNG máy khi so.** Bảng paper vẫn sinh toàn bộ trên một máy.
 
