@@ -504,7 +504,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
                     weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
-                    weight_linear: bool = False, mom_in=None, return_state: bool = False, rgg=None):
+                    weight_linear: bool = False, mom_in=None, return_state: bool = False, rgg=None,
+                    wp_in=None, wp_out=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -968,6 +969,17 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             rho = lambda t, T: r0 + (r1 - r0) * t / max(1, T - 1)
         wp = (params, rho, [p.detach().clone() for p in params], weight_eta, mode,
               None if weight_def is None else ("feat", "cls").index(weight_def))
+    if wp_in is not None or wp_out is not None:
+        # strict-1 + WP (bước 2, docs/plan_paper_lock.md): WP2 đặt θ' ở CUỐI bước, dùng ở bước sau; gọi steps=1 thì
+        # caller khôi phục θ0 ngay nên WP vô hiệu. wp_in = θ' (list tensor, cùng thứ tự params) từ lượt trước của
+        # CHÍNH surrogate này -> nạp vào trước bước đầu; wp_out (list rỗng) nhận θ' cuối lượt trước khi khôi phục θ0.
+        # base (θ0) clone ở trên TRƯỚC khi nạp wp_in -> wp_update vẫn neo θ0. Mặc định None = trùng tuyệt đối bản cũ.
+        assert wp is not None and weight_awt is None and weight_capwp is None and mode == "def" and weight_eta is None
+        if wp_in is not None:
+            assert len(wp_in) == len(wp[0]) and all(a.shape == p.shape for a, p in zip(wp_in, wp[0]))
+            with torch.no_grad():
+                for p, q in zip(wp[0], wp_in):
+                    p.copy_(q)
     bn_saved = []
     if bn_inst is not None:
         # C2-OCT-1V-WP2-IN (progress_log 2026-10-22): BN backbone dùng thống kê của CHÍNH ảnh / view (bỏ running stats tạm
@@ -1000,6 +1012,8 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         if mask_head is not None:
             model.roi_head.mask_head = mask_head
         if wp is not None:
+            if wp_out is not None:
+                wp_out[:] = [p.detach().clone() for p in wp[0]]
             with torch.no_grad():
                 for p, p0 in zip(wp[0], wp[2]):
                     p.copy_(p0)

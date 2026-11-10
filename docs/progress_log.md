@@ -5380,3 +5380,26 @@ RES3:     ~91     91.0      90.7      88.0     <- BẸT
 - **SVul:** chỉ dùng dạng "SVul-inspired objective ablation (our impl.)" + cross-protocol bối cảnh. Không làm bản tái lập đầy đủ (không code, không image ID, eval lệch → không kiểm độ trung thực được). CWA adapted full-image → BẮT BUỘC ở lớp B.
 - **C2:** thêm S&P'24 (gradient similarity); CKA của SVul và E67 là 2 câu hỏi khác nhau → viết "mở rộng câu hỏi", không "bác bỏ".
 - **Việc tiếp:** code bước 2 (strict-1 + WP). Prior art còn: full text S&P'24 + literature ConvNeXt-surrogate (trước khi viết Introduction).
+
+## 2026-11-10 — E82: strict-1 + WP (bước 2 `docs/plan_paper_lock.md`) — phép thử CUỐI của recipe ENS-WP trước khi đóng băng — khóa TRƯỚC khi chạy (chưa có GPU, code + test sẵn)
+**Vì sao:** E70 strict-1 noWP Swin-L 55.1 > E71 khối-2 noWP 52.5; WP cho +7.8 ở khối-2. WP2 đặt θ' ở CUỐI bước, dùng ở bước sau → khi luân phiên từng bước, caller khôi phục θ0 ngay nên WP vô hiệu. Nếu cộng được hai phần thì kỳ vọng thô khoảng 63.
+**Code:** `geo_osfd_attack(..., wp_in=None, wp_out=None)` (`attack/methods/pia.py`).
+- wp_in = θ' từ lượt trước của CHÍNH surrogate đó, nạp trước bước đầu.
+- wp_out nhận θ' trước khi khôi phục θ0.
+- base θ0 clone TRƯỚC khi nạp → wp_update vẫn neo θ0.
+- Mặc định None = đường cũ.
+**Regression test** (`scripts/wp_carry_unit_test.py`, PHẢI QUA cả 4 trước khi chạy E82; không qua → sửa code, không chạy):
+- T1: mặc định trùng bản ở git `f5c003e` (so với mốc nhiễu cũ-vs-cũ); wp_out=[] không đổi kết quả.
+- T2: state_dict khôi phục y hệt sau lời gọi có wp_out / wp_in.
+- T3: ‖θ'−θ0‖ ≈ ρ‖θ0‖ (≥ 95% tensor); δ khi wp_in=θ' khác rõ wp_in=None (> 3× mốc nhiễu).
+- T4: θ' R50 → ConvNeXt bị chặn; autograd.grad = 1 lần/bước cả khi có wp_in/wp_out (không thêm backward).
+**Ô** (`scripts/e82_strict1_wp.py`; B=36, momentum chung, λ R50=6 / CNX=0.2, OCT 1V, L_OSFD C3–C5 + cls RoI, WP ρ0.002 weight_linear cho CNX, ε=5):
+- `ENS-WP-B36` = recipe hiện tại (khối 2, 9/9), **sinh LẠI trên cùng máy** làm mốc.
+- `ENS-S1WP` = luân phiên từng bước (18/18) + mang θ' qua lượt.
+- Seed cả hai ô: torch + python random + numpy = 1000·(n+1)+b (sửa chỗ E80/E81 chỉ seed torch).
+**Sàng lọc:** dev30, panel gọn {dino_swin_l, r101, fcos_r50, dino_r50}, boot 100, CI hiệu số paired trong cùng tiến trình.
+**QUY TẮC KHÓA** (Δ = ENS-S1WP − ENS-WP-B36; ngưỡng là quy tắc quyết định của dự án, không phải ngưỡng thống kê):
+- **GO** nếu ΔSwin-L ≥ +4 VÀ cận dưới CI paired > 0 VÀ ΔRES3 ≥ −3 → xác nhận dev100 (`--list dev100 --panel full --boot 300`), cùng quy tắc trên Swin-L + RES3, kèm T7 mô tả. Qua ở dev100 thì ENS-S1WP thay ENS-WP.
+- **NO-GO** (ngược lại, ở dev30 hoặc dev100) → giữ ENS-WP hiện tại.
+- Sau E82 (bất kể kết quả): **ĐÓNG BĂNG** ENS-WP (bản thắng) + RD-CNX B50; ghi đủ config. Không tối ưu method thêm.
+**Caveat:** dev30 n=30, boot 100 (null yếu); strict-1 đổi cả hạt luân phiên lẫn WP (E70 vs E71 đã cho thấy hạt luân phiên có hiệu ứng riêng ~2.6) → nếu GO, phần lợi là của tổ hợp; ô tách riêng KHÔNG chạy (không mở rộng scope).
