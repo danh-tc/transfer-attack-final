@@ -5373,3 +5373,10 @@ RES3:     ~91     91.0      90.7      88.0     <- BẸT
 **Thứ tự:** (1) rà prior art (FUGEA, CWA, SVul, CTSTA, protocol 2602.16494, số tham chiếu OSFD) → (2) strict-1 + WP (wp_in/wp_out + 4 regression test, GO ΔSwin-L ≥ +4 & CI > 0 & RES3 ≥ −3) rồi ĐÓNG BĂNG ENS-WP + RD-CNX B50 → (3) factorial 4 surrogate Mask R-CNN (R50, CNX, R101, Swin-T; DINO-R50 bị loại khỏi 3b vì không có RoI cls) + alignment vs CKA + can thiệp oracle → (4) baseline lớp A/B/C, Ens-OSFD/Ens-RD bắt buộc → (5) final n1000, 1 máy → (6) cross-protocol → (7) VOC / Swin-S.
 **Bộ thí nghiệm C1/C2 mới chỉ dùng dev.** Mechanism Stage cũ trên n300 (`docs/mechanism_plan.md`) là lịch sử RQ2, không phải protocol của plan này.
 **Việc tiếp:** bước 1 (không cần GPU).
+
+## 2026-11-10 — Sửa plan_paper_lock.md sau prior art (user duyệt 3/5 đề xuất nguyên văn, 2/5 có chỉnh)
+- **Định vị:** bỏ "cross-detector đã bão hòa". Thay bằng: prior work không tách riêng khác biệt họ backbone + số benchmark (OSFD sur R50 → DINO-Swin-L 15.4% vs ≥ 70% trên target CNN). Không suy diễn backbone của target SVul từ tên detector.
+- **RD-CNX** = kết quả thực nghiệm chính (chưa gọi SOTA). **ENS-WP** = validation, không claim nguyên lý ensemble mới (CWA-CSE, CTSTA-ICGA, FUGEA đã có luân phiên / ensemble CNN-only → ViT).
+- **SVul:** chỉ dùng dạng "SVul-inspired objective ablation (our impl.)" + cross-protocol bối cảnh. Không làm bản tái lập đầy đủ (không code, không image ID, eval lệch → không kiểm độ trung thực được). CWA adapted full-image → BẮT BUỘC ở lớp B.
+- **C2:** thêm S&P'24 (gradient similarity); CKA của SVul và E67 là 2 câu hỏi khác nhau → viết "mở rộng câu hỏi", không "bác bỏ".
+- **Việc tiếp:** code bước 2 (strict-1 + WP). Prior art còn: full text S&P'24 + literature ConvNeXt-surrogate (trước khi viết Introduction).

@@ -15,6 +15,13 @@
 - Chỉ claim SOTA sau benchmark final, với baseline đã qua kiểm tra độ trung thực.
 - Thứ tự thực hiện: prior art → strict-1 + WP → đóng băng recipe → cơ chế → baseline → final → cross-protocol → mở rộng.
 
+**Định vị khoảng trống** (sửa 2026-11-10 sau prior art, `docs/prior_art_2026-11.md`):
+> "Recent attacks demonstrate strong transfer across heterogeneous detector architectures, but their evaluations do not isolate backbone-family differences. An independent benchmark reports that OSFD from a ResNet-50 surrogate reduces DINO-Swin-L mAP by only 15.4%, versus ≥ 70% on CNN-backbone targets. We study this gap with backbone-controlled comparisons and surrogate–objective interaction analysis."
+
+Không viết "cross-detector transfer đã bão hòa". Không suy diễn backbone của các target trong SVul-Attack từ tên detector.
+
+**Novelty KHÔNG nằm ở** "hai CNN đánh được Transformer", luân phiên surrogate hay optimizer mới (đã có ở CWA-CSE, CTSTA-ICGA, FUGEA). Novelty nằm ở việc **giải thích vì sao lựa chọn surrogate và objective phối hợp với nhau tạo ra transfer xuyên họ backbone trong object detection**.
+
 ## 1. Bằng chứng hiện có
 
 Relative AP drop (%), COCO dev100, ε = 5/255, máy A4500, bootstrap 300.
@@ -59,7 +66,18 @@ Interaction I chỉ chứng minh một đặc trưng cố định theo backbone 
 
 Chỉ bỏ chữ "potentially" nếu vượt kiểm định 3c. Ngay cả khi vượt, với 4 surrogate thì chỉ được nói là **robust trên các backbone đã thử**, không phải predictor tổng quát cho mọi backbone mới.
 
-**2.3 Practical:** RD-CNX (Track S) và ENS-WP (Track M) cho transfer mạnh tới các detector chưa thấy, báo riêng theo threat model. Không bắt buộc cả hai đạt SOTA.
+Gradient similarity như yếu tố của transferability **đã có** ở classification (Zhang et al., S&P'24) → C2 chỉ gắn với hành vi gradient **phụ thuộc objective** trong detection, interaction I và kiểm định 3c.
+
+**Về CKA:** SVul-Attack dùng CKA (clean + adversarial, theo dải tần, giữa các detector) để mô tả feature dễ tổn thương dùng chung. E67 hỏi một câu khác: CKA của feature backbone sạch có đủ giải thích transfer phụ thuộc objective xuyên họ backbone không. Viết là **mở rộng câu hỏi**, KHÔNG viết là "bác bỏ SVul":
+> "SVul-Attack uses representation similarity to characterize shared vulnerable features. Our study examines a different question: whether clean representation similarity is sufficient to account for objective-dependent transfer across backbone families."
+
+**2.3 Practical** (sửa 2026-11-10):
+- **Kết quả thực nghiệm chính — RD-CNX (Track S):** transfer CNN → Transformer mạnh với 1 surrogate ở ε = 5 (dev100: DINO-Swin-L 59.0 vs OSFD-R50 24.4).
+  - Lợi thế thuộc về **cả recipe** (surrogate + objective), không riêng một thành phần; factorial 3a mới tách được.
+  - Chưa gọi SOTA trước benchmark final.
+  - "Chưa có bài nào làm" chỉ đúng trong phạm vi các bài đã rà.
+- **Validation — ENS-WP (Track M):** minh họa cách khai thác gradient bổ sung từ 2 surrogate CNN để cải thiện transfer tổng thể, **không claim nguyên lý ensemble mới**.
+  - Ablation phải tách phần lợi do phối hợp gradient khỏi phần lợi chỉ do có thêm ConvNeXt: RD-CNX đơn, Ens-RD, warm-start E69, compute-matched RD-CNX B72.
 
 **2.4 Không claim:**
 - "Lần đầu" cho: tương tác surrogate × objective, ensemble, flatness, task + feature loss, gap CNN–Transformer.
@@ -242,6 +260,11 @@ Ngay cả khi PASS: chỉ nói robust trên 4 backbone đã thử.
 - **B — Controlled adaptation** (gắn nhãn "adapted" / "our impl."):
   - CWA chuyển sang full-image, cùng R50 + CNX.
   - **Ens-OSFD và Ens-RD** (trung bình loss) — **BẮT BUỘC**, để tách "có 2 model" khỏi momentum chung + luân phiên.
+  - **CWA adapted full-image** trên R50 + CNX — **BẮT BUỘC** (CWA-CSE cũng luân phiên surrogate; detection gốc của CWA chỉ là universal patch).
+- **SVul-Attack:** không có code (GitHub 404 lúc 2026-11-10), không có image ID, pipeline eval lệch (clean AP thấp hơn số chính thức) → **không có số nào để kiểm độ trung thực, nên không làm bản tái lập đầy đủ.** Chỉ xuất hiện ở 2 dạng:
+  - **"SVul-inspired objective ablation (our implementation)"** (task + feature tần cao) trong bảng phân tích objective. KHÔNG dùng để claim thắng SVul.
+  - Cross-protocol mang tính bối cảnh (bước 6).
+  - Nếu tác giả công bố code thì xem lại.
 - **C — Cross-protocol / related work:** CWA bản patch gốc; số trích từ paper khác protocol.
 
 **Checklist độ trung thực** (theo từng method, không dùng ngưỡng chung): objective, ràng buộc perturbation, preprocessing, checkpoint, clean AP, định nghĩa metric, tái lập 1 số tham chiếu trong setting gốc.
@@ -261,7 +284,10 @@ Ngay cả khi PASS: chỉ nói robust trên 4 backbone đã thử.
 
 ### Bước 6 — Cross-protocol
 
-Chạy RD-CNX / ENS-WP trên đúng protocol của benchmark 2602.16494 và/hoặc SVul; so với số HỌ tự báo (ví dụ OSFD 40.2 trên DINO-Swin-L, VOC2007). Chỉ làm khi họ công bố đủ protocol (kiểm ở bước 1).
+Chạy RD-CNX / ENS-WP trên đúng protocol của nghiên cứu khác, rồi đặt cạnh số HỌ tự báo:
+- **Benchmark 2602.16494:** full VOC07 test, mAP@0.5, relative drop, ε 5. Số tham chiếu: OSFD từ surrogate FRC-R50 trên DINO-Swin-L = **15.4** (40.2 là từ surrogate Swin-T). Khả thi vì ảnh công khai; vẫn phải đối chiếu checkpoint và clean mAP.
+- **SVul-Attack:** COCO val 1000 ảnh, ε 8, mAP@0.5 tuyệt đối. Họ **không công bố image ID**, pipeline eval khác → chỉ là **contextual evidence**, KHÔNG xếp hạng hai method bằng các số đó.
+- Muốn gọi là so sánh trực tiếp thì tối thiểu phải khớp image ID, checkpoint và clean AP.
 
 ### Bước 7 — Tính tổng quát (nên có)
 
