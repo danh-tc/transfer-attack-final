@@ -14,9 +14,9 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
-**Trạng thái (cập nhật 2026-11-09 ~23:10 GMT+7, máy V100): TẠM DỪNG — đọc đuôi `docs/progress_log.md` (E62→E81 + 2 entry BÀN GIAO).**
+**Trạng thái (cập nhật 2026-11-10): PLAN PAPER ĐÃ KHÓA — đọc [docs/plan_paper_lock.md](docs/plan_paper_lock.md) TRƯỚC mọi thứ khác (thay mục "VIỆC MAI" bên dưới).** Primary endpoint = interaction surrogate × objective (factorial dev100); gradient alignment là claim có điều kiện; RD-CNX B50 (Track S) và ENS-WP (Track M) là 2 kết quả ngang hàng. Việc tiếp: bước 1 rà prior art (không cần GPU) → bước 2 strict-1 + WP rồi đóng băng.
 
-**QUYẾT ĐỊNH LỚN (user duyệt 2026-10-31): DỪNG tìm method single-surrogate. Paper = mechanism + impossibility, ENS-WP làm validation.** Cơ sở: **8 gate single-surrogate NO-GO** phủ 4 tầng — tần số E64, vùng E72, ngân sách E74, objective E75, backward-path E76, failure-mode E77, momentum-recoverability E78, basin-flatness E79 — cộng E67/E68 khẳng định cơ chế. Outline + tiêu đề: "Orthogonal by Architecture: The Backbone-Family Barrier in Transferable Object-Detection Attacks".
+**(Lịch sử) QUYẾT ĐỊNH 2026-10-31: DỪNG tìm method single-surrogate trên R50.** Cơ sở: **8 gate single-R50 NO-GO** (E64, E72, E74–E79) + E67/E68. ⚠️ Định vị "impossibility" và tiêu đề "Orthogonal by Architecture…" đã **BỎ** ngày 2026-11-10: 8 gate chỉ là giới hạn thực nghiệm của R50, không phải bất khả thi (RD-CNX 1 surrogate đạt Swin-L 59.0).
 
 **METHOD HIỆN TẠI (2 mức giả định, dev100 trên A4500, E73/E74):**
 | | Method | T7 | DINO-Swin-L | Ghi chú |
@@ -34,7 +34,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 - **E70/E71:** momentum-chung cộng 2 hướng gần-trực-giao vào CÙNG vector → phủ cả hai họ (bằng chứng nhân quả cho E68).
 - **E78:** block ConvNeXt XOAY quỹ đạo (orth_frac 0.77, mag_ratio ≈1.0, ổn định early→late) — lượng hoá động-học.
 - **E77:** composition thất bại [cls, loc, supp] ≈ [0.05–0.12, 0.33–0.45, 0.45–0.66] **BẤT BIẾN** qua mọi attack × target × họ → gap thuần là ĐỘ LỚN của cùng một kiểu hỏng.
-- **E81 (mới):** **WP có ĐỈNH LIỀU NHỌN quanh ρ0.002, chỉ tác động hướng Transformer; họ ResNet TRƠ với liều.** ρ: 0 → 0.002 → 0.005 → 0.010 cho Swin-L ~50 → 60.3 → 49.1 → 39.8 (RES3 bẹt: ~91 → 91.0 → 90.7 → 88.0). WP không phải "làm phẳng nói chung".
+- **E81 (mới):** ρ0.002 tốt hơn rõ các liều 0.005 / 0.010 đã thử, chỉ tác động hướng Transformer; họ ResNet gần như trơ với liều. ρ: 0 → 0.002 → 0.005 → 0.010 cho Swin-L ~50 → 60.3 → 49.1 → 39.8 (RES3 bẹt: ~91 → 91.0 → 90.7 → 88.0). Gợi ý Swin-L rất nhạy với ρ; chưa quét dày hai phía nên CHƯA xác định được cực đại.
 
 **LEVER Swin-L CÒN LẠI DUY NHẤT: strict-1 + WP.** Mọi trục không-sửa-core đã ĐÓNG phiên 11-09: ngân sách B36→B50 (E80, ΔSwin-L +2.1 CI chứa 0), phân bổ khối 9/9 → 3/15 (E81, −0.9), liều ρ (E81, đơn điệu GIẢM). Đường trống: E70 strict-1 noWP Swin-L 55.1 > E71 khối-2 noWP 52.5, mà WP cho +7.8 → nếu cộng được thì ~63. Cần sửa core `wp_in`/`wp_out` (~1–1.5h; WP2 đặt θ' ở CUỐI bước nên với `steps=1` bị caller khôi phục ngay, không bao giờ dùng — xem `attack/methods/core.py` nhánh WP mặc định). GPU chỉ ~6 ph ở dev30 panel gọn.
 
