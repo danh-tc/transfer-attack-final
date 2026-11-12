@@ -5491,3 +5491,32 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 - Báo I_recipe + CI cho MỌI target. Secondary/mô tả (không làm cổng): I_aug, I_stage, I_3way (phân rã), I_views, I_impl, hiệu ứng trong từng surrogate, T7.
 **Ước thời gian:** sinh 12 ô × 200 ảnh (~1h45, 2 worker) + eval 9 model × 13 bộ × 200 ảnh (~1h25) ≈ **3h10**.
 **Smoke test** x5 boot 20 chỉ kiểm pipeline, KHÔNG đọc số.
+
+## 2026-11-12 — E84 KẾT QUẢ @ x200 (xong 18:26 GMT+7): PRIMARY XÁC NHẬN — I_recipe = +6.9 [+4.2, +9.2]
+**Phán quyết (quy tắc khóa):** I_recipe = [CNX(OCT-C35 − RRB-C25)] − [R50(OCT-C35 − RRB-C25)] trên TB(Swin-T, DINO-Swin-L) = **+6.9 [+4.2, +9.2]**, cận dưới CI > 0 → **XÁC NHẬN**: tương tác surrogate × công thức feature có thật trên ảnh mới. Claim 2.1 viết lại thành "surrogate × feature recipe". Bước tiếp (3b với trục mới) CHỜ USER DUYỆT.
+
+**Bảng (relative AP drop %, B=36, ε=5, boot 1000, V100-SXM2-16GB):**
+| cell | r50 | r101 | cnx_t | swin_t | fcos | dino_r50 | yolov3 | yolox_l | dino_swin_l | PRIMARY | T7 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| R50-RRB-C25 | 98.2 | 90.7 | 71.5 | 68.6 | 91.8 | 95.6 | 68.8 | 63.7 | 18.4 | 43.5 | 71.1 |
+| R50-RRB-C35 | 98.3 | 91.2 | 71.4 | 68.3 | 91.9 | 96.3 | 70.3 | 63.6 | 18.2 | 43.3 | 71.4 |
+| R50-OCT-C25 | 97.6 | 90.4 | 75.6 | 71.7 | 91.1 | 95.8 | 71.4 | 63.4 | 20.3 | 46.0 | 72.0 |
+| R50-OCT-C35 | 97.8 | 90.7 | 75.2 | 71.9 | 91.7 | 96.2 | 71.3 | 64.1 | 20.1 | 46.0 | 72.3 |
+| R50-OCT2V-C35 | 97.9 | 91.6 | 77.5 | 74.1 | 92.9 | 97.2 | 75.2 | 66.9 | 21.7 | 47.9 | 74.2 |
+| R50-OSFD | 98.3 | 92.7 | 76.6 | 75.9 | 94.0 | 97.5 | 76.0 | 67.1 | 22.1 | 49.0 | 75.0 |
+| CNX-RRB-C25 | 70.8 | 65.8 | 91.0 | 70.7 | 69.9 | 70.3 | 59.5 | 54.4 | 25.7 | 48.2 | 59.5 |
+| CNX-RRB-C35 | 78.7 | 74.6 | 97.8 | 78.8 | 80.9 | 81.2 | 68.5 | 64.3 | 31.6 | 55.2 | 68.5 |
+| CNX-OCT-C25 | 68.9 | 66.0 | 90.5 | 71.6 | 71.2 | 71.4 | 60.3 | 57.4 | 28.1 | 49.9 | 60.9 |
+| CNX-OCT-C35 | 80.6 | 74.1 | 97.1 | 80.5 | 80.0 | 81.9 | 68.6 | 68.4 | 34.9 | 57.7 | 69.8 |
+| CNX-OCT2V-C35 | 81.2 | 75.1 | 97.6 | 81.8 | 83.1 | 83.2 | 69.3 | 67.9 | 34.5 | 58.2 | 70.7 |
+| CNX-OSFD | 75.7 | 71.6 | 94.8 | 76.8 | 74.6 | 79.3 | 63.2 | 58.3 | 26.9 | 51.9 | 64.4 |
+
+**I_recipe mọi target:** r50 +10.2 [7.5, 13.3] (G0), r101 +8.3 [5.8, 12.6], convnext_t +2.4 [−0.0, 6.8] (G0), swin_t +6.4 [2.8, 10.4], fcos_r50 +10.2 [5.9, 13.3], dino_r50 +10.9 [7.5, 13.3], yolov3_d53 +6.6 [2.6, 11.0], yolox_l +13.6 [10.3, 19.0], dino_swin_l +7.5 [3.5, 10.0]; T7 +9.1 [7.4, 10.8]. Dương trên mọi target non-G0.
+
+**Secondary / mô tả (không làm cổng):**
+- **Phân rã: tương tác nằm ở STAGE, không ở AUG.** I_stage (sur × C35−C25) PRIMARY +7.5 [5.8, 8.7] (T7 +8.7 [7.1, 9.7]); I_aug −0.6 [−2.3, 1.4]; I_3way +0.6 [−1.3, 2.6]. Trong surrogate: CNX stage +7.4 [5.9, 8.5] vs R50 −0.1 [−0.6, 0.5]; aug OCT−RRB dương nhỏ ở cả hai (R50 +2.7, CNX +2.1) → aug là hiệu ứng chính, không tương tác. ⇒ Bỏ C2 khỏi loss feature chỉ có lợi trên ConvNeXt (R50 trung tính). Phát biểu chính xác hơn của claim: **surrogate × tầng feature**. (Phân rã là secondary; claim gated là I_recipe.)
+- I_views (OCT2V − OCT1V, C35, tương tác) −1.4 [−2.8, 0.2] → không tương tác; 2 view tăng ~+2 điểm ở cả hai surrogate (hiệu ứng chính).
+- I_impl (RRB-C25 − OSFD gốc) +1.9 [−0.7, 5.5]; cài đặt `geo_osfd_attack` (co-transform, amp) yếu hơn `osfd_attack` gốc ở cả hai surrogate (R50 −5.5 [−7.6, −3.6], CNX −3.7 [−5.9, −0.7]) → ô OCT/RRB không so trực tiếp được với OSFD gốc; chỉ đọc contrast trong cùng implementation. ⚠️ Cần lưu ý khi viết: R50-OSFD gốc (49.0) > R50-OCT-C35 (46.0) trên PRIMARY.
+**Caveat:** 200 ảnh này từng dùng cho ablation OSFD trên R50 (chọn RRB/MI), chưa dùng cho CNX/câu hỏi tương tác. 1 seed, 1 máy.
+**Việc tiếp (CHỜ USER QUYẾT):** 3b với trục mới (surrogate × stage/recipe); KHÔNG tự chạy.
+**Artifact:** `artifacts/runs/e84_recipe_B36_eps5_v100sxm216gb/` → **đã upload HF** `runs/e84_recipe_B36_eps5_v100sxm216gb.tar` (1471457280 B, sha256 67527f6f332325503ca88decc619c690b0650ce3d583614be40b38d366b3fc79); tải: `python scripts/sync_artifacts.py download e84_recipe_B36_eps5_v100sxm216gb`.
