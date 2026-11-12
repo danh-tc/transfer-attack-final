@@ -5426,3 +5426,19 @@ Chung: ε=5/255, `geo_osfd_attack` (`attack/methods/pia.py`), MI momentum=1.0, a
 - **ENS-WP (Track M):** surrogate Mask R-CNN R50 + Mask R-CNN ConvNeXt-T; B=36; khối 2 bước luân phiên R50/CNX (18 khối, 9/9), **momentum chung** qua khối; λ_cls R50=6.0 / CNX=0.2; WP: R50 chỉ Conv2d, CNX `weight_linear=True`; θ' KHÔNG mang qua khối. Seed 1000·(n+1)+b (torch+random+numpy). Cài đặt tham chiếu: `scripts/e82_strict1_wp.py` ô `ENS-WP-B36` (`kw_for` + `COMMON` từ `scripts/e81_ens_alloc_rho.py`).
 - **RD-CNX B50 (Track S):** surrogate Mask R-CNN ConvNeXt-T đơn; B=50; method `C2-OCT-1V-WP2-RD-CNX` (`scripts/run_baselines.py:417`): λ_cls=0.2, WP ρ0.002 `weight_linear=True`. Run E74: `dev300_B50_eps5_limit100_sur-convnext_t`. Ở final áp quy tắc seed 3.6 (python+numpy+torch theo ảnh).
 **Việc tiếp:** bước 3 `docs/plan_paper_lock.md` — 3a factorial {R50, CNX} × {FEAT-only, CLS-only, FEAT+CLS} @ dev100, cùng máy; khóa B (đề xuất 36) + quy tắc + commit TRƯỚC khi chạy.
+
+## 2026-11-12 — E83: bước 3a factorial giai đoạn 1 (PRIMARY endpoint) @ dev100, máy V100-SXM2-16GB (user: "giữ dev100", ~12:10 GMT+7) — khóa TRƯỚC khi chạy
+**Bối cảnh:** recipe đã đóng băng (E82). User cân nhắc dev50 cho nhanh, quyết **giữ dev100** như plan (I là hiệu của 4 ô, phương sai lớn; dev50 tiết kiệm ~2h nhưng CI rộng ~1.4×).
+**Script:** `scripts/e83_factorial.py`, chạy `results/e83/run.sh` trong tmux (2 worker sinh song song theo surrogate, rồi eval).
+**Ô — tất cả Mask R-CNN, B=36 (KHÓA), ε=5, OCT 1 view (`_C2OCT`, amp), KHÔNG WP (trừ RD):**
+- Primary: {R50, CNX} × {FEAT, CLS}. FEAT = L_OSFD C3–C5; CLS = chỉ loss cls RoI (`cls_mode="roi"`, `feature=False`).
+- Secondary: {R50, CNX} × FC = FEAT + λ·CLS, λ theo rd_calib đã khóa (R50 6.0, CNX 0.2); sensitivity λ×0.5, λ×2 (4 ô).
+- Ô nối E65: OSFD-R50, OSFD-CNX (recipe gốc RRB + C2–C5), RD-R50, RD-CNX (= FC + WP ρ0.002, CNX `weight_linear`), **cùng B=36** (khác OSFD B50 của bảng baseline — ở đây để tách aug/stage vs objective ở cùng B).
+- **Sửa định nghĩa so với E66:** ô RD-CNX-FEAT của E66 (cls_weight=0) đi nhánh `_view_loss` nên BỎ QUA `stage_w` → thực tế dùng C2–C5. E83 đặt `feat_stages=(1,2,3)` để FEAT đúng C3–C5 như plan khóa. → số FEAT E83 không so trực tiếp với E66.
+**Seed:** torch + random + numpy = 1000·(n+1), n = chỉ số ảnh trong dev100. **Eval:** panel 9 model (như E73), paired bootstrap **1000**, BOOT_SEED 2026, mọi contrast tính trong cùng tiến trình; lưu mẫu bootstrap (`results/mechanism/e83_factorial_dev100_samples.npz`) + detection từng ảnh (`artifacts/runs/<run>/dets/`, cho 3c).
+**Primary contrast:** I = (CNX_CLS − CNX_FEAT) − (R50_CLS − R50_FEAT) trên **TB(Swin-T, DINO-Swin-L)**, CI paired.
+**QUY TẮC KHÓA (plan 3a):**
+- Cận dưới CI(I) > 0 → claim 2.1 GIỮ → đi tiếp 3b.
+- CI chứa 0 (hoặc âm) → **đánh giá lại toàn bộ central claim** (hạ xuống mô tả hiện tượng); không mặc định C2 cứu được, không chạy 3b mặc định.
+- Báo I + CI cho MỌI target bất kể kết quả. Secondary/mô tả (không làm cổng): I_FC, I_E65, CLS−FEAT / FC−FEAT / FEAT−OSFD / RD−FC theo từng surrogate, sensitivity λ, T7.
+**Smoke test** dev5 boot 20 (`--tag smoke`) chỉ để kiểm pipeline, KHÔNG đọc số.
