@@ -14,6 +14,8 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
+**⚠️ CẬP NHẬT 2026-11-12 — E83 (bước 3a) XONG: PRIMARY THẤT BẠI.** I = (CNX_CLS − CNX_FEAT) − (R50_CLS − R50_FEAT) trên TB(Swin-T, DINO-Swin-L) = **−0.9 [−6.9, +1.8]** @ dev100 → claim 2.1 KHÔNG giữ → theo plan 3a/R2 phải **đánh giá lại central claim, CHƯA chạy 3b**, chờ user quyết. Hậu kỳ (chưa xác nhận): tương tác E65 có thật (I_E65 +10.3 [5.6, 13.9]) nhưng nằm ở surrogate × công thức feature/augmentation (OCT+C3–C5 vs RRB+C2–C5), không ở loss cls. Chi tiết: entry E83 trong progress_log.
+
 **Trạng thái (cập nhật 2026-11-10 tối): BƯỚC 1 + 2 XONG (E82 NO-GO, recipe đóng băng) → tiếp bước 3a. PLAN PAPER ĐÃ KHÓA — đọc [docs/plan_paper_lock.md](docs/plan_paper_lock.md) TRƯỚC mọi thứ khác (thay mục "VIỆC MAI" bên dưới).** Primary endpoint = interaction surrogate × objective (factorial dev100); gradient alignment là claim có điều kiện; RD-CNX B50 (Track S) và ENS-WP (Track M) là 2 kết quả ngang hàng. Việc tiếp: bước 1 rà prior art (không cần GPU) → bước 2 strict-1 + WP rồi đóng băng.
 
 **(Lịch sử) QUYẾT ĐỊNH 2026-10-31: DỪNG tìm method single-surrogate trên R50.** Cơ sở: **8 gate single-R50 NO-GO** (E64, E72, E74–E79) + E67/E68. ⚠️ Định vị "impossibility" và tiêu đề "Orthogonal by Architecture…" đã **BỎ** ngày 2026-11-10: 8 gate chỉ là giới hạn thực nghiệm của R50, không phải bất khả thi (RD-CNX 1 surrogate đạt Swin-L 59.0).

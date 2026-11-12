@@ -5442,3 +5442,36 @@ Chung: ε=5/255, `geo_osfd_attack` (`attack/methods/pia.py`), MI momentum=1.0, a
 - CI chứa 0 (hoặc âm) → **đánh giá lại toàn bộ central claim** (hạ xuống mô tả hiện tượng); không mặc định C2 cứu được, không chạy 3b mặc định.
 - Báo I + CI cho MỌI target bất kể kết quả. Secondary/mô tả (không làm cổng): I_FC, I_E65, CLS−FEAT / FC−FEAT / FEAT−OSFD / RD−FC theo từng surrogate, sensitivity λ, T7.
 **Smoke test** dev5 boot 20 (`--tag smoke`) chỉ để kiểm pipeline, KHÔNG đọc số.
+
+## 2026-11-12 — E83 kết quả @ dev100 (V100-SXM2-16GB, xong 14:27 GMT+7; `results/mechanism/e83_factorial_dev100.json` + `_samples.npz`, log `results/e83/run.log`) — theo quy tắc khóa: **CI(I) CHỨA 0 → claim 2.1 KHÔNG giữ; ĐÁNH GIÁ LẠI central claim, KHÔNG chạy 3b mặc định**
+**Vận hành:** lần chạy đầu nghẽn CPU (2 worker × ~176 thread, GPU ~32%, ô FC 8.5–9.2 s/ảnh) → dừng ở ~12:50, thêm `OMP_NUM_THREADS=8 MKL_NUM_THREADS=8` vào `results/e83/run.sh`, resume (PNG đã có giữ nguyên; GPU ~86%, ~5–6 s/ảnh). Không đổi seed/recipe. Log 2 đoạn: `gen_*_part1.log` + `gen_*.log`.
+**Bảng** (relative AP drop %, dev100, boot 1000, B36; PRIMARY = TB(Swin-T, DINO-Swin-L)):
+
+| ô | r50 | r101 | cnx | swin_t | fcos | dino_r50 | yolov3 | yolox_l | swin_l | PRIMARY | T7 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| R50-FEAT | 96.0 | 85.6 | 72.1 | 68.3 | 87.2 | 91.8 | 69.5 | 62.5 | 23.4 | 45.8 | 69.7 |
+| R50-CLS | 96.7 | 89.0 | 79.1 | 72.3 | 88.3 | 90.0 | 64.3 | 59.7 | 29.8 | 51.0 | 70.5 |
+| R50-FC | 98.7 | 92.6 | 83.8 | 80.3 | 93.4 | 93.3 | 74.9 | 69.9 | 31.4 | 55.8 | 76.5 |
+| R50-FC-L05 | 97.1 | 93.2 | 82.7 | 78.7 | 94.2 | 94.4 | 76.8 | 67.6 | 30.6 | 54.7 | 76.5 |
+| R50-FC-L2 | 97.9 | 91.5 | 82.1 | 78.6 | 91.4 | 93.1 | 72.0 | 66.9 | 31.3 | 54.9 | 75.0 |
+| OSFD-R50 | 95.9 | 91.2 | 74.9 | 74.4 | 91.9 | 95.5 | 73.9 | 66.2 | 24.9 | 49.6 | 74.0 |
+| RD-R50 | 97.1 | 92.3 | 83.3 | 80.2 | 91.6 | 93.4 | 75.9 | 71.4 | 35.4 | 57.8 | 77.2 |
+| CNX-FEAT | 78.3 | 72.0 | 94.8 | 81.2 | 79.5 | 82.5 | 68.3 | 63.6 | 36.1 | 58.6 | 69.0 |
+| CNX-CLS | 76.6 | 73.3 | 96.9 | 80.2 | 73.2 | 73.4 | 64.6 | 56.5 | 45.7 | 62.9 | 66.7 |
+| CNX-FC | 86.0 | 83.1 | 99.0 | 89.5 | 83.9 | 84.6 | 72.0 | 72.1 | 51.0 | 70.3 | 76.6 |
+| CNX-FC-L05 | 85.6 | 83.4 | 97.9 | 87.3 | 85.4 | 87.1 | 73.8 | 71.3 | 49.9 | 68.6 | 76.9 |
+| CNX-FC-L2 | 84.7 | 81.2 | 98.3 | 87.1 | 82.6 | 82.5 | 70.6 | 71.2 | 48.6 | 67.9 | 74.8 |
+| OSFD-CNX | 73.0 | 68.7 | 94.2 | 74.8 | 74.2 | 76.3 | 65.0 | 55.4 | 29.0 | 51.9 | 63.3 |
+| RD-CNX | 84.1 | 83.2 | 94.5 | 85.4 | 84.1 | 84.2 | 78.7 | 71.8 | 55.3 | 70.3 | 77.5 |
+
+**PRIMARY (cổng):** I = (CNX_CLS − CNX_FEAT) − (R50_CLS − R50_FEAT) trên PRIMARY = **−0.9 [−6.9, +1.8]** (p≤0 = 0.86) → CI chứa 0 → **claim 2.1 KHÔNG giữ.**
+I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (G0) · r101 −2.1 [−7.7, 6.6] · convnext_t −4.8 [−11.4, 2.2] (G0) · swin_t −5.0 [−11.0, 1.2] · fcos −7.5 [−13.8, −1.4] · dino_r50 −7.4 [−13.5, −0.5] · yolov3 +1.5 [−5.4, 10.8] · yolox_l −4.3 [−10.8, 1.9] · **dino_swin_l +3.2 [−5.9, 6.3]** · T7 −3.1 [−6.9, 0.9]. Không target nào có I > 0 với CI loại 0.
+**Secondary / mô tả (KHÔNG làm cổng, hậu kỳ — chỉ để định hướng):**
+- CLS−FEAT dương ở CẢ HAI surrogate trên PRIMARY (R50 +5.2 [0.9, 8.6], CNX +4.3 [−1.4, 5.7]) → lợi ích của loss cls **không phụ thuộc surrogate**; I_FC (FC−FEAT) = +1.6 [−2.9, 4.3] cũng chứa 0; FC−FEAT ≈ +10 / +11.6.
+- **I_E65 (RD−OSFD) = +10.3 [+5.6, +13.9]** (Swin-L +15.8 [8.4, 19.4], T7 +11.0 [7.4, 13.4]) — tương tác E65 CÓ thật ở dev100 B36 (nhỏ hơn +29 của dev30). Phân rã cộng tính: phần aug+stage (FEAT−OSFD: R50 **−3.8** [−6.4, −1.4] vs CNX **+6.7** [4.0, 10.8], hiệu ≈ +10.5) gần như là TOÀN BỘ; phần objective (FC−FEAT) +1.6; WP (RD−FC) −1.8. → tương tác nằm ở **surrogate × công thức feature/augmentation (OCT + C3–C5 vs RRB + C2–C5)**, KHÔNG ở surrogate × loss cls. ⚠️ Đây là kết quả hậu kỳ; nếu dùng làm claim phải khóa trước + xác nhận trên tập dev chưa dùng cho câu hỏi này.
+- Hiệu ứng chính surrogate lớn: CNX − R50 trên Swin-L FEAT +12.7, CLS +15.9, FC +19.6 → đổi họ surrogate là đòn bẩy chính, bất kể objective.
+- Sensitivity λ (×0.5 / ×2) phẳng: PRIMARY R50 54.7 / 55.8 / 54.9, CNX 68.6 / 70.3 / 67.9 → FC không nhạy λ.
+- WP trên CNX: Swin-L +4.2 [−0.2, 9.0] nhưng Swin-T **−4.1** [−6.8, −1.3]; trên R50 Swin-L +4.0 [1.3, 6.8].
+**Caveat:** điểm I PRIMARY nằm sát cận trên CI (boot mean −2.5): AP-drop tương đối là tỉ số phi tuyến nên phân phối bootstrap lệch; không đổi phán quyết. dev100, 1 seed, 1 máy.
+**Việc tiếp (CHỜ USER QUYẾT, theo plan 3a/R2):** đánh giá lại central claim. KHÔNG chạy 3b mặc định.
+**Artifact:** `artifacts/runs/e83_factorial_B36_eps5_v100sxm216gb/` (838M: PNG 14 ô + detection từng ảnh 9 model cho 3c) → **đã upload HF** `runs/e83_factorial_B36_eps5_v100sxm216gb.tar` (878008320 B, sha256 260d77d70fec75c3f06f04113e64dc5ede52cc39f25a916ca4fa9518bbc50882); tải: `python scripts/sync_artifacts.py download e83_factorial_B36_eps5_v100sxm216gb`.

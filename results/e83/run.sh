@@ -5,6 +5,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 source .venv/bin/activate
+# Nghẽn CPU (GPU ~30%): 2 process × ~176 thread tranh nhau -> giới hạn thread intra-op mỗi process.
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-8} MKL_NUM_THREADS=${MKL_NUM_THREADS:-8}
 L=results/e83
 python scripts/e83_factorial.py --gen-only \
   --cells R50-FEAT,R50-CLS,R50-FC,R50-FC-L05,R50-FC-L2,OSFD-R50,RD-R50 > $L/gen_r50.log 2>&1 &
