@@ -14,6 +14,7 @@ Máy chạy thí nghiệm là **GPU thuê (RTX 3090 hoặc RTX 4000 Ada), luôn 
 
 ## Giai đoạn hiện tại
 
+**⚠️ CẬP NHẬT 2026-11-12 22:31 GMT+7 — E85 (3b, mô tả) XONG @ dev100:** hiệu ứng stage (C35−C25) theo surrogate trên T5C: R50 +0.1, R101 +0.0, SWT +2.8 [1.9, 3.7], **CNX +9.8 [7.6, 11.6]** → đặc thù ConvNeXt, không phải CNN vs Transformer; aug ≈ 0 mọi surrogate. Chờ user duyệt 3c. Chi tiết: entry E85 kết quả trong progress_log.
 **⚠️ CẬP NHẬT 2026-11-12 18:26 GMT+7 — E84 XÁC NHẬN:** I_recipe (sur × [OCT-C35 − RRB-C25]) trên TB(Swin-T, DINO-Swin-L) = **+6.9 [+4.2, +9.2]** @ x200 (dev300\dev100) → claim 2.1 viết lại thành tương tác surrogate × công thức feature; phân rã (secondary): gần như toàn bộ ở **stage** (I_stage +7.5 [5.8, 8.7]; I_aug ≈ 0). Chờ user duyệt 3b với trục mới. Chi tiết: entry E84 kết quả trong progress_log.
 **⚠️ CẬP NHẬT 2026-11-12 — E83 (bước 3a) XONG: PRIMARY THẤT BẠI.** I = (CNX_CLS − CNX_FEAT) − (R50_CLS − R50_FEAT) trên TB(Swin-T, DINO-Swin-L) = **−0.9 [−6.9, +1.8]** @ dev100 → claim 2.1 KHÔNG giữ → theo plan 3a/R2 phải **đánh giá lại central claim, CHƯA chạy 3b**, chờ user quyết. Hậu kỳ (chưa xác nhận): tương tác E65 có thật (I_E65 +10.3 [5.6, 13.9]) nhưng nằm ở surrogate × công thức feature/augmentation (OCT+C3–C5 vs RRB+C2–C5), không ở loss cls. Chi tiết: entry E83 trong progress_log.
 

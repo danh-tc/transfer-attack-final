@@ -5532,3 +5532,38 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 **QUY TẮC KHÓA:** E85 là **MÔ TẢ, KHÔNG CÓ CỔNG** (plan 3b: không trình bày như xác nhận độc lập; dev100 đã dùng ở E83 nơi phát hiện hậu kỳ). Báo cho mọi surrogate: stage (C35−C25), aug (OCT−RRB), recipe (OCT-C35 − RRB-C25), CLS − OCT-C35 (R101, SWT), và I_stage / I_recipe so với R50 — điểm + CI, mọi target, kể cả âm. KHÔNG dùng E85 để chọn/tune cấu hình; KHÔNG đổi claim E84 theo E85; viết bài chỉ dùng câu "hiệu ứng stage phụ thuộc họ surrogate" ở mức mô tả qua 4 surrogate. Dữ liệu này là đầu vào cho 3c (định nghĩa 3c đã khóa trong plan_paper_lock).
 **Ước thời gian:** sinh 18 ô × 100 ảnh (~1h50, 2 worker) + eval 9 model × 19 bộ × 100 ảnh (~55') ≈ **2h45**.
 **Smoke test** dev5 boot 20 (19:41–19:49 GMT+7): QUA — đủ 18 ô sinh + eval 9 model, R101/Swin-T làm surrogate chạy được trên 16 GB; chỉ kiểm pipeline, KHÔNG đọc số.
+
+## 2026-11-12 — E85 KẾT QUẢ @ dev100 (sinh xong 21:32, eval xong 22:31 GMT+7) — MÔ TẢ, không cổng
+**Bảng (relative AP drop %, B=36, ε=5, boot 1000, V100-SXM2-16GB; G0 = cột checkpoint của chính surrogate):**
+| cell | r50 | r101 | cnx_t | swin_t | fcos | dino_r50 | yolov3 | yolox_l | dino_swin_l | T7 | T5C |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| R50-RRB-C25 | 96.5 | 86.1 | 71.1 | 70.3 | 89.5 | 91.5 | 69.1 | 63.0 | 22.2 | 70.2 | 67.1 |
+| R50-RRB-C35 | 96.6 | 86.1 | 71.4 | 69.9 | 90.2 | 91.9 | 70.2 | 63.0 | 23.4 | 70.7 | 67.7 |
+| R50-OCT-C25 | 96.0 | 85.8 | 71.8 | 69.7 | 87.5 | 92.1 | 70.4 | 62.5 | 22.5 | 70.1 | 67.0 |
+| R50-OCT-C35 | 96.0 | 85.6 | 72.1 | 68.0 | 87.1 | 91.7 | 69.4 | 62.8 | 22.2 | 69.5 | 66.6 |
+| CNX-RRB-C25 | 69.1 | 62.0 | 89.9 | 66.2 | 67.3 | 69.3 | 58.7 | 53.5 | 30.3 | 58.2 | 55.8 |
+| CNX-RRB-C35 | 81.0 | 75.5 | 95.5 | 80.6 | 76.6 | 83.0 | 64.9 | 65.9 | 34.9 | 68.8 | 65.0 |
+| CNX-OCT-C25 | 67.9 | 60.9 | 88.7 | 69.2 | 66.4 | 69.1 | 57.7 | 53.1 | 31.3 | 58.3 | 55.5 |
+| CNX-OCT-C35 | 78.3 | 71.9 | 94.8 | 81.1 | 79.1 | 82.5 | 68.4 | 64.0 | 36.1 | 69.0 | 66.0 |
+| R101-RRB-C25 | 92.7 | 96.9 | 75.0 | 71.5 | 90.4 | 91.1 | 71.7 | 65.6 | 26.6 | 73.4 | 69.1 |
+| R101-RRB-C35 | 92.9 | 96.8 | 75.3 | 73.2 | 90.5 | 90.8 | 71.2 | 65.4 | 25.7 | 73.4 | 68.7 |
+| R101-OCT-C25 | 91.7 | 96.7 | 77.0 | 72.0 | 90.4 | 89.7 | 73.3 | 67.3 | 28.9 | 74.1 | 69.9 |
+| R101-OCT-C35 | 91.9 | 96.7 | 77.2 | 71.0 | 91.0 | 90.2 | 74.0 | 66.7 | 29.8 | 74.2 | 70.3 |
+| R101-CLS | 85.8 | 94.4 | 75.9 | 69.2 | 82.5 | 81.4 | 66.3 | 58.7 | 33.2 | 69.4 | 64.4 |
+| SWT-RRB-C25 | 75.6 | 67.6 | 79.7 | 92.5 | 77.8 | 77.5 | 66.5 | 61.6 | 43.4 | 69.6 | 65.4 |
+| SWT-RRB-C35 | 77.3 | 70.5 | 82.6 | 94.8 | 80.9 | 79.2 | 68.4 | 63.7 | 45.7 | 71.9 | 67.6 |
+| SWT-OCT-C25 | 74.6 | 65.8 | 80.1 | 91.5 | 76.2 | 76.7 | 65.3 | 57.8 | 43.8 | 68.2 | 64.0 |
+| SWT-OCT-C35 | 78.0 | 67.9 | 82.4 | 92.8 | 78.5 | 79.0 | 70.2 | 63.7 | 45.0 | 71.0 | 67.3 |
+| SWT-CLS | 73.9 | 70.0 | 83.4 | 93.9 | 74.3 | 73.2 | 67.2 | 61.6 | 56.7 | 71.0 | 66.6 |
+
+**Hiệu ứng stage (C35−C25, TB aug) theo surrogate, T5C [CI95]:** R50 +0.1 [−0.4, 0.5]; R101 +0.0 [−0.5, 0.4]; SWT +2.8 [1.9, 3.7]; **CNX +9.8 [7.6, 11.6]**. Trên DINO-Swin-L: R50 +0.4, R101 −0.0, SWT +1.8 [0.4, 2.8] (G1), CNX +4.7 [2.4, 6.9].
+**Tương tác so với R50 (T5C):** I_stage CNX +9.7 [7.5, 11.6], SWT +2.6 [1.8, 3.6], R101 −0.1 [−0.7, 0.5]; I_recipe CNX +10.6 [7.3, 13.7], SWT +2.3 [0.1, 4.6], R101 +1.7 [−0.6, 3.7].
+**Aug (OCT−RRB):** ≈ 0 ở mọi surrogate trên T5C (R50 −0.6, CNX +0.3, R101 +1.2, SWT −0.8; mọi CI chứa 0).
+**CLS − OCT-C35:** R101 T5C −5.9 [−9.8, −3.2] (DINO-Swin-L +3.4 [−0.6, 7.3]); SWT T5C −0.7 [−5.0, 2.5] nhưng DINO-Swin-L **+11.7 [5.4, 15.2]** (G1 cùng họ Swin).
+**Đọc (mô tả):**
+- Hiệu ứng stage là **đặc thù ConvNeXt**: hai ResNet (R50, R101) trơ hẳn (≈ 0, CI hẹp), Swin-T nhỏ nhưng dương, CNX lớn. R101 cho thấy không phải "CNN vs không-CNN": độ sâu ResNet không đổi hiệu ứng.
+- Lặp lại E84 trên dev100 (cùng hướng, cỡ tương đương: CNX stage +9.8 vs +9.0 T7 ở E84; aug ≈ 0) — dev100 không độc lập (E83).
+- Mức thô: SWT-CLS có DINO-Swin-L cao nhất (56.7) nhưng là cùng họ Swin (G1); CNX vẫn là surrogate không-Swin tốt nhất cho DINO-Swin-L (36.1), R101 nhỉnh hơn R50 (29.8 vs 22.2).
+- Gợi ý cơ chế cho 3c (chưa kiểm): C2 của ConvNeXt (stem patchify 4×4 + stage 1) có thể chứa gradient đặc thù kiến trúc làm loãng tín hiệu transfer; ResNet C2 thì không.
+**Artifact:** `artifacts/runs/e85_surstage_B36_eps5_v100sxm216gb/` (1.1G: PNG 18 ô + dets từng ảnh 9 model × 19 bộ cho 3c) → **đã upload HF** `runs/e85_surstage_B36_eps5_v100sxm216gb.tar` (1123686400 B, sha256 25aca36f7a0be677f799d5c9806d4179b58b02f4a52133e6400e020b23ffdc92); tải: `python scripts/sync_artifacts.py download e85_surstage_B36_eps5_v100sxm216gb`.
+**Việc tiếp (CHỜ USER):** 3c (alignment vs CKA, LOSO 4 fold) — định nghĩa đã khóa trong plan_paper_lock; cần duyệt trước khi chạy. Ghi nhận thêm (2026-11-12): kiểm lại bản port OSFD — lõi khớp; lệch θ/ρ RRB do bug truyền tham số trong code gốc (thực chạy θ=10, ρ=1.0; mình port theo config θ=7, ρ=0.8); code gốc chọn epoch `best_black` theo target (200 bước). Chưa ghi vào protocol_lock — chờ user.
