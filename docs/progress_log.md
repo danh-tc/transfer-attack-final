@@ -5520,3 +5520,15 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 **Caveat:** 200 ảnh này từng dùng cho ablation OSFD trên R50 (chọn RRB/MI), chưa dùng cho CNX/câu hỏi tương tác. 1 seed, 1 máy.
 **Việc tiếp (CHỜ USER QUYẾT):** 3b với trục mới (surrogate × stage/recipe); KHÔNG tự chạy.
 **Artifact:** `artifacts/runs/e84_recipe_B36_eps5_v100sxm216gb/` → **đã upload HF** `runs/e84_recipe_B36_eps5_v100sxm216gb.tar` (1471457280 B, sha256 67527f6f332325503ca88decc619c690b0650ce3d583614be40b38d366b3fc79); tải: `python scripts/sync_artifacts.py download e84_recipe_B36_eps5_v100sxm216gb`.
+
+## 2026-11-12 — E85 (bước 3b, trục mới sau E84): tầng feature × họ surrogate trên 4 surrogate Mask R-CNN, dev100 (user: "dev 100", ~19:05 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao:** E84 xác nhận tương tác surrogate × công thức feature, phân rã nằm ở stage (bỏ C2 lợi trên CNX, trung tính trên R50). Plan 3b thêm surrogate R101 + Swin-T; trục đổi từ objective (FEAT/CLS) sang công thức feature. 3c cần trục surrogate + detection từng ảnh trên cùng tập ảnh với E83 (dev100).
+**Script:** `scripts/e85_surrogate_stage.py`, chạy `results/e85/run.sh` trong tmux `e85` (2 worker: R50+SWT | CNX+R101, OMP/MKL 8).
+**Ô (định nghĩa y hệt E84; B=36, ε=5, geo_osfd_attack co-transform, amp):**
+- {R50, CNX, R101, SWT(Mask R-CNN Swin-T)} × AUG {RRB, OCT} × STAGE {C2–C5, C3–C5} = 16 ô.
+- CLS-only cho R101, SWT (= ô CLS E83, `cls_mode="roi"`, `feature=False`; λ=1.0 vì MI chuẩn hóa rồi sign → λ vô tác dụng). Ô CLS R50/CNX dùng lại từ E83 (cùng máy V100-SXM2, cùng seed) cho 3c.
+**Seed:** 1000·(n+1), n = chỉ số trong dev100 (trùng E83). **Eval:** panel 9 model, boot 1000, BOOT_SEED 2026, contrast trong tiến trình; lưu dets từng ảnh × model × ô (cho 3c).
+**Target:** mỗi surrogate loại checkpoint của chính nó (G0): contrast trong surrogate đọc trên T7\own và TF\own (Swin-T, DINO-Swin-L trừ own). Surrogate SWT: DINO-Swin-L là **G1 (cùng họ Swin)**, không gọi là họ Transformer chưa thấy. Tương tác so với R50 đọc trên **T5C** = {fcos_r50, dino_r50, yolov3_d53, yolox_l, dino_swin_l} (không G0 với surrogate nào).
+**QUY TẮC KHÓA:** E85 là **MÔ TẢ, KHÔNG CÓ CỔNG** (plan 3b: không trình bày như xác nhận độc lập; dev100 đã dùng ở E83 nơi phát hiện hậu kỳ). Báo cho mọi surrogate: stage (C35−C25), aug (OCT−RRB), recipe (OCT-C35 − RRB-C25), CLS − OCT-C35 (R101, SWT), và I_stage / I_recipe so với R50 — điểm + CI, mọi target, kể cả âm. KHÔNG dùng E85 để chọn/tune cấu hình; KHÔNG đổi claim E84 theo E85; viết bài chỉ dùng câu "hiệu ứng stage phụ thuộc họ surrogate" ở mức mô tả qua 4 surrogate. Dữ liệu này là đầu vào cho 3c (định nghĩa 3c đã khóa trong plan_paper_lock).
+**Ước thời gian:** sinh 18 ô × 100 ảnh (~1h50, 2 worker) + eval 9 model × 19 bộ × 100 ảnh (~55') ≈ **2h45**.
+**Smoke test** dev5 boot 20 (19:41–19:49 GMT+7): QUA — đủ 18 ô sinh + eval 9 model, R101/Swin-T làm surrogate chạy được trên 16 GB; chỉ kiểm pipeline, KHÔNG đọc số.
