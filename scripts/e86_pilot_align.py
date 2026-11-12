@@ -9,7 +9,10 @@ import numpy as np, torch
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 from attack.data import load_image_ids
+import attack.targets as _tg
 from attack.targets import load_any, target_dataset, target_grads
+_tg.GEN.setdefault("fcos_r50", ("fcos/fcos_r50-caffe_fpn_gn-head-center-normbbox-centeronreg-giou_1x_coco.py", "fcos_center-normbbox*"))
+_tg.GEN.setdefault("yolox_l", ("yolox/yolox_l_8xb8-300e_coco.py", "yolox_l_8x8*"))   # = scripts/eval_generalization.py
 from attack.losses.osfd import make_osfd_loss_fn
 from attack.preprocess import resize_to_model
 
@@ -59,10 +62,13 @@ def main():
         res[p] = {"T5C": {st: summ(avg[st]) for st in STG}, "delta_C35_C25_T5C": summ(avg["C35"] - avg["C25"]),
                   "dino_swin_l": {st: summ(C[s][st]["dino_swin_l"]) for st in STG},
                   "delta_C35_C25_dino_swin_l": summ(C[s]["C35"]["dino_swin_l"] - C[s]["C25"]["dino_swin_l"]),
-                  "per_target_delta": {t: summ(C[s]["C35"][t] - C[s]["C25"][t]) for t in T5C}}
+                  "per_target_delta": {t: summ(C[s]["C35"][t] - C[s]["C25"][t]) for t in T5C},
+                  "norm_ratio_C2_over_C25": summ(np.array([float(G[(s, "C2", i)].norm() / (G[(s, "C25", i)].norm() + 1e-12)) for i in ids])),
+                  "cos_C2_C35": summ(np.array([cos(G[(s, "C2", i)], G[(s, "C35", i)]) for i in ids]))}
         f = lambda v: f"{v[0]:+.4f} [{v[1]:+.4f}, {v[2]:+.4f}]"
         print(f"{p:5} C25 {f(res[p]['T5C']['C25'])}  C35 {f(res[p]['T5C']['C35'])}  C2 {f(res[p]['T5C']['C2'])}  "
-              f"Δ {f(res[p]['delta_C35_C25_T5C'])} | SwinL Δ {f(res[p]['delta_C35_C25_dino_swin_l'])}")
+              f"Δ {f(res[p]['delta_C35_C25_T5C'])} | SwinL Δ {f(res[p]['delta_C35_C25_dino_swin_l'])} | "
+              f"‖∇C2‖/‖∇C25‖ {f(res[p]['norm_ratio_C2_over_C25'])} cos(∇C2,∇C35) {f(res[p]['cos_C2_C35'])}")
     out = os.path.join(REPO_ROOT, "results/mechanism/e86_pilot_align.json")
     json.dump(res, open(out, "w"), indent=1, ensure_ascii=False); print(f"[e86] -> {out}")
 

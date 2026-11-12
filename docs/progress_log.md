@@ -5573,3 +5573,4 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 **Thiết kế:** `scripts/e86_pilot_align.py`. 20 ảnh đầu x200 (dev300 \ dev100) — KHÔNG dùng dev100 để giữ sạch cho 3c thật. Surrogate {R50, CNX, R101, SWT}: ∇ₓ L_OSFD (k=3, feature backbone, không aug) với C2–C5 | C3–C5 | chỉ C2. Target T5C: ∇ₓ L_cls (như E68). cos theo ảnh gốc, TB qua ảnh + T5C, bootstrap 1000.
 **Dự đoán thăm dò:** Δcos(C35 − C25) lớn nhất ở CNX, ≈ 0 ở R50/R101.
 **QUY TẮC:** PILOT — KHÔNG làm bằng chứng, KHÔNG làm cổng, không đưa số vào paper như kết quả. Chỉ dùng để quyết có làm 3c thật không; nếu làm, định nghĩa 3c khóa riêng và chạy trên dev100, và E86 ghi vào data-use history (forking: pilot có thể ảnh hưởng thiết kế 3c). Báo mọi surrogate, kể cả trái dự đoán.
+**Bổ sung trước run chính (sau smoke 2 ảnh, chỉ kiểm pipeline):** thêm 2 chẩn đoán mô tả cho mỗi surrogate — ‖∇C2‖/‖∇C2–C5‖ (C2 chiếm bao nhiêu gradient) và cos(∇C2, ∇C3–C5). Không đổi phần còn lại.
