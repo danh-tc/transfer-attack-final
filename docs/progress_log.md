@@ -5567,3 +5567,9 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 - Gợi ý cơ chế cho 3c (chưa kiểm): C2 của ConvNeXt (stem patchify 4×4 + stage 1) có thể chứa gradient đặc thù kiến trúc làm loãng tín hiệu transfer; ResNet C2 thì không.
 **Artifact:** `artifacts/runs/e85_surstage_B36_eps5_v100sxm216gb/` (1.1G: PNG 18 ô + dets từng ảnh 9 model × 19 bộ cho 3c) → **đã upload HF** `runs/e85_surstage_B36_eps5_v100sxm216gb.tar` (1123686400 B, sha256 25aca36f7a0be677f799d5c9806d4179b58b02f4a52133e6400e020b23ffdc92); tải: `python scripts/sync_artifacts.py download e85_surstage_B36_eps5_v100sxm216gb`.
 **Việc tiếp (CHỜ USER):** 3c (alignment vs CKA, LOSO 4 fold) — định nghĩa đã khóa trong plan_paper_lock; cần duyệt trước khi chạy. Ghi nhận thêm (2026-11-12): kiểm lại bản port OSFD — lõi khớp; lệch θ/ρ RRB do bug truyền tham số trong code gốc (thực chạy θ=10, ρ=1.0; mình port theo config θ=7, ρ=0.8); code gốc chọn epoch `best_black` theo target (200 bước). Chưa ghi vào protocol_lock — chờ user.
+
+## 2026-11-12 — E86: PILOT 3c (thăm dò 10–15', user hỏi quick test ~22:50 GMT+7) — khóa TRƯỚC khi chạy
+**Mục đích:** xem nhanh alignment gradient (ảnh sạch) có đi theo hiệu ứng stage của E84/E85 không, trước khi quyết có làm 3c thật (trục mới: stage thay objective).
+**Thiết kế:** `scripts/e86_pilot_align.py`. 20 ảnh đầu x200 (dev300 \ dev100) — KHÔNG dùng dev100 để giữ sạch cho 3c thật. Surrogate {R50, CNX, R101, SWT}: ∇ₓ L_OSFD (k=3, feature backbone, không aug) với C2–C5 | C3–C5 | chỉ C2. Target T5C: ∇ₓ L_cls (như E68). cos theo ảnh gốc, TB qua ảnh + T5C, bootstrap 1000.
+**Dự đoán thăm dò:** Δcos(C35 − C25) lớn nhất ở CNX, ≈ 0 ở R50/R101.
+**QUY TẮC:** PILOT — KHÔNG làm bằng chứng, KHÔNG làm cổng, không đưa số vào paper như kết quả. Chỉ dùng để quyết có làm 3c thật không; nếu làm, định nghĩa 3c khóa riêng và chạy trên dev100, và E86 ghi vào data-use history (forking: pilot có thể ảnh hưởng thiết kế 3c). Báo mọi surrogate, kể cả trái dự đoán.
