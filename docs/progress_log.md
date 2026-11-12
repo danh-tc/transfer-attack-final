@@ -5475,3 +5475,19 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 **Caveat:** điểm I PRIMARY nằm sát cận trên CI (boot mean −2.5): AP-drop tương đối là tỉ số phi tuyến nên phân phối bootstrap lệch; không đổi phán quyết. dev100, 1 seed, 1 máy.
 **Việc tiếp (CHỜ USER QUYẾT, theo plan 3a/R2):** đánh giá lại central claim. KHÔNG chạy 3b mặc định.
 **Artifact:** `artifacts/runs/e83_factorial_B36_eps5_v100sxm216gb/` (838M: PNG 14 ô + detection từng ảnh 9 model cho 3c) → **đã upload HF** `runs/e83_factorial_B36_eps5_v100sxm216gb.tar` (878008320 B, sha256 260d77d70fec75c3f06f04113e64dc5ede52cc39f25a916ca4fa9518bbc50882); tải: `python scripts/sync_artifacts.py download e83_factorial_B36_eps5_v100sxm216gb`.
+
+## 2026-11-12 — E84: xác nhận phát hiện hậu kỳ E83 — tương tác surrogate × CÔNG THỨC FEATURE (aug × stage) trên 200 ảnh dev300 \ dev100 (user: "approve", ~15:20 GMT+7) — khóa TRƯỚC khi chạy
+**Vì sao (đổi trụ cột plan_paper_lock 3a — ghi lý do TRƯỚC khi đổi plan):** E83 bác primary (I cls ≈ 0). Hậu kỳ E83: I_E65 (RD−OSFD) +10.3 [5.6, 13.9], gần như toàn bộ nằm ở FEAT−OSFD (R50 −3.8 vs CNX +6.7) → giả thuyết mới: **lợi ích của công thức feature OCT + C3–C5 (so với RRB + C2–C5 của OSFD) phụ thuộc họ surrogate**. Vì là hậu kỳ, phải xác nhận trên ảnh CHƯA dùng cho câu hỏi này, quy tắc khóa trước. Nếu xác nhận → trụ cột 2.1 viết lại thành "surrogate × feature recipe"; nếu không → paper hạ xuống mô tả hiện tượng (R2).
+**Dữ liệu:** x200 = dev300 \ dev100 (200 ảnh, thứ tự dev300; ∩ n1000 = ∅). ⚠️ 200 ảnh này ĐÃ dùng ở ablation OSFD trên R50 (2026-10, chọn RRB/xoay/MI), nhưng CHƯA dùng cho surrogate CNX hay câu hỏi tương tác → ghi trong data-use history.
+**Script:** `scripts/e84_recipe_factorial.py`, chạy `results/e84/run.sh` trong tmux `e84` (2 worker, OMP/MKL 8 thread).
+**Ô (objective = L_OSFD thuần, không cls, không WP; `geo_osfd_attack` co-transform feature sạch, amp; B=36, ε=5):**
+- Factorial 8 ô: {R50, CNX} × AUG {RRB (`geo="rrb"`, 2 view/backward), OCT (`geo="elem"` OCT, 1 view)} × STAGE {C2–C5, C3–C5 (`feat_stages=(1,2,3)`)}. Ô OCT-C35 ≡ ô FEAT của E83.
+- Phụ (không làm cổng): OCT2V-C35 (OCT 2 view → kiểm phần lợi OCT có do số view), OSFD gốc (`osfd_attack`: không co-transform, fp32 → neo E83, tách hiệu ứng cài đặt).
+**Seed:** torch + random + numpy = 1000·(n+1), n = chỉ số trong x200. **Eval:** panel 9 model, paired bootstrap 1000, BOOT_SEED 2026, contrast trong cùng tiến trình.
+**PRIMARY (cổng duy nhất):** I_recipe = [CNX(OCT-C35) − CNX(RRB-C25)] − [R50(OCT-C35) − R50(RRB-C25)] trên **TB(Swin-T, DINO-Swin-L)**, CI paired.
+**QUY TẮC KHÓA:**
+- Cận dưới CI(I_recipe) > 0 → **XÁC NHẬN** → viết lại claim 2.1 thành tương tác surrogate × feature recipe; bước tiếp do user duyệt (3b với trục mới).
+- CI chứa 0 hoặc âm → **KHÔNG xác nhận** → paper hạ xuống mô tả hiện tượng (plan R2); không tìm contrast khác trên x200 để cứu.
+- Báo I_recipe + CI cho MỌI target. Secondary/mô tả (không làm cổng): I_aug, I_stage, I_3way (phân rã), I_views, I_impl, hiệu ứng trong từng surrogate, T7.
+**Ước thời gian:** sinh 12 ô × 200 ảnh (~1h45, 2 worker) + eval 9 model × 13 bộ × 200 ảnh (~1h25) ≈ **3h10**.
+**Smoke test** x5 boot 20 chỉ kiểm pipeline, KHÔNG đọc số.
