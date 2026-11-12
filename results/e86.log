@@ -1,0 +1,66 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+[e86] target fcos_r50 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+[e86] target dino_r50 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+[e86] target yolov3_d53 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+loading annotations into memory...
+Done (t=0.52s)
+creating index...
+index created!
+[e86] target yolox_l xong
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.58s)
+creating index...
+index created!
+[e86] target dino_swin_l xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.61s)
+creating index...
+index created!
+[e86] surrogate r50 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.60s)
+creating index...
+index created!
+[e86] surrogate convnext_t xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.59s)
+creating index...
+index created!
+[e86] surrogate r101 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.59s)
+creating index...
+index created!
+[e86] surrogate swin_t xong
+
+=== E86 pilot @ x200[:20] — cos TB qua T5C [CI95]; Δ = C35 − C25 ===
+R50   C25 +0.0051 [+0.0016, +0.0087]  C35 +0.0051 [+0.0016, +0.0087]  C2 +0.0004 [-0.0009, +0.0018]  Δ -0.0000 [-0.0000, +0.0000] | SwinL Δ +0.0000 [-0.0000, +0.0000] | ‖∇C2‖/‖∇C25‖ +0.0029 [+0.0025, +0.0034] cos(∇C2,∇C35) +0.0841 [+0.0693, +0.1020]
+CNX   C25 -0.0020 [-0.0073, +0.0030]  C35 -0.0025 [-0.0080, +0.0028]  C2 +0.0006 [-0.0003, +0.0014]  Δ -0.0005 [-0.0010, -0.0000] | SwinL Δ -0.0004 [-0.0015, +0.0004] | ‖∇C2‖/‖∇C25‖ +0.4599 [+0.3996, +0.5212] cos(∇C2,∇C35) +0.0072 [-0.0068, +0.0201]
+R101  C25 +0.0067 [+0.0035, +0.0103]  C35 +0.0067 [+0.0035, +0.0103]  C2 +0.0004 [-0.0005, +0.0013]  Δ +0.0000 [-0.0000, +0.0000] | SwinL Δ +0.0000 [-0.0000, +0.0000] | ‖∇C2‖/‖∇C25‖ +0.0015 [+0.0010, +0.0023] cos(∇C2,∇C35) +0.0517 [+0.0393, +0.0651]
+SWT   C25 -0.0005 [-0.0027, +0.0021]  C35 -0.0005 [-0.0027, +0.0021]  C2 +0.0003 [-0.0006, +0.0012]  Δ -0.0000 [-0.0001, +0.0001] | SwinL Δ -0.0000 [-0.0001, +0.0001] | ‖∇C2‖/‖∇C25‖ +0.0831 [+0.0726, +0.0961] cos(∇C2,∇C35) +0.0133 [+0.0047, +0.0224]
+[e86] -> /workspace/transfer-attack-final/results/mechanism/e86_pilot_align.json
+EXIT=0

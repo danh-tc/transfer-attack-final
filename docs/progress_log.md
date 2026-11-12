@@ -5574,3 +5574,13 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 **Dự đoán thăm dò:** Δcos(C35 − C25) lớn nhất ở CNX, ≈ 0 ở R50/R101.
 **QUY TẮC:** PILOT — KHÔNG làm bằng chứng, KHÔNG làm cổng, không đưa số vào paper như kết quả. Chỉ dùng để quyết có làm 3c thật không; nếu làm, định nghĩa 3c khóa riêng và chạy trên dev100, và E86 ghi vào data-use history (forking: pilot có thể ảnh hưởng thiết kế 3c). Báo mọi surrogate, kể cả trái dự đoán.
 **Bổ sung trước run chính (sau smoke 2 ảnh, chỉ kiểm pipeline):** thêm 2 chẩn đoán mô tả cho mỗi surrogate — ‖∇C2‖/‖∇C2–C5‖ (C2 chiếm bao nhiêu gradient) và cos(∇C2, ∇C3–C5). Không đổi phần còn lại.
+**E86 KẾT QUẢ (22:46 GMT+7, 20 ảnh x200, PILOT — không làm bằng chứng):**
+| sur | cos T5C C2–C5 | cos C3–C5 | Δcos (C35−C25) | ‖∇C2‖/‖∇C2–C5‖ | cos(∇C2, ∇C3–C5) | stage effect E85 (T5C) |
+|---|---|---|---|---|---|---|
+| R50 | +0.0051 | +0.0051 | −0.0000 | 0.003 | +0.084 | +0.1 |
+| R101 | +0.0067 | +0.0067 | +0.0000 | 0.002 | +0.052 | +0.0 |
+| SWT | −0.0005 | −0.0005 | −0.0000 | 0.083 | +0.013 | +2.8 |
+| CNX | −0.0020 | −0.0025 | −0.0005 [−0.0010, −0.0000] | **0.460** | +0.007 | +9.8 |
+- **Dự đoán alignment KHÔNG đúng:** cos với ∇cls target ≈ 0 (|cos| < 0.01) ở mọi ô; Δcos ≈ 0, ở CNX còn hơi âm → alignment ảnh sạch không giải thích hiệu ứng stage (khớp tiền lệ A1/E75).
+- **Phát hiện hậu kỳ (chẩn đoán thêm sau smoke):** tỉ phần gradient của C2 xếp ĐÚNG thứ tự hiệu ứng stage ở 4/4 surrogate (R101 0.2% ≈ R50 0.3% < SWT 8% < CNX 46%), và ở CNX ∇C2 gần trực giao với ∇C3–C5 (cos 0.007). Giả thuyết: ở CNX, số hạng C2 (MSE theo stage, thang feature lớn) **chiếm gần nửa gradient theo hướng không liên quan** tầng sâu → làm loãng bước sign; bỏ C2 gỡ sự loãng đó. ResNet: C2 gần như không đóng góp gradient nên bỏ cũng không đổi. ⇒ hiệu ứng "stage" có thể là **cân bằng loss giữa các stage** (thang feature theo kiến trúc), không phải nội dung C2.
+- ⚠️ Hậu kỳ, 20 ảnh, 4 điểm; chẩn đoán được thêm sau khi thấy smoke (C2–C5 ≈ C3–C5 ở R50). Cần kiểm can thiệp khóa trước trên ảnh mới (ví dụ CNX C2–C5 với số hạng C2 hạ trọng số tới tỉ phần gradient như R50, hoặc chuẩn hóa gradient từng stage) trước khi viết thành claim.
