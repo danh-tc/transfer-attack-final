@@ -5619,3 +5619,34 @@ I theo target (mọi target, bất kể kết quả): r50 −2.4 [−9.4, 4.1] (
 **Chạy:** `results/e87/run.sh` (2 worker: CNX-A1+A05 | CNX-A0+R50-A1+R50-A0 → eval → chẩn đoán). **Ước:** sinh ~30–40', eval ~20', chẩn đoán ~5' ≈ **1h**.
 **Smoke** 3 ảnh đầu x200 (KHÔNG đụng devB100), boot 20, `results/e87/smoke.sh` — chỉ kiểm pipeline, KHÔNG đọc số.
 **Smoke (09:42–10:05 GMT+7): QUA** — 5 ô sinh + eval 9 model + chẩn đoán clean/adv chạy hết; sai số phân rã gradient = 0 (L tuyến tính theo stage, đúng kỳ vọng). Sửa trong smoke: ghi JSON `encoding="utf-8"` (locale ASCII của máy). Chỉ kiểm pipeline, KHÔNG đọc số.
+
+## 2026-11-13 — E87 KẾT QUẢ @ devB100 (V100-SXM2-16GB; sinh xong ~09:58, eval + chẩn đoán xong 10:20 GMT+7; `results/mechanism/e87_c2w_devB100.json` + `_samples.npz`, `e87_diag_devB100.json`, log `results/e87/`) — theo quy tắc khóa: **PRIMARY HỖ TRỢ giả thuyết**
+**Vận hành:** run đầu là tiến trình nền của phiên Claude; user yêu cầu chuyển sang tmux `e87` giữa eval (sau 3/9 model) → kill + chạy lại `results/e87/run.sh`; PNG đủ nên bỏ qua sinh, eval resume từ `_samples.npz`. Không đổi seed/ô.
+**Bảng** (relative AP drop %, B=36, ε=5, boot 1000; G0: r50 với R50, convnext_t với CNX):
+| cell | r50 | r101 | cnx_t | swin_t | fcos | dino_r50 | yolov3 | yolox_l | dino_swin_l | T7 | T5C |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CNX α=1 | 72.7 | 67.9 | 87.2 | 73.4 | 75.9 | 72.3 | 62.0 | 54.1 | 26.9 | 61.8 | 58.2 |
+| CNX α=0.5 | 78.6 | 71.8 | 90.9 | 75.4 | 79.4 | 77.4 | 64.6 | 62.5 | 31.2 | 66.0 | 63.0 |
+| CNX α=0 | 82.8 | 75.8 | 94.8 | 79.5 | 82.5 | 81.1 | 67.5 | 66.7 | 35.9 | 69.9 | 66.8 |
+| R50 α=1 | 96.1 | 88.6 | 76.1 | 73.3 | 90.2 | 93.8 | 70.9 | 64.9 | 20.9 | 71.8 | 68.1 |
+| R50 α=0 | 95.4 | 88.1 | 76.6 | 72.2 | 90.5 | 94.5 | 71.4 | 66.2 | 20.2 | 71.9 | 68.6 |
+
+**PRIMARY (cổng):** Δ_CNX = α0.5 − α1 trên T5C = **+4.8 [+3.0, +6.3]** → cận dưới > 0 → **HỖ TRỢ giả thuyết "giảm đóng góp C2 có lợi"** trên ConvNeXt (causal probe sơ bộ, không chứng minh nguyên nhân duy nhất). Dương ở 8/9 target với CI loại 0 (yolov3 +2.6 [−0.9, 5.8]); DINO-Swin-L +4.3 [1.5, 6.7].
+**SUPPORTING:** I_stage = (CNX α0−α1) − (R50 α0−α1) trên T5C = **+8.1 [+5.8, +10.2]** (DINO-Swin-L +9.7 [5.5, 12.9]; T7 +8.0). Negative control R50 α0 − α1 = +0.4 [−0.5, 1.4] (mọi target CI chứa 0) → hiệu ứng đặc thù surrogate có C2 gradient lớn, không phải "bỏ C2 có lợi nói chung".
+**Mô tả:** đáp ứng liều đơn điệu trên CNX (T5C 58.2 → 63.0 → 66.8); CNX α0 − α0.5 = +3.7 [2.3, 5.0] → α=0 tốt nhất, R = (α0.5−α1)/(α0−α1) = 0.56 [0.43, 0.69] (phục hồi ~một nửa ở α=0.5, đúng kỳ vọng "một phần"). Lặp lại E84/E85 trên ảnh thật sự mới: CNX α0 − α1 T5C +8.5 (E85 +9.8). ⚠️ Hiệu ứng có cả ở **G0 (white-box CNX +7.6)** → C2 làm yếu attack nói chung trên CNX (loãng tín hiệu tầng sâu), không riêng phần transfer; không viết là "chỉ chặn thông tin transferable".
+**Chẩn đoán (MÔ TẢ hậu kỳ, `e87_diag.py`, TB qua 100 ảnh [CI95]):**
+| | ‖g₂‖/‖g₃₄₅‖ | ‖g₂‖/‖g₂₅‖ | năng lượng g₂ | cos(g₂,g₃₄₅) | D(α=1) | D_null | D − D_null (α=1) | D − D_null (α=0.5) |
+|---|---|---|---|---|---|---|---|---|
+| CNX sạch | 0.51 | 0.44 | **0.21** | +0.012 | 0.195 | 0.241 | −0.046 [−0.049, −0.042] | −0.042 |
+| CNX adv (ô α=1) | 0.63 | 0.48 | 0.23 | **+0.26** | 0.169 | 0.257 | −0.088 [−0.092, −0.084] | −0.067 |
+| R50 sạch | 0.003 | 0.003 | 0.0000 | +0.086 | 0.001 | 0.002 | −0.0008 | −0.0004 |
+| R50 adv | 0.003 | 0.003 | 0.0000 | +0.18 | 0.001 | 0.002 | −0.0006 | −0.0003 |
+Sai số phân rã = 0 (L tuyến tính theo stage).
+- Xác nhận sửa của review: năng lượng C2 ở CNX ≈ **21%** (không phải "gần nửa"); ‖g₂‖/‖g₃₄₅‖ ≈ 0.5–0.6; R50 ≈ 0.003 → khác ~200×.
+- **Sign conflict ĐẶC BIỆT KHÔNG được hỗ trợ:** g₂ ở CNX lật dấu ~17–20% toạ độ của g₃₄₅ (α=1), nhưng ÍT hơn một vector ngẫu nhiên cùng norm (D − D_null < 0, CI loại 0; ở ảnh adv g₂ còn hơi cùng hướng g₃₄₅, cos 0.26). → cơ chế phù hợp nhất: **pha loãng do độ lớn** (C2 đủ lớn để lật ~1/5 dấu bước sign), không phải g₂ đối nghịch có hệ thống với tầng sâu.
+**Kết luận cho claim (theo quyết định user):** dùng được câu hẹp *"Backbone-dependent shallow-feature gradient contributions influence the transferability of multi-stage feature attacks in object detection."* Có thể thêm "gradient imbalance contributes to the observed stage sensitivity" với diễn giải **magnitude dilution**; KHÔNG claim sign conflict; KHÔNG claim chỉ ảnh hưởng phần transferable (G0 cũng tăng). GHFA/MFA đã có layer weighting → đóng góp là đo + can thiệp phụ thuộc họ backbone, không phải method cân bằng.
+**Không đổi gì ở recipe:** RD-CNX B50 / ENS-WP B36 vẫn đóng băng (recipe RD vốn dùng feature C3–C5 ≡ α=0 → E87 giải thích vì sao phần feature của RD hợp với ConvNeXt, không thêm cấu hình mới). **Không mở vòng tối ưu C2**; devB100 không dùng tiếp để tune.
+**Xác minh OSFD (bước 4, không GPU):** `ref-repo/OSFD-main/attack/base/RRB.py` — `preprocess_data` gọi `input_diversity(..., max_angle=self.theta, factor=self.rho, max_scale=self.s_max, max_pixel=self.l_s)` nhưng `random_axis_rotation(imgs, theta=10., l_s=10, ...)` / `adaptive_random_resizing(imgs, rho=1.0, s_max=1.1, ...)` nhận tên khác → giá trị config rơi vào `**kwargs`, **code gốc thực chạy θ=10, ρ=1.0** (l_s=10, s_max=1.1 trùng config; sigma=6 truyền đúng qua `gaussian_blur(sigma=self.sigma)`); config (`config/default.py`, `attack_*.yaml`) ghi θ=7, ρ=0.8 và được merge đúng vào instance (`tools/project/config.py:78-80`). Chuỗi view của port (`attack/methods/rrb.py`: view2 = resize(rotate(adv)), cả 2 cộng nhiễu) khớp gốc. → θ=10/ρ=1.0 = reference-code behavior; θ=7/ρ=0.8 = published-config sensitivity. Còn phải: fidelity check bằng số.
+**Prior art C2:** ghi `docs/prior_art_2026-11.md` §5 (GHFA JKSU-CIS 2024: gradient scaling cân bằng feature map trong OD — overlap cao; MFA UAI 2023: trọng số layer theo attribution). Chưa có full text.
+**Artifact:** `artifacts/runs/e87_c2w_B36_eps5_v100sxm216gb/` (291M: PNG 5 ô + dets 9 model) → **đã upload HF** `runs/e87_c2w_B36_eps5_v100sxm216gb.tar` (304773120 B, sha256 f00b427c4595165d9acb1b9e8076a0993d37f7556e3c35ea5b90894feb4cad84).
+**Việc tiếp (theo user):** baseline fidelity (OSFD 2 cấu hình, CWA adapted, Ens-OSFD/Ens-RD) → final benchmark n1000; full text GHFA/MFA trước khi chốt câu chữ.

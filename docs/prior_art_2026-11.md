@@ -139,3 +139,23 @@ Mọi bài trong bảng dưới đều đã đọc full text, trừ một bài g
 - [ ] Đọc full text S&P'24 (arXiv 2307.07873).
 - [ ] Đối chiếu config DINO-Swin-L / MRC-Swin-T của benchmark với của mình.
 - [ ] Theo dõi repo SVul-Attack.
+
+## 5. Bổ sung 2026-11-13 — prior art cho nhánh cơ chế C2 / feature-stage gradient (E87, user yêu cầu trước khi chốt novelty)
+
+Rà web (abstract + trang repo; **chưa đọc full text**, GHFA bị chặn 403 trên ScienceDirect, PDF MFA quá cỡ fetch):
+
+| Bài | Đóng góp liên quan | Overlap với E84–E87 | Code |
+|---|---|---|---|
+| **GHFA** — Wang et al., "Gradient-guided hierarchical feature attack for object detector", JKSU-CIS 2024, doi 10.1016/j.jksuci.2023.101901 | Feature-disruption attack cho detector; chỉ ra các attack feature có **mất cân bằng giữa các feature map** (thiên về map độ phân giải thấp + object điểm thấp); sửa bằng **gradient-guided feature weighting + receptive-field scaling + gradient scaling** để cân bằng các map. 9 detector, +2.4 so với hạng 2, thử cả nền tảng online thương mại. | **Cao** — "cân bằng đóng góp gradient giữa các tầng feature" trong OD feature attack ĐÃ có. Hướng mất cân bằng họ báo (thiên map thấp = sâu) ngược với của mình (ConvNeXt C2 nông chiếm lớn) → cần full text để biết họ có đo theo backbone không. | chưa thấy |
+| **MFA** — Chen et al., "Multi-layer Feature-aware Attack for Object Detection", UAI 2023 (PMLR 216), github ChenWen1997/MFA | Gán điểm attribution cho NHIỀU feature layer theo output location + category của detector, phá feature object-aware quan trọng; 10 detector (vd YOLOv7), digital + physical. | **Trung bình** — trọng số theo layer trong OD đã có (theo attribution, không theo độ lớn gradient / họ backbone). | repo "full code coming soon" |
+| Classification: FIA, ILA (ICCV'19), TESSER (2025, gradient scaling theo token theo norm feature), AGM (2024, cân bằng gradient giữa TÁC VỤ) | Chọn / trọng số layer, scaling gradient theo norm | Bối cảnh — không đo sự phụ thuộc họ backbone của tỉ phần gradient tầng nông | — |
+
+**Hệ quả cho câu chữ (theo quyết định user 2026-11-13):**
+- KHÔNG claim "gradient weighting / balancing giữa feature layers" là mới (GHFA, MFA).
+- Claim hẹp còn lại: *"Backbone-dependent shallow-feature gradient contributions influence the transferability of multi-stage feature attacks in object detection."* — điểm khác: **cùng một loss đa stage cố định, tỉ phần gradient tầng nông phụ thuộc HỌ backbone surrogate** (CNX ≫ SWT ≫ R50 ≈ R101) và tương tác đó (E84 I_recipe) ảnh hưởng transfer xuyên họ; can thiệp E87 + R50 control.
+- Phải trích GHFA + MFA ở related work và nói rõ: họ đề xuất method cân bằng; mình phân tích **vì sao** độ nhạy stage khác nhau theo họ backbone (không đề xuất method cân bằng mới — recipe đóng băng).
+
+**Còn mở:**
+- [ ] Full text GHFA (định nghĩa gradient scaling; có so theo backbone surrogate không? dùng backbone stage hay FPN?).
+- [ ] Full text MFA (layer nào, công thức trọng số).
+- [ ] Tìm thêm: "per-layer feature loss normalization" trong multi-layer feature attack classification (vd NAA, ILPD, FDA) + "sign conflict" khi cộng gradient nhiều số hạng trước sign (MI-FGSM).
