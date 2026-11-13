@@ -1,0 +1,20 @@
+{
+ "seed_devC": 20261114,
+ "n_devC": 300,
+ "seed_devD": 20261115,
+ "n_devD": 200,
+ "pool_size": 3552,
+ "pool": "val2017 có >= 1 annotation \\ (n1000 ∪ dev300 ∪ devB100)",
+ "intersect_old": {
+  "n300": 0,
+  "n1000": 0,
+  "dev5": 0,
+  "dev10": 0,
+  "dev30": 0,
+  "dev100": 0,
+  "dev300": 0,
+  "devB100": 0
+ },
+ "intersect_devC_devD": 0,
+ "role": "AMENDMENT 2026-11-13 mục tiêu B: devC300 phát triển (≤ 3 candidate × 2 cấu hình); devD200 xác nhận ĐÚNG 1 lần cho 1 candidate cuối; n1000 không đổi"
+}
