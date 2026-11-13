@@ -1,0 +1,41 @@
+
+=== (a) headroom AP T7 (oracle theo target) ===
+  max(ENS-WP,RD-CNX)     oracle 82.9  -ENS-WP +0.31 [+0.00,+0.92]
+  max_8_cells            oracle 83.9  -ENS-WP +1.24 [+0.70,+2.65]
+
+=== (b) ENS-WP suppress rate tren WEAK3 (yolov3,yolox_l,swin_l) ===
+  overall          58.5 [53.9,63.7]
+  size=S           61.4 [55.7,68.1]
+  size=M           60.0 [52.3,68.2]
+  size=L           51.7 [44.6,58.9]
+  sbin=[.3,.5)     82.7 [78.4,86.9]
+  sbin=[.5,.8)     63.1 [55.9,70.9]
+  sbin=[.8,1]      45.2 [39.4,51.5]
+  ngt=1-2          57.1 [44.7,69.6]
+  ngt=3-7          66.9 [60.5,73.7]
+  ngt=>=8          54.8 [48.3,62.1]
+  super=person     55.3 [48.5,62.4]
+  super=vehicle    47.8 [36.5,58.9]
+  super=kitchen    65.4 [51.5,81.5]
+  super=furniture  65.8 [56.0,79.3]
+  super=animal     63.9 [48.9,75.9]
+  super=sports     64.7 [53.3,75.4]
+  --- RD-CNX doi chieu ---
+  overall          55.9 [51.1,61.3]
+  size=S           63.4 [56.8,71.0]
+  size=M           56.9 [48.6,65.9]
+  size=L           43.6 [36.6,51.2]
+
+=== (c) overlap tren WEAK3 ===
+  RD-CNX_on_ENS-WP_survivors                 P(pha|sot) 15.2 [11.6,18.8]  (vo dk 55.9)
+  ref_churn_OSFD-REF_on_OSFD-PUB_survivors   P(pha|sot) 7.7 [5.9,9.7]  (vo dk 48.0)
+  ENS-WP_on_RD-CNX_survivors                 P(pha|sot) 20.2 [15.9,24.3]  (vo dk 58.5)
+  --- dino_swin_l ---
+  RD-CNX_on_ENS-WP_survivors                 P(pha|sot) 14.7 [11.0,18.9]  (vo dk 47.4)
+  ref_churn_OSFD-REF_on_OSFD-PUB_survivors   P(pha|sot) 5.6 [3.4,7.6]  (vo dk 25.1)
+  --- union informed WEAK3 ---
+  ENS-WP_only                58.5 [53.9,63.7]
+  RD-CNX_only                55.9 [51.1,61.3]
+  union_ENS-WP_or_RD-CNX     64.8 [60.3,69.8]
+
+[s0] -> /workspace/transfer-attack-final/results/mechanism/s0_failure_dev100.json

@@ -1,0 +1,233 @@
+{
+ "note": "S0-CPU mo ta tren E88 dev100; khong lam bang chung, khong doi method",
+ "n_images": 100,
+ "a_headroom_T7": {
+  "max(ENS-WP,RD-CNX)": {
+   "oracle_T7": 82.94,
+   "minus_ENS-WP": 0.31,
+   "ci95": [
+    0.0,
+    0.9178
+   ]
+  },
+  "max_8_cells": {
+   "oracle_T7": 83.87,
+   "minus_ENS-WP": 1.24,
+   "ci95": [
+    0.6961,
+    2.6538
+   ]
+  }
+ },
+ "b_ENS-WP_suppress_rate_WEAK3": {
+  "overall": [
+   0.5845,
+   [
+    0.5387,
+    0.6375
+   ]
+  ],
+  "size=S": [
+   0.6137,
+   [
+    0.557,
+    0.681
+   ]
+  ],
+  "size=M": [
+   0.5998,
+   [
+    0.5232,
+    0.6817
+   ]
+  ],
+  "size=L": [
+   0.5172,
+   [
+    0.4456,
+    0.5894
+   ]
+  ],
+  "sbin=[.3,.5)": [
+   0.8267,
+   [
+    0.7837,
+    0.8685
+   ]
+  ],
+  "sbin=[.5,.8)": [
+   0.6312,
+   [
+    0.5593,
+    0.7089
+   ]
+  ],
+  "sbin=[.8,1]": [
+   0.4525,
+   [
+    0.394,
+    0.5149
+   ]
+  ],
+  "ngt=1-2": [
+   0.5714,
+   [
+    0.4469,
+    0.696
+   ]
+  ],
+  "ngt=3-7": [
+   0.6691,
+   [
+    0.6045,
+    0.7372
+   ]
+  ],
+  "ngt=>=8": [
+   0.5482,
+   [
+    0.483,
+    0.6207
+   ]
+  ],
+  "super=person": [
+   0.5534,
+   [
+    0.4846,
+    0.6243
+   ]
+  ],
+  "super=vehicle": [
+   0.4778,
+   [
+    0.3651,
+    0.5891
+   ]
+  ],
+  "super=kitchen": [
+   0.6543,
+   [
+    0.5149,
+    0.8153
+   ]
+  ],
+  "super=furniture": [
+   0.6582,
+   [
+    0.5596,
+    0.793
+   ]
+  ],
+  "super=animal": [
+   0.6387,
+   [
+    0.4885,
+    0.7591
+   ]
+  ],
+  "super=sports": [
+   0.6471,
+   [
+    0.533,
+    0.7544
+   ]
+  ]
+ },
+ "b_RD-CNX_suppress_rate_WEAK3": {
+  "overall": [
+   0.5585,
+   [
+    0.5114,
+    0.613
+   ]
+  ],
+  "size=S": [
+   0.634,
+   [
+    0.5679,
+    0.7096
+   ]
+  ],
+  "size=M": [
+   0.5693,
+   [
+    0.4864,
+    0.6587
+   ]
+  ],
+  "size=L": [
+   0.4356,
+   [
+    0.3656,
+    0.5124
+   ]
+  ]
+ },
+ "c_overlap_WEAK3": {
+  "RD-CNX_on_ENS-WP_survivors": {
+   "P_test_given_surv_survived": 0.1521,
+   "ci95": [
+    0.116,
+    0.1883
+   ],
+   "P_test_uncond": 0.5585
+  },
+  "ref_churn_OSFD-REF_on_OSFD-PUB_survivors": {
+   "P_test_given_surv_survived": 0.0767,
+   "ci95": [
+    0.0588,
+    0.0971
+   ],
+   "P_test_uncond": 0.4798
+  },
+  "ENS-WP_on_RD-CNX_survivors": {
+   "P_test_given_surv_survived": 0.2019,
+   "ci95": [
+    0.159,
+    0.2433
+   ],
+   "P_test_uncond": 0.5845
+  }
+ },
+ "c_overlap_dino_swin_l": {
+  "RD-CNX_on_ENS-WP_survivors": {
+   "P_test_given_surv_survived": 0.1472,
+   "ci95": [
+    0.1098,
+    0.1891
+   ],
+   "P_test_uncond": 0.4741
+  },
+  "ref_churn_OSFD-REF_on_OSFD-PUB_survivors": {
+   "P_test_given_surv_survived": 0.0556,
+   "ci95": [
+    0.0336,
+    0.0761
+   ],
+   "P_test_uncond": 0.2507
+  }
+ },
+ "c_union_informed_WEAK3": {
+  "ENS-WP_only": [
+   0.5845,
+   [
+    0.5387,
+    0.6375
+   ]
+  ],
+  "RD-CNX_only": [
+   0.5585,
+   [
+    0.5114,
+    0.613
+   ]
+  ],
+  "union_ENS-WP_or_RD-CNX": [
+   0.6477,
+   [
+    0.6031,
+    0.6984
+   ]
+  ]
+ }
+}
