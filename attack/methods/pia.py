@@ -511,7 +511,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
                     weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
                     weight_linear: bool = False, mom_in=None, return_state: bool = False, rgg=None,
-                    wp_in=None, wp_out=None, feat_stage_w=None):
+                    wp_in=None, wp_out=None, feat_stage_w=None, grad_tap=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -586,6 +586,11 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         assert pix_region is None and gflush is None and rgg[0] in ("node", "spatial", "grad", "shuffle", "smooth")
         grad_transform = _rgg_transform(rgg[0], G=rgg[1] if len(rgg) > 1 else 6,
                                         lam=rgg[2] if len(rgg) > 2 else 1.0, seed=torch.initial_seed() + 29)
+    if grad_tap is not None:
+        # Ensemble baseline (progress_log 2026-11-13): grad_tap (list) nhận gradient THÔ mỗi bước (trước chuẩn hóa MI),
+        # không đổi gradient. Mặc định None = trùng tuyệt đối bản cũ.
+        assert grad_transform is None
+        grad_transform = lambda g: (grad_tap.append(g.detach().clone()), g)[1]
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
     assert cls_weight == 0.0 or geo != "rrb"

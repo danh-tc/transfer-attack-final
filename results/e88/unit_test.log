@@ -1,0 +1,23 @@
+  [PASS] T1 RD/r50 img 2153: tap ≈ không tap (δ khác 5.9e-03, nền 6.5e-03), 4 gradient
+  [PASS] T2 RD/r50 img 2153: alpha=0 giữ nguyên δ
+  [PASS] T3 RD/r50 img 2153: vòng ngoài ≈ gọi thẳng (δ khác 4.7e-02, nền 4.9e-02)
+  [PASS] T1 OSFD/r50 img 2153: tap ≈ không tap (δ khác 0.0e+00, nền 0.0e+00), 4 gradient
+  [PASS] T2 OSFD/r50 img 2153: alpha=0 giữ nguyên δ
+  [PASS] T3 OSFD/r50 img 2153: vòng ngoài ≈ gọi thẳng (δ khác 0.0e+00, nền 0.0e+00)
+  [PASS] T1 RD/convnext_t img 2153: tap ≈ không tap (δ khác 0.0e+00, nền 0.0e+00), 4 gradient
+  [PASS] T2 RD/convnext_t img 2153: alpha=0 giữ nguyên δ
+  [PASS] T3 RD/convnext_t img 2153: vòng ngoài ≈ gọi thẳng (δ khác 0.0e+00, nền 0.0e+00)
+  [PASS] T4 ENS-RD img 2153: 36 autograd.grad / 36 lời gọi == 36
+  [PASS] T4 ENS-OSFD img 2153: 36 autograd.grad / 36 lời gọi == 36
+  [PASS] T1 RD/r50 img 4134: tap ≈ không tap (δ khác 1.6e-01, nền 1.6e-01), 4 gradient
+  [PASS] T2 RD/r50 img 4134: alpha=0 giữ nguyên δ
+  [PASS] T3 RD/r50 img 4134: vòng ngoài ≈ gọi thẳng (δ khác 1.2e-01, nền 1.2e-01)
+  [PASS] T1 OSFD/r50 img 4134: tap ≈ không tap (δ khác 0.0e+00, nền 0.0e+00), 4 gradient
+  [PASS] T2 OSFD/r50 img 4134: alpha=0 giữ nguyên δ
+  [PASS] T3 OSFD/r50 img 4134: vòng ngoài ≈ gọi thẳng (δ khác 0.0e+00, nền 4.9e-05)
+  [PASS] T1 RD/convnext_t img 4134: tap ≈ không tap (δ khác 0.0e+00, nền 0.0e+00), 4 gradient
+  [PASS] T2 RD/convnext_t img 4134: alpha=0 giữ nguyên δ
+  [PASS] T3 RD/convnext_t img 4134: vòng ngoài ≈ gọi thẳng (δ khác 0.0e+00, nền 0.0e+00)
+  [PASS] T4 ENS-RD img 4134: 36 autograd.grad / 36 lời gọi == 36
+  [PASS] T4 ENS-OSFD img 4134: 36 autograd.grad / 36 lời gọi == 36
+[e88-test] TẤT CẢ PASS

@@ -5650,3 +5650,22 @@ Sai số phân rã = 0 (L tuyến tính theo stage).
 **Prior art C2:** ghi `docs/prior_art_2026-11.md` §5 (GHFA JKSU-CIS 2024: gradient scaling cân bằng feature map trong OD — overlap cao; MFA UAI 2023: trọng số layer theo attribution). Chưa có full text.
 **Artifact:** `artifacts/runs/e87_c2w_B36_eps5_v100sxm216gb/` (291M: PNG 5 ô + dets 9 model) → **đã upload HF** `runs/e87_c2w_B36_eps5_v100sxm216gb.tar` (304773120 B, sha256 f00b427c4595165d9acb1b9e8076a0993d37f7556e3c35ea5b90894feb4cad84).
 **Việc tiếp (theo user):** baseline fidelity (OSFD 2 cấu hình, CWA adapted, Ens-OSFD/Ens-RD) → final benchmark n1000; full text GHFA/MFA trước khi chốt câu chữ.
+
+## 2026-11-13 — E88: baseline fidelity NỬA ĐẦU (bước 4 plan, lớp B) — OSFD 2 cấu hình + Ens-OSFD / Ens-RD @ dev100, V100-SXM2-16GB (user: "Approve, code nửa đầu chạy trên tmux", ~10:30 GMT+7) — khóa TRƯỚC khi chạy
+**Câu hỏi:** Q1 OSFD-R50 B50 θ10/ρ1.0 (reference-code behavior, xác minh source 2026-11-13) vs θ7/ρ0.8 (published config) chênh bao nhiêu. Q2 ENS-WP có hơn ensemble trung bình đơn giản trên CÙNG 2 surrogate (R50 + CNX), CÙNG objective từng surrogate, CÙNG 36 backward không (phản biện "chỉ vì có 2 model", plan 2.3 + bước 4 lớp B).
+**Code:** `grad_tap` (list nhận gradient THÔ mỗi bước, không đổi gradient; mặc định None = đường cũ) cho `osfd_attack` (`attack/methods/baselines.py`, + `init_noise`) và `geo_osfd_attack`. Vòng ensemble (`scripts/e88_ens_baselines.py`): mỗi bước gọi từng surrogate `steps=1, alpha=0` (không bước) → g thô với ĐÚNG views / WP / co-transform của objective đơn → gộp → MI ngoài (momentum 1, chuẩn hóa mean|g|, sign, α=1).
+**Unit test `scripts/e88_unit_test.py` QUA HẾT** (log `results/e88/unit_test.log`): T1 tap không đổi kết quả; T2 alpha=0 giữ nguyên δ tuyệt đối; T3 vòng ngoài 1 surrogate (mang θ' WP qua bước) ≈ gọi thẳng steps=K — **trùng tuyệt đối (0 pixel) ở OSFD/R50 và RD/CNX**; T4 ensemble 18 bước = đúng 36 autograd.grad. ⚠️ RD trên R50 không tất định (RoIAlign backward, như E82): hai lần chạy y hệt lệch tới ~15% pixel δ sau 4 bước → T1/T3 cho R50-RD so với nhiễu nền đo tại chỗ (khác ≈ nền).
+**Ô** (ε=5, dev100, seed torch+random+numpy; mọi ô sinh MỚI trên cùng máy):
+- `OSFD-PUB`: `osfd_attack` R50 B50 θ7 ρ0.8 (port mặc định, = mọi số OSFD trước nay). Seed 1000·(n+1).
+- `OSFD-REF`: như trên, θ10 ρ1.0. Seed 1000·(n+1).
+- `RD-CNX`: `C2-OCT-1V-WP2-RD-CNX` B50 (đóng băng; mốc sinh lại). Seed 1000·(n+1).
+- `ENS-WP`: đóng băng, = `e82` ô ENS-WP-B36 (khối 2 bước luân phiên R50/CNX, momentum chung, θ' không mang). Seed 1000·(n+1)+b.
+- `ENS-{OSFD,RD}-{AVG,GN}`: 18 bước × (R50 + CNX) = 36 backward (compute-matched với ENS-WP B36). AVG = (g_R50 + g_CNX)/2 (= gradient của loss trung bình — đúng chữ "trung bình loss" của plan); GN = Σ g_s/mean|g_s| (chuẩn hóa từng surrogate, tránh 1 model áp đảo thang loss). Objective từng surrogate: OSFD = `osfd_attack` θ7 ρ0.8 (cấu hình chính thức của OSFD cho bảng CHƯA chốt — nếu chốt REF thì sinh lại ở final); RD = `kw_for(·, 0.002)` + `COMMON` (y hệt ENS-WP), θ' WP mang qua bước của chính surrogate. Seed 1000·(n+1) + 2t + j.
+**Eval:** panel 9 model, paired bootstrap 1000, BOOT_SEED 2026, contrast trong tiến trình. Nhóm: T7, DINO-Swin-L, G1 (r101, fcos, dino_r50), G2cnn (yolov3, yolox_l), TF (swin_t, dino_swin_l).
+**QUY TẮC ĐỌC (khóa trước, MÔ TẢ/định câu chữ — không chọn/tune method; recipe vẫn đóng băng):**
+- Q1: báo OSFD REF − PUB mọi nhóm + CI. KHÔNG chọn cấu hình theo AP drop; cấu hình đại diện quyết theo source + fidelity check (chưa xong).
+- Q2 PRIMARY: **ENS-WP − Ens-RD mạnh hơn** (ô mạnh hơn giữa AVG/GN theo điểm T7 — bất lợi cho mình) trên **T7**, báo kèm DINO-Swin-L. Cận dưới CI > 0 → giữ claim "phối hợp gradient (luân phiên + momentum chung) có lợi thêm ngoài việc có 2 surrogate". CI chứa 0 hoặc âm → Track M chỉ claim **lợi do dùng 2 surrogate**, ENS-WP không hơn ensemble đơn giản.
+- Báo thêm: ENS-WP − mọi ô Ens; Ens-RD − RD-CNX (thêm R50 bằng trung bình có giúp CNX đơn không); Ens-OSFD − OSFD-PUB; ENS-WP − RD-CNX.
+**Chạy:** `results/e88/run.sh` trong tmux `e88` (2 worker: OSFD-PUB, OSFD-REF, ENS-WP, ENS-OSFD-AVG | RD-CNX, ENS-OSFD-GN, ENS-RD-AVG, ENS-RD-GN → eval). **Ước:** sinh ~45–60', eval ~35' ≈ **1.5h**.
+**Smoke:** 3 ảnh đầu x200, boot 20, cùng run.sh (2 worker song song — kiểm luôn bộ nhớ 16 GB), chỉ kiểm pipeline.
+**Smoke (10:58–11:01 GMT+7): QUA** — 8 ô sinh song song 2 worker trên 16 GB không OOM, eval + contrast chạy hết; tốc độ smoke (3 ảnh, gồm khởi động): OSFD ~6 s/ảnh, ENS-* 4–6.5 s/ảnh, RD-CNX ~17 s/ảnh. Chỉ kiểm pipeline, KHÔNG đọc số.

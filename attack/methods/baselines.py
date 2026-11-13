@@ -73,7 +73,7 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
                 stages=None, spatial_weight=None, channel_concave=None,
                 loss: str = "feature", rrb_rotate: bool = True, rrb_resize: bool = True,
                 rrb_noise: bool = True, task_terms=None, cls_weight: float = 0.0,
-                grad_lowpass_f0=None, vc_k=None, combine="sum", rrb_draws: int = 1):
+                grad_lowpass_f0=None, vc_k=None, combine="sum", rrb_draws: int = 1, grad_tap=None, init_noise=None):
     # Feature sạch lấy từ CÙNG phép resize khả vi dùng cho adv (core.py) — tại δ=0
     # adv trùng tuyệt đối clean, loss chỉ đo phần lệch do δ gây ra.
     # spatial_weight: pilot A′1 ("box" / "box_ring"); channel_concave: pilot P2
@@ -108,6 +108,11 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
     grad_transform = None
     if grad_lowpass_f0 is not None:
         grad_transform = lambda g: gaussian_lowpass(g, grad_lowpass_f0)
+    if grad_tap is not None:
+        # Ensemble baseline (progress_log 2026-11-13): grad_tap (list) nhận gradient THÔ mỗi bước (trước chuẩn hóa MI),
+        # không đổi gradient. Mặc định None = trùng tuyệt đối bản cũ.
+        assert grad_transform is None
+        grad_transform = lambda g: (grad_tap.append(g.detach().clone()), g)[1]
     # Pilot VC (progress_log 2026-10-07): vc_k backward / step, mỗi backward 1 lần rút RRB độc lập; giữ B = steps
     # backward tổng -> steps // vc_k bước cập nhật; combine "sum" (đối chứng OSFD-K2) | "consensus" (VC-OSFD).
     bps = 1
@@ -117,7 +122,7 @@ def osfd_attack(model, orig_pixels, data_sample: DetDataSample, steps: int,
         model, orig_pixels, data_sample, loss_fn=loss_fn,
         steps=steps, epsilon=epsilon, alpha=alpha,
         momentum=momentum, views_fn=views_fn, on_step=on_step, grad_transform=grad_transform,
-        backward_per_step=bps, combine=combine)
+        backward_per_step=bps, combine=combine, init_noise=init_noise)
 
 
 def gaussian_lowpass(g: torch.Tensor, f0: float) -> torch.Tensor:
