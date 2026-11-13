@@ -219,12 +219,18 @@ def pia_views(adv_pixels: torch.Tensor, n: int, delta_max: float = DELTA_PAPER, 
     return out
 
 
-def _view_loss(feats_clean, k: float, stages=None):
-    """stages: chỉ số stage backbone dùng trong loss (None = cả 4, như OSFD; OCT-C4 / OCT-C34, progress_log 2026-10-10)."""
+def _view_loss(feats_clean, k: float, stages=None, weights=None):
+    """stages: chỉ số stage backbone dùng trong loss (None = cả 4, như OSFD; OCT-C4 / OCT-C34, progress_log 2026-10-10).
+    weights (E87, progress_log 2026-11-13): tuple trọng số từng stage (C2..C5); None = đường cũ trùng tuyệt đối.
+    Số hạng có trọng số 0 bị BỎ (không cộng 0·MSE) -> (0, 1, 1, 1) ≡ stages=(1, 2, 3) tuyệt đối; (1, 1, 1, 1) ≡ None."""
     def loss_fn(model, pixel_tensor, data_sample):
         feats_adv = extract_features(model, pixel_tensor, data_sample)
-        return sum(F.mse_loss(k * fc, fa) for j, (fc, fa) in enumerate(zip(feats_clean, feats_adv))
-                   if stages is None or j in stages)
+        if weights is None:
+            return sum(F.mse_loss(k * fc, fa) for j, (fc, fa) in enumerate(zip(feats_clean, feats_adv))
+                       if stages is None or j in stages)
+        assert stages is None and len(weights) == len(feats_clean)
+        terms = [(w, F.mse_loss(k * fc, fa)) for w, fc, fa in zip(weights, feats_clean, feats_adv) if w != 0]
+        return sum(t if w == 1 else w * t for w, t in terms)
     return loss_fn
 
 
@@ -505,7 +511,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
                     weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
                     weight_linear: bool = False, mom_in=None, return_state: bool = False, rgg=None,
-                    wp_in=None, wp_out=None):
+                    wp_in=None, wp_out=None, feat_stage_w=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -588,6 +594,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
     assert bg_weight == 0.0 or (geo == "elem" and cls_weight == 0.0 and co_transform and not cache_views and rapa_p is None)
     assert not bg_only or bg_weight > 0
     assert feat_stages is None or (cls_weight == 0.0 and bg_weight == 0.0 and rapa_p is None and feature)
+    # feat_stage_w (E87, progress_log 2026-11-13): trọng số C2..C5 cho L_OSFD thuần (vd (α, 1, 1, 1)); chỉ nhánh feature thuần.
+    assert feat_stage_w is None or (feat_stages is None and cls_weight == 0.0 and bg_weight == 0.0 and rapa_p is None
+                                    and feature and dual is None)
     clean_pixels = resize_to_model(orig_pixels, tuple(data_sample.img_shape))
     xbg_pixels = None
     if xbg is not None:
@@ -783,7 +792,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                 grid, fc = cache[random.randrange(len(cache))]
                 v = warp(img, grid)
                 out.append((gaussian_blur(v, sigma=sigma) if sigma > 0 else v, ds,
-                            _view_loss(tuple(f.float() for f in fc), k, feat_stages)))
+                            _view_loss(tuple(f.float() for f in fc), k, feat_stages, feat_stage_w)))
             return out
         comp = clean_pixels if co_transform else None
         if xbg_pixels is not None:
@@ -895,7 +904,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             elif rapa is not None:
                 out.append((v, ds, _with_ctx(_view_loss(fc, k), ctx)))
             else:
-                out.append((v, ds, _view_loss(fc, k, feat_stages)))
+                out.append((v, ds, _view_loss(fc, k, feat_stages, feat_stage_w)))
         return out
 
     wp = None

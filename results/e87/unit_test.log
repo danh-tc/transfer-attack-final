@@ -1,0 +1,39 @@
+[e87-test] surrogate convnext_t
+  nhiễu nền HEAD-vs-HEAD img 2153: 0.00e+00
+  [PASS] T1 img 2153: mặc định ≈ HEAD (δ khác 0.00e+00)
+  [PASS] T2 img 2153: α=1 ≈ mặc định (δ khác 0.00e+00)
+  [PASS] T3 img 2153: α=0 ≈ C3–C5 HEAD (δ khác 0.00e+00)
+  [PASS] T4a img 2153: α=0.5 ≠ α=1 và ≠ α=0 (frac khác 0.244 / 0.458)
+  [PASS] T5 img 2153: backward 4/4/4/4/4 == 4
+  [PASS] T1-3a img 2153: loss HEAD == None == α=1 (3.778254985809326) và C3–C5 HEAD == α=0 (1.9456547498703003)
+  [PASS] T4b img 2153: L(α=.5) = L345 + .5·L2 (2.86197 vs 2.86197)
+  [PASS] T4c img 2153: ∇(α=.5) = g345 + .5·g2 (rel err 5.17e-07)
+  nhiễu nền HEAD-vs-HEAD img 4134: 0.00e+00
+  [PASS] T1 img 4134: mặc định ≈ HEAD (δ khác 0.00e+00)
+  [PASS] T2 img 4134: α=1 ≈ mặc định (δ khác 0.00e+00)
+  [PASS] T3 img 4134: α=0 ≈ C3–C5 HEAD (δ khác 0.00e+00)
+  [PASS] T4a img 4134: α=0.5 ≠ α=1 và ≠ α=0 (frac khác 0.240 / 0.335)
+  [PASS] T5 img 4134: backward 4/4/4/4/4 == 4
+  [PASS] T1-3a img 4134: loss HEAD == None == α=1 (3.9888501167297363) và C3–C5 HEAD == α=0 (2.0976946353912354)
+  [PASS] T4b img 4134: L(α=.5) = L345 + .5·L2 (3.04328 vs 3.04328)
+  [PASS] T4c img 4134: ∇(α=.5) = g345 + .5·g2 (rel err 4.71e-07)
+[e87-test] surrogate r50
+  nhiễu nền HEAD-vs-HEAD img 2153: 1.09e-04
+  [PASS] T1 img 2153: mặc định ≈ HEAD (δ khác 1.09e-04)
+  [PASS] T2 img 2153: α=1 ≈ mặc định (δ khác 1.09e-04)
+  [PASS] T3 img 2153: α=0 ≈ C3–C5 HEAD (δ khác 0.00e+00)
+  [PASS] T4a img 2153: α=0.5 ≠ α=1 và ≠ α=0 (frac khác 0.042 / 0.042)
+  [PASS] T5 img 2153: backward 4/4/4/4/4 == 4
+  [PASS] T1-3a img 2153: loss HEAD == None == α=1 (12.351275444030762) và C3–C5 HEAD == α=0 (12.168800354003906)
+  [PASS] T4b img 2153: L(α=.5) = L345 + .5·L2 (12.2601 vs 12.2601)
+  [PASS] T4c img 2153: ∇(α=.5) = g345 + .5·g2 (rel err 3.85e-07)
+  nhiễu nền HEAD-vs-HEAD img 4134: 0.00e+00
+  [PASS] T1 img 4134: mặc định ≈ HEAD (δ khác 0.00e+00)
+  [PASS] T2 img 4134: α=1 ≈ mặc định (δ khác 0.00e+00)
+  [PASS] T3 img 4134: α=0 ≈ C3–C5 HEAD (δ khác 0.00e+00)
+  [PASS] T4a img 4134: α=0.5 ≠ α=1 và ≠ α=0 (frac khác 0.074 / 0.073)
+  [PASS] T5 img 4134: backward 4/4/4/4/4 == 4
+  [PASS] T1-3a img 4134: loss HEAD == None == α=1 (16.284229278564453) và C3–C5 HEAD == α=0 (16.05986785888672)
+  [PASS] T4b img 4134: L(α=.5) = L345 + .5·L2 (16.1739 vs 16.1739)
+  [PASS] T4c img 4134: ∇(α=.5) = g345 + .5·g2 (rel err 3.85e-07)
+[e87-test] TẤT CẢ PASS

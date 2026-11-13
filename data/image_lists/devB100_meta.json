@@ -1,0 +1,9 @@
+{
+ "seed": 20261113,
+ "n": 100,
+ "pool_size": 3652,
+ "pool": "val2017 có >= 1 annotation \\ (n1000 ∪ dev300)",
+ "role": "protocol amendment 2026-11-13 (E87) — dev mới, KHÔNG phải test final; không tune α sau E87",
+ "intersect_n1000": 0,
+ "intersect_dev300": 0
+}
