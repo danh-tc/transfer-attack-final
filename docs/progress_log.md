@@ -5669,3 +5669,18 @@ Sai số phân rã = 0 (L tuyến tính theo stage).
 **Chạy:** `results/e88/run.sh` trong tmux `e88` (2 worker: OSFD-PUB, OSFD-REF, ENS-WP, ENS-OSFD-AVG | RD-CNX, ENS-OSFD-GN, ENS-RD-AVG, ENS-RD-GN → eval). **Ước:** sinh ~45–60', eval ~35' ≈ **1.5h**.
 **Smoke:** 3 ảnh đầu x200, boot 20, cùng run.sh (2 worker song song — kiểm luôn bộ nhớ 16 GB), chỉ kiểm pipeline.
 **Smoke (10:58–11:01 GMT+7): QUA** — 8 ô sinh song song 2 worker trên 16 GB không OOM, eval + contrast chạy hết; tốc độ smoke (3 ảnh, gồm khởi động): OSFD ~6 s/ảnh, ENS-* 4–6.5 s/ảnh, RD-CNX ~17 s/ảnh. Chỉ kiểm pipeline, KHÔNG đọc số.
+
+## 2026-11-13 — E87-oracle: oracle-headroom trên trục C2 (CHẨN ĐOÁN HẬU KỲ, CPU, chỉ đọc dets E87; user duyệt sau 3 vòng review ~11:40 GMT+7) — KHÔNG dùng để chọn/đổi recipe
+**Script:** `scripts/e87_oracle.py` → `results/mechanism/e87_oracle_devB100.json`, log `results/e87/oracle.log`. Spec (khóa trước khi xem): outcome theo ảnh như `docs/mechanism_plan.md` (GT được target detect ở ảnh sạch, IoU ≥ 0.5, đúng lớp, score ≥ 0.3; cùng mẫu số cho mọi α); T5C; PRIMARY = image-level CNX oracle-of-2 {α0, α0.5}, 1 α/ảnh chung mọi target, macro suppression; phụ micro, oracle-of-3; exploratory per-target oracle, R50 oracle-of-2 {α0, α1} (đối chứng âm THAM CHIẾU, không phải null đã hiệu chuẩn); phân tầng m_i = TB số GT sạch được detect qua T5C, [0,3) | [3,6) | [6,∞); paired bootstrap 1000 (seed 2026), tính lại oracle trong mỗi replicate. Sửa trong lúc chạy: chỉ số liên tục dùng confidence drop = 1 − retained (lần chạy đầu lấy max retained = sai chiều; suppression không bị ảnh hưởng).
+**Kết quả** (điểm phần trăm suppression; n_valid 100/100; mẫu số 0: fcos 3, dino_r50 2, yolov3 3, yolox_l 1, Swin-L 0):
+| | headroom H [CI95] | % ảnh chọn ≠ α0 (R50: ≠ α0) | fixed |
+|---|---|---|---|
+| **PRIMARY CNX oracle-2 macro** | **+0.53 [+0.18, +0.95]** | 10% | α0 63.5, α0.5 57.9 |
+| CNX oracle-2 micro | +0.66 [+0.24, +1.17] | 10% | α0 62.5, α0.5 57.0 |
+| CNX oracle-3 macro | +0.74 [+0.33, +1.24] | 13% | α1 53.2 |
+| R50 oracle-2 macro (tham chiếu) | +0.70 [+0.30, +1.11] | 14% | α0 68.3, α1 68.4 |
+| CNX oracle-2 confidence drop | +0.30 [+0.12, +0.49] | 15% | α0 63.8, α0.5 59.3 |
+| R50 oracle-2 confidence drop (tham chiếu) | +0.68 [+0.41, +0.97] | 54% | |
+Contrast exploratory CNX − R50 (suppression macro) = −0.17 [−0.68, +0.42]. Phân phối gain theo ảnh (CNX primary): p50 = p75 = 0, p90 0.1, max 10.0 → 90% ảnh gain 0. Per-target oracle (exploratory, mỗi target α riêng): +0.3 … +1.6 (Swin-L +1.61 [0.50, 3.26], chọn α0.5 8% ảnh). Phân tầng: CNX H +0.75 / +0.33 / +0.30 vs R50 tham chiếu +0.88 / +0.67 / +0.37.
+**Đọc (giới hạn đã khóa):** headroom chọn α trên trục C2 ≈ **+0.5 điểm suppression**, KHÔNG lớn hơn mức chọn-max giữa hai perturbation gần tương đương của R50 (+0.7; contrast CI chứa 0), ở mọi tầng và ở cả chỉ số liên tục. Chỉ ~10% ảnh "muốn" α0.5. → **Không có headroom đáng kể cho routing trên trục C2** (kể cả với router biết trước outcome target). Xác nhận NO-GO CSSR-C2. Giới hạn: chỉ đo lựa chọn giữa 3 perturbation đã có; không phải upper bound của method khác; suppression ≠ AP. Null CNX khác seed: KHÔNG cần chạy (oracle CNX đã ≤ tham chiếu R50).
+**Amendment A/B:** bản đề xuất đã ghi cuối `docs/plan_paper_lock.md` (2026-11-13) — CHỜ user xác nhận câu chữ trước khi tạo devC300/devD200.

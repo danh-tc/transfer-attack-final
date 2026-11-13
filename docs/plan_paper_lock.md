@@ -321,3 +321,36 @@ Chạy RD-CNX / ENS-WP trên đúng protocol của nghiên cứu khác, rồi đ
 - **Q1:** Duyệt pivot threat model 2-surrogate cho Track M (idea.md §3).
 - **Q2:** B final: giữ 50/36 hay chuẩn hóa theo wall-clock?
 - **Q3:** Venue mục tiêu (quyết định bước 7 có bắt buộc không).
+
+---
+
+## AMENDMENT 2026-11-13 — tách mục tiêu A / B (BẢN ĐỀ XUẤT — chờ user xác nhận câu chữ TRƯỚC khi tạo danh sách devC/devD)
+
+> Lý do (ghi trong `docs/progress_log.md` trước khi sửa): E83 bác primary 2.1 cũ (surrogate × loss cls, I = −0.9 [−6.9, 1.8]); E84 xác nhận thay thế (surrogate × công thức feature, I_recipe +6.9 [4.2, 9.2]); E85 mô tả 4 surrogate; E87 can thiệp C2 trên ảnh mới + đối chứng R50; E87-oracle: trục C2 không còn headroom chọn lựa. Prior art (GHFA, MFA, FUGEA, CWA, CTSTA, SVul) chặn claim "adaptive weighting / ensemble fusion / luân phiên surrogate" là mới. Các mục 0–7 ở trên GIỮ NGUYÊN làm lịch sử; amendment này thay mục 2.1–2.2 và thêm mục tiêu B có điều kiện.
+
+### A.1 Claim hiện có bằng chứng (thay 2.1 + 2.2)
+> "Backbone-dependent shallow-feature gradient contributions affect adversarial attack effectiveness and transferability in multi-stage feature attacks on object detectors."
+- Bằng chứng: E84 (I_recipe, x200, khóa trước), E85 (mô tả 4 surrogate: CNX +9.8, SWT +2.8, R50/R101 ≈ 0), E87 (devB100: Δ_CNX α0.5 − α1 +4.8 [3.0, 6.3]; I_stage +8.1 [5.8, 10.2]; R50 ≈ 0; liều đơn điệu).
+- Diễn giải cơ chế được phép: **pha loãng do độ lớn** (năng lượng gradient C2 ≈ 21% ở CNX vs ≈ 0 ở R50). KHÔNG claim sign conflict (D − D_null < 0). KHÔNG claim "chỉ ảnh hưởng phần transferable" (white-box CNX cũng tăng). Ghi là giả thuyết phát sinh hậu kỳ (E84/E86), kiểm chứng trên dữ liệu mới (E87).
+- Claim cũ 2.1 (surrogate × objective cls) và 2.2 (gradient alignment): **báo cáo như kết quả âm** (E83; E86 cos ≈ 0; A1/E75), không bỏ khỏi paper.
+
+### A.2 Mục tiêu A — paper chắc chắn (mặc định)
+RD-CNX (Track S) + ENS-WP (Track M, câu chữ theo E88) + phân tích A.1 + benchmark công bằng (bước 4–6 ở trên). Không gọi là "novel framework"; recipe là tổ hợp thành phần đã biết, đóng góp = bằng chứng thực nghiệm có kiểm soát + giải thích cơ chế + benchmark.
+
+### A.3 Mục tiêu B — method mới (CÓ ĐIỀU KIỆN, chưa là contribution)
+> "Develop a novel zero-query transferable attack mechanism that improves upon frozen baselines under controlled computation and unseen-target evaluation."
+Không đưa B vào contribution / tiêu đề cho tới khi vượt xác nhận B.6.
+
+**B.1 Dữ liệu (protocol amendment thứ 2):** pool = val2017 có ≥ 1 annotation \ (n1000 ∪ dev300 ∪ devB100). Chia MỘT lần, có seed, commit TRƯỚC mọi thí nghiệm B: **devC300** (phát triển), **devD200** (xác nhận, dùng ĐÚNG 1 lần). n1000 không đổi; devB100 không dùng cho B.
+**B.2 Điều kiện nhận candidate:** mỗi candidate phải (i) chỉ ra một *measured limitation* của frozen RD-CNX / ENS-WP có trong dữ liệu đã có (vd gap xuyên họ còn lớn, bão hòa theo B, mất cân bằng giữa surrogate, tăng CNN nhưng giảm Transformer); (ii) nêu cơ chế + dự đoán kiểm chứng được (target nào tăng); (iii) không mâu thuẫn bằng chứng đã có (E77 bất biến cơ cấu thất bại; E87-oracle: trục C2 hết headroom → không router C2); (iv) đối chiếu prior art (GHFA, MFA, FUGEA, CWA, CTSTA, SVul, LRS-Attack, PRAF-Attack) trước khi code.
+**B.3 Ngân sách:** tối đa **3 candidate**, mỗi candidate tối đa **2 cấu hình khóa trước**, trên devC300. Screening allowance ban đầu ~6 h GPU (ước: 1 cấu hình ≈ 30' sinh + 30' eval); tổng ngân sách chốt lại theo compute thực đo sau candidate đầu. Mỗi cấu hình: khóa + commit trước khi chạy.
+**B.4 Compute accounting:** (primary) số backward qua surrogate bằng baseline đóng băng (RD-CNX 50; ENS-WP 36); (bắt buộc báo) wall-clock đo riêng 1 GPU, 1 worker, cùng môi trường; (sensitivity) nếu wall-clock candidate > baseline +10% → so thêm với baseline được nới B tới cùng wall-clock. Không claim SOTA nếu lợi ích chỉ có khi compute thực tăng đáng kể.
+**B.5 Chọn:** chỉ **1 candidate cuối** theo devC300, quy tắc chọn khóa trước (primary contrast của track tương ứng, điểm T7).
+**B.6 Xác nhận (devD200, 1 lần):** track + primary contrast khóa trước — Track S: candidate − RD-CNX B50; Track M: candidate − max(ENS-WP, Ens-RD mạnh nhất của E88) — trên T7, kèm DINO-Swin-L. **PASS** chỉ khi cận dưới CI95 paired > 0 **VÀ** điểm ≥ **+3** (minimum practically important improvement; không phải tuyên bố power — n200 ước nửa độ rộng CI ~1.1–1.2 nếu phương sai như E87). Đạt một trong hai → báo đúng như vậy, KHÔNG claim vượt gate.
+**B.7 Stop rule:** devD FAIL hoặc hết ngân sách → dừng B, quay về A; KHÔNG quay lại devC chọn candidate khác để thử tiếp trên devD; không claim novel algorithm/framework.
+
+### A.4 Data-use history (bổ sung mục 3.4)
+| Tập | Vai trò |
+|---|---|
+| devB100 | E87 + E87-oracle (chẩn đoán hậu kỳ). Không tune. |
+| devC300 / devD200 | Mục tiêu B (chưa tạo). |

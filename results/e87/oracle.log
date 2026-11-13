@@ -1,0 +1,17 @@
+=== E87 oracle (chẩn đoán hậu kỳ) devB100, n_valid 100/100; mẫu số 0: {'fcos_r50': 3, 'dino_r50': 2, 'yolov3_d53': 3, 'yolox_l': 1, 'dino_swin_l': 0}
+PRIMARY_cnx_oracle2_macro_sup                 H +0.53 pt [+0.18, +0.95]  chọn≠base 10%  fixed CNX-A0 63.5 CNX-A05 57.9  gain p50/p75/p90/max 0.0/0.0/0.1/10.0
+cnx_oracle2_micro_sup                         H +0.66 pt [+0.24, +1.17]  chọn≠base 10%  fixed CNX-A0 62.5 CNX-A05 57.0  gain p50/p75/p90/max 0.0/0.0/0.2/12.5
+cnx_oracle3_macro_sup                         H +0.74 pt [+0.33, +1.24]  chọn≠base 13%  fixed CNX-A0 63.5 CNX-A05 57.9 CNX-A1 53.2  gain p50/p75/p90/max 0.0/0.0/1.9/10.0
+r50_oracle2_macro_sup (ref)                   H +0.70 pt [+0.30, +1.11]  chọn≠base 14%  fixed R50-A0 68.3 R50-A1 68.4  gain p50/p75/p90/max 0.0/0.0/1.9/10.0
+cnx_oracle2_macro_confdrop (phụ, liên tục)    H +0.30 pt [+0.12, +0.49]  chọn≠base 15%  fixed CNX-A0 63.8 CNX-A05 59.3  gain p50/p75/p90/max 0.0/0.0/0.5/5.0
+r50_oracle2_macro_confdrop (ref)              H +0.68 pt [+0.41, +0.97]  chọn≠base 54%  fixed R50-A0 67.9 R50-A1 68.2  gain p50/p75/p90/max 0.1/0.7/1.8/8.5
+contrast CNX − R50 (exploratory)              -0.17 [-0.68, +0.42]
+  per-target fcos_r50     H +0.59 [+0.00, +1.42] chọn α0.5 3%  fixed α0 76.6 α0.5 71.7 (n 97)
+  per-target dino_r50     H +0.34 [+0.00, +0.94] chọn α0.5 2%  fixed α0 76.8 α0.5 69.9 (n 98)
+  per-target yolov3_d53   H +0.66 [+0.09, +1.55] chọn α0.5 4%  fixed α0 67.5 α0.5 63.3 (n 97)
+  per-target yolox_l      H +1.14 [+0.06, +2.71] chọn α0.5 4%  fixed α0 61.6 α0.5 55.6 (n 99)
+  per-target dino_swin_l  H +1.61 [+0.50, +3.26] chọn α0.5 8%  fixed α0 34.7 α0.5 28.4 (n 100)
+  tầng m∈[0,3)     n  49  CNX H +0.75 (chọn α0.5 8%)  R50 ref H +0.88 (chọn α1 10%)
+  tầng m∈[3,6)     n  25  CNX H +0.33 (chọn α0.5 8%)  R50 ref H +0.67 (chọn α1 16%)
+  tầng m∈[6,inf)   n  26  CNX H +0.30 (chọn α0.5 15%)  R50 ref H +0.37 (chọn α1 19%)
+[e87-oracle] -> /workspace/transfer-attack-final/results/mechanism/e87_oracle_devB100.json
