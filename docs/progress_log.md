@@ -5688,3 +5688,26 @@ Contrast exploratory CNX − R50 (suppression macro) = −0.17 [−0.68, +0.42].
 ## 2026-11-13 — AMENDMENT A/B ĐÃ DUYỆT ("APPROVE WITH MINOR AMENDMENTS") + PROTOCOL AMENDMENT 2: devC300 / devD200 — ghi + commit TRƯỚC mọi thí nghiệm mục tiêu B
 **Duyệt:** câu chữ claim / objective A / objective B / decision rule theo bản user (đã sửa trong `docs/plan_paper_lock.md` AMENDMENT 2026-11-13): claim "influence … consistent with differences in shallow-stage gradient magnitude" (không "fully explained"); GO B = điểm ≥ +3 điểm % relative AP drop VÀ cận dưới CI95 paired > 0 (ngưỡng thực tiễn, không phải power); devD đúng 1 lần cho 1 candidate cuối, không GO → về A, không thử candidate khác trên devD. Bổ sung: (1) data split có seed, kiểm giao = ∅ với mọi tập cũ, không nhầm dev300/n300; (2) mọi ô ghi số forward / update / backward + wall-clock đo riêng; overhead > 10% wall-clock → bắt buộc đối chứng thời gian tương đương. NO-GO CSSR-C2 xác nhận.
 **devC300 / devD200** (`scripts/generate_devCD.py`): pool = val2017 có ≥ 1 annotation \ (n1000 ∪ dev300 ∪ devB100) = 3552 ảnh; devC300 = `random.Random(20261114).sample(sorted(pool), 300)`; devD200 = `random.Random(20261115).sample(sorted(pool − devC300), 200)`; `data/image_lists/devC300.csv`, `devD200.csv`, `devCD_meta.json`. Đã kiểm: devC ∩ devD = ∅; giao với n300 / n1000 / dev300 / devB100 = 0 / 0 / 0 / 0. **Chưa dùng.** Mục tiêu B chỉ mở khi có candidate đáp ứng B.2 (measured limitation cụ thể), không quay lại CSSR.
+
+## 2026-11-13 — E88 KẾT QUẢ @ dev100 (V100-SXM2-16GB; sinh 11:02–12:08, eval xong 12:28 GMT+7; `results/mechanism/e88_ensbase_dev100.json` + `_samples.npz`, log `results/e88/dev100_*.log`) — theo quy tắc khóa
+**Bảng** (relative AP drop %, boot 1000; G0: r50 với R50/ENS, convnext_t với CNX/ENS):
+| cell | r50 | r101 | cnx_t | swin_t | fcos | dino_r50 | yolov3 | yolox_l | dino_swin_l | **T7** | G1 | G2cnn | TF |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| OSFD-PUB (θ7 ρ0.8, B50) | 96.4 | 92.1 | 77.5 | 76.0 | 93.1 | 95.8 | 75.0 | 69.2 | 26.6 | 75.4 | 93.7 | 72.1 | 51.3 |
+| OSFD-REF (θ10 ρ1.0, B50) | 96.5 | 91.1 | 78.6 | 73.8 | 92.7 | 95.9 | 75.3 | 67.2 | 24.7 | 74.4 | 93.2 | 71.3 | 49.3 |
+| RD-CNX (B50) | 86.5 | 85.8 | 94.9 | 88.2 | 86.2 | 86.9 | 79.8 | 75.2 | 57.1 | 79.9 | 86.3 | 77.5 | 72.7 |
+| ENS-WP (B36, 36 update) | 94.2 | 91.2 | 94.5 | 88.9 | 91.0 | 92.4 | 82.5 | 77.5 | 54.9 | **82.6** | 91.5 | 80.0 | 71.9 |
+| ENS-OSFD-AVG (36 bw, 18 update) | 94.6 | 83.9 | 75.2 | 66.4 | 87.1 | 89.8 | 69.4 | 58.8 | 25.6 | 68.7 | 86.9 | 64.1 | 46.0 |
+| ENS-OSFD-GN | 91.5 | 81.8 | 89.3 | 75.3 | 84.8 | 89.5 | 72.3 | 61.0 | 36.6 | 71.6 | 85.4 | 66.6 | 56.0 |
+| ENS-RD-AVG | 93.6 | 85.5 | 76.7 | 70.4 | 85.3 | 87.3 | 64.2 | 58.6 | 32.7 | 69.1 | 86.0 | 61.4 | 51.6 |
+| ENS-RD-GN | 91.6 | 87.0 | 90.5 | 81.3 | 82.5 | 85.1 | 71.0 | 69.5 | 51.3 | 75.4 | 84.8 | 70.3 | 66.3 |
+
+**Q1 (OSFD REF − PUB):** T7 −1.0 [−2.2, +0.2], Swin-L −1.9 [−4.2, +1.3], mọi nhóm CI chứa 0 (điểm âm nhẹ) → cấu hình reference-code θ10/ρ1.0 KHÔNG mạnh hơn published θ7/ρ0.8 trên protocol này; dùng PUB như trước không đánh giá thấp OSFD. (Cấu hình đại diện chính thức vẫn chờ fidelity check bằng số; không chọn theo AP drop.)
+**Q2 PRIMARY (khóa):** Ens-RD mạnh hơn theo T7 = **ENS-RD-GN** (75.4 > AVG 69.1). ENS-WP − ENS-RD-GN: **T7 +7.2 [+4.8, +10.1]** (Swin-L +3.7 [+0.3, +5.8]) → cận dưới > 0 → theo quy tắc: **giữ claim "phối hợp gradient (luân phiên khối + momentum chung) có lợi thêm ngoài việc có 2 surrogate"**. Dương ở mọi nhóm (G1 +6.7, G2cnn +9.7, TF +5.6). ⚠️ Caveat bắt buộc khi viết (review 2026-11-13): cân bằng theo số BACKWARD (36), KHÔNG cân bằng số update (ENS-WP 36 vs Ens 18) → lợi ích chưa tách được giữa "cách gộp" và "lịch/số bước cập nhật". Sensitivity 36 update / 72 backward chưa chạy (cần khóa riêng nếu làm).
+**Mô tả (không cổng):**
+- Ensemble trung bình loss (AVG) **thua cả surrogate đơn**: ENS-RD-AVG − RD-CNX T7 −10.7 [−12.7, −8.1], Swin-L −24.4; cột convnext_t của AVG chỉ ~76 (≈ mức R50 đơn) → loss R50 áp đảo thang, CNX gần như bị bỏ. GN sửa phần lớn (Swin-L 51.3) nhưng vẫn dưới RD-CNX: T7 −4.5 [−6.5, −1.2] (lưu ý RD-CNX B50 vs Ens 36 backward). ENS-OSFD-GN − OSFD-PUB: Swin-L +10.0, nhưng T7 −3.8.
+- ENS-WP − RD-CNX (B36 vs B50): T7 +2.7 [+1.7, +5.5], Swin-L −2.2 [−5.6, +0.7], TF −0.7 → ENS-WP hơn ở họ CNN, ngang ở Transformer.
+- **Tái lập chéo máy** (A4500 E73/E74 → V100-SXM2 hôm nay, dev100): ENS-WP T7 82.6 → 82.6, Swin-L 55.3 → 54.9; RD-CNX T7 78.4 → 79.9, Swin-L 59.0 → 57.1; OSFD-R50 B50 T7 74.2 → 75.4, Swin-L 24.4 → 26.6.
+**Hệ quả câu chữ:** Track M: ENS-WP vượt ensemble đơn giản cùng ngân sách backward (+7.2 T7) — viết kèm caveat số update. Phản biện "chỉ vì 2 model" bị bác ở mức ngân sách backward: thêm R50 bằng trung bình ĐƠN GIẢN còn làm hại so với CNX đơn.
+**Artifact:** `artifacts/runs/e88_ensbase_eps5_v100sxm216gb/` → **đã upload HF** `runs/e88_ensbase_eps5_v100sxm216gb.tar` (503459840 B, sha256 5e1113d052af7eb617fa492bc85bee9cdecc0061b5276ad49d1b8f1ed727f198).
+**Việc tiếp:** nửa sau baseline fidelity (CWA adapted full-image, R50 + CNX) — khóa trước; fidelity check bằng số cho OSFD; (tùy chọn, khóa riêng) sensitivity 36 update / 72 backward cho ENS-RD-GN.

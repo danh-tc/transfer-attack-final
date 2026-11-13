@@ -1,0 +1,48 @@
+[e88] GPU = Tesla V100-SXM2-16GB | run dir e88_ensbase_eps5_v100sxm216gb_smoke | ô ['RD-CNX', 'ENS-OSFD-GN', 'ENS-RD-AVG', 'ENS-RD-GN']
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+[e88 RD-CNX] 1/3  17.1s/ảnh
+[e88 RD-CNX] 2/3  16.7s/ảnh
+[e88 RD-CNX] 3/3  14.3s/ảnh
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.72s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+[e88 ENS-OSFD-GN] 1/3  5.9s/ảnh
+[e88 ENS-OSFD-GN] 2/3  6.2s/ảnh
+[e88 ENS-OSFD-GN] 3/3  6.1s/ảnh
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.72s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.58s)
+creating index...
+index created!
+[e88 ENS-RD-AVG] 1/3  6.5s/ảnh
+[e88 ENS-RD-AVG] 2/3  10.1s/ảnh
+[e88 ENS-RD-AVG] 3/3  8.5s/ảnh
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.66s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.57s)
+creating index...
+index created!
+[e88 ENS-RD-GN] 1/3  4.3s/ảnh
+[e88 ENS-RD-GN] 2/3  4.7s/ảnh
+[e88 ENS-RD-GN] 3/3  4.7s/ảnh
