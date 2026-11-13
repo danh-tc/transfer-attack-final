@@ -5721,3 +5721,23 @@ Mục tiêu (user khóa): có failure pattern nào các recipe hiện tại CHƯ
 - supercategory: vehicle thấp nhất (47.8), person 55.3; không category nào lệch mạnh khỏi overall.
 **(c) Overlap thất bại (QUAN TRỌNG NHẤT):** trong object ENS-WP BỎ SÓT (survivor), RD-CNX chỉ phá **15.2 [11.6, 18.8]**% (vô điều kiện RD-CNX 55.9) → survivor của ENS-WP cũng khó với RD-CNX → **thất bại CHỒNG LẤN mạnh**. Tham chiếu churn ngẫu nhiên (OSFD-REF trên survivor OSFD-PUB) = 7.7 [5.9, 9.7] → tính bổ sung RD-CNX (15.2) CÓ thật (> churn, CI tách) nhưng NHỎ. Union target-informed (không khả thi) ENS-WP ∪ RD-CNX = 64.8 object-supp (+6.3 so 58.5, nhưng là object-supp không phải AP, và cần truy cập target). dino_swin_l: RD-CNX trên survivor ENS-WP 14.7 [11.0, 18.9] (churn 5.6).
 **KẾT LUẬN (theo stop-rule B 3 câu hỏi):** (1) Limitation = thất bại hệ thống trên object confidence cao + lớn, nhưng **CHUNG cho cả ENS-WP và RD-CNX** (overlap mạnh), không phải khoảng trống bổ sung khai thác được. (2) Không có cơ chế khác biệt prior art nào nảy ra từ dữ liệu — tính bổ sung tồn tại nhưng ~+0.3 AP, cần truy cập target để khai thác (zero-query không làm được). (3) Không có lý do định lượng để tin một cơ chế mới đạt +7/target: mọi đòn bẩy ENS đã thử (E80–E82) NO-GO, trục C2 NO-GO (E87-oracle), recombination +0.31/+1.24, union informed chỉ +6.3 object-supp. → **KHÔNG tìm thấy failure pattern khai thác được. Đề xuất TẠM DỪNG mục tiêu B, ưu tiên hoàn thiện mục tiêu A** (CWA adapted + fidelity check OSFD + final benchmark n1000). devC/devD giữ nguyên chưa dùng, mở lại B chỉ khi có giả thuyết cơ chế mới vượt 3 câu hỏi. KHÔNG mở C1/C2/C3.
+
+## 2026-11-13 13:01 GMT+7 — KẾT THÚC PHIÊN (user: "ghi note push code trả máy")
+**Máy:** V100-SXM2-16GB thuê; **KHÔNG có git credential** → mọi commit chỉ Ở LOCAL, **user phải tự push**. `.env` có HF_TOKEN (gitignored, không commit).
+**7 commit phiên này (a5bb21c → 727df07), push toàn bộ:**
+1. `262f715` Khóa E87 (can thiệp C2) + protocol amendment devB100 + `feat_stage_w` + unit test + smoke.
+2. `e74cd29` E87 kết quả @ devB100: PRIMARY Δ_CNX α0.5−α1 T5C +4.8 [3.0, 6.3] HỖ TRỢ; I_stage +8.1; R50 control ≈ 0; cơ chế = pha loãng do độ lớn (KHÔNG sign conflict); xác minh bug θ/ρ OSFD gốc; prior art GHFA/MFA.
+3. `1bee240` Khóa E88 (baseline fidelity nửa đầu): grad_tap + init_noise cho osfd_attack; unit test + smoke.
+4. `97c3615` E87-oracle (CPU): headroom routing C2 +0.53 [0.18, 0.95] ≤ tham chiếu R50 +0.70 → NO-GO CSSR; amendment A/B (đề xuất).
+5. `e1fb978` Amendment A/B đã DUYỆT + devC300/devD200 (seed 20261114/20261115, giao ∅ mọi tập cũ), **chưa dùng**.
+6. `1ff1442` E88 kết quả @ dev100: OSFD REF−PUB T7 −1.0 [−2.2, 0.2]; ENS-WP − Ens-RD-GN (36 backward) T7 +7.2 [4.8, 10.1] (caveat: cân backward, không cân update); ensemble AVG trung bình loss thua cả CNX đơn.
+7. `727df07` S0-CPU: recombination +0.31/+1.24 T7 << +3; thất bại ENS-WP/RD-CNX chồng lấn mạnh → không có failure pattern khai thác → **đề xuất TẠM DỪNG mục tiêu B**.
+⚠️ `git log origin/main..HEAD` trên máy này có thể hiển thị sai (remote-tracking ref cũ, không fetch được). Sau khi push, đối chiếu HEAD GitHub = commit note này (`git log -1`, hiện là commit cuối phiên).
+**Artifact đã lên HF** `congdanh99/transfer-attack` (private): `runs/e87_c2w_B36_eps5_v100sxm216gb.tar` (sha256 f00b427c…feb4cad84), `runs/e88_ensbase_eps5_v100sxm216gb.tar` (sha256 5e1113d0…d727f198). Tải: `set -a; . ./.env; set +a; python scripts/sync_artifacts.py download <run>`. PNG/dets local (artifacts/runs/e8{7,8}_*) MẤT khi trả máy — tái tạo từ HF tar.
+**File smoke chưa commit** (disposable, KHÔNG push): `results/mechanism/e8{7,8}_*_smoke3_smoke*.json|.npz`.
+**TRẠNG THÁI PLAN:** bước 2 (recipe đóng băng) + bước 3 (cơ chế: E83→E87 + oracle) XONG. Mục tiêu B (method mới) ĐỀ XUẤT TẠM DỪNG sau S0 (chờ user chốt). devC300/devD200 đã khóa, chưa dùng; mở lại B chỉ khi có giả thuyết vượt 3 câu hỏi stop-rule (progress_log entry S0).
+**VIỆC TIẾP (mục tiêu A, chưa khóa — cần user duyệt + khóa TRƯỚC khi chạy):**
+1. **CWA adapted** full-image R50 + CNX (baseline lớp B bắt buộc + prior art gần nhất) — ~3h code/test + ~20' GPU.
+2. **OSFD fidelity check bằng số** (θ10/ρ1.0 vs θ7/ρ0.8 so với số paper gốc) để chốt cấu hình đại diện.
+3. **Final benchmark n1000** ε∈{5,8}, nhiều seed, 1 máy, wall-clock đo riêng 1 worker (E88 chạy 2 worker nên wall-clock KHÔNG dùng được).
+4. (tùy chọn, khóa riêng) sensitivity ENS-RD-GN 36 update / 72 backward.
