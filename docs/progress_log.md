@@ -5820,3 +5820,15 @@ Mục tiêu (user khóa): có failure pattern nào các recipe hiện tại CHƯ
 - còn lại → **NO-GO** candidate consensus-robust.
 H1 và H2 có thể cùng có: luôn báo đủ mọi cờ + bảng trajectory, kể cả khi đã vào một nhánh. Thiếu thời gian: giảm cặp/ảnh 2 → 1, rồi bỏ gradient (`--no-grad`), KHÔNG chọn object theo kết quả.
 **Ước:** ~8 s/ảnh (smoke) → 60 ảnh ≈ 8–10'.
+**E90b KẾT QUẢ (15:00–15:08 GMT+7, 479 s < 900 s hard stop; attack 5.4 s/ảnh, đo 1.9 s/ảnh): NO-GO theo quy tắc khóa.** 60 ảnh, 355 object đủ điều kiện, **21 cặp / 16 ảnh** (đủ mẫu). Hiệu số hi − lo, TB [CI95 cụm ảnh]:
+| | t=5 | t=10 | t=25 | t=50 |
+|---|---|---|---|---|
+| Δz surrogate (RoI logit) | −1.02 [−4.0, 1.6] | −0.72 [−4.2, 2.2] | −0.93 [−5.2, 2.9] | **−1.32 [−5.8, 2.6]** (median +1.66) |
+| drop score CNX | −0.95 [−2.6, 0.6] | −0.92 [−3.1, 1.1] | −0.45 [−2.4, 1.4] | −0.34 [−1.7, 1.0] |
+| drop yolox_l (n 12) | −1.53 [−2.5, −0.7] | −0.73 | −0.70 | −0.66 [−3.0, 1.2] |
+| drop dino_swin_l (n 16) | −0.13 | −0.30 | −0.56 | −0.51 [−1.5, 0.5] |
+| drop target gộp @50 (n 28) | | | | **−0.58 [−1.9, 0.7]** |
+Gradient: log‖∇z‖₁ (hi − lo) t=0 **+0.03 [−0.28, 0.33]**, t=50 +0.08; log‖∇z‖₂ t=0 −0.26 [−0.68, 0.11]; hiệu suất hướng e **−0.03 [−0.10, 0.04]**. Mô tả: tỉ phần Δz(50) đạt tới bước 10: hi 0.60, lo 0.18 (median 0.55 vs 0.66, phân tán lớn); z₀ hi 2.26 vs lo 1.84 (RoI logit sạch khác dù score detection đã ghép).
+**Cờ:** S− False, T− False, G− False, E− False → case `no_distinguishing_signal` → **NO-GO candidate consensus-robust.**
+**Đọc:** (1) **Không có dấu hiệu gradient starvation hay lệch hướng** trên surrogate: object consensus-high nhận gradient L1 ngang object low và hướng update phục vụ chúng ngang nhau (E ≈ 0, CI hẹp ±0.07) — đây là kết quả âm KHÁ CHẮC (CI hẹp quanh 0), không chỉ do thiếu power. (2) Sau khi ghép theo score sạch surrogate, hiệu ứng consensus trên target còn −0.58 cùng chiều E90a (−0.85) nhưng CI chứa 0 → không phân biệt được với "consensus chủ yếu đi qua confidence sạch của surrogate" (E90a: kiểm soát đã cắt ~1/2). (3) yolox_l @t=5 −1.53 [−2.5, −0.7] là so sánh phụ trong ~20 phép, không phải cờ → không diễn giải. (4) Trajectory Δz surrogate rất phân tán (mean âm, median dương) → 21 cặp không đủ phân biệt H1 vs H2 ở mức logit.
+**Hệ quả (theo quy tắc user):** dừng nhánh consensus-robust / object-survivor; quay về framework giải thích E84–E87 (Framework v0 viết theo cơ chế stage/magnitude dilution + các kết quả âm S0c/E90a/E90b như ràng buộc). "Consensus-robust" giữ làm **empirical finding mô tả** (dev100, E90a), không phải nguyên lý thiết kế. Artifact: không lưu δ (chỉ JSON trajectory `results/mechanism/e90b_traj_devC20.json`).
