@@ -5765,3 +5765,14 @@ Mục tiêu (user khóa): có failure pattern nào các recipe hiện tại CHƯ
 - residual survival nhưng drop không âm (CI ≥ 0 hoặc chứa 0) → **hiệu ứng ngưỡng/biên độ**: attack đẩy đều, object sống vì biên độ cần lớn hơn → không có cơ chế riêng theo object → **NO-GO nhánh object-survivor theo X** (limitation chỉ là "cần đẩy mạnh hơn nói chung").
 - Không X nào GO → NO-GO E90 dạng object-survivor; báo user trước khi làm gì tiếp.
 - OSFD-PUB chỉ mô tả: hiệu ứng ngang nhau ở mọi objective = khó chung, không đổi quyết định.
+**S0c KẾT QUẢ (14:5x GMT+7, CPU ~6', `results/mechanism/s0c_controlled_dev100.json` + `.log`)** — 1930 object × target (yolov3 526, yolox_l 670, Swin-L 734); corr conf~size 0.45, conf~det 0.64, size~det 0.47. Vận hành: lần chạy đầu treo >10' do BLAS 64 luồng trên ma trận nhỏ → chạy lại `OMP_NUM_THREADS=1` (+ in tiến độ), logic không đổi.
+| effect P10→P90 | ENS-WP | RD-CNX | OSFD-PUB |
+|---|---|---|---|
+| surv\|conf (điểm %) | **+17.5 [10.7, 23.9]** | **+16.2 [10.0, 23.0]** | +18.9 |
+| drop\|conf (logit) | **+1.85 [1.44, 2.35]** | **+1.71 [1.27, 2.19]** | +1.96 |
+| surv\|size | **−17.9 [−25.4, −9.2]** | −6.4 [−14.8, 3.4] | −19.1 |
+| drop\|size | +0.84 [0.35, 1.27] | +0.43 [−0.11, 0.86] | +1.00 |
+| surv\|det | +49.7 [40.6, 57.9] | +52.6 [42.8, 60.8] | +30.7 |
+| drop\|det | −2.07 [−2.55, −1.65] | −2.24 [−2.71, −1.76] | −1.64 |
+**Theo quy tắc khóa:** conf = residual survival (≥ +10, CI > 0 cả hai) NHƯNG drop DƯƠNG → **hiệu ứng ngưỡng/biên độ** (attack đẩy logit object conf cao NHIỀU hơn, vẫn sống vì xuất phát xa ngưỡng); ⚠️ floor kiểm duyệt làm hệ số này lệch dương (tỉ lệ ở floor: conf thấp 0.37–0.58 vs cao 0.22–0.34) nên "đẩy nhiều hơn" chưa chắc, nhưng không có bằng chứng under-attack. size: **đảo chiều** sau kiểm soát (object lớn sống ÍT hơn; ENS-WP −17.9) → "object lớn khó" của S0(b) là confound với conf. → **GO_E90 = False cho cả conf và size → NO-GO nhánh object-survivor theo conf/size.** Contrast với OSFD-PUB của conf/size ≈ 0 → khó chung mọi objective.
+**Phát hiện HẬU KỲ (det, KHÔNG thuộc quy tắc GO, chưa kiểm chứng):** detectability chéo model là biến mạnh nhất: object được 6 target khác detect chắc thì sống sót +50 điểm VÀ bị đẩy logit ÍT hơn −2.1 (cùng conf/size; floor làm lệch hệ số det về phía dương → chiều âm là bảo thủ). Gradient này DỐC HƠN ở 2 recipe mạnh so với OSFD (surv|det ENS-WP − OSFD +19.1 [10.8, 25.2]; drop −0.43 [−0.73, −0.09]) → recipe mạnh phá tốt object "chỉ một số model thấy", không phá thêm object "mọi model đều thấy". Là ứng viên limitation ("consensus-robust objects") nhưng hình thành trên dữ liệu đã xem → nếu theo, phải khóa lại thành giả thuyết mới và kiểm trên ảnh mới (devC). Chờ user quyết.

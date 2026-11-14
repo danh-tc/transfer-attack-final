@@ -90,6 +90,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     coco = COCO(ANN)
     ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev100.csv"))
+    print("[s0c] matching...", flush=True)
     clean = {t: _matched_scores(coco, load(t, "clean"), ids) for t in T7}
     adv = {(t, c): _matched_scores(coco, load(t, c), ids) for t in WEAK3 for c in CELLS}
     areas = {i: np.array([a["area"] for a in coco.loadAnns(coco.getAnnIds(imgIds=i, iscrowd=False))]) for i in ids}
@@ -122,7 +123,9 @@ def main():
     rng = np.random.default_rng(SEED)
     img_rows = [np.where(D["img"] == k)[0] for k in range(len(ids))]
     boots = []
-    for _ in range(NB):
+    for ib in range(NB):
+        if ib % 50 == 0:
+            print(f"[s0c] boot {ib}/{NB}", flush=True)
         b = rng.integers(0, len(ids), len(ids))
         sel = np.concatenate([img_rows[k] for k in b])
         boots.append(effects_idx(sel, D, mu, sd, q, Y1, Y2))
