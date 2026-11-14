@@ -5855,3 +5855,5 @@ Gradient: log‖∇z‖₁ (hi − lo) t=0 **+0.03 [−0.28, 0.33]**, t=50 +0.08
 - **GO** (→ confirmation có power; sample size tính từ paired variance của pilot trước khi khóa) ⇔ dự đoán đúng ở cả hai + thứ tự đúng (nếu khác lớp) + ≥ 1 backbone không-low có cận dưới CI > 0.
 - còn lại → PARTIAL / REPORT.
 - Lớp low: |Δ| < 1.5 với n ≈ 40 chỉ là "phù hợp", **không phải bằng chứng tương đương** (không có equivalence margin có power).
+**E91a KẾT QUẢ (17 s GPU, `results/mechanism/e91a_ratio_devC.json`):** r (TB 20 ảnh devC[60:80], CI95): x101 **0.0029** [0.0025, 0.0033] → low; regnetx **0.0180** [0.0161, 0.0201] → low (sát ngưỡng 0.02, cận trên CI chạm ngưỡng); hiệu chuẩn r50 0.0027 [0.0023, 0.0032], convnext_t 0.485 [0.432, 0.548] (tái lập E87-diag 0.003 / 0.51).
+**Dự đoán khóa cho E91b (trước attack):** x101 |Δ_stage| < 1.5; regnetx |Δ_stage| < 1.5. Cùng lớp → không kiểm thứ tự. Theo cổng: **cả hai low → kết quả cổng = INCONCLUSIVE** bất kể Δ (chỉ kiểm lớp low); E91b vẫn chạy (đã duyệt, ≤ 15') vì dự đoán low vẫn bác bỏ được (Δ lớn ở regnetx sẽ bác). KHÔNG đổi/thêm backbone sau khi thấy r.
