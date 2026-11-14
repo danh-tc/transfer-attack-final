@@ -1,0 +1,130 @@
+[e91b] gen x101-C25 xong (104s)
+[e91b] gen x101-C35 xong (198s)
+[e91b] gen regnetx-C25 xong (289s)
+[e91b] gen regnetx-C35 xong (374s)
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+[e91b] eval fcos_r50 xong (406s)
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+[e91b] eval dino_r50 xong (450s)
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+[e91b] eval yolov3_d53 xong (480s)
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+[e91b] eval yolox_l xong (512s)
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+Loading and preparing results...
+[e91b] eval dino_swin_l xong (598s)
+{
+ "cells_T5C": {
+  "x101-C25": [
+   65.99,
+   [
+    60.8339,
+    74.3442
+   ]
+  ],
+  "x101-C35": [
+   65.71,
+   [
+    60.3532,
+    74.509
+   ]
+  ],
+  "regnetx-C25": [
+   63.06,
+   [
+    56.5463,
+    72.163
+   ]
+  ],
+  "regnetx-C35": [
+   63.68,
+   [
+    57.1635,
+    72.21
+   ]
+  ]
+ },
+ "delta_stage": {
+  "x101": {
+   "point": -0.28,
+   "ci95": [
+    -1.2552,
+    0.5183
+   ]
+  },
+  "regnetx": {
+   "point": 0.63,
+   "ci95": [
+    -0.7807,
+    1.6069
+   ]
+  }
+ },
+ "per_target_delta": {
+  "x101": {
+   "fcos_r50": -2.89,
+   "dino_r50": -0.01,
+   "yolov3_d53": 1.57,
+   "yolox_l": -0.98,
+   "dino_swin_l": 0.93
+  },
+  "regnetx": {
+   "fcos_r50": 1.28,
+   "dino_r50": 3.96,
+   "yolov3_d53": -0.78,
+   "yolox_l": -0.85,
+   "dino_swin_l": -0.49
+  }
+ },
+ "delta_regnetx_minus_x101": {
+  "point": 0.9,
+  "ci95": [
+   -0.834,
+   2.2389
+  ]
+ },
+ "verdict_per_backbone": {
+  "x101": {
+   "class": "low",
+   "r": 0.00286,
+   "prediction_met": true,
+   "ci_too_wide": false,
+   "strong_opposite": false,
+   "effect_lo_gt0": false
+  },
+  "regnetx": {
+   "class": "low",
+   "r": 0.01802,
+   "prediction_met": true,
+   "ci_too_wide": false,
+   "strong_opposite": false,
+   "effect_lo_gt0": false
+  }
+ },
+ "order_prediction_met": null,
+ "verdict": "INCONCLUSIVE (cả hai r thấp: chỉ kiểm lớp low)",
+ "time_s": {
+  "gen": 374.1,
+  "total": 598.1
+ }
+}
+[e91b] -> /workspace/transfer-attack-final/results/mechanism/e91b_stage_devC.json
