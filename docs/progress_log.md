@@ -5877,3 +5877,14 @@ Gradient: log‖∇z‖₁ (hi − lo) t=0 **+0.03 [−0.28, 0.33]**, t=50 +0.08
 - **G3 dự báo chỉ-surrogate (quan trọng nhất):** logistic leave-one-image-out, feature CHỈ surrogate {z(t1), ΔS, logit score CNX tại t1, logit score CNX sạch, log √area} + khoảng + target; AUC ≥ 0.65 VÀ cận dưới CI > 0.55 VÀ AUC − AUC_base(chỉ khoảng + target) ≥ 0.05. Mô tả (không cổng): AUC khi thêm headroom target ℓ(t1) − logit(0.3) và ℓ sạch — để thấy stall có phải chủ yếu do trần/biên độ target không.
 - **GO** ⇔ G1 ∧ G2 ∧ G3 → chỉ mở E92b nếu có cơ sở cơ chế, sau khi rà VT/GRA. **NO-GO** ⇔ đủ mẫu mà thiếu bất kỳ cổng nào → đóng optimization mismatch. **INCONCLUSIVE** ⇔ < 100 quan sát hoặc < 20 ảnh.
 **Giới hạn:** 60 ảnh / pilot, không chứng minh cơ chế tổng quát; ΔT có nhiễu đo (đổi nhỏ score) → stall một phần là nhiễu, chính vì vậy cần G3.
+**E92a KẾT QUẢ (CPU < 2', `results/mechanism/e92a_mismatch_devC60.json` + `.log`): NO-GO theo cổng khóa** (đủ mẫu: 690 quan sát, 56 ảnh).
+| target \| khoảng | n (ảnh) | ΔS | ΔT | P(ΔS>0) | P(stall \| ΔS>0) [CI] |
+|---|---|---|---|---|---|
+| yolox_l 10→25 | 174 (46) | +2.98 | +1.06 | 0.93 | 0.08 [0.04, 0.13] |
+| yolox_l 25→50 | 133 (38) | +1.96 | +0.72 | 0.90 | 0.17 [0.11, 0.24] |
+| dino_swin_l 10→25 | 212 (54) | +3.22 | +0.69 | 0.92 | 0.21 [0.16, 0.26] |
+| dino_swin_l 25→50 | 171 (47) | +1.77 | +0.21 | 0.89 | 0.28 [0.20, 0.37] |
+- **G1 trượt:** stall | ΔS>0 gộp 0.186 [0.156, 0.217] < 0.25 (64% ảnh có ≥ 1 stall). **G2 trượt:** tertile ΔS cao nhất 0.148 [0.101, 0.197]. **G3 đạt:** AUC chỉ-surrogate 0.673 [0.620, 0.729], base 0.564, ΔAUC +0.109 [0.065, 0.152].
+- **Đọc G3 (mô tả):** stall gắn với surrogate CÒN tự tin / tiến ít (corr stall ~ z(t1) +0.13, logit score CNX t1 +0.16, ΔS −0.12) → đây là **đồng-chững** (target chững nơi surrogate cũng chưa phá xong), KHÔNG phải mismatch "surrogate tiến, target không". Headroom target thêm không tăng AUC (0.665).
+- **Mô tả đáng ghi (không cổng):** tỉ suất ΔT/ΔS giảm theo khoảng, rõ nhất ở DINO-Swin-L (0.21 → 0.12) — lợi ích transfer biên giảm dần ở Transformer, khớp E74/budget sweep (diminishing returns, không suy giảm). Không phải limitation có headroom đo được ở đây.
+**Hệ quả (theo quy tắc user):** **đóng optimization mismatch**; không cứu bằng optimizer/augmentation mới. Bước tiếp: idea discovery có hệ thống từ limitation còn headroom (chờ user khóa cách làm).
