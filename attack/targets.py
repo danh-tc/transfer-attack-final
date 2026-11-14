@@ -12,7 +12,7 @@ import torch
 from mmdet.apis import init_detector
 
 from attack.data import AttackDataset
-from attack.models import CONTROLLED_PANEL, load_model
+from attack.models import CONTROLLED_PANEL, PROBE_PANEL, load_model
 from attack.preprocess import resize_to_model, sum_loss_dict, to_batch
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,6 +28,8 @@ GEN = {
 
 
 def config_path(key: str) -> str:
+    if key in PROBE_PANEL:
+        return PROBE_PANEL[key].config_path
     return CONTROLLED_PANEL[key].config_path if key in CONTROLLED_PANEL else os.path.join(CFG, GEN[key][0])
 
 

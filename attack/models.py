@@ -64,6 +64,25 @@ CONTROLLED_PANEL = {
     ),
 }
 
+# E91 (progress_log 2026-11-14): backbone CHƯA từng dùng (không surrogate, không target), CHỈ cho kiểm dự đoán stage
+# sensitivity. Dict riêng -> load_all_targets / mọi vòng lặp trên CONTROLLED_PANEL không đổi.
+PROBE_PANEL = {
+    "x101": ModelSpec(
+        role="e91_probe_surrogate",
+        backbone_family="cnn_resnet",
+        config_path=os.path.join(MMDET_CONFIGS_ROOT, "mask_rcnn/mask-rcnn_x101-32x4d_fpn_ms-poly-3x_coco.py"),
+        checkpoint_path=os.path.join(
+            CHECKPOINTS_ROOT, "mask_rcnn_x101_32x4d_fpn_mstrain-poly_3x_coco_20210524_201410-abcd7859.pth"),
+    ),
+    "regnetx": ModelSpec(
+        role="e91_probe_surrogate",
+        backbone_family="cnn_other",
+        config_path=os.path.join(MMDET_CONFIGS_ROOT, "regnet/mask-rcnn_regnetx-3.2GF_fpn_ms-3x_coco.py"),
+        checkpoint_path=os.path.join(
+            CHECKPOINTS_ROOT, "mask_rcnn_regnetx-3.2GF_fpn_mstrain_3x_coco_20200521_202221-99879813.pth"),
+    ),
+}
+
 SURROGATE_KEY = "r50"
 
 
@@ -75,9 +94,9 @@ def load_model(key: str, device: str = "cuda:0"):
     MI-FGSM/DI-FGSM (model.loss(...)), giữ BatchNorm/Dropout ở eval mode là
     chủ đích (batch_size=1 khi tấn công, batch-stat BN sẽ suy biến).
     """
-    if key not in CONTROLLED_PANEL:
-        raise KeyError(f"Không có model '{key}' trong CONTROLLED_PANEL: {list(CONTROLLED_PANEL)}")
-    spec = CONTROLLED_PANEL[key]
+    if key not in CONTROLLED_PANEL and key not in PROBE_PANEL:
+        raise KeyError(f"Không có model '{key}' trong CONTROLLED_PANEL / PROBE_PANEL: {list(CONTROLLED_PANEL)}")
+    spec = CONTROLLED_PANEL[key] if key in CONTROLLED_PANEL else PROBE_PANEL[key]
     if not os.path.exists(spec.config_path):
         raise FileNotFoundError(spec.config_path)
     if not os.path.exists(spec.checkpoint_path):

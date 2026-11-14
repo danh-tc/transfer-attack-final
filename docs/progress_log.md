@@ -5840,3 +5840,18 @@ Gradient: log‖∇z‖₁ (hi − lo) t=0 **+0.03 [−0.28, 0.33]**, t=50 +0.08
 - E90a hạ xuống **exploratory observation** (dữ liệu đã hình thành giả thuyết, E90b chưa xác nhận sau matching), KHÔNG đưa vào contribution chính.
 - Framework v0 = **mechanistic explanation, chưa phải attack mới**: RD-CNX đã dùng C3–C5, E87-oracle hết headroom C2, stage weighting có prior art (GHFA/MFA). Tách scientific novelty (E91) khỏi method novelty (chỉ mở lại khi có limitation mới có headroom + nguyên lý khác prior art).
 **Đầu ra:** `docs/framework_v0.md` (established findings → explanatory principle → unresolved limitation → falsifiable prediction E91). E91 chưa khóa: cần chọn backbone (ứng viên RegNetX / ResNeSt / Res2Net / ResNeXt-101 / HRNet; không Swin-S), quyết N ảnh trong 15' (≈ 30–40, CI rộng) trên devC ảnh 61–300.
+
+## 2026-11-14 — E91: dự đoán bác bỏ được của stage sensitivity trên backbone CHƯA dùng (user: "APPROVE WITH MINOR AMENDMENTS") — khóa TRƯỚC khi đo r và trước attack
+**Mục tiêu:** scientific novelty của cơ chế (framework_v0 §4), KHÔNG phải method. Kể cả thành công: thêm bằng chứng nguyên lý, **vẫn chưa có attack framework mới**.
+**Backbone (chọn theo kiến trúc, TRƯỚC khi đo r; không đổi sau khi xem kết quả):** `x101` = Mask R-CNN ResNeXt-101-32x4d ms-poly-3x (box AP README 43.6; đối chứng gần ResNet); `regnetx` = Mask R-CNN RegNetX-3.2GF ms-3x (43.1; CNN khác ResNet). Checkpoint OpenMMLab, sha256 prefix khớp tên (99879813, abcd7859). Chưa từng dùng làm surrogate/target. Code: `PROBE_PANEL` riêng trong `attack/models.py` (+ `attack/targets.config_path`) → `CONTROLLED_PANEL` / `load_all_targets` không đổi. **Không mặc định RegNetX có r cao.**
+**Script:** `scripts/e91_stage_predict.py`. Dữ liệu: devC300 phần chưa dùng — E91a `devC300[60:80]` (20 ảnh), E91b `devC300[80:80+N]` (ảnh khác E91a). devD200 / n1000 không đụng.
+**E91a (≤ 5' GPU):** r = ‖g₂‖/‖g₃₄₅‖ (∇ₓ L_OSFD k = 3, ảnh sạch, không aug, fp32 — y hệt `e87_diag`), TB qua 20 ảnh + CI bootstrap. Đo thêm r50, convnext_t trên cùng ảnh làm kiểm tra hiệu chuẩn (không cổng; kỳ vọng ≈ 0.003 / ≈ 0.5).
+**Phân lớp (ngưỡng EXPLORATORY — rút từ E85–E87, khóa trước phép kiểm mới, CHƯA hiệu chuẩn độc lập):** low r < 0.02 | mid 0.02 ≤ r < 0.2 | high r ≥ 0.2 (theo TB r).
+**E91b (≤ 15' GPU, `timeout 900`):** Δ_stage = Transfer(C3–C5) − Transfer(C2–C5); 2 ô/backbone, objective L_OSFD thuần, `geo_osfd_attack` OCT 1 view (= E85 OCT_KW), amp, 36 bước = 36 update = 36 backward, ε 5; CHỈ đổi `feat_stages` (None vs (1,2,3)). Seed 1000·(n+1). Transfer = relative AP drop TB trên T5C = {fcos_r50, dino_r50, yolov3_d53, yolox_l, dino_swin_l}; paired bootstrap 1000 (seed 2026) trong tiến trình; báo Δ từng backbone, từng target, và Δ_regnetx − Δ_x101. Chỉ 1 aug (OCT) vì E84/E85: aug không tương tác với stage (I_aug ≈ 0) — khác E85 (TB 2 aug), ghi khi so số. **N** chọn từ smoke 2 ảnh trước, chỉ theo thời gian: N = min(40, ⌊800 s / (t_smoke / 2)⌋).
+**Dự đoán theo lớp (khóa):** low → |Δ| < 1.5 (điểm); mid → 0 < Δ < 6; high → Δ ≥ +4 VÀ cận dưới CI > 0. Hai backbone khác lớp → dấu của Δ_regnetx − Δ_x101 trùng dấu r_regnetx − r_x101.
+**Cổng:**
+- **NO-GO** ⇔ backbone lớp mid/high có Δ với cận trên CI < 0 (trái dấu dự đoán, bằng chứng mạnh).
+- **INCONCLUSIVE** ⇔ cả hai lớp low (chỉ kiểm lớp low, KHÔNG được nói xác nhận toàn bộ nguyên lý) HOẶC backbone không-low có nửa CI > 4 điểm.
+- **GO** (→ confirmation có power; sample size tính từ paired variance của pilot trước khi khóa) ⇔ dự đoán đúng ở cả hai + thứ tự đúng (nếu khác lớp) + ≥ 1 backbone không-low có cận dưới CI > 0.
+- còn lại → PARTIAL / REPORT.
+- Lớp low: |Δ| < 1.5 với n ≈ 40 chỉ là "phù hợp", **không phải bằng chứng tương đương** (không có equivalence margin có power).
