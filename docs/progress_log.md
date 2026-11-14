@@ -5790,3 +5790,16 @@ Mục tiêu (user khóa): có failure pattern nào các recipe hiện tại CHƯ
 **CỔNG E90a (khóa):** **PASS** ⇔ với C_LFO + FULL, ở CẢ ENS-WP và RD-CNX: AME surv ≥ +10 điểm VÀ cận dưới CI > 0, VÀ drop có cận trên CI < 0. Không đạt → **NO-GO nhánh consensus, không dùng GPU**. Báo thêm C_LOO × {FULL, S0C}, C_LFO × S0C (phân rã), contrast primary − OSFD-PUB.
 **MÔ TẢ (không cổng) — dấu hiệu điểm cuối H1/H2 trên SURROGATE (white-box):** object surrogate detect sạch (r50: 699, convnext_t: 744); outcome surv/drop trên chính surrogate với ô dùng surrogate đó (ENS-WP: r50 + cnx; RD-CNX: cnx; OSFD-PUB: r50); C = C_LFO (họ khác surrogate, trên T7); kiểm soát logit score sạch surrogate + size. drop|C âm rõ trên surrogate → hợp H1 ở điểm cuối; ≈ 0 trong khi target âm → hợp H2. Chỉ dùng thiết kế E90b, không kết luận (điểm cuối ≠ trajectory, white-box gần bão hòa).
 ⚠️ **Lộ thông tin smoke:** smoke pipeline (`E90A_NB=4`) — lệnh lọc output của Claude lỡ in dòng `gate` (dựa trên điểm + CI từ 4 replicate): residual_survival True, under_attacked True. Spec trên viết TRƯỚC smoke và KHÔNG đổi sau đó; ghi lại để minh bạch.
+**E90a KẾT QUẢ (~15:25 GMT+7, CPU ~3', `results/mechanism/e90a_consensus_dev100.json` + `.log`): PASS theo cổng khóa.**
+| C_LFO, P10→P90 | ENS-WP | RD-CNX | OSFD-PUB |
+|---|---|---|---|
+| target FULL surv | **+30.1 [15.2, 42.7]** | **+24.9 [6.1, 42.8]** | +14.6 [3.7, 26.4] |
+| target FULL drop | **−1.00 [−1.60, −0.22]** | **−0.85 [−1.56, −0.16]** | −0.68 [−1.29, −0.14] |
+| target S0C surv / drop | +45.8 / −1.90 | +48.6 / −2.05 | +27.6 / −1.48 |
+| surrogate r50 surv / drop (mô tả) | +5.5 [−7.5, 18.5] / −0.13 [−1.03, 0.73] | — | −1.5 / +0.04 |
+| surrogate convnext_t surv / drop (mô tả) | **+26.7 [10.4, 43.2] / −1.75 [−2.85, −0.59]** | **+23.4 [5.3, 39.0] / −1.37 [−2.38, −0.29]** | — |
+- Kiểm soát FULL (score sạch 2 surrogate, conf², score-bin, số GT, supercategory) **giảm hiệu ứng ~1/3–1/2** (+46 → +30) nhưng vẫn qua cổng; C_LOO ≈ C_LFO (corr 0.98) → không phải do target anh em. ⚠️ Đa cộng tuyến mạnh (C_LFO ~ logit score sạch r50/cnx 0.86) → CI rộng (RD-CNX cận dưới +6.1); hiệu ứng không tách sạch được khỏi "surrogate cũng thấy chắc".
+- Contrast ENS-WP − OSFD-PUB (FULL) surv +15.5 [1.4, 26.4], drop −0.32 [−0.77, 0.23] → độ dốc lớn hơn ở recipe mạnh (chủ yếu ở survival).
+- **Mô tả điểm cuối H1/H2:** trên **ConvNeXt (white-box)**, object consensus-high CŨNG sống sót nhiều hơn và bị đẩy logit ít hơn (cả ENS-WP và RD-CNX) → **hợp H1 (giới hạn tối ưu ngay trên surrogate)** ở nhánh CNX; trên R50 không có độ dốc (white-box R50 gần bão hòa / hoặc không có H1 ở R50). Chỉ là điểm cuối, kiểm soát surrogate-side chỉ có conf + size → KHÔNG kết luận; dùng để thiết kế E90b.
+- Giới hạn: cùng dữ liệu đã hình thành giả thuyết (dev100) → kiểm độ bền, không phải xác nhận độc lập.
+**Việc tiếp:** E90b (≤15' GPU, devC300) — thiết kế khóa riêng trước khi chạy.

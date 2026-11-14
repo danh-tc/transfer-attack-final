@@ -1,0 +1,25 @@
+[e90a] n_obj target 1930, surrogate {'r50': 699, 'convnext_t': 744}
+LFO pools {'yolov3_d53': ['r101', 'fcos_r50', 'dino_r50', 'swin_t', 'dino_swin_l'], 'yolox_l': ['r101', 'fcos_r50', 'dino_r50', 'swin_t', 'dino_swin_l'], 'dino_swin_l': ['r101', 'fcos_r50', 'yolov3_d53', 'yolox_l'], 'r50': ['yolov3_d53', 'yolox_l', 'dino_swin_l'], 'convnext_t': ['fcos_r50', 'dino_r50', 'yolov3_d53', 'yolox_l', 'dino_swin_l']}
+corr {'C_LFO~C_LOO': 0.981, 'C_LFO~conf': 0.621, 'C_LFO~lr50': 0.857, 'C_LFO~lcnx': 0.855, 'C_LFO~size': 0.464, 'conf~lcnx': 0.64}
+P10/P90 {'C_LOO': [0.346, 0.883], 'C_LFO': [0.343, 0.87]}
+  tgt|C_LFO|FULL|ENS-WP                  surv  +30.1 [+15.2, +42.7]   drop -1.00 [-1.60, -0.22]
+  tgt|C_LFO|FULL|RD-CNX                  surv  +24.9 [+6.1, +42.8]   drop -0.85 [-1.56, -0.16]
+  tgt|C_LFO|FULL|OSFD-PUB                surv  +14.6 [+3.7, +26.4]   drop -0.68 [-1.29, -0.14]
+  tgt|C_LOO|FULL|ENS-WP                  surv  +38.2 [+20.1, +51.6]   drop -1.36 [-2.17, -0.40]
+  tgt|C_LOO|FULL|RD-CNX                  surv  +32.3 [+10.2, +50.5]   drop -1.19 [-2.04, -0.33]
+  tgt|C_LOO|FULL|OSFD-PUB                surv  +21.0 [+8.0, +35.7]   drop -1.00 [-1.76, -0.29]
+  tgt|C_LFO|S0C|ENS-WP                   surv  +45.8 [+37.1, +53.6]   drop -1.90 [-2.34, -1.50]
+  tgt|C_LFO|S0C|RD-CNX                   surv  +48.6 [+39.3, +56.5]   drop -2.05 [-2.53, -1.61]
+  tgt|C_LFO|S0C|OSFD-PUB                 surv  +27.6 [+20.2, +37.1]   drop -1.48 [-1.99, -1.08]
+  tgt|C_LOO|S0C|ENS-WP                   surv  +49.7 [+40.6, +57.9]   drop -2.07 [-2.55, -1.65]
+  tgt|C_LOO|S0C|RD-CNX                   surv  +52.6 [+42.8, +60.8]   drop -2.24 [-2.71, -1.76]
+  tgt|C_LOO|S0C|OSFD-PUB                 surv  +30.7 [+22.9, +40.1]   drop -1.64 [-2.17, -1.22]
+  sur|r50|ENS-WP                         surv   +5.5 [-7.5, +18.5]   drop -0.13 [-1.03, +0.73]
+  sur|r50|OSFD-PUB                       surv   -1.5 [-13.8, +5.0]   drop +0.04 [-0.28, +0.44]
+  sur|convnext_t|ENS-WP                  surv  +26.7 [+10.4, +43.2]   drop -1.75 [-2.85, -0.59]
+  sur|convnext_t|RD-CNX                  surv  +23.4 [+5.3, +39.0]   drop -1.37 [-2.38, -0.29]
+  contrast|ENS-WP-OSFD-PUB|C_LFO|FULL    surv  +15.5 [+1.4, +26.4]   drop -0.32 [-0.77, +0.23]
+  contrast|RD-CNX-OSFD-PUB|C_LFO|FULL    surv  +10.3 [-7.7, +27.4]   drop -0.16 [-0.81, +0.43]
+
+gate {'residual_survival': True, 'under_attacked': True}  PASS_E90a True
+[e90a] -> /workspace/transfer-attack-final/results/mechanism/e90a_consensus_dev100.json
