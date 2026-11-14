@@ -783,14 +783,14 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
             with torch.no_grad():
                 for v, c, dsv in trs:
                     fcj = tuple(f.detach() for f in extract_features(model, c, ds))
-                    lj = make_view_loss(fcj, k, cls_mode, cw)(model, v, dsv)
+                    lj = make_view_loss(fcj, k, cls_mode, cw, stage_w=stage_w)(model, v, dsv)  # E93: = loss RD
                     lj = float(lj[0] + lj[1] if isinstance(lj, tuple) else lj)
                     if best_l is None or lj < best_l:
                         best_l, best = lj, (v, c, dsv)
             v, c, dsv = best
             with torch.no_grad():
                 fc = tuple(f.detach() for f in extract_features(model, c, ds))
-            return [(v, dsv, make_view_loss(fc, k, cls_mode, cw))]
+            return [(v, dsv, make_view_loss(fc, k, cls_mode, cw, stage_w=stage_w))]  # E93: stage_w như nhánh thường
         if cache is not None:
             out = []
             for _ in range(n_views):

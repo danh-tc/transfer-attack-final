@@ -1,0 +1,4 @@
+T1 regression stage_w=None: frac pixel khác (mới vs E37) 0.065331 | nền (mới vs mới) 0.069865 | max|Δ| 6.0000 -> PASS
+T2 fidelity (HB mới vs RD-CNX, cùng view/δ/RNG/autocast): view trùng True | |ΔL| 0.000e+00 (L 2.1861) | max|Δg| 3.638e-12 (max|g| 2.054e-05) -> PASS
+T3 bản sửa có hiệu lực (HB CŨ vs RD-CNX): |ΔL| 1.9072 | cos(g) 0.9776 -> PASS
+TẤT CẢ: PASS
