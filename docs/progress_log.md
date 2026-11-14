@@ -5741,3 +5741,27 @@ Mục tiêu (user khóa): có failure pattern nào các recipe hiện tại CHƯ
 2. **OSFD fidelity check bằng số** (θ10/ρ1.0 vs θ7/ρ0.8 so với số paper gốc) để chốt cấu hình đại diện.
 3. **Final benchmark n1000** ε∈{5,8}, nhiều seed, 1 máy, wall-clock đo riêng 1 worker (E88 chạy 2 worker nên wall-clock KHÔNG dùng được).
 4. (tùy chọn, khóa riêng) sensitivity ENS-RD-GN 36 update / 72 backward.
+
+## 2026-11-14 — ĐỔI KẾ HOẠCH (user, ~14:30 GMT+7): sprint chẩn đoán LIMITATION-FIRST, mỗi thí nghiệm ≤ 15' GPU — thay "việc tiếp mục tiêu A" của entry 2026-11-13 13:01
+**Máy:** RTX 3090 (mới, bootstrap lại). `.env` có HF_TOKEN.
+**Quyết định user (sau review 2 vòng):**
+1. **Bỏ E89a/E89b dạng cũ** (đo lại C2 trên 10 ảnh / pilot normalized-C2): trùng E86/E87-diag (100 ảnh, D − D_null đã trả lời scale vs direction), thiếu độ phân giải (n=10 → nửa CI ≈ ±5 điểm), nhánh normalized ≈ GHFA. **Đóng nhánh tối ưu C2**; E85–E87 giữ làm đóng góp cơ chế hiện có.
+2. **Thứ tự:** S0c controlled reanalysis (CPU) → E90 chẩn đoán object-level (≤15', 10–20 ảnh devC300 cố định) → Framework v0 (`docs/framework_v0.md`: limitation → mechanism → principle → falsifiable prediction) → E91 predictive stage validation (chỉ khi có backbone thật sự chưa dùng).
+3. **Dữ liệu:** pilot dùng 10–20 ảnh cố định đầu devC300, ghi data-use history (tiêu một phần tính độc lập của devC với giả thuyết hình thành từ đó). **devD200, n1000 giữ nguyên.** HF_TOKEN chỉ dùng khi không tái tạo được từ checkpoint/ảnh gốc.
+4. **Quy tắc sprint:** hard stop 15' mỗi thí nghiệm (sinh + đánh giá; vượt thì giảm ảnh); không sweep; pilot không claim superiority/significance; khóa dự đoán + commit trước mỗi pilot; "phân biệt được" = dự đoán khác hướng giữa các giả thuyết, không phải chênh AP. E90 không phân biệt được H1/H2/H3 → NO-GO nhánh object-survivor.
+**E89 (0 GPU) — mechanism consolidation:** viết trong framework_v0 (xác nhận: stage sensitivity phụ thuộc backbone; được hỗ trợ: magnitude dilution C2; bác/chưa chứng minh: sign conflict, predictive alignment, headroom C2 routing).
+
+## 2026-11-14 — S0c: S0 controlled reanalysis (CPU, chỉ đọc dets E88 @ dev100 — tải lại từ HF, sha256 5e1113d0…d727f198 khớp) — khóa TRƯỚC khi chạy
+**Câu hỏi (user):** S0(b) thấy object confidence cao / lớn sống sót nhiều hơn, nhưng có thể chỉ vì vốn khó (mọi objective) hoặc hai biến trùng nhau. Sau khi kiểm soát ĐỒNG THỜI confidence, kích thước và detectability nền, còn residual survival không? Và attack có "đánh yếu" các object đó không, hay chỉ là **hiệu ứng ngưỡng** (score sạch cao → cần đẩy logit xa hơn mới qua 0.3)?
+**Script:** `scripts/s0c_controlled.py` → `results/mechanism/s0c_controlled_dev100.json`. Không dùng ảnh mới.
+**Đơn vị:** object × target, target ∈ WEAK3 (yolov3_d53, yolox_l, dino_swin_l) gộp; object = GT không-crowd target detect ở ảnh sạch (IoU ≥ 0.5, đúng lớp, score ≥ 0.3) như S0.
+**Covariate:** conf = logit(s_clean) (clip [0.01, 0.999]); size = log √area; det = TB score sạch matched trên 6 target T7 còn lại (leave-one-out, detectability chéo model); + fixed effect target.
+**Outcome:** Y1 surv = s_adv ≥ 0.3; Y2 drop = logit(s_clean) − logit(max(s_adv, 0.01)) (floor 0.01 = floor lưu lớn nhất, yolox_l). ⚠️ Floor kiểm duyệt (censor) object conf thấp nhiều hơn → hệ số conf trên Y2 lệch về phía DƯƠNG → kết luận "under-attacked theo conf" (hệ số âm) là bảo thủ; "chỉ ngưỡng" theo conf cần đọc kèm tỉ lệ ở floor.
+**Mô hình:** cell ∈ {ENS-WP, RD-CNX (primary), OSFD-PUB (objective khác, tham chiếu)}. Logistic Y1 và OLS Y2 trên [conf, size, det] chuẩn hóa + FE target. Effect = thay đổi dự đoán khi X đi từ P10 → P90 (quantile toàn mẫu, cố định), biến khác giữ quan sát (Y1: AME điểm %; Y2: đơn vị logit). Bootstrap cụm theo ảnh 500, seed 2026, paired giữa cell. Mô tả: bảng tầng score-bin × size (n, surv, drop TB, tỉ lệ ở floor); contrast primary − OSFD-PUB.
+**QUY TẮC (khóa), cho X ∈ {conf, size}:**
+- **residual survival** ⇔ AME surv ≥ +10 điểm VÀ cận dưới CI > 0 ở CẢ ENS-WP và RD-CNX.
+- **under-attacked** ⇔ hiệu ứng drop có cận trên CI < 0 ở cả hai (attack đẩy logit ÍT hơn trên object X cao, sau kiểm soát).
+- **GO E90 (theo X)** ⇔ residual survival VÀ under-attacked. → E90 tập trung vào nhóm X đó.
+- residual survival nhưng drop không âm (CI ≥ 0 hoặc chứa 0) → **hiệu ứng ngưỡng/biên độ**: attack đẩy đều, object sống vì biên độ cần lớn hơn → không có cơ chế riêng theo object → **NO-GO nhánh object-survivor theo X** (limitation chỉ là "cần đẩy mạnh hơn nói chung").
+- Không X nào GO → NO-GO E90 dạng object-survivor; báo user trước khi làm gì tiếp.
+- OSFD-PUB chỉ mô tả: hiệu ứng ngang nhau ở mọi objective = khó chung, không đổi quyết định.
