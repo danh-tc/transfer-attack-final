@@ -511,7 +511,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     is_supp=None, weight_awt=None, weight_rho_l4=None, weight_rho_sched=None, roi_jit=None,
                     weight_capwp=None, hardview=None, pix_region=None, box_feat: bool = False, scr=None, cwt=None, gflush=None,
                     weight_linear: bool = False, mom_in=None, return_state: bool = False, rgg=None,
-                    wp_in=None, wp_out=None, feat_stage_w=None, grad_tap=None):
+                    wp_in=None, wp_out=None, feat_stage_w=None, grad_tap=None, alpha_sched=None):
     """MI + (RRB | PIA) + loss feature OSFD với feature sạch co-transform theo từng view.
     geo="rrb": GEO-C0 (luôn 2 view). geo="pia": n_views view/backward, backward_per_step backward/step.
     co_transform=False (PIA-noCT): feature sạch của ảnh sạch CHƯA biến đổi, như OSFD gốc.
@@ -1020,7 +1020,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                                         on_step=on_step, backward_per_step=backward_per_step,
                                         season_sigma=season_sigma, dual=dual, weight_perturb=wp,
                                         init_noise=init_noise, spike=spike, grad_transform=grad_transform,
-                                        mom_in=mom_in, return_state=return_state)
+                                        mom_in=mom_in, return_state=return_state, alpha_sched=alpha_sched)
             noise, mom_out = _ret if return_state else (_ret, None)
     finally:
         if mask_head is not None:

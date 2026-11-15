@@ -78,6 +78,7 @@ def run_iterative_attack(
     spike: Optional[float] = None,
     mom_in: Optional[torch.Tensor] = None,
     return_state: bool = False,
+    alpha_sched=None,
 ):
     """Trả về noise tensor cuối cùng (cùng shape orig_pixels), đã clamp [-epsilon, epsilon].
 
@@ -154,6 +155,8 @@ def run_iterative_attack(
         m_lo, m_hi = torch.zeros_like(orig_pixels), torch.zeros_like(orig_pixels)
         d_lo, d_hi = torch.zeros_like(orig_pixels), torch.zeros_like(orig_pixels)
 
+    if alpha_sched is not None:  # α-falsifier (progress_log 2026-11-15): α_t theo bước, chỉ đường MI chuẩn
+        assert len(alpha_sched) == steps and dual is None and spike is None and season_sigma is None, "alpha_sched chỉ cho đường MI chuẩn"
     for step_idx in range(steps):
         noise = noise.detach().requires_grad_(True)
         grad = None
@@ -378,7 +381,8 @@ def run_iterative_attack(
             update_direction = grad
 
         with torch.no_grad():
-            noise = noise + alpha * torch.sign(update_direction)
+            a_t = alpha if alpha_sched is None else float(alpha_sched[step_idx])
+            noise = noise + a_t * torch.sign(update_direction)
             noise = torch.clamp(noise, min=-epsilon, max=epsilon)
         if on_step is not None:
             # (số backward đã dùng, noise hiện tại) — noise sau k step đúng bằng kết quả
