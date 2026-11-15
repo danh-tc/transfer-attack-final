@@ -5899,3 +5899,42 @@ Gradient: log‖∇z‖₁ (hi − lo) t=0 **+0.03 [−0.28, 0.33]**, t=50 +0.08
 **Thiết kế (`scripts/e93_hardbank_cnx.py`):** ô RD-CNX = `METHODS["C2-OCT-1V-WP2-RD-CNX"]` B50 (đóng băng) | RD-CNX-HB = y hệt + `hardview=(4, 2)` (bank 8 view cố định 4 scale × 2 pha như E37; khác biệt CỐ HỮU của method so với OCT ngẫu nhiên của RD-CNX — ghi nhận, không sửa). Cùng B50 = 50 update = 50 backward, ε 5, momentum, WP ρ 0.002, OCT spec, loss RD. HB thêm 8 forward no-grad loss + 8 forward feature sạch / bước → đo wall-clock từng ô (tuần tự, 1 tiến trình). δ₀ = 0. Ảnh devC300[120:120+N] (chưa dùng; devC[0:60] E90b, [60:120] E91). Seed 1000·(n+1). Target dino_swin_l (chính), yolox_l (phụ). Relative AP drop, paired bootstrap 1000 seed 2026 trong tiến trình. **N** = min(30, ⌊800 s / (t_smoke / 2)⌋) theo smoke 2 ảnh (chỉ thời gian). Hard stop `timeout 900`. Không sweep.
 **Cổng (Δ = HB − RD trên DINO-Swin-L):** cận trên CI < 0 → **NO-GO**, đóng worst-view. CI chứa 0 → **không có bằng chứng cải thiện, dừng nhánh** (KHÔNG kết luận tương đương). Cận dưới CI > 0 → chỉ cân nhắc tiếp nếu **matched-runtime** vẫn lợi (wall-clock HB/RD > 1.1 → bắt buộc đối chứng cùng thời gian, khóa riêng). YOLOX-L báo kèm, không cổng.
 **E93 CHẠY (16:43–16:58 GMT+7): BỊ HARD STOP NGẮT, KHÔNG CÓ KẾT QUẢ.** N = 20 = min(30, ⌊800/(77/2)⌋) theo smoke (RD 5.53, HB 29.31 s/ảnh). Thực tế: RD-CNX 5.59 s/ảnh, **RD-CNX-HB 37.68 s/ảnh** (chậm hơn smoke 29%; HB/RD wall = **6.7×**) → sinh xong ở 868 s, `timeout 900` ngắt khi đang eval (exit 143). Ảnh adv chỉ giữ trong RAM → mất. Không đọc số nào. Sai sót của Claude: quy tắc N ước theo smoke 2 ảnh, không chừa biên cho biến động tốc độ HB và thời gian eval DINO-Swin-L trên 3 bộ ảnh. Theo hard stop: KHÔNG chạy lại vượt 15'; chờ user quyết (đóng nhánh / N nhỏ hơn / tách sinh–eval có lưu PNG). devC300[120:140] đã tiêu cho lần chạy này (không có outcome nào được xem).
+
+## 2026-11-15 — AMENDMENT 3 (user duyệt "APPROVE WITH AMENDMENTS") + F1 audit (CPU) + khóa F1b / R1a — ghi + commit TRƯỚC mọi GPU
+**Mục tiêu (giữ cố định, không đóng khi 1 nhánh NO-GO):** 1 surrogate ConvNeXt-T, kéo lại ~8 điểm RES3 = {r101, fcos_r50, dino_r50} (RD-CNX B50 84.4 vs ENS-WP 92.0, A4500 dev100), giữ DINO-Swin-L, zero-query, compute-aware, có cơ chế. ENS-WP chứng minh TỒN TẠI δ ∈ ε-ball tốt cho cả hai họ → câu hỏi là CNX một mình có với tới không.
+**Amendment 3 (protocol):**
+- (A) Hard stop 15' (sprint 2026-11-14) chỉ áp cho smoke/pilot. Job đã khóa được chạy dài hơn nếu: ngân sách job khóa trước, PNG lưu theo ảnh (resume), ghi compute. Không dùng mốc thời gian làm lý do giảm power.
+- (B) E93 = *aborted feasibility pilot*: KHÔNG tính là candidate đã đánh giá (B.3), không dùng để tuyên bố HardBank thất bại; GPU đã tiêu tính vào chi phí discovery. Protocol trước chưa định nghĩa candidate bị ngắt → quy tắc này áp từ nay.
+- (C) F1b / R1a = **chẩn đoán**, không chiếm slot candidate B.3.
+- (D) Dữ liệu: dev300 (gồm dev100) cho chẩn đoán F1/F1b/R1a/F2a; devC[0:140] đã dùng (E90b [0:60], E91 [60:120], E93 [120:140]); **devC[140:260]** tối đa 120 ảnh cho development/spot-check; **devC[260:300]** dự trữ; devD200 giữ 1 lần xác nhận cuối; n1000 không đụng.
+- (E) HF: không cần; mọi ô sinh LẠI trên cùng máy (3090). Chỉ dùng HF để đối chiếu lịch sử.
+- (F) Seed: mọi ô mới dùng `seed_all` (torch + python random + numpy) như E88. RD path không dùng numpy global RNG (grep `np.random` trong attack/: chỉ repair.py dùng Generator riêng) → thêm seed numpy không đổi recipe. `run_baselines.py` không sửa (không dùng ở đây).
+
+**F1 — audit thao tác trên surrogate CNX (CPU, đọc log + json):**
+| # | Thao tác | Đo bằng | Kết quả | Đã kiểm / CHƯA |
+|---|---|---|---|---|
+| E64 | δ_C vs δ_R: tần số, D_k, MIX | AP + D_k, dev30 | δ_C yếu ResNet ở cả 2 dải → hướng, không tần; MIX hại Swin-L (62.8→29.3). D_k trên **R101** (có sẵn trong json, log chưa in): C4/C5 δ_R .986/1.066 vs δ_C .886/.916 (−10/−14%), P C3→C4 1.53 vs 1.40; drop 92.5 vs 82.2. **Nhưng δ_O (OSFD) D_k R101 lớn nhất (1.176/1.328) mà drop = δ_R (92.4); trên Swin-L D_k δ_O ≈ δ_C (.909/.912) mà drop 26.4 vs 62.8** → D_k không đơn điệu theo AP xuyên method | Đã (dev30, không CI) — chưa có dev100/CI, chưa FCOS/DINO-R50 |
+| E66 | tách OCT-feat / cls / WP trên CNX | AP dev30 | cls +18.2 Swin-L, feat +9.8, WP +9.9 | Đã (dev30) |
+| E72 | reweight gradient theo vùng (RGG, 5 ô) | AP dev30 | null (≤ ±1 T7) | Đã |
+| E74 | B36→B50 (→B75 bỏ dở 37/100) | AP dev100 | RES3 +3.4, Swin-L +2.4; B75 chưa xong | **CHƯA chốt hội tụ** → F1b |
+| E76 | 5 biến thể backward (std/rpn/roi/shallow/deep) neo CNX | cos task-grad tại x0 | headroom oracle +0.033 (r101) / +0.040 (dino_r50); standard tốt nhất r101 | Đã ở x0 với TASK loss; **CHƯA**: gradient recipe RD đầy đủ, điểm trên quỹ đạo, spot-check AP |
+| E83 | objective cls vs feat × surrogate | AP dev100 | I = −0.9 [−6.9, 1.8] | Đã |
+| E85/E87 | stage C2 trên CNX | AP dev100/devB100 | C2 làm hại (α 0.5 −α1 +4.8); RD đã dùng C3–C5; oracle C2 hết headroom | Đã (đóng trục C2) |
+| E93 | worst-view HardBank trên CNX | — | bị ngắt, không số | aborted (Amendment B) |
+| E75/E78 | (neo R50) / quỹ đạo ENS-WP | cos / replay | update CNX ⊥ R50 77%, ổn định early→late | prior cho F2a |
+**Chưa kiểm (ứng viên):** (1) hội tụ theo B (F1b); (2) D_k/P_k dev100 có CI trên ResNet khác trọng số + Swin-L (R1a); (3) F2a quỹ đạo với gradient recipe RD (chưa mở); (4) spot-check AP biến thể (chưa mở).
+
+**F1b + R1a — thiết kế khóa (`scripts/f1b_r1a.py`, dev100, RTX 3090, ε 5, 1 tiến trình tuần tự, wall-clock từng ảnh):**
+- Ô sinh: RD-CNX B100 (METHODS["C2-OCT-1V-WP2-RD-CNX"] đóng băng) + snapshot 36/50/75, seed 1000·(n+1) | RD-CNX B50 seed 1000·(n+1)+7 (seed-null) | RD-R50 B36 (METHODS["C2-OCT-1V-WP2-RD"] = E73) | ENS-WP B36 (e88.ens_wp_attack). Ước ~40' sinh, ~30' eval. Ngân sách job: sinh ≤ 75', eval ≤ 60' (resume theo PNG / theo model).
+- **Unit test snapshot (ĐÃ CHẠY, PASS, `results/mechanism/f1b_snapcheck.json`):** 2 ảnh đầu dev100, snapshot@50 của lượt B100 vs lượt B50 riêng cùng seed: ảnh 7795 **trùng bit** (0% pixel khác); ảnh 7088 khác 16.2% pixel ≈ nền B50-vs-B50 cùng seed 15.4% (RD-CNX trên 3090 KHÔNG tất định ở một số ảnh — amp/atomic; ghi nhận, giống E93-T1). Code: cls_sched=None, strat=False → không gì phụ thuộc tổng `steps`. → dùng snapshot.
+- Eval: 9 model, boot 1000 seed 2026, contrast paired trong tiến trình. RES3 = TB {r101, fcos_r50, dino_r50}.
+- **F1b (khóa):** G_R = RES3(B100) − RES3(B50); G_S = SwinL(B100) − SwinL(B50); H_R = RES3(ENS-WP) − RES3(B100); seed-null SN = RES3(B50 s2) − RES3(B50 s1).
+  - CONTINUED GAIN ⇔ G_R ≥ +3 VÀ cận dưới CI(G_R) > 0 VÀ G_S ≥ −2 VÀ G_R > |SN|.
+  - PRACTICAL PLATEAU ⇔ G_R < +1.5 VÀ cận trên CI(G_R) < +3 VÀ H_R ≥ +5. KHÔNG gọi là bằng chứng chắc chắn của thiếu hướng.
+  - còn lại INCONCLUSIVE. Báo kèm RES3/SwinL theo từng đoạn 36→50→75→100 và T7. 2 seed chỉ là sanity check, không ước lượng đủ seed variance. B100 = 2× backward → chỉ chẩn đoán.
+- **R1a (khóa):** D_k = ‖F_k(adv) − F_k(clean)‖ / ‖F_k(clean)‖ (ĐÚNG định nghĩa E64, hook backbone trong inference_detector, theo ảnh); P_k = D_{k+1} / (D_k + 0.01) theo ảnh (D_k ≥ ~0.2 nên η không đáng kể). Đo trên cả 9 model; gate dùng RES3; DINO-Swin-L + ConvNeXt là đối chứng (báo, không gate). Contrast chính ENS-WP − RD-CNX@50, phụ RD-R50 − RD-CNX@50 (RD-R50 là G1 trên mọi ResNet — caveat cùng họ không loại được).
+  - FEATURE GAP ⇔ ΔD > 0 với cận dưới CI > 0 ở CẢ C4 và C5, cho CẢ hai contrast, trên ≥ 2/3 RES3.
+  - Trong FEATURE GAP: "ưu tiên cơ chế truyền" ⇔ hiệu ứng chuẩn hóa |mean/sd| theo ảnh của ΔP (max C3→C4, C4→C5) > của ΔD (max C4, C5), contrast ENS − CNX, ở ≥ 2/3 RES3; ngược lại → "deep-feature vulnerability, KHÔNG claim propagation".
+  - Không FEATURE GAP mà AP gap RES3 (ENS − CNX) có cận dưới CI > 0 → METRIC INCONCLUSIVE (không bác R1). AP gap chứa 0 → INCONCLUSIVE.
+  - Không đặt ngưỡng tuyệt đối cho P_k. Dương = association, không nhân quả. Bước tiếp (R1b) phải là proxy CHỈ-CNX dự báo khuếch đại ở backbone khác — KHÔNG phải "tăng loss deep trên CNX" (RD-CNX đã tối ưu C3–C5 CNX).
+- **Đề xuất chờ user (KHÔNG chạy nếu chưa duyệt):** thêm ô OSFD-PUB B50 (`--with-osfd`, ~7') làm đối chứng âm cho metric: E64 dev30 cho thấy OSFD có D_k R101 lớn hơn RD-R50 mà drop bằng nhau, và D_k Swin-L ≈ RD-CNX mà drop thấp hơn 36 điểm — kiểm metric có bị "distortion lớn ≠ transfer" đánh lừa không.

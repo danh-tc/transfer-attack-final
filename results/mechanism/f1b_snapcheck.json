@@ -1,0 +1,24 @@
+{
+ "gpu": "NVIDIA GeForce RTX 3090",
+ "pass": true,
+ "images": [
+  {
+   "img_id": 7088,
+   "frac_diff_snap_vs_B50": 0.1622166931629181,
+   "frac_diff_B50_vs_B50": 0.15393675863742828,
+   "mean_abs_snap_vs_B50": 1.0406315326690674,
+   "mean_abs_B50_vs_B50": 0.9673465490341187,
+   "max_abs_delta_snap": 5.0,
+   "max_abs_delta_B50": 5.0
+  },
+  {
+   "img_id": 7795,
+   "frac_diff_snap_vs_B50": 0.0,
+   "frac_diff_B50_vs_B50": 0.0,
+   "mean_abs_snap_vs_B50": 0.0,
+   "mean_abs_B50_vs_B50": 0.0,
+   "max_abs_delta_snap": 5.0,
+   "max_abs_delta_B50": 5.0
+  }
+ ]
+}
