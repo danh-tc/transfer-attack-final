@@ -5938,3 +5938,25 @@ Gradient: log‖∇z‖₁ (hi − lo) t=0 **+0.03 [−0.28, 0.33]**, t=50 +0.08
   - Không FEATURE GAP mà AP gap RES3 (ENS − CNX) có cận dưới CI > 0 → METRIC INCONCLUSIVE (không bác R1). AP gap chứa 0 → INCONCLUSIVE.
   - Không đặt ngưỡng tuyệt đối cho P_k. Dương = association, không nhân quả. Bước tiếp (R1b) phải là proxy CHỈ-CNX dự báo khuếch đại ở backbone khác — KHÔNG phải "tăng loss deep trên CNX" (RD-CNX đã tối ưu C3–C5 CNX).
 - **Đề xuất chờ user (KHÔNG chạy nếu chưa duyệt):** thêm ô OSFD-PUB B50 (`--with-osfd`, ~7') làm đối chứng âm cho metric: E64 dev30 cho thấy OSFD có D_k R101 lớn hơn RD-R50 mà drop bằng nhau, và D_k Swin-L ≈ RD-CNX mà drop thấp hơn 36 điểm — kiểm metric có bị "distortion lớn ≠ transfer" đánh lừa không.
+
+## 2026-11-15 14:54 GMT+7 — F1b + R1a KẾT QUẢ (dev100, RTX 3090, ε 5, boot 1000 seed 2026, paired trong tiến trình)
+Script `scripts/f1b_r1a.py`, kết quả `results/mechanism/f1b_r1a_dev100.json` (+ `_samples.npz`, `f1b_r1a_timing.json`, log `results/f1b/`). PNG ở `artifacts/runs/f1b_r1a_eps5_3090/` (không commit, mất khi trả máy).
+
+| ô | r101 | fcos | dino_r50 | swin_t | yolov3 | yolox_l | **SwinL** | **RES3** | T7 | s/ảnh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| RD-CNX@36 | 80.8 | 82.3 | 81.2 | 83.8 | 72.7 | 68.9 | 55.2 | 81.4 | 75.0 | (snap) |
+| RD-CNX@50 | 84.6 | 85.9 | 84.6 | 86.7 | 75.9 | 72.8 | 56.7 | 85.0 | 78.2 | (snap) |
+| RD-CNX@75 | 87.1 | 88.2 | 87.7 | 88.9 | 78.4 | 74.2 | 58.6 | 87.7 | 80.4 | (snap) |
+| RD-CNX@100 | 88.7 | 88.8 | 88.6 | 89.9 | 81.0 | 78.4 | **59.0** | 88.7 | 82.1 | 9.75* |
+| RD-CNX@50 s2 | 84.3 | 85.4 | 84.2 | 87.6 | 76.3 | 74.6 | 55.3 | 84.6 | 78.2 | 5.01 |
+| RD-R50 B36 | 92.4 | 91.6 | 93.6 | 80.4 | 76.7 | 71.5 | 35.5 | 92.5 | 77.4 | 2.44 |
+| ENS-WP B36 | 90.9 | 90.6 | 91.8 | 89.1 | 80.8 | 80.5 | 51.2 | **91.1** | 82.1 | 3.09 |
+\* wall-clock B100 chỉ tính 73/100 ảnh (27 ảnh đầu mất timing do restart job sang tmux).
+
+**F1b (quy tắc khóa) → CONTINUED GAIN.** G_R +3.71 [2.67, 5.48] (≥ 3, CI > 0); G_S +2.27 [0.74, 4.86] (≥ −2); seed-null RES3 −0.36 [−2.73, 1.08] (|SN| < G_R). H_R = ENS − B100 = +2.40 [1.16, 5.20]. Đoạn RES3: 36→50 +3.58, 50→75 +2.66, 75→100 +1.05 [0.67, 1.86] → lợi giảm dần, chưa bẹt. Seed-null SwinL −1.40 [−3.80, 2.86] → SwinL nhiễu ~±2–3 điểm.
+- Diễn giải: thiếu hụt RES3 của RD-CNX@50 một phần là **chưa hội tụ** (B100 đóng ~3.7/6.1 gap), phần còn lại +2.4 có CI > 0 vẫn tồn tại ở 2× backward. B100 = chẩn đoán, KHÔNG compute-matched.
+- **Lưu ý compute (mới):** wall-clock/ảnh trên 3090: ENS-WP B36 3.09 s < RD-CNX B50 5.01 s (backward CNX đắt ~2× R50). Nếu so theo wall-clock thay vì số backward, RD-CNX tương đương ~B31 → gap so ENS-WP lớn hơn. Cần user quyết định nghĩa "compute-matched" (B vs wall-clock) trước khi khóa candidate.
+
+**R1a (quy tắc khóa) → FEATURE GAP, deep-feature vulnerability, KHÔNG claim propagation.** ΔD C4 và C5 > 0 (CI > 0) ở cả 2 contrast (ENS−CNX@50, RD-R50−CNX@50) trên 3/3 RES3 (ENS−CNX: r101 C4 +.07/C5 +.09, fcos +.05/+.10, dino_r50 +.06/+.13). ΔP > ΔD (hiệu ứng chuẩn hóa) chỉ ở 1/3 (fcos) → không ưu tiên cơ chế truyền. AP gap RES3 ENS − CNX@50 = +6.11 [4.69, 9.60].
+- Đối chứng Swin-L: ΔD âm cho cả hai contrast (RD-R50−CNX C5 −0.12, ENS−CNX −0.02) — cùng chiều với AP Swin-L (35.5 / 51.2 < 56.7). ConvNeXt: RD-R50−CNX âm mọi stage. → D_k **cùng chiều AP** trong 4 ô này ở cả 2 họ; nhưng là association, chưa nhân quả, và E64 (dev30) có phản ví dụ OSFD (D_k lớn, drop không lớn hơn) → **đối chứng âm OSFD-PUB B50 vẫn chờ user duyệt** trước khi dùng D_k làm proxy.
+- Bước tiếp hợp lệ theo khóa: R1b = proxy CHỈ-CNX dự báo D_k C4/C5 ở backbone ResNet khác trọng số — KHÔNG phải tăng loss deep trên CNX. F2a/F2b chưa mở.
