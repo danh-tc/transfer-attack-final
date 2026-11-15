@@ -6019,3 +6019,17 @@ AP drop OSFD-PUB: r50 96.3, r101 91.8, CNX 77.2, Swin-T 75.1, fcos 93.1, dino_r5
 - Strata RES3 (mô tả): object **lớn** (24% object, 38% net gain, net +8.7 [5.5, 12.0]) và **điểm sạch ≥ 0.9** (24% object, 41% gain, net +9.5 [6.1, 13.0]) — đúng các object "cứng" (K50 thấp nhất 56.7 / 47.3) — chiếm phần lợi ích không tương xứng; seed-null các strata đều chứa 0.
 - Swin-L khác hình dạng: gain dồn vào object **nhỏ** (37% object, 55% gain) và điểm sạch < 0.9; object điểm sạch ≥ 0.9 gần như không thêm (+0.9 [−2.9, 4.7]).
 - Diễn giải (không nhân quả, không chọn method bằng thông tin target): lợi ích B50→B100 trên ResNet chủ yếu là **giết thêm object lớn/tự tin cao** còn sống ở B50. Câu hỏi surrogate-side hợp lệ cho A1 (CHƯA duyệt): các object này có cũng là object "cứng" trên chính CNX (white-box, K50 82.4) không — nếu có, đó là tín hiệu chỉ-CNX khả dĩ để phân bổ update.
+
+## 2026-11-15 18:00 GMT+7 — α-falsifier KẾT QUẢ (devC[140:260], n=120, RTX 3090, boot 1000)
+| ô | r101 | fcos | dino_r50 | swin_t | yolov3 | yolox_l | SwinL | RES3 | T7 | s/ảnh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| B50 (snap) | 82.9 | 82.7 | 84.8 | 86.2 | 77.6 | 75.8 | 54.8 | 83.4 | 77.8 | 4.70 (B50s2 chạy riêng) |
+| B100 | 83.6 | 86.1 | 88.4 | 91.7 | 82.8 | 80.1 | 56.9 | 86.0 | 81.4 | 9.35 |
+| B50 s2 | 81.6 | 83.4 | 84.0 | 85.0 | 77.2 | 74.4 | 53.4 | 83.0 | 77.0 | 4.70 |
+| A2 (α=2) | 83.3 | 84.7 | 87.2 | 91.1 | 80.5 | 76.3 | 56.7 | 85.1 | 80.0 | 4.89 |
+| AS (α 2→0.5) | 82.7 | 85.0 | 88.3 | 88.5 | 79.5 | 75.3 | 55.8 | 85.3 | 79.3 | 4.89 |
+- seed-null RES3 −0.44 [−2.10, 1.14], SwinL −1.42 [−5.09, 2.10]. B100 − B50 trên devC: RES3 +2.59 [1.42, 4.09], T7 +3.53 [2.06, 4.59], SwinL +2.08 [0.42, 3.79] (nhỏ hơn dev100 +3.71 RES3).
+- **A2 − B50:** RES3 +1.61 [0.58, 3.07], SwinL +1.91 [−0.49, 3.63], T7 +2.13 [1.10, 3.67], wall ×1.04 → **INCONCLUSIVE** (CI RES3 > 0 nhưng point < +2). Recovery RES3 0.62 [0.27, 1.01], T7 0.60 [0.42, 1.02].
+- **AS − B50:** RES3 +1.88 [0.57, 3.39], SwinL +1.05 [−1.28, 2.75], T7 +1.47 [0.42, 3.05], wall ×1.04 → **INCONCLUSIVE**. Recovery RES3 0.72 [0.31, 1.07], T7 0.42 [0.16, 0.87].
+- Diễn giải (theo khóa, không đổi ngưỡng): không biến thể nào PASS; không NEGATIVE (CI upper RES3 > 2, Swin-L không hại). Mô tả: chỉ đổi α, cùng 50 backward, lấy lại ~60–70% lợi ích B100 trên RES3 và T7 (CI rộng, chạm 1.0), Swin-L không giảm (điểm +1–2). → Recipe α=1 **có dấu hiệu chưa tune step size**; phần headroom còn lại cho một optimizer mới vượt baseline α đã tune ước ~+0.7–1.0 RES3 / ~+1.4–2 T7 so B100 (chưa có CI, cần cùng devC). Đây là screening; KHÔNG cập nhật baseline chính thức khi chưa có quyết định user (theo khóa: nếu muốn coi α là baseline mới phải kiểm ENS-WP + duyệt).
+- Wall-clock ô B50 chạy riêng 4.70 s/ảnh (3090); B100 9.35.
