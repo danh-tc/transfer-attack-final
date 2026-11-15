@@ -192,27 +192,34 @@ def main():
     from mmdet.apis import inference_detector
     dets_dir = os.path.join(ART, run_dir, "dets")
     for key in PANEL:
-        if all(f"{key}|{c}" in S for c in cells):
+        todo = [c for c in cells if f"{key}|{c}" not in S]  # chỉ eval ô mới; ô đã có giữ nguyên (không ghi đè số đã báo)
+        if not todo:
             continue
         model = load(key)
         grab = {}
         h = model.backbone.register_forward_hook(lambda m, i, o: grab.__setitem__("f", [f.detach().float() for f in o]))
         stages = [f"C{j + 2}" for j in model.backbone.out_indices]  # ResNet/ConvNeXt/Swin: 0..3 -> C2..C5; DINO-R50 (1,2,3)
-        dets = {c: [] for c in ["clean", *cells]}
-        dk = {c: [] for c in cells}
+        gz = os.path.join(dets_dir, key, "all.json.gz")
+        old = json.load(gzip.open(gz, "rt")) if os.path.exists(gz) else {}
+        dets = {c: [] for c in ["clean", *todo]}
+        dk = {c: [] for c in todo}
         with torch.no_grad():
             for i in ids:
                 dets["clean"] += to_coco_dets(inference_detector(model, os.path.join(IMGDIR, coco.loadImgs(i)[0]["file_name"])), i, cat_ids)
                 fc = grab["f"]
-                for c, (g, sub) in cells.items():
+                for c in todo:
+                    g, sub = cells[c]
                     dets[c] += to_coco_dets(inference_detector(model, png_path(run_dir, g, sub, i)), i, cat_ids)
                     dk[c].append([float((a - b).norm() / b.norm()) for a, b in zip(grab["f"], fc)])
         h.remove()
+        if "clean" in old:  # dùng dets sạch của lượt eval đầu để AP sạch trùng tuyệt đối với các ô đã báo
+            dets["clean"] = old["clean"]
+        merged = {**old, **dets}
         os.makedirs(os.path.join(dets_dir, key), exist_ok=True)
-        with gzip.open(os.path.join(dets_dir, key, "all.json.gz"), "wt") as f:
-            json.dump(dets, f)
+        with gzip.open(gz, "wt") as f:
+            json.dump(merged, f)
         clean = np.array([CocoImageEval(coco, dets["clean"], ids).ap(w)[0] for w in W]) * 100
-        for c in cells:
+        for c in todo:
             ev = CocoImageEval(coco, dets[c], ids)
             adv = np.array([ev.ap(w)[0] for w in W]) * 100
             S[f"{key}|{c}"] = (100 * (clean - adv) / clean).astype(np.float64)
@@ -321,6 +328,37 @@ def report(S, cells, W, n, gpu, run_dir, out_json, timing):
             print(f"{key:12} {nm:18} " + " ".join(f"{s} {fmt(v)}" for s, v in r1[key]["dP"][nm].items()))
     print(f"P vs D: {pd}")
     print(f"R1a VERDICT: {r1v} | gap trên {n_gap}/3 RES3 | AP gap RES3 ENS−CNX {fmt(ap_gap)}")
+
+    # ---- OSFD falsification control (khóa progress_log 2026-11-15 15:xx, trước khi sinh OSFD) ----
+    if "OSFD-PUB" in cells:
+        oc = {}
+        for key, ref in [(k, "RD-R50") for k in GROUPS["RES3"]] + [("dino_swin_l", "RD-CNX@50"), ("dino_swin_l", "RD-R50")]:
+            st = list(S[f"stages|{key}"])
+            Dd = S[f"Dk|{key}|OSFD-PUB"] - S[f"Dk|{key}|{ref}"]
+            dD = {s: ci(W @ Dd[:, st.index(s)] / n) for s in ("C4", "C5")}
+            dA = ci(S[f"{key}|OSFD-PUB"] - S[f"{key}|{ref}"])
+            up = all(v["ci95"][0] > 0 for v in dD.values())
+            dn = all(v["ci95"][1] < 0 for v in dD.values())
+            if up and dA["ci95"][1] < 0:
+                cls = "DISSOCIATION"          # distortion cao hơn nhưng AP drop thấp hơn
+            elif (up and dA["ci95"][0] > 0) or (dn and dA["ci95"][1] < 0):
+                cls = "CONCORDANT"
+            elif (dn and dA["ci95"][0] > 0):
+                cls = "DISSOCIATION"          # distortion thấp hơn nhưng AP drop cao hơn
+            else:
+                cls = "UNCLEAR"
+            oc[f"{key} vs {ref}"] = {"dD": dD, "dAP": dA, "class": cls}
+            print(f"OSFD − {ref:10} {key:12} ΔD C4 {fmt(dD['C4'])} C5 {fmt(dD['C5'])} | ΔAP {fmt(dA)} -> {cls}")
+        res3 = [oc[f"{k} vs RD-R50"]["class"] for k in GROUPS["RES3"]]
+        if res3.count("DISSOCIATION") >= 2:
+            ov = "REFUTES magnitude hypothesis (D_k lớn ≠ transfer mạnh hơn, trên ≥ 2/3 RES3)"
+        elif res3.count("CONCORDANT") >= 2:
+            ov = "METRIC VIABLE, CHƯA XÁC NHẬN là proxy (D_k cùng chiều AP trên ≥ 2/3 RES3)"
+        else:
+            ov = "INCONCLUSIVE"
+        res["osfd_control"] = {"per_pair": oc, "verdict": ov}
+        print(f"OSFD CONTROL VERDICT: {ov}")
+        json.dump(res, open(out_json, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     json.dump(res, open(out_json, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     print(f"[f1b] -> {out_json}")
 

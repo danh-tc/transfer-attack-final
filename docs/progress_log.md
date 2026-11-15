@@ -5960,3 +5960,16 @@ Script `scripts/f1b_r1a.py`, kết quả `results/mechanism/f1b_r1a_dev100.json`
 **R1a (quy tắc khóa) → FEATURE GAP, deep-feature vulnerability, KHÔNG claim propagation.** ΔD C4 và C5 > 0 (CI > 0) ở cả 2 contrast (ENS−CNX@50, RD-R50−CNX@50) trên 3/3 RES3 (ENS−CNX: r101 C4 +.07/C5 +.09, fcos +.05/+.10, dino_r50 +.06/+.13). ΔP > ΔD (hiệu ứng chuẩn hóa) chỉ ở 1/3 (fcos) → không ưu tiên cơ chế truyền. AP gap RES3 ENS − CNX@50 = +6.11 [4.69, 9.60].
 - Đối chứng Swin-L: ΔD âm cho cả hai contrast (RD-R50−CNX C5 −0.12, ENS−CNX −0.02) — cùng chiều với AP Swin-L (35.5 / 51.2 < 56.7). ConvNeXt: RD-R50−CNX âm mọi stage. → D_k **cùng chiều AP** trong 4 ô này ở cả 2 họ; nhưng là association, chưa nhân quả, và E64 (dev30) có phản ví dụ OSFD (D_k lớn, drop không lớn hơn) → **đối chứng âm OSFD-PUB B50 vẫn chờ user duyệt** trước khi dùng D_k làm proxy.
 - Bước tiếp hợp lệ theo khóa: R1b = proxy CHỈ-CNX dự báo D_k C4/C5 ở backbone ResNet khác trọng số — KHÔNG phải tăng loss deep trên CNX. F2a/F2b chưa mở.
+
+## 2026-11-15 15:10 GMT+7 — User duyệt sau F1b/R1a + KHÓA đối chứng OSFD-PUB (ghi + commit TRƯỚC khi sinh)
+**Quyết định user:**
+- Compute: **số backward = primary** (protocol giữ nguyên, không sửa hồi tố); **wall-clock cùng GPU bắt buộc báo** (efficiency benchmark); báo đủ forward/update. Claim vượt ENS-WP về hiệu quả thực tế chỉ khi thắng ở matched wall-clock. KHÔNG claim RD-CNX B100 ngang ENS-WP về hiệu quả (T7 cùng 82.1 nhưng 9.75 vs 3.09 s/ảnh). "B31 @ 3.09 s" chỉ là ước tính, chưa đo.
+- R1a: đồng ý verdict; D_k chưa phải objective/proxy (có thể cùng phản ánh yếu tố thứ ba: perturbation mạnh hơn / nhiều object hơn). Không tự động chuyển sang loss khuếch đại feature sâu.
+- Mục tiêu tách 2 limitation: **A — optimization efficiency** (headroom B50→B100 +3.7 đã chứng minh bằng can thiệp: đạt lợi ích B75/B100 ở B50?); **B — cross-backbone feature effectiveness** (gap +2.4 còn ở B100, mới có bằng chứng mô tả). Ưu tiên: OSFD control → A → R1b chỉ khi qua kiểm metric + có quy tắc surrogate-only.
+- F2a/F2b tiếp tục tạm dừng. Upload artifact F1b/R1a lên HF kèm metadata (hash, seed, checkpoint).
+
+**OSFD-PUB B50 — đối chứng falsification (khóa):** `osfd_attack` R50, θ7 ρ0.8 (OSFD_PUB của E88), B50, `seed_all(1000·(n+1))`, cùng dev100, cùng 3090, cùng thư mục run. Eval chỉ ô mới (các ô đã báo KHÔNG tính lại; AP sạch dùng dets sạch đã lưu). Không đổi recipe, không chọn subset.
+- Theo từng cặp (paired, boot 1000): ΔD C4, C5 và ΔAP = OSFD − ref. Cặp chính: ref = RD-R50 B36 trên từng model RES3 (cùng surrogate R50; khác recipe + B50 vs B36 — caveat). Báo kèm (không gate): DINO-Swin-L vs RD-CNX@50 và vs RD-R50.
+  - DISSOCIATION ⇔ (ΔD C4 & C5 CI > 0 VÀ ΔAP CI < 0) hoặc (ΔD C4 & C5 CI < 0 VÀ ΔAP CI > 0).
+  - CONCORDANT ⇔ ΔD C4 & C5 và ΔAP cùng dấu, đều loại 0. Còn lại UNCLEAR.
+- Verdict: DISSOCIATION ≥ 2/3 RES3 → **bác giả thuyết đơn giản "distortion lớn ⇒ transfer mạnh"**; CONCORDANT ≥ 2/3 → **metric khả thi, CHƯA xác nhận proxy**; còn lại INCONCLUSIVE. Là falsification control, không phải bằng chứng nhân quả.
