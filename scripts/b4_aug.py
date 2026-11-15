@@ -43,8 +43,7 @@ CELLS = {
     "base":   dict(elem={"scale": _OCT, "shift": "ph8"}, n_views=1),
     "nv4":    dict(elem={"scale": _OCT, "shift": "ph8"}, n_views=4),
     "rot":    dict(elem={"scale": _OCT, "rot": 10.0, "shift": "ph8"}, n_views=1),
-    "rotnv4": dict(elem={"scale": _OCT, "rot": 10.0, "shift": "ph8"}, n_views=4),
-}
+}  # rotnv4 (OCT+rot 4V) cắt 2026-11-15 theo user (tiết kiệm ~9'); combo để devC nếu nv4/rot có tín hiệu
 OUT = os.path.join(REPO_ROOT, "results/mechanism/b4_aug_dev30.json")
 
 
