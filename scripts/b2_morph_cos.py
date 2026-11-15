@@ -33,8 +33,8 @@ from scripts.e76_bpd import _loss_on, cos, unit
 OUT = os.path.join(REPO_ROOT, "results/mechanism/b2_morph_cos.json")
 MORPHS = ["k3", "k5", "lnfix", "relugrad"]        # std là mốc, R50 là partner positive-control
 PARTNERS = [*MORPHS, "r50"]
-TARGETS = ["r101", "fcos_r50", "dino_r50", "dino_swin_l"]
-RES3 = ["r101", "fcos_r50", "dino_r50"]
+TARGETS = ["r101", "dino_r50", "dino_swin_l"]
+RES3 = ["r101", "dino_r50"]  # fcos_r50 không nối grad; gate cos dùng 2 target ResNet có grad
 BOOT_SEED, N_BOOT = 2026, 1000
 
 
@@ -57,7 +57,7 @@ class _ReluGELUMod(torch.nn.Module):
 
 def _lnfix_forward(mod):
     """LayerNorm2d.forward nhưng mean/var bị DETACH (backward không qua thống kê chuẩn-hoá)."""
-    def fwd(x, data_format="channel_last"):
+    def fwd(x, data_format="channel_first"):
         cf = data_format == "channel_first"
         if cf:
             x = x.permute(0, 2, 3, 1)
@@ -139,13 +139,13 @@ def main():
         s = ds_c[i]; orig = s["orig_inputs"].to(dev).float(); st = (torch.get_rng_state(), torch.cuda.get_rng_state())
         for v in ["std", *MORPHS]:
             with morph(cnx, v):
-                G[i][v] = task_grad(cnx, orig, s["data_sample"], st)
+                G[i][v] = task_grad(cnx, orig, s, st)
         torch.cuda.empty_cache()
     del cnx; torch.cuda.empty_cache()
     r50 = load_model("r50", dev)
     for i in ids:
         s = ds_r[i]; orig = s["orig_inputs"].to(dev).float(); st = (torch.get_rng_state(), torch.cuda.get_rng_state())
-        G[i]["r50"] = task_grad(r50, orig, s["data_sample"], st)
+        G[i]["r50"] = task_grad(r50, orig, s, st)
     del r50; torch.cuda.empty_cache()
     print("[b2] pass A xong (grad surrogate)", flush=True)
 
