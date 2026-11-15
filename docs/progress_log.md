@@ -6046,3 +6046,9 @@ AP drop OSFD-PUB: r50 96.3, r101 91.8, CNX 77.2, Swin-T 75.1, fcos 93.1, dino_r5
 - Báo: ENS2 − ENS1, gap ENS1 − RD-CNX(α1), gap ENS2 − RD-CNX(α2), trên RES3 / SwinL / T7.
 - Verdict: ΔT7(ENS2 − ENS1) CI > 0 → "α=2 tổng quát sang ENS-WP"; CI < 0 → "hại"; còn lại "không rõ". **Mốc ENS cho method mới (khóa):** α=2 nếu T7 point ≥ α=1, ngược lại α=1 (luôn so với ENS mạnh hơn).
 - Ngân sách: sinh ~13', eval ~15'.
+
+## 2026-11-15 18:35 GMT+7 — A1 KẾT QUẢ: GO (tín hiệu object CNX dự báo giết thêm B50→B100 trên RES3, ổn định 2 seed)
+- **Q1 concordance sống@B50** (object at-risk cả target lẫn CNX): RES3 gộp n=1773, P(CNX sống | target sống) 0.56 vs P(CNX sống | target chết) **0.03**; log-OR +3.88 [3.35, 4.52] ≈ trần seed1↔seed2 cùng target +4.21 (r101 +4.48 vs +4.15; fcos +3.55 vs +4.59; dino_r50 +3.95 vs +3.95). → object CNX đã giết gần như chắc chết trên RES3; object sống trên RES3 là tập con của object CNX còn sống/ hoặc vừa chết.
+- **Q2/Q3:** quần thể 627 object sống@B50 (RES3 gộp), 113 bị giết thêm @B100 (base rate 0.18). AUC OOF: M 0.534 [0.460, 0.621] (metadata gần như không dự báo); M+S1 0.742 [0.686, 0.802]; M+S2 0.718 [0.647, 0.792]; S1 riêng 0.743. **ΔAUC S1 +0.209 [0.137, 0.268], S2 +0.184 [0.120, 0.248]** → GO theo khóa.
+- Hướng: AUC đơn biến "CNX sống@50" = 0.281 (< 0.5) → object **CNX đã giết ở B50 nhưng target còn sống** là nhóm được giết thêm ở B100; object CNX còn phát hiện thì ít khi chết thêm trên target. Diễn giải (association): lợi ích B50→B100 trên ResNet ~ "đẩy sâu thêm" object đã chết trên surrogate (transfer trễ sau white-box kill).
+- Caveat (phải xử lý trước candidate): (1) dev100 = tập hình thành giả thuyết, xác nhận trên devC; (2) có thể nhiễu ở mức ẢNH (ảnh CNX giết nhiều → target cũng chết thêm) — cần kiểm thêm đặc trưng mức ảnh trong M trước khi nói tín hiệu là per-object; (3) prior art "độ tự tin / margin cao hơn → transfer tốt hơn" (vd C&W κ trên classification) đụng trực tiếp diễn giải này.
