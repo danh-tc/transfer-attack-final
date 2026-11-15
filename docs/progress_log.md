@@ -6060,3 +6060,14 @@ AP drop OSFD-PUB: r50 96.3, r101 91.8, CNX 77.2, Swin-T 75.1, fcos 93.1, dino_r5
 - H1: y = ENS giết & CNX sống trên RES3. **Lặp lại ⇔ CI log-OR person > 0 trên devC[140:260] (ENS1 vs RD-CNX B50 α=1).** Báo thêm α=2 (ENS2 vs A2) và dev100.
 - H2 (proxy chỉ-CNX): trên target convnext_t, y = CNX-B50 còn sống. **Proxy ⇔ CI log-OR person > 0 trên CẢ dev100 và devC** (CNX white-box cũng yếu hơn trên person).
 - GO hướng ngữ nghĩa ⇔ H1 lặp lại VÀ H2 proxy. Ngược lại dừng hướng ontology/ngữ nghĩa. Nhóm "person" chọn từ B0 (forking path ghi nhận); không thử nhóm khác sau khi xem devC.
+
+## 2026-11-15 19:30 GMT+7 — ENS-WP α=2 KẾT QUẢ + B1 KẾT QUẢ (NO-GO hướng ngữ nghĩa)
+**ENS-WP α (devC[140:260], 3090):** RES3 / SwinL / T7: B50 83.4/54.8/77.8; A2 85.1/56.7/80.0; ENS1 91.1/51.5/82.7; ENS2 91.5/49.8/83.1. ENS2 − ENS1: RES3 +0.42 [−0.03, 2.38], SwinL −1.71 [−3.26, 1.85], **T7 +0.39 [0.01, 1.86] → "α=2 tổng quát sang ENS-WP"** (nhỏ). **Mốc ENS cho method mới = ENS2 (ENS-WP α=2).** Gap ENS2 − RD-CNX α=2: **RES3 +6.47 [5.07, 10.82]**, SwinL −6.89 [−10.32, −2.77] (CNX hơn), T7 +3.12 [1.96, 5.97]. (gap α=1: RES3 +7.67, T7 +4.86) → tune α thu hẹp gap RES3 chỉ ~1.2; limitation B gần như nguyên vẹn. Wall-clock ENS ~3.1 s/ảnh.
+**B1 (khóa ở entry trước):** log-OR person (kiểm soát log area, aspect, điểm sạch, model):
+| | H1 ENS-extra RES3 | H2 CNX còn sống (white-box) |
+|---|---|---|
+| dev100 | +0.48 [0.04, 0.89] | +1.05 [0.44, 1.57] |
+| devC α=1 | **+0.46 [−0.02, 1.04]** | +1.05 [0.55, 1.65] |
+| devC α=2 | +0.57 [0.00, 1.21] | +1.11 [0.58, 1.73] |
+- **H1 KHÔNG lặp lại theo khóa (devC α=1 CI chạm 0, biên)**; H2 proxy có (CNX white-box sống sót person 23–27% vs 7–11% khác, ổn định). → **NO-GO hướng ngữ nghĩa** theo quy tắc. Ghi chú: điểm ước lượng H1 nhất quán ~+0.5 ở cả 3 bộ, nhưng độ lớn nhỏ (kill-thêm person 16% vs khác 11%) → ngay cả nếu thật, nhóm person chỉ giải thích phần nhỏ gap; phần lớn gap ENS − CNX phân bố RỘNG qua mọi lớp. Không thử nhóm khác (khóa).
+- Phát hiện phụ (mô tả): CNX white-box kém nhất trên person (sống sót gấp ~3×) — giới hạn white-box của RD-CNX, độc lập với transfer.
