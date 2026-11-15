@@ -1,0 +1,46 @@
+Processing Files (0 / 0)      : |          |  0.00B /  0.00B            
+New Data Upload               : |          |  0.00B /  0.00B            [A
+
+  ..._alpha_devC_eps5_3090.tar:   0%|          |  525kB /  367MB            [A[A
+
+  ..._alpha_devC_eps5_3090.tar:   0%|          |  525kB /  367MB            [A[AProcessing Files (0 / 1)      :   0%|          |  525kB /  367MB,   ???B/s  
+New Data Upload               :   0%|          |  525kB /  134MB,   ???B/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:   6%|▌         | 20.5MB /  367MB            [A[AProcessing Files (0 / 1)      :   6%|▌         | 20.5MB /  367MB, 2.00MB/s  
+New Data Upload               :  10%|█         | 20.5MB /  201MB, 2.00MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  20%|█▉        | 72.5MB /  367MB            [A[AProcessing Files (0 / 1)      :  20%|█▉        | 72.5MB /  367MB, 7.00MB/s  
+New Data Upload               :  36%|███▌      | 72.5MB /  201MB, 7.00MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  31%|███▏      |  115MB /  367MB            [A[AProcessing Files (0 / 1)      :  31%|███▏      |  115MB /  367MB, 10.9MB/s  
+New Data Upload               :  57%|█████▋    |  115MB /  201MB, 10.9MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  38%|███▊      |  140MB /  367MB            [A[AProcessing Files (0 / 1)      :  38%|███▊      |  140MB /  367MB, 13.1MB/s  
+New Data Upload               :  70%|██████▉   |  140MB /  201MB, 13.1MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  47%|████▋     |  174MB /  367MB            [A[AProcessing Files (0 / 1)      :  47%|████▋     |  174MB /  367MB, 15.9MB/s  
+New Data Upload               :  65%|██████▍   |  174MB /  268MB, 15.9MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  55%|█████▍    |  201MB /  367MB            [A[AProcessing Files (0 / 1)      :  55%|█████▍    |  201MB /  367MB, 18.2MB/s  
+New Data Upload               :  75%|███████▌  |  201MB /  268MB, 18.2MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  63%|██████▎   |  231MB /  367MB            [A[AProcessing Files (0 / 1)      :  63%|██████▎   |  231MB /  367MB, 20.1MB/s  
+New Data Upload               :  69%|██████▉   |  231MB /  335MB, 20.1MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  78%|███████▊  |  286MB /  367MB            [A[AProcessing Files (0 / 1)      :  78%|███████▊  |  286MB /  367MB, 24.8MB/s  
+New Data Upload               :  78%|███████▊  |  286MB /  367MB, 24.8MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar:  91%|█████████ |  333MB /  367MB            [A[AProcessing Files (0 / 1)      :  91%|█████████ |  333MB /  367MB, 28.5MB/s  
+New Data Upload               :  91%|█████████ |  333MB /  367MB, 28.5MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar: 100%|█████████▉|  367MB /  367MB            [A[AProcessing Files (0 / 1)      : 100%|█████████▉|  367MB /  367MB, 31.0MB/s  
+New Data Upload               : 100%|█████████▉|  367MB /  367MB, 31.0MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar: 100%|█████████▉|  367MB /  367MB            [A[AProcessing Files (0 / 1)      : 100%|█████████▉|  367MB /  367MB, 28.9MB/s  
+New Data Upload               : 100%|█████████▉|  367MB /  367MB, 28.9MB/s  [A
+
+  ..._alpha_devC_eps5_3090.tar: 100%|██████████|  367MB /  367MB            [A[AProcessing Files (1 / 1)      : 100%|██████████|  367MB /  367MB, 28.3MB/s  
+New Data Upload               : 100%|██████████|  367MB /  367MB, 28.3MB/s  [AProcessing Files (1 / 1)      : 100%|██████████|  367MB /  367MB, 28.3MB/s  
+New Data Upload               : 100%|██████████|  367MB /  367MB, 28.3MB/s  
+  ..._alpha_devC_eps5_3090.tar: 100%|██████████|  367MB /  367MB            
+uploaded runs/a_alpha_devC_eps5_3090_3090.tar (366929920 bytes) sha256=81d90594c3d803e1ba3d188d59afedbc681b47cf2932841b45fa48b886f54454
