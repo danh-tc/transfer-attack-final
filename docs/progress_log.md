@@ -5973,3 +5973,17 @@ Script `scripts/f1b_r1a.py`, kết quả `results/mechanism/f1b_r1a_dev100.json`
   - DISSOCIATION ⇔ (ΔD C4 & C5 CI > 0 VÀ ΔAP CI < 0) hoặc (ΔD C4 & C5 CI < 0 VÀ ΔAP CI > 0).
   - CONCORDANT ⇔ ΔD C4 & C5 và ΔAP cùng dấu, đều loại 0. Còn lại UNCLEAR.
 - Verdict: DISSOCIATION ≥ 2/3 RES3 → **bác giả thuyết đơn giản "distortion lớn ⇒ transfer mạnh"**; CONCORDANT ≥ 2/3 → **metric khả thi, CHƯA xác nhận proxy**; còn lại INCONCLUSIVE. Là falsification control, không phải bằng chứng nhân quả.
+
+## 2026-11-15 16:00 GMT+7 — OSFD-PUB B50 đối chứng KẾT QUẢ (dev100, 3090) + HF upload
+AP drop OSFD-PUB: r50 96.3, r101 91.8, CNX 77.2, Swin-T 75.1, fcos 93.1, dino_r50 96.3, yolov3 72.7, yolox_l 66.8, **SwinL 25.1** (RD-R50 35.5, RD-CNX@50 56.7). 3.0 s/ảnh. Các ô cũ không tính lại (số F1b/R1a giữ nguyên).
+| cặp | ΔD C4 | ΔD C5 | ΔAP | lớp |
+|---|---|---|---|---|
+| OSFD − RD-R50, r101 | +0.19 [.18, .20] | +0.25 [.23, .28] | −0.63 [−4.00, 2.23] | UNCLEAR |
+| OSFD − RD-R50, fcos | +0.15 [.14, .16] | +0.25 [.23, .27] | +1.50 [−0.47, 4.41] | UNCLEAR |
+| OSFD − RD-R50, dino_r50 | +0.17 [.16, .18] | +0.20 [.18, .21] | +2.66 [1.06, 5.69] | CONCORDANT |
+| OSFD − RD-R50, SwinL (báo) | +0.07 | +0.09 | −10.46 [−12.63, −5.82] | DISSOCIATION |
+| OSFD − RD-CNX@50, SwinL (báo) | −0.01 [−.01, .00] | −0.03 | −31.65 | UNCLEAR |
+**Verdict khóa: INCONCLUSIVE** (RES3: 1 CONCORDANT, 2 UNCLEAR).
+- Mô tả (không gate): trên RES3, OSFD tăng D C4/C5 +0.15–0.25 (≈ 2–3× gap ΔD ENS−CNX +0.05–0.13) nhưng AP chỉ thay đổi −0.6…+2.7 → D_k **không tỉ lệ** với AP ở vùng drop ~92–96 (có thể trần AP). Trên Swin-L: D cao hơn RD-R50 mà AP thấp hơn 10 điểm (dissociation); D ≈ RD-CNX mà AP thấp hơn 32. → độ lớn D_k không phải proxy đủ cho transfer xuyên họ; chưa bác chính thức trên RES3.
+- Hệ quả: R1b (proxy deep-feature chỉ-CNX) **không đủ cơ sở** để mở như objective; ưu tiên hướng A (optimization efficiency) theo quyết định user.
+**HF:** `runs/f1b_r1a_eps5_3090_3090.tar` (500.8 MB, sha256 cfb3e357…b53023) trên `congdanh99/transfer-attack` (private), gồm adv PNG 9 thư mục ô + dets + MANIFEST.json (git SHA, GPU, seed, sha256 checkpoint/PNG); bản copy manifest: `results/f1b/MANIFEST_3090.json`. Tải: `python scripts/sync_artifacts.py download f1b_r1a_eps5_3090 --tag _3090`.
