@@ -6114,3 +6114,16 @@ RES3 base cos = +0.096. gain_RES3 = cos(unit(g_cnx)+unit(partner), g_T) − base
 **B4 (`scripts/b4_aug.py`, dev30, 3090, CNX-only, B=50 cố định):** recipe RD-CNX đóng băng (cls_weight 0.2 roi, stage_w (0,1,1,1), WP ρ0.002 linear, OCT), chỉ đổi elem/n_views. Ô: base (OCT 1V), nv4 (OCT 4V EoT), rot (OCT+rot10° 1V), rotnv4 (OCT+rot10° 4V). seed_all 1000·(n+1). Panel {r101, fcos_r50, dino_r50, swin_t, dino_swin_l}, boot 1000 seed 2026, paired.
 - **PROMISING(v) khóa (directional dev30, CHƯA phải quyết định — bài học CWT dev30→dev100):** ΔRES3(v−base) point ≥ +1.5 VÀ CI lower > 0 VÀ ΔSwinL ≥ −2 → đưa lên devC xác nhận với ngưỡng đầy đủ. dev30 n=30 CI rộng; không chốt method ở đây.
 - Nếu KHÔNG ô nào PROMISING → trục augmentation (view/rotation) cũng không có headroom RES3 cho CNX → ghi nhận, không chốt "mọi augmentation vô dụng" (chỉ loại 2 lever này). Báo wall-clock (nv4 ~ nhiều forward hơn, cùng backward).
+
+## 2026-11-15 20:40 GMT+7 — B4 KẾT QUẢ: KHÔNG ô nào PROMISING (trục augmentation/EoT + rotation không có headroom RES3 cho CNX) — screen dev30
+AP drop (base = RD-CNX OCT 1V): 
+| cell | r101 | fcos | dino_r50 | swin_t | SwinL | RES3 |
+|---|---|---|---|---|---|---|
+| base | 84.5 | 85.7 | 88.0 | 89.0 | 62.4 | 86.1 |
+| nv4 (EoT 4V) | 86.7 | 86.0 | 86.4 | 90.1 | 63.5 | 86.4 |
+| rot (OCT+rot10°) | 81.5 | 84.8 | 86.7 | 86.9 | 59.8 | 84.3 |
+- **nv4 ΔRES3 +0.31 [−1.89, 2.87]** (CI ôm 0, point << 1.5) → không PROMISING. ΔSwinL +1.06, ΔSwinT +1.15 (dương nhẹ nhưng CI ôm 0). EoT đa-view không chuyển RES3; r101 +2.2 nhưng dino_r50 −1.6 → triệt tiêu.
+- **rot ΔRES3 −1.72 [−9.28, 0.79]** → rotation HẠI (OCT scale+shift đã đủ; thêm rot nhiễu loss). Loại.
+- Wall-clock: base/rot ~5 s/ảnh, nv4 18.8 s/ảnh (4× forward, cùng backward) → EoT đắt mà không lợi.
+- **Verdict:** trục augmentation (EoT đa-view, rotation) KHÔNG có headroom RES3 cho CNX ở B50. Khớp ablation OSFD cũ (OCT đã bắt phần augmentation chính; RRB-rotation lợi cho OSFD-R50 nhưng RD-CNX đã dùng OCT). Loại 2 lever này; KHÔNG kết luận "mọi augmentation vô dụng". n_views=4/rotation không đưa lên devC.
+- **Trạng thái mục tiêu improve RD-CNX:** các trục đã thử & kết quả (gate có power): optimizer/α (INCONCLUSIVE, +2.1 T7 free nhưng không đóng gap), ontology-nhãn B0/B1 (NO-GO), morph-gradient B2 (NO-GO), retrieval/KG B3+ (NO-GO cos=0), augmentation/EoT B4 (không PROMISING). Gap RES3 +6.5 so ENS-WP α=2 vẫn còn; chưa trục CNX-only nào đóng được.
