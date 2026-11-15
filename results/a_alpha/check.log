@@ -1,0 +1,9 @@
+[a_alpha] GPU NVIDIA GeForce RTX 3090 | a_alpha_devC_eps5_3090 | n=120
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.35s)
+creating index...
+index created!
+{'img_id': 286182, 'frac_diff_sched1_vs_default': 0.0, 'frac_diff_default_vs_default': 0.0}
+{'img_id': 286507, 'frac_diff_sched1_vs_default': 0.0, 'frac_diff_default_vs_default': 0.0}
+[a_alpha check] PASS

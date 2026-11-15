@@ -1,0 +1,16 @@
+{
+ "gpu": "NVIDIA GeForce RTX 3090",
+ "pass": true,
+ "images": [
+  {
+   "img_id": 286182,
+   "frac_diff_sched1_vs_default": 0.0,
+   "frac_diff_default_vs_default": 0.0
+  },
+  {
+   "img_id": 286507,
+   "frac_diff_sched1_vs_default": 0.0,
+   "frac_diff_default_vs_default": 0.0
+  }
+ ]
+}

@@ -6004,3 +6004,18 @@ AP drop OSFD-PUB: r50 96.3, r101 91.8, CNX 77.2, Swin-T 75.1, fcos 93.1, dino_r5
   - còn lại INCONCLUSIVE (vd ΔRES3 ≥ 2 nhưng CI rộng / Swin-L chưa chắc). Báo ΔT7 đầy đủ (không thay điều kiện xác nhận +3 trên devD200). Recovery fraction = Δ(V−B50)/Δ(B100−B50) trên RES3, T7 (mô tả, cùng devC; B100 trên dev100 KHÔNG dùng định lượng).
 - Diễn giải khóa: PASS → recipe RD-CNX chưa kiểm soát step size: cập nhật baseline RD-CNX đã tune công bằng, kiểm tổng quát sang ENS-WP (cần duyệt), method mới phải vượt baseline đã tune. Cả hai NEGATIVE → loại ĐÚNG hai lịch này, KHÔNG kết luận mọi acceleration thất bại.
 - Ngân sách job: sinh ≤ 75' (~50' ước: B100 ~20', 3 ô B50 ~10' mỗi), eval ≤ 60' (~40'); resume theo PNG/model. A1 replay DEFER; ENS-WP B50/B72 chưa chạy; devD200 không đụng.
+
+## 2026-11-15 16:22 GMT+7 — A0 KẾT QUẢ (object survival, dev100, CPU) + α check PASS, α-falsifier đang chạy
+**α unit test** (`results/mechanism/a_alpha_check.json`): 2 ảnh devC, alpha_sched=[1]·50 vs mặc định **0.0% pixel khác** (nền mặc định-vs-mặc định cũng 0%) → PASS; sinh bắt đầu 16:21 GMT+7 (tmux `alpha`).
+**A0 — POSITIVE CONTROL PASS** (RES3 gộp, 1831 object at-risk): net kill 36→50 +4.3, 50→75 +2.9, 75→100 +2.6 (cùng thứ tự AP), **50→100 +5.6 [4.2, 7.2]**, seed-null −0.1 [−2.2, 2.0].
+| target | n obj | K50 | K100 | net 50→100 | seed-null | churn 50→100 / seed |
+|---|---|---|---|---|---|---|
+| r101 | 709 | 63.3 | 68.7 | +5.4 [3.3, 7.7] | +0.4 | 7.1 / 10.3 |
+| fcos_r50 | 474 | 65.0 | 70.9 | +5.9 [4.2, 7.7] | +0.2 | 6.3 / 8.6 |
+| dino_r50 | 648 | 69.0 | 74.5 | +5.6 [3.6, 7.7] | −0.8 | 6.8 / 11.0 |
+| dino_swin_l | 736 | 46.2 | 50.1 | +3.9 [2.1, 6.0] | +0.8 | 6.4 / 12.8 |
+| swin_t / yolov3 / yolox_l / CNX | | | | +6.3 / +5.3 / +5.7 / +4.2 (đều CI > 0) | | |
+- Churn B50→B100 (6–7%) < churn giữa 2 seed B50 (9–13%): các bước sau **tinh chỉnh có hướng** trên cùng tập object, không xáo trộn ngẫu nhiên.
+- Strata RES3 (mô tả): object **lớn** (24% object, 38% net gain, net +8.7 [5.5, 12.0]) và **điểm sạch ≥ 0.9** (24% object, 41% gain, net +9.5 [6.1, 13.0]) — đúng các object "cứng" (K50 thấp nhất 56.7 / 47.3) — chiếm phần lợi ích không tương xứng; seed-null các strata đều chứa 0.
+- Swin-L khác hình dạng: gain dồn vào object **nhỏ** (37% object, 55% gain) và điểm sạch < 0.9; object điểm sạch ≥ 0.9 gần như không thêm (+0.9 [−2.9, 4.7]).
+- Diễn giải (không nhân quả, không chọn method bằng thông tin target): lợi ích B50→B100 trên ResNet chủ yếu là **giết thêm object lớn/tự tin cao** còn sống ở B50. Câu hỏi surrogate-side hợp lệ cho A1 (CHƯA duyệt): các object này có cũng là object "cứng" trên chính CNX (white-box, K50 82.4) không — nếu có, đó là tín hiệu chỉ-CNX khả dĩ để phân bổ update.
