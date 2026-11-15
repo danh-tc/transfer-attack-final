@@ -6034,3 +6034,15 @@ AP drop OSFD-PUB: r50 96.3, r101 91.8, CNX 77.2, Swin-T 75.1, fcos 93.1, dino_r5
 - Diễn giải (theo khóa, không đổi ngưỡng): không biến thể nào PASS; không NEGATIVE (CI upper RES3 > 2, Swin-L không hại). Mô tả: chỉ đổi α, cùng 50 backward, lấy lại ~60–70% lợi ích B100 trên RES3 và T7 (CI rộng, chạm 1.0), Swin-L không giảm (điểm +1–2). → Recipe α=1 **có dấu hiệu chưa tune step size**; phần headroom còn lại cho một optimizer mới vượt baseline α đã tune ước ~+0.7–1.0 RES3 / ~+1.4–2 T7 so B100 (chưa có CI, cần cùng devC). Đây là screening; KHÔNG cập nhật baseline chính thức khi chưa có quyết định user (theo khóa: nếu muốn coi α là baseline mới phải kiểm ENS-WP + duyệt).
 - Wall-clock ô B50 chạy riêng 4.70 s/ảnh (3090); B100 9.35.
 - HF: `runs/a_alpha_devC_eps5_3090_3090.tar` (366.9 MB, sha256 81d90594…f54454).
+
+## 2026-11-15 — User quyết sau α-falsifier + KHÓA A1 (CPU) và ENS-WP α=2 (GPU) — ghi + commit TRƯỚC khi chạy
+**Quyết định user:** giữ RD-CNX α=1 làm baseline lịch sử (so paper); thêm **RD-CNX α=2 làm tuned control BẮT BUỘC** cho mọi method mới (ΔT7 +2.13 > lịch giảm +1.47; không chứng minh α=2 tối ưu). Method mới phải vượt RD-CNX α=2, không chỉ α=1. Hạ ưu tiên optimizer acceleration thuần. Thứ tự: A1 CPU → ENS-WP α=2 → quyết định candidate. Không replay loss/gradient lúc này.
+**A1 (`scripts/a1_cnx_signal.py`, CPU, dets F1b dev100, matching E77):**
+- Q1: concordance sống@B50 giữa target RES3 và CNX (object at-risk trên cả hai): P(CNX sống | target sống/chết), log-OR, bootstrap ảnh; trần tham chiếu log-OR target seed1↔seed2.
+- Q2: quần thể = object at-risk trên target VÀ sống@B50; y = chết@B100 (báo base rate — mất cân bằng). Logistic L2 (λ=1, chuẩn hóa), CV 5-fold nhóm theo ẢNH (seed 2026), RES3 gộp. M (metadata/kiểm soát) = log area, điểm sạch target, supercategory COCO one-hot, model one-hot. S (chỉ CNX) = [CNX at-risk, CNX sống@50, điểm CNX@50, điểm sạch CNX, tụt điểm] từ RD-CNX@50 (S1) hoặc @50s2 (S2, kiểm ổn định seed / tính nội tại của object).
+- Q3: ΔAUC = AUC(M+S) − AUC(M) trên dự báo out-of-fold, CI bootstrap ảnh 1000 seed 2026.
+- **GO (khóa):** CI95 ΔAUC(M+S1) > 0 VÀ CI95 ΔAUC(M+S2) > 0. Ngược lại KHÔNG mở object-aware method. Không đổi feature/model sau khi xem.
+**ENS-WP α=2 (`scripts/a_ens_alpha.py`, devC[140:260], 3090):** ENS-WP B36 α=1 (= e88.ens_wp_attack) và α=2 (chỉ đổi α ở cả hai surrogate). Unit test `--check`: α=1 tường minh ≡ ens_wp_attack (1 ảnh). RD-CNX B50/α=2 dùng lại dets a_alpha (cùng ảnh, cùng AP sạch, paired).
+- Báo: ENS2 − ENS1, gap ENS1 − RD-CNX(α1), gap ENS2 − RD-CNX(α2), trên RES3 / SwinL / T7.
+- Verdict: ΔT7(ENS2 − ENS1) CI > 0 → "α=2 tổng quát sang ENS-WP"; CI < 0 → "hại"; còn lại "không rõ". **Mốc ENS cho method mới (khóa):** α=2 nếu T7 point ≥ α=1, ngược lại α=1 (luôn so với ENS mạnh hơn).
+- Ngân sách: sinh ~13', eval ~15'.
