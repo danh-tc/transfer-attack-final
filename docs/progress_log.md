@@ -6095,3 +6095,16 @@ RES3 (={r101, dino_r50}, fcos_r50 không nối grad) base cos(g_std, g_T) = +0.0
 Kiểm tiền đề ý tưởng user: hướng gradient R50 "partner" có chưng cất vào bộ nhớ offline đánh index theo feature CNX không. CHẨN ĐOÁN x0, chỉ cos, không sinh attack. Vấn đề hình học (grad per-image khác kích thước) xử lý bằng lưới chuẩn S=512 (resize bilinear) trước khi cos/retrieve. Khóa truy xuất = embedding CNX C5 global-avg-pool (768-d) của ẢNH SẠCH → không rò rỉ target. Bộ nhớ leave-one-out (bỏ ảnh i). `scripts/b3_retrieval.py`.
 - Partner: live (R50 thật ảnh i = positive control/trần); gmean (mean toàn cục unit R50); cmean (mean theo lớp object lớn nhất); knn-k (mean k láng giềng theo embedding CNX; k=10 khóa, báo 5/20). combo(p)=cos(unit(g_cnx_std)+unit(partner), g_T) ở lưới chuẩn; gain=combo−base. RES3={r101, dino_r50} (fcos không nối grad). Báo cos(partner, R50_true).
 - **GO(knn) khóa (bootstrap ảnh 1000 seed 2026):** pos-control gain_RES3(live) CI>0; VÀ gain_RES3(knn10) CI>0 VÀ gain_RES3(knn10) ≥ 0.5·gain_RES3(live) VÀ combo_SwinL(knn10) ≥ combo_SwinL(live). NO-GO → hướng R50 là per-image, không chưng cất → đóng hướng retrieval. Khung: dùng R50 offline = "1.5 surrogate" (user tự quyết định vị); attack-time chỉ forward CNX.
+
+## 2026-11-15 21:05 GMT+7 — B3+ KẾT QUẢ: NO-GO (hướng R50 không chưng cất được) — dev100 x0, lưới 512, cos oracle
+RES3 base cos = +0.096. gain_RES3 = cos(unit(g_cnx)+unit(partner), g_T) − base:
+| partner | gain_RES3 | cos(partner, R50_true) | combo_SwinL |
+|---|---|---|---|
+| **live (R50 thật, pos-control)** | **+0.069 [0.060, 0.078]** | +1.000 | +0.032 |
+| gmean (mean toàn cục) | −0.028 [−0.031, −0.024] | **+0.000** | +0.024 |
+| cmean (mean theo lớp) | −0.028 | −0.000 | +0.024 |
+| knn5 / knn10 / knn20 (láng giềng feature CNX) | −0.028 | **+0.000** | +0.024 |
+- **Con số quyết định: cos(partner_retrieved, R50_true) ≈ 0.000 cho MỌI cách gộp**, kể cả k=5 láng giềng gần nhất theo feature CNX. → gradient R50 per-image gần như trực giao lẫn nhau; ảnh có feature CNX giống nhau KHÔNG chia sẻ hướng R50. Tiền đề truy xuất SAI.
+- Gộp cho vector ≈ 0 phần dùng chung → cộng vào còn **hại** (gain −0.028 < 0, tệ hơn không cộng). Positive control live PASS (+0.069). GO khóa: knn10 ≥ 0.5·live → −41% << 50% → **NO-GO**.
+- **Kết luận cơ chế (đóng họ KG/retrieval):** hướng "partner" mà R50 cấp là THÔNG TIN PER-IMAGE, không có thành phần dùng chung xuyên ảnh để chưng cất vào bộ nhớ/ontology/KG tĩnh hay truy xuất theo feature. Mọi artifact offline (mean, class-mean, kNN) trả về vector ≈ ⊥ hướng thật. Muốn có hướng đó bắt buộc phải forward R50 sống trên CHÍNH ảnh đó (= ensemble, = ENS-WP).
+- **Tổng kết hướng single-surrogate (tất cả gate có power, dev30/dev100):** A optimizer/α (INCONCLUSIVE, ~60-70% recovery nhưng không đóng gap), ontology/ngữ nghĩa B0/B1 (NO-GO), morphing B2 (NO-GO), retrieval/KG B3+ (NO-GO). → gap RES3 +6.5 so ENS-WP α=2 là giới hạn kiến trúc; lợi thế ResNet của ENS-WP đòi hỏi nguồn gradient R50 sống per-image.
