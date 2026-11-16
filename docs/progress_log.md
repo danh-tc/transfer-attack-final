@@ -6136,3 +6136,15 @@ AP drop (base = RD-CNX OCT 1V):
 **Chỉ số:** relative AP drop vs AP sạch, boot 200 seed 2026, paired. I_rep = drop(DaSn) − drop(DaSc) − drop(DcSn) (siêu cộng = nông sạch đang BẢO VỆ). Tương tự I_rep3.
 **Dự đoán khóa (RD-CNX@50):** H_rep ủng hộ (xu hướng) ⇔ I_rep3(dino_swin_l) − I_rep3(dino_r50) ≥ +5 VÀ I_rep3(dino_swin_l) − I_rep3(swin_t) ≥ +5 (điểm ước lượng; báo CI). Ngược lại → không ủng hộ, DỪNG hướng repair (không đổi ρ/nhiễu/mức sau khi xem). dev30 = xu hướng; nếu ủng hộ mới khóa xác nhận dev100 (cổng CI riêng). RD-R50 và I_rep (S đầy đủ) chỉ báo kèm.
 **Caveat khóa trước:** nhiễu Gaussian ≠ distortion adversarial (có thể bị conv lọc) → âm tính chỉ bác phiên bản "nhiễu feature nông", không bác mọi dạng repair.
+
+## 2026-11-16 20:40 GMT+7 — R0 KẾT QUẢ (dev30, V100-SXM2, boot 200): H_rep KHÔNG ủng hộ → DỪNG hướng repair; phát hiện phụ: thiệt hại Swin-L đi qua C4
+Script `scripts/r0_repair_probe.py`, `results/mechanism/r0_repair_dev30.json`, log `results/r0/r0_dev30.log`, dets cache `results/r0/dets_*_n30.json`. (Lượt đầu bị dừng do bug hiệu năng bootstrap — dựng COCOeval mỗi mẫu; đã sửa, số không đổi trên smoke 2 ảnh.)
+**RD-CNX@50, relative AP drop %:**
+| target | adv | DaSc | DaSn | DcSn | rest_C2 | rest_C3 | rest_C4 | rest_C5 | D_k adv (C2..C5) |
+|---|---|---|---|---|---|---|---|---|---|
+| dino_swin_l | 62.1 | 52.6 | 55.3 | 0.4 | 58.1 | 58.6 | **17.5** | 46.9 | .37 .48 .75 .93 |
+| dino_r50 | 87.7 | 81.0 | 82.3 | 1.7 | — | 81.0 | 63.7 | **47.0** | – .66 .95 1.07 |
+| swin_t | 89.5 | 87.2 | 87.7 | 1.6 | 89.3 | 88.1 | 71.9 | **38.5** | .35 .60 .83 .59 |
+- **Verdict khóa:** I_rep3 SwinL−R50 +0.8 [−3.7, 3.3], SwinL−SwinT +0.4 [−2.1, 2.6] (< +5) → **KHÔNG ủng hộ, DỪNG hướng repair.** I_rep ≈ 0 ở mọi model, cả RD-R50. Caveat đã khóa: chỉ bác phiên bản "nhiễu Gaussian feature nông".
+- **Tiền đề "mức nông Swin-L còn sạch" SAI theo D_k:** C2/C3 Swin-L .37/.48 ≈ Swin-T .35/.60 (ghi chú cosd 0.07 của 10-04 là thước đo khác).
+- **Phát hiện phụ (mô tả, dev30, hậu kỳ):** trả sạch RIÊNG C4 trên Swin-L xóa ~72% thiệt hại (62.1 → 17.5; RD-R50 32.5 → 8.5), trong khi Swin-T và DINO-R50 phụ thuộc C5 nhiều nhất (rest_C5 38.5 / 47.0). → DINO-Swin-L ra quyết định chủ yếu qua stage 3 (stride 16); D_k C4 của Swin-L thấp nhất trong 3 model (.75 vs .83/.95). Phần adv ở mức nông đóng góp ~10 điểm trên Swin-L (adv − DaSc), lớn hơn Swin-T (2.3) và DINO-R50 (6.7). Chưa xác nhận; không dùng để tune.
