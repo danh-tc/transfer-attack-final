@@ -6424,3 +6424,14 @@ cos² đơn: r50 .0039, r101 .0061, convnext_t .0100, swin_t .0067, dino_r50 .00
 Mở rộng G6: thêm feature-grad của backbone phân loại **ConvNeXt-Large IN-21K** (mmpretrain, 791MB, KHÔNG detector, KHÔNG fine-tune — thuần đo hướng) vào span. Câu hỏi user: backbone lớn + IN-21K (giống cỡ/pretrain Swin-L) có nâng cos²/R² với hướng feature DINO-Swin-L không.
 **Thiết kế (`scripts/g7_bigbb.py`):** v_feat(swinL) như G6. Surrogate feature-grad: {r50,r101,convnext_t,swin_t} (detector backbone, G6) + **convnext_large** (classification backbone, tiền xử lý RGB+ImageNet-norm, resize 640). Đo: cos²_single(convnext_large) so convnext_t (0.000 ở G6); R²(4bb) vs R²(4bb+CNX-L). Trong IN, ảnh sạch.
 **Đọc:** cos²(CNX-L) ≫ cos²(CNX-T) và R² nhảy (≥+0.1) → backbone lớn/IN-21K bắc được hướng feature Swin-L → surrogate lớn đáng giá. cos²(CNX-L) ~0 → cỡ/pretrain CNN KHÔNG đủ; hướng Swin-L đặc thù kiến trúc transformer, không với tới bằng CNN lớn. 10 ảnh sạch, chẩn đoán.
+
+## 2026-11-17 06:35 GMT+7 — G7 KẾT QUẢ (10 ảnh) + SỬA kết luận G4 (user): backbone LỚN IN-21K cũng KHÔNG bắc hướng feature Swin-L; thủ phạm out-of-span là BACKBONE (không phải head)
+`results/mechanism/g7_bigbb_dev10.json`, log `results/r1/g7_dev10.log`. ConvNeXt-L IN-21K load missing 6 (norm layers) / unexpected 0.
+- R²(4 backbone nhỏ) 0.001 → R²(+ConvNeXt-L IN21K) **0.002** (+0.001). cos²_single ConvNeXt-L **0.0000** = ConvNeXt-T = Swin-T. → **backbone CNN lớn/IN-21K KHÔNG bắc được hướng feature-backbone Swin-L.** Cỡ + pretrain 21K không đủ; hướng feature Swin-L đặc thù (kiến trúc transformer + weight cụ thể), trực giao với mọi backbone CNN kể cả lớn.
+- **SỬA KẾT LUẬN (user phản biện, đúng):** G4 nói "rào do head DINO" là SAI theo trọng số. Tách lại:
+  - Hướng feature backbone thuần Swin-L (λ=0): R² **0.001** (ngoài span nhất).
+  - Hướng cls qua head (λ=1, G5): R² **0.016** (reachable gấp 16×).
+  - Target-side: CNN→DINO-R50 (head DINO, bb R50) 92–96% drop (reachable); CNN→DINO-Swin-L 25–35%.
+  → **Thủ phạm out-of-span là BACKBONE Swin-L, KHÔNG phải head DINO.** Head thậm chí làm hướng reachable hơn. "Swin-L×DINO" trọng số nghiêng hẳn về backbone Swin-L (lớn/IN-22K/transformer).
+- Hệ quả method: surrogate backbone lớn CNN KHÔNG giúp (G7). Chỉ surrogate CÙNG backbone Swin-L (gần trùng weight) mới bắc được — nhưng đó là biết target, phá threat model. → span-deficiency của backbone Swin-L là tường cơ bản cho transfer CNN/ConvNeXt→DINO-Swin-L.
+- Caveat: ảnh sạch, feat-grad OSFD k=3 tại δ=0, 10 ảnh; ConvNeXt-L tiền xử lý RGB/ImageNet-norm resize 640 (khác frame detector — nhưng cos² với MỌI surrogate ≈ 0 nên kết luận vững). G8 (quét λ feature↔cls) sẽ định lượng trọng số head/backbone đầy đủ.

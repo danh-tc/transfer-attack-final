@@ -1,0 +1,46 @@
+loading annotations into memory...
+Done (t=0.59s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.90s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.67s)
+creating index...
+index created!
+[g7] r50 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+[g7] r101 xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.86s)
+creating index...
+index created!
+[g7] convnext_t xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.65s)
+creating index...
+index created!
+[g7] swin_t xong
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.71s)
+creating index...
+index created!
+[g7] dino_swin_l xong
+[g7] CNX-L load: missing 6 unexpected 0
+
+R²(4 backbone nhỏ): 0.001
+R²(4 + ConvNeXt-L IN21K): 0.002
+cos²_single: ConvNeXt-L 0.0000 | ConvNeXt-T 0.0000 | Swin-T 0.0000
+G7 VERDICT: Backbone lớn CNN vẫn không bắc được hướng feature Swin-L
