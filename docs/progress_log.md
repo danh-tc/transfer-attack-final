@@ -6235,3 +6235,17 @@ Survey TNNLS: RTMDet-L chỉ 9.88 mAP drop (ensemble 4 surrogate) — khó gần
 **Eval:** panel 9 model F1b + rtmdet_l; boot 200 seed 2026 paired trong tiến trình. RES3 = r101/fcos_r50/dino_r50.
 **Cổng (khóa):** **PROMISING** ⇔ ΔRES3(LO − a2) ≥ +1.5 VÀ cận dưới CI > 0 VÀ ΔSwinL ≥ −2 → khóa xác nhận dev100 (ảnh 31–100). **NO-GO** ⇔ cận trên CI ΔRES3 < +0.5 HOẶC ΔSwinL ≤ −3. Còn lại UNCLEAR (không mở rộng). **Kiểm cơ chế (báo, điều kiện cần để claim):** số object CNX white-box còn sống với điểm ≥ 0.9 @B50 phải GIẢM ở LO so với a2; không giảm mà RES3 tăng → không claim cơ chế "bão hòa".
 **P1 calib + unit test (23:35):** s = **0.0586** (trung vị của 0.0306 / 0.0693 / 0.0586 / 0.0262 / 0.3592; `results/p1/calib.json`); unit test log-odds = tính tay (5.58031), loss_cls.forward khôi phục → PASS. Code: `repair.roi_logodds`, `geo_osfd_attack(logodds_scale=)` (mặc định None → đường cũ không đổi), `scripts/p1_logodds.py`. Bắt đầu sinh.
+
+## 2026-11-16 23:55 GMT+7 — P1 KẾT QUẢ (dev30, V100): NO-GO — log-odds HẠI mọi target, kể cả white-box
+`results/mechanism/p1_logodds_dev30.json`, log `results/p1/p1_dev30.log`; PNG + dets `artifacts/runs/p1_logodds/` (không commit).
+| target | RD-CNX α2 | LO α2 |
+|---|---|---|
+| convnext_t (WB) | 96.7 | 93.7 |
+| r101 / fcos / dino_r50 | 86.5 / 85.5 / 88.0 | 77.3 / 80.5 / 79.4 |
+| swin_t / yolov3 / yolox_l | 90.2 / 75.2 / 79.0 | 84.6 / 71.9 / 65.9 |
+| dino_swin_l | 60.7 | 48.9 |
+| rtmdet_l | 79.9 | 71.0 |
+- Δ (LO − a2): RES3 **−7.6 [−14.6, −4.5]**, Swin-L **−11.9 [−17.1, −4.5]**, T7 −8.1, RTMDet −8.9, CNX WB −3.0 → **NO-GO (khóa)**.
+- **Kiểm cơ chế thất bại:** object CNX white-box còn sống ≥ 0.9: 27 → 25 (gần như không đổi) → log-odds KHÔNG giải được nhóm tự tin; T0/T1 không chuyển thành lever.
+- Diễn giải hậu kỳ (chưa kiểm): L_lo trung bình trên MỌI RoI lấy mẫu (~75% RoI nền, nền tự tin): CE gần như bỏ qua RoI nền tự tin, log-odds cho chúng gradient hằng → ngân sách sign bị kéo sang "tạo box giả" thay vì xóa object. Cùng hướng với bài học MRG 10-20 (đổi dạng loss cls trên CE đều hại).
+- Kết luận nhánh: đóng hướng "đổi dạng loss cls" (MRG, MRGF, LO đều NO-GO). T0/T1 giữ làm finding mô tả.
