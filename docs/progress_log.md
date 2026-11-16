@@ -6453,3 +6453,29 @@ Lỗ hổng (tự phát hiện): cos²≈0 ở G5/G7/G8 có thể chỉ là tr�
 ## 2026-11-17 07:50 GMT+7 — KHÓA G10 (BEHAVIORAL, 10 ảnh): feature attack từ backbone Swin-L IN-22K vs ConvNeXt-L IN-22K → transfer mAP drop trên DINO-Swin-L
 Thay thước đo gradient (đã rút) bằng ĐO HÀNH VI. Surrogate = backbone phân loại IN-22K (KHÔNG head, KHÔNG fine-tune), attack feature-dispersion: maximize Σ_stage ‖F_adv − F_clean‖², MI μ1 sign, B50, ε5, δ0=0, tiền xử lý RGB/ImageNet-norm resize 640. `scripts/g10_bbattack.py`. Surrogate ∈ {swin_large_cls, convnext_large_cls}. Eval relative AP drop (+ kill) trên dino_swin_l, r101, dino_r50, convnext_t (10 ảnh). Mốc: OSFD-R50 → dino_swin_l ~25% (F1b).
 **Đọc (khóa):** drop_SwinL(Swin-L-bb) − drop_SwinL(ConvNeXt-L-bb) ≥ +10 điểm → KIẾN TRÚC backbone Swin bắc cầu behavioral (dù same-family, đổi threat model). ≤ +3 → backbone Swin-L cũng không giúp → rào không ở kiến trúc backbone (feature-only). Caveat: feature-only thường yếu; same-backbone-family = đổi threat model. 10 ảnh.
+
+## 2026-11-17 08:20 GMT+7 — KẾT THÚC PHIÊN (user: "note lại trả máy mai nghiên cứu tiếp"). Máy sắp trả — commit LOCAL, user TỰ PUSH (HEAD = commit note này)
+**Phiên hôm nay = sprint CHẨN ĐOÁN cơ chế transfer sang DINO-Swin-L (sau khi các hướng method NO-GO ở đầu phiên). Tất cả 10 ảnh/dev30, forward/gradient, PNG F1b có sẵn. KHÔNG method mới; là material cho paper (b) analysis.**
+
+### Chuỗi kết quả (đọc entry chi tiết từng cái ở trên)
+1. **Method NO-GO (đầu phiên):** R0 repair, A1-SwinL (biên), H0 back-end DINO-R50 surrogate (Δ−3), T0 bão hòa gradient (NO-GO), M0 RTMDet (DỄ → DINO-Swin-L đặc thù), P1 log-odds cls (HẠI mọi target), T1 (41% survivor RES3 là object CNX tự tin).
+2. **Mạch pixel R1–R3:** vùng object (IN) quan trọng nhất & giống nhau mọi attack (R1); độ lớn ±ε tối ưu đơn điệu (R2); cùng ngân sách, biên độ mỗi pixel ±ε > trải đều, nhưng không mở lever transfer (R3). → không gian pixel KHÔNG chứa lever.
+3. **Mạch dấu/gradient R1-WB, G1–G4:** dấu δ cuối ~0.5 vs WB-Swin-L cho MỌI surrogate kể cả Swin-T (R1-WB, G4); đường cong khớp-dấu: sàn a=0.5 ~45% drop, dốc 0.7→1.0, dư địa dấu lớn nhưng khóa (G3); E68 ĐÍNH CHÍNH: ưu thế hướng CNX chỉ ở ảnh sạch, tan dọc quỹ đạo (G1); lợi thế sớm không khai thác được (G2). WB DINO-Swin-L drop 91% (AP 54→4.6) vs transfer ~40% = không bền bẩm sinh, rào là chuyển-hướng.
+4. **Mạch span G5–G9 → RÚT LẠI:** G5/G7/G8 đo R² hướng target trong span gradient surrogate ≈ 0.02, tưởng "tường cơ bản"; **G9 control BÁC**: target DỄ (dino_r50, transfer 92–96%) cũng chỉ R²=0.059 → span-R² KHÔNG dự báo transfer (trực giao chiều-cao). **RÚT kết luận span.**
+5. **Decomposition backbone vs head (target-side, BEHAVIORAL — đáng tin nhất):** CNN→DINO-R50 (head DINO, bb R50) 92–96%; CNN→MaskRCNN-Swin-T (head RoI, bb Swin) 75–85%; CNN→DINO-Swin-L 25–35%. → head DINO một mình KHÔNG chặn, backbone Swin nhỏ KHÔNG chặn; chỉ TỔ HỢP DINO×Swin-L khó. Swin-T **detector** surrogate → DINO-Swin-L 54% > R50 35% (G4) → backbone Swin (qua detector+task loss) bắc cầu tốt hơn. G10: Swin-L backbone PHÂN LOẠI feature-only KHÔNG bắc cầu (≈0%) — feature-only yếu, không thay được detector.
+
+### Trạng thái kết luận (cho paper b)
+- **Fact thực nghiệm vững (đo trực tiếp mAP/kill):** DINO-Swin-L là ca đặc thù; vùng object + dấu + ±ε; WB 91% vs transfer 40%; decomposition backbone×head; Swin detector bắc cầu > R50.
+- **Đã rút/đính chính:** span-deficiency R²≈2% (RÚT, G9); E68 "CNX gradient gần Swin-L" (chỉ đúng ảnh sạch, G1); G4 "head DINO là tường" (SAI theo decomposition — head không chặn).
+- **Cơ chế vì sao CNX/Swin-detector > R50 trên Swin-L: VẪN CHƯA định vị** ở input-space. Thước đo gradient-direction/span ở input KHÔNG tin được (trực giao chiều-cao). Phải đo BEHAVIORAL (mAP drop) hoặc ở feature/logit space của target.
+
+### VIỆC MAI (ưu tiên)
+1. **Detector Swin-L non-DINO thật làm surrogate** → DINO-Swin-L (GLIP-Swin-L ATSS, hoặc Mask2Former-Swin-L; ~1h wire). Trả lời sạch "backbone Swin-L bắc cầu không" behavioral. Lưu ý: same-backbone-family = đổi threat model.
+2. Củng cố các số dev10 → dev30 + CI (R1/G3/G10) nếu dùng cho paper.
+3. **Quyết định hướng paper:** (b) analysis — câu chuyện "DINO-Swin-L đặc thù: tổ hợp backbone×head, transfer bị chặn, các lever pixel/dấu/gradient đều đóng" + RD-CNX/ENS-WP làm strong empirical. Hoặc tiếp tục tìm lever ở feature/logit-space target.
+4. Đọc full text GHFA/MFA/IJCNN2023/SVul/CTSTA để chốt câu chữ novelty (chưa làm).
+
+### ⚠️ ARTIFACT + GIT (trả máy)
+- Commit LOCAL (HEAD `993b3b1` + commit note này). **User tự push.** ~20+ commit phiên này chưa push.
+- PNG nặng phiên này (`artifacts/runs/{h0_backend,p1_logodds,g2_earlytraj,g4_swint,g10_bbattack,r1_wb_swinl}`) + checkpoint `convnext-large_in21k.pth`, `swin-large_22kto1k.pth`, `rtmdet_l_*.pth` **KHÔNG commit, MẤT khi trả máy** (tải lại: mmdet/mmpretrain URL trong script; RTMDet-ConvNeXt/Swin-B orange0-jp 404). PNG F1b gốc vẫn trên HF `congdanh99/transfer-attack` tag `_3090`.
+- Kết quả JSON + log (`results/mechanism/*.json`, `results/r1/*.log`, `results/{r0,h0,m0,p1,t0}/`) ĐÃ commit.
