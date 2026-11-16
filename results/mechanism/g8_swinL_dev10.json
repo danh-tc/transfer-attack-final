@@ -1,0 +1,8 @@
+{
+ "R2_4bb": 0.001387661765166557,
+ "R2_4bb_plus_cnxL": 0.0024984193129572404,
+ "cos2_swin_large_cls": 6.115490494642566e-05,
+ "cos2_convnext_t": 1.96114101973732e-05,
+ "cos2_swin_t": 2.160894724239931e-05,
+ "verdict": "Backbone l\u1edbn CNN v\u1eabn kh\u00f4ng b\u1eafc \u0111\u01b0\u1ee3c h\u01b0\u1edbng feature Swin-L"
+}

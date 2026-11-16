@@ -1,0 +1,48 @@
+{
+ "dino_swin_l": {
+  "clean_ap": 53.9,
+  "swin_large_cls": {
+   "drop": -0.6,
+   "kill": 4.2
+  },
+  "convnext_large_cls": {
+   "drop": 12.1,
+   "kill": 6.2
+  }
+ },
+ "r101": {
+  "clean_ap": 33.2,
+  "swin_large_cls": {
+   "drop": 1.6,
+   "kill": 2.1
+  },
+  "convnext_large_cls": {
+   "drop": -6.7,
+   "kill": 6.3
+  }
+ },
+ "dino_r50": {
+  "clean_ap": 40.5,
+  "swin_large_cls": {
+   "drop": -0.4,
+   "kill": 6.7
+  },
+  "convnext_large_cls": {
+   "drop": 6.2,
+   "kill": 10.0
+  }
+ },
+ "convnext_t": {
+  "clean_ap": 44.1,
+  "swin_large_cls": {
+   "drop": 4.3,
+   "kill": 3.0
+  },
+  "convnext_large_cls": {
+   "drop": 9.6,
+   "kill": 6.0
+  }
+ },
+ "swinL_minus_cnxL_on_SwinL": -12.7,
+ "verdict": "backbone Swin-L cũng không giúp"
+}
