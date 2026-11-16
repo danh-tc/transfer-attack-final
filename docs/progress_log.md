@@ -6197,3 +6197,7 @@ Kiểm hồi quy: `--group RES3` tái lập đúng A1 (ΔAUC S1 +0.209, S2 +0.18
 | 50 | 287 | 41 | .101 | .0048 | **21.2 [13.0, 57.2]** |
 - **Verdict khóa:** cận dưới CI R@50 = 13.0 > 0.5 → **NO-GO, khép hướng "loss bỏ rơi object đã giết"**. Object bị giết giữa chừng (n 186): g tăng 0.008 → 0.10 sau khi giết.
 - **Phát hiện ngược (mô tả, hậu kỳ):** 41 object (11%) còn sống @50 trên CNX white-box là object TỰ TIN: p@50 ∈ [.99, 1] n 14 g trung vị 8e−5; [.9, .99) n 16 g 1.6e−3; [.5, .9) n 11 g 1.7e−2 → bão hòa softmax CE phía p_y → 1 (gradient ∝ 1 − p_y), object bị giết lấy ~20× gradient. Liên hệ A1 (chưa kiểm): 56% survivor RES3 là object CNX còn sống (A1 Q1) → nhóm "tự tin, không có gradient" có thể là phần lớn gap RES3; với Swin-L chỉ 32%.
+
+## 2026-11-16 22:35 GMT+7 — KHÓA T1 (CPU, dets F1b dev100): survivor transfer có phải object CNX còn TỰ TIN không — ghi + commit TRƯỚC khi chạy
+`scripts/t1_conf_survivors.py`, matching E77 (score ≥ 0.3, IoU ≥ 0.5 cùng lớp). Quần thể: object at-risk (phát hiện sạch) trên target m ∈ RES3 (gộp) và dino_swin_l, CÒN SỐNG trên m ở RD-CNX@50. Với mỗi object: điểm CNX@50 (score detection khớp trên convnext_t white-box, 0 nếu CNX đã giết; chỉ object at-risk trên CNX).
+**PRIMARY (khóa):** F_conf = tỉ lệ survivor có điểm CNX@50 ≥ 0.9 (proxy p_y ≥ 0.9 — nhóm T0 có gradient ~0). Bootstrap ảnh 1000 seed 2026. **Pilot logit-margin đáng mở cho RES3** ⇔ F_conf(RES3) cận dưới CI ≥ 0.25. Báo kèm: F_conf(Swin-L), so với tỉ lệ ≥ 0.9 trong object target ĐÃ chết (đối chứng), phân bố điểm.
