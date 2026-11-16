@@ -6286,3 +6286,7 @@ Thảo luận sau R1: độ lớn δ bão hòa đều (biên=lõi, ~0.9 ở ε) 
 - **Đồng thuận dấu trong IN, WB vs surrogate: 0.505–0.507 (≈ ngẫu nhiên 0.5)** mọi surrogate. Δ(RD-CNX − RD-R50) +0.001; Δ(ENS − OSFD) +0.001 → **BÁC giả thuyết "bản đồ dấu CNX gần Swin-L hơn"**. Bản đồ dấu mà Swin-L tự sợ TRỰC GIAO với bản đồ dấu của mọi surrogate (CNX lẫn R50).
 - **Hệ quả (khớp E68):** không tồn tại surrogate đơn có bản đồ dấu trùng Swin-L → khớp-dấu là ngõ cụt cho 1 surrogate. Vì sao RD-CNX > RD-R50 trên Swin-L KHÔNG giải thích được bằng "dấu trùng hơn" (cả hai ~0.5). → cơ chế transfer của RD-CNX nằm ở chỗ khác dấu-pixel-IN (nhất quán E67/E68: tính chất đường gradient, không phải trùng biểu diễn/trùng dấu). Củng cố lý do ENS-WP cộng 2 hướng gần trực giao.
 - 10 ảnh = xu hướng; dấu 0.50 rất sát ngẫu nhiên, khó đảo bởi n lớn hơn. Bản đồ dấu: ĐÓNG như lever 1-surrogate.
+
+## 2026-11-17 01:40 GMT+7 — KHÓA R2 (10 ảnh, forward-only): thu nhỏ độ lớn δ (×c) có đổi transfer không — ±ε có tối ưu không
+δ_c = round(c·δ) (δ = adv_png − clean), c ∈ {0.25, 0.5, 0.75, 1.0}; ảnh = clip(clean + δ_c). KHÔNG tối ưu lại — chỉ thu nhỏ δ có sẵn. Attack: RD-CNX@50, ENS-WP, OSFD-PUB, RD-R50. Target: r101, swin_t, dino_swin_l. Kill rate object clean-TP (matching E77), 10 ảnh đầu dev100.
+**Đọc (mô tả):** nếu kill tăng đơn điệu theo c, cực đại ở c=1 → ±ε bão hòa là tốt nhất (cho δ này). Nếu có đỉnh ở c<1 → thu nhỏ δ transfer tốt hơn (bớt overfit surrogate) → lever độ lớn/liều mềm. 10 ảnh = xu hướng.
