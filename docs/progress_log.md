@@ -6271,3 +6271,7 @@ Survey TNNLS: RTMDet-L chỉ 9.88 mAP drop (ensemble 4 surrogate) — khó gần
 - rem_IN (bỏ δ trong IN): kill tụt về 4–17% ở mọi ô → IN là vùng CẦN; rem_RING/rem_FAR ≈ full → RING/FAR không cần.
 - **Kết luận:** "chỗ đặt δ" KHÔNG phân biệt mạnh/yếu hay dễ/khó — mọi transfer đều IN-dominated, cấu trúc-driven. Transfer gap KHÔNG nằm ở vùng pixel. Khác biệt mạnh/yếu nằm ở HƯỚNG δ trong vùng object (nhất quán E14b, E50). Trên Swin-L share RING/FAR nhỉnh hơn chút (0.08–0.19 vs ~0 ở r101) nhưng nhỏ và trùng IN (rem_RING/FAR ≈ full).
 - Đối chiếu E51 (WB Swin-L cũ: nền share 0.69): WB khai thác nền mạnh, transfer thì không — khoảng cách này giữ nguyên với RD-CNX. WB Swin-L oracle 10 ảnh = bước nối (chờ user).
+
+## 2026-11-17 00:45 GMT+7 — KHÓA R1-WB (oracle, 10 ảnh): white-box DINO-Swin-L có hồ sơ vùng khác transfer không — ghi + commit TRƯỚC khi chạy
+Sinh δ WHITE-BOX trên chính dino_swin_l: loss = số hạng cls không-dn (như E8/E51 WB-s1, `attack.targets.target_grads` objective "cls"), ascent sign+MI μ1, α1, B20, ε5, δ0=0, seed 1000·(n+1). 10 ảnh đầu dev100. Lưu PNG cỡ gốc BGR (như r1). Chạy CÙNG region ablation r1 (keep/rem/rnd theo IN/RING/FAR), chỉ target dino_swin_l.
+**Đọc (mô tả, 10 ảnh):** so share keep-only của WB với 4 transfer (R1) trên dino_swin_l. "WB DÙNG NGỮ CẢNH" nếu share_RING(WB) ≥ 0.3 HOẶC share_FAR(WB) ≥ 0.3 (transfer đều ≤ 0.19) → xác nhận vùng ngữ cảnh là kênh chỉ WB với tới; contrast cho paper. Ngược lại WB cũng IN-dominated → vùng không phải chỗ khác biệt WB-vs-transfer. Kill rate object clean-TP, matching E77.
