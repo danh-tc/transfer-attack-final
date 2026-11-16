@@ -1,0 +1,12 @@
+loading annotations into memory...
+Done (t=0.70s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+r101         RD-CNX@50  full=62 | c0.5: uniform=13 dropout=22 randmag=23
+r101         OSFD-PUB   full=80 | c0.5: uniform=6 dropout=18 randmag=18
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+dino_swin_l  RD-CNX@50  full=41 | c0.5: uniform=10 dropout=11 randmag=12
+dino_swin_l  OSFD-PUB   full=17 | c0.5: uniform=4 dropout=5 randmag=6

@@ -6305,3 +6305,15 @@ Thảo luận sau R1: độ lớn δ bão hòa đều (biên=lõi, ~0.9 ở ε) 
 ## 2026-11-17 02:10 GMT+7 — KHÓA R3 (10 ảnh, forward-only): độ lớn theo MẪU — giảm đều vs ngẫu nhiên, cùng ngân sách
 Ở c=0.5 (ngân sách L1 ~½): `uniform` δ×0.5; `dropout` mỗi pixel-kênh giữ ±ε w.p. 0.5 else 0 (cùng kỳ vọng L1); `randmag` độ lớn = round(δ·2·0.5·u), u~U(0,1)/pixel (giữ dấu, kỳ vọng ½). Seed 42. Mốc: c=1 (full). Attack RD-CNX@50, OSFD-PUB; target r101, dino_swin_l. kill rate object clean-TP.
 **Đọc:** nếu dropout ≈ randmag ≈ uniform (cùng c) → mẫu độ lớn KHÔNG mang thông tin, chỉ dấu + mức tổng; nếu dropout > uniform → ít pixel mạnh tốt hơn (sparse); nếu dropout < uniform → trải đều tốt hơn. 10 ảnh.
+
+## 2026-11-17 02:20 GMT+7 — R3 KẾT QUẢ (10 ảnh): ở cùng ngân sách, dropout/randmag ≥ uniform; đáng kể trên CNN (R101), nhỏ trên Swin-L
+`results/mechanism/r3_magpattern_dev10.json`, log `results/r1/r3_dev10.log`. kill% (c=0.5, so full):
+| target | attack | full | uniform | dropout | randmag |
+|---|---|---|---|---|---|
+| r101 | RD-CNX@50 | 62 | 13 | 22 | 23 |
+| r101 | OSFD-PUB | 80 | 6 | 18 | 18 |
+| dino_swin_l | RD-CNX@50 | 41 | 10 | 11 | 12 |
+| dino_swin_l | OSFD-PUB | 17 | 4 | 5 | 6 |
+- **Mẫu độ lớn CÓ ảnh hưởng (khác dự đoán "không mang thông tin"):** cùng ngân sách L1, **ít pixel giữ kịch ±ε (dropout) tốt hơn trải đều yếu (uniform)** — R101 OSFD 18 vs 6 (×3), RD-CNX 22 vs 13. dropout ≈ randmag (cùng kỳ vọng độ lớn/pixel). → điều quan trọng là **biên độ MỖI pixel (gần ±ε)**, không phải tổng L1; pixel yếu đều gần vô dụng. Khớp R2 (bão hòa tốt nhất) + rnd_IN (cần dấu đúng Ở biên độ đủ lớn).
+- **Trên DINO-Swin-L hiệu ứng nhỏ** (10/11/12; 4/5/6): giảm ngân sách xuống ½ kiểu nào cũng gần như phá sập — Swin-L cần gần đủ ngân sách + đúng cấu trúc, không cứu được bằng phân bổ lại ở ½ budget.
+- Tổng hợp trục độ lớn (R2+R3): mỗi pixel muốn ở ±ε; dàn mỏng (uniform c nhỏ) là cách tệ nhất; nhưng KHÔNG mở lever transfer mới cho Swin-L (full vẫn tốt nhất, c<1 kiểu nào cũng yếu hơn). Pixel-space đóng.

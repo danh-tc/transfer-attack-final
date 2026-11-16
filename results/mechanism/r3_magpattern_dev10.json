@@ -1,0 +1,33 @@
+{
+ "c": 0.5,
+ "kill": {
+  "r101": {
+   "RD-CNX@50": {
+    "full": 62,
+    "uniform": 13,
+    "dropout": 22,
+    "randmag": 23
+   },
+   "OSFD-PUB": {
+    "full": 80,
+    "uniform": 6,
+    "dropout": 18,
+    "randmag": 18
+   }
+  },
+  "dino_swin_l": {
+   "RD-CNX@50": {
+    "full": 41,
+    "uniform": 10,
+    "dropout": 11,
+    "randmag": 12
+   },
+   "OSFD-PUB": {
+    "full": 17,
+    "uniform": 4,
+    "dropout": 5,
+    "randmag": 6
+   }
+  }
+ }
+}
