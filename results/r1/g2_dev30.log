@@ -1,0 +1,58 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.52s)
+creating index...
+index created!
+[g2 gen] 1/30
+[g2 gen] 2/30
+[g2 gen] 3/30
+[g2 gen] 4/30
+[g2 gen] 5/30
+[g2 gen] 6/30
+[g2 gen] 7/30
+[g2 gen] 8/30
+[g2 gen] 9/30
+[g2 gen] 10/30
+[g2 gen] 11/30
+[g2 gen] 12/30
+[g2 gen] 13/30
+[g2 gen] 14/30
+[g2 gen] 15/30
+[g2 gen] 16/30
+[g2 gen] 17/30
+[g2 gen] 18/30
+[g2 gen] 19/30
+[g2 gen] 20/30
+[g2 gen] 21/30
+[g2 gen] 22/30
+[g2 gen] 23/30
+[g2 gen] 24/30
+[g2 gen] 25/30
+[g2 gen] 26/30
+[g2 gen] 27/30
+[g2 gen] 28/30
+[g2 gen] 29/30
+[g2 gen] 30/30
+loading annotations into memory...
+Done (t=0.77s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+convnext_t   kill% s5=44 s10=55 s25=74 s50=82
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+r101         kill% s5=31 s10=36 s25=53 s50=63
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+fcos_r50     kill% s5=26 s10=36 s25=55 s50=61
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+dino_r50     kill% s5=35 s10=46 s25=60 s50=68
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+dino_swin_l  kill% s5=23 s10=31 s25=39 s50=45
+
+Hiệu suất transfer E = kill_target / kill_CNX(WB):
+bước     WB_CNX    SwinL   E_SwinL     RES3    E_RES3
+     5       44       23     0.516       31     0.698
+    10       55       31     0.560       39     0.720
+    25       74       39     0.524       56     0.756
+    50       82       45     0.544       64     0.781

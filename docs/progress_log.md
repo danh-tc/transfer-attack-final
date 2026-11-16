@@ -6339,3 +6339,21 @@ Thảo luận sau R1: độ lớn δ bão hòa đều (biên=lõi, ~0.9 ở ε) 
 Động cơ G1: hướng CNX gần Swin-L chỉ ở bước 0, tan ở cuối. Hỏi: δ SỚM có transfer sang Swin-L "trên mức" độ mạnh white-box của nó không (lợi thế chưa dùng hết) hay yếu đều (đã tan)?
 **Thiết kế (`scripts/g2_earlytraj.py`):** RD-CNX B50 đóng băng, seed 1000·(n+1), snapshot δ ở bước {5,10,25,50}. Eval kill rate object clean-TP (matching E77) trên: convnext_t (WB), dino_swin_l, RES3 (r101/fcos_r50/dino_r50). dev30.
 **Chỉ số chính:** hiệu suất transfer E_m(s) = kill_m(s) / kill_CNX(s) cho m ∈ {dino_swin_l, RES3}, theo bước s. **"LỢI THẾ SỚM CÒN KHAI THÁC"** ⇔ E_swinl(5 hoặc 10) > E_swinl(50) rõ (điểm cao hơn ≥ +0.1 tương đối) → δ sớm transfer hiệu quả hơn mỗi đơn vị WB → đáng làm method giữ-hướng-sớm (momentum/trọng số giảm dần/dừng sớm). **"ĐÃ TAN"** ⇔ E_swinl phẳng hoặc tăng theo s → không còn gì để giữ. dev30 pilot, báo kill tuyệt đối + E.
+
+## 2026-11-17 03:25 GMT+7 — G2 KẾT QUẢ (dev30): hiệu suất transfer PHẲNG theo bước → lợi thế hướng sớm ĐÃ TAN, không khai thác thêm được
+`results/mechanism/g2_earlytraj_dev30.json`, log `results/r1/g2_dev30.log`. kill% object clean-TP theo bước {5,10,25,50}:
+| model | s5 | s10 | s25 | s50 |
+|---|---|---|---|---|
+| convnext_t (WB) | 44 | 55 | 74 | 82 |
+| dino_swin_l | 23 | 31 | 39 | 45 |
+| RES3 (TB) | 31 | 39 | 56 | 64 |
+Hiệu suất transfer E = kill_target / kill_WB:
+| bước | E_SwinL | E_RES3 |
+|---|---|---|
+| 5 | 0.516 | 0.698 |
+| 10 | 0.560 | 0.720 |
+| 25 | 0.524 | 0.756 |
+| 50 | 0.544 | 0.781 |
+- **E_SwinL PHẲNG ~0.52–0.56 mọi bước** (không cao hơn ở sớm); E_RES3 TĂNG nhẹ theo bước (0.70→0.78). → **"ĐÃ TAN" theo cổng khóa**: δ sớm KHÔNG transfer hiệu quả hơn mỗi đơn vị WB. Lợi thế hướng bước-0 (G1 ratio 2.1) KHÔNG để lại hiệu suất transfer vượt trội ở δ sớm; dừng sớm chỉ cho attack yếu hơn đồng đều (cả WB lẫn transfer giảm cùng tỉ lệ).
+- **Bác giả thuyết "giữ hướng sớm".** δ càng nhiều bước càng mạnh trên MỌI model (đơn điệu), transfer efficiency không đổi hoặc tăng nhẹ về cuối → momentum/dừng-sớm/trọng-số-giảm-dần không phải lever. Khớp F1b (B50→B100 vẫn tăng transfer) và R2 (full tốt nhất).
+- Kết luận nhánh gradient-trajectory: ĐÓNG. Lợi thế CNX bước-0 (G1) là hiện tượng tại δ=0, không chuyển thành ưu thế transfer khai thác được dọc đường. Cơ chế ưu thế CNX vs R50 trên Swin-L vẫn CHƯA định vị được ở input-space/trajectory — ứng viên còn lại chỉ còn feature/logit-space của target (chưa đo). Đề xuất: dừng mạch chẩn đoán, tổng hợp cho paper (b).
