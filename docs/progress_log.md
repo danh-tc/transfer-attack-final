@@ -6290,3 +6290,14 @@ Thảo luận sau R1: độ lớn δ bão hòa đều (biên=lõi, ~0.9 ở ε) 
 ## 2026-11-17 01:40 GMT+7 — KHÓA R2 (10 ảnh, forward-only): thu nhỏ độ lớn δ (×c) có đổi transfer không — ±ε có tối ưu không
 δ_c = round(c·δ) (δ = adv_png − clean), c ∈ {0.25, 0.5, 0.75, 1.0}; ảnh = clip(clean + δ_c). KHÔNG tối ưu lại — chỉ thu nhỏ δ có sẵn. Attack: RD-CNX@50, ENS-WP, OSFD-PUB, RD-R50. Target: r101, swin_t, dino_swin_l. Kill rate object clean-TP (matching E77), 10 ảnh đầu dev100.
 **Đọc (mô tả):** nếu kill tăng đơn điệu theo c, cực đại ở c=1 → ±ε bão hòa là tốt nhất (cho δ này). Nếu có đỉnh ở c<1 → thu nhỏ δ transfer tốt hơn (bớt overfit surrogate) → lever độ lớn/liều mềm. 10 ảnh = xu hướng.
+
+## 2026-11-17 01:55 GMT+7 — R2 KẾT QUẢ (10 ảnh): ±ε tối ưu — kill TĂNG ĐƠN ĐIỆU theo độ lớn δ, đỉnh ở c=1, KHÔNG đỉnh giữa
+`results/mechanism/r2_scale_dev10.json`, log `results/r1/r2_dev10.log`. kill% theo c=[0.25,0.5,0.75,1.0]:
+| target | RD-CNX@50 | ENS-WP | OSFD-PUB | RD-R50 |
+|---|---|---|---|---|
+| r101 | 4/13/52/62 | 4/23/67/75 | 1/6/58/80 | 5/23/66/80 |
+| swin_t | 6/16/48/63 | 6/20/51/66 | 3/4/35/53 | 7/15/38/51 |
+| dino_swin_l | 6/10/33/41 | 4/10/29/41 | 1/4/15/17 | 4/8/19/28 |
+- **Mọi (attack × target): kill tăng đơn điệu, cực đại ở c=1. KHÔNG ô nào có đỉnh ở c<1** → thu nhỏ δ có sẵn chỉ làm yếu đi, không giảm overfit. ±ε (bão hòa) là tốt nhất cho δ này; dốc nhất ở đoạn c 0.5→1.0.
+- Caveat: chỉ thu nhỏ δ của attack ε5 có sẵn, KHÔNG tối ưu lại ở ε nhỏ hơn (step size nhỏ hơn có thể khác — nhưng budget sweep F1b đã cho nhiều-bước giúp, không thấy overfit muộn). Không bác "ε lớn hơn (8) mạnh hơn" (threat model đã có ε∈{5,8}). 10 ảnh.
+- Kết luận trục độ lớn: ĐÓNG. Cùng vùng (R1) + độ lớn (R2): không gian pixel KHÔNG có lever transfer chưa khai thác; lever duy nhất còn lại là HƯỚNG gradient (ensemble gần-trực-giao, E68/ENS-WP).

@@ -1,0 +1,21 @@
+loading annotations into memory...
+Done (t=0.71s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+r101         RD-CNX@50  kill% theo c[0.25, 0.5, 0.75, 1.0]: [4, 13, 52, 62]
+r101         ENS-WP     kill% theo c[0.25, 0.5, 0.75, 1.0]: [4, 23, 67, 75]
+r101         OSFD-PUB   kill% theo c[0.25, 0.5, 0.75, 1.0]: [1, 6, 58, 80]
+r101         RD-R50     kill% theo c[0.25, 0.5, 0.75, 1.0]: [5, 23, 66, 80]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+swin_t       RD-CNX@50  kill% theo c[0.25, 0.5, 0.75, 1.0]: [6, 16, 48, 63]
+swin_t       ENS-WP     kill% theo c[0.25, 0.5, 0.75, 1.0]: [6, 20, 51, 66]
+swin_t       OSFD-PUB   kill% theo c[0.25, 0.5, 0.75, 1.0]: [3, 4, 35, 53]
+swin_t       RD-R50     kill% theo c[0.25, 0.5, 0.75, 1.0]: [7, 15, 38, 51]
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+dino_swin_l  RD-CNX@50  kill% theo c[0.25, 0.5, 0.75, 1.0]: [6, 10, 33, 41]
+dino_swin_l  ENS-WP     kill% theo c[0.25, 0.5, 0.75, 1.0]: [4, 10, 29, 41]
+dino_swin_l  OSFD-PUB   kill% theo c[0.25, 0.5, 0.75, 1.0]: [1, 4, 15, 17]
+dino_swin_l  RD-R50     kill% theo c[0.25, 0.5, 0.75, 1.0]: [4, 8, 19, 28]
