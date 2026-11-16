@@ -1,0 +1,113 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.51s)
+creating index...
+index created!
+[g1 cnx] 1/30
+[g1 cnx] 2/30
+[g1 cnx] 3/30
+[g1 cnx] 4/30
+[g1 cnx] 5/30
+[g1 cnx] 6/30
+[g1 cnx] 7/30
+[g1 cnx] 8/30
+[g1 cnx] 9/30
+[g1 cnx] 10/30
+[g1 cnx] 11/30
+[g1 cnx] 12/30
+[g1 cnx] 13/30
+[g1 cnx] 14/30
+[g1 cnx] 15/30
+[g1 cnx] 16/30
+[g1 cnx] 17/30
+[g1 cnx] 18/30
+[g1 cnx] 19/30
+[g1 cnx] 20/30
+[g1 cnx] 21/30
+[g1 cnx] 22/30
+[g1 cnx] 23/30
+[g1 cnx] 24/30
+[g1 cnx] 25/30
+[g1 cnx] 26/30
+[g1 cnx] 27/30
+[g1 cnx] 28/30
+[g1 cnx] 29/30
+[g1 cnx] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.69s)
+creating index...
+index created!
+[g1 r50] 1/30
+[g1 r50] 2/30
+[g1 r50] 3/30
+[g1 r50] 4/30
+[g1 r50] 5/30
+[g1 r50] 6/30
+[g1 r50] 7/30
+[g1 r50] 8/30
+[g1 r50] 9/30
+[g1 r50] 10/30
+[g1 r50] 11/30
+[g1 r50] 12/30
+[g1 r50] 13/30
+[g1 r50] 14/30
+[g1 r50] 15/30
+[g1 r50] 16/30
+[g1 r50] 17/30
+[g1 r50] 18/30
+[g1 r50] 19/30
+[g1 r50] 20/30
+[g1 r50] 21/30
+[g1 r50] 22/30
+[g1 r50] 23/30
+[g1 r50] 24/30
+[g1 r50] 25/30
+[g1 r50] 26/30
+[g1 r50] 27/30
+[g1 r50] 28/30
+[g1 r50] 29/30
+[g1 r50] 30/30
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+[g1 dino_swin_l] 1/30
+[g1 dino_swin_l] 2/30
+[g1 dino_swin_l] 3/30
+[g1 dino_swin_l] 4/30
+[g1 dino_swin_l] 5/30
+[g1 dino_swin_l] 6/30
+[g1 dino_swin_l] 7/30
+[g1 dino_swin_l] 8/30
+[g1 dino_swin_l] 9/30
+[g1 dino_swin_l] 10/30
+[g1 dino_swin_l] 11/30
+[g1 dino_swin_l] 12/30
+[g1 dino_swin_l] 13/30
+[g1 dino_swin_l] 14/30
+[g1 dino_swin_l] 15/30
+[g1 dino_swin_l] 16/30
+[g1 dino_swin_l] 17/30
+[g1 dino_swin_l] 18/30
+[g1 dino_swin_l] 19/30
+[g1 dino_swin_l] 20/30
+[g1 dino_swin_l] 21/30
+[g1 dino_swin_l] 22/30
+[g1 dino_swin_l] 23/30
+[g1 dino_swin_l] 24/30
+[g1 dino_swin_l] 25/30
+[g1 dino_swin_l] 26/30
+[g1 dino_swin_l] 27/30
+[g1 dino_swin_l] 28/30
+[g1 dino_swin_l] 29/30
+[g1 dino_swin_l] 30/30
+step  0: cos(CNX,Swin) +0.0355  cos(R50,Swin) +0.0167  Δcos +0.0188 [+0.0128, +0.0250]  ratio 2.12
+step 25: cos(CNX,Swin) +0.0171  cos(R50,Swin) +0.0169  Δcos +0.0001 [-0.0062, +0.0061]  ratio 1.01
+step 50: cos(CNX,Swin) +0.0136  cos(R50,Swin) +0.0185  Δcos -0.0049 [-0.0099, -0.0003]  ratio 0.73
+G1 VERDICT: KHÔNG xác nhận (Δcos CI chứa 0 bước 50)

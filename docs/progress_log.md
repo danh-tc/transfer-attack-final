@@ -6322,3 +6322,15 @@ Thảo luận sau R1: độ lớn δ bão hòa đều (biên=lõi, ~0.9 ở ε) 
 Động cơ: R1-WB đo DẤU δ CUỐI → mọi surrogate ~0.5 vs Swin-L (sign + 50 bước wash out). E68 đo gradient thô 1 điểm (clean, dev30) → CNX ~2.3× R50. G1 kiểm E68 DỌC quỹ đạo RD-CNX, có CI dev30.
 **Thiết kế (`scripts/g1_graddir.py`):** sinh RD-CNX B50 (đóng băng, seed 1000·(n+1)), snapshot δ ở bước {0,25,50}. Tại mỗi (ảnh, snapshot) x = clean+δ: input-grad của loss cls (`target_grads` objective "cls", GT-assisted, ảnh gốc [C,h0,w0]) cho 3 model CÙNG x: g_cnx, g_r50, g_swin (dino_swin_l cls không-dn). Cosine theo ảnh gốc. Load tuần tự (cnx→r50→swin) tránh OOM.
 **PRIMARY (khóa):** Δcos = cos(g_cnx, g_swin) − cos(g_r50, g_swin), TB qua ảnh, tại bước 50 (và báo 0, 25). Bootstrap ảnh 1000 seed 2026. **XÁC NHẬN E68 dọc quỹ đạo** ⇔ Δcos > 0 cận dưới CI > 0 ở bước 50. Báo cos tuyệt đối (có thể nhỏ) + tỉ lệ cos_cnx/cos_r50. dev30 = pilot.
+
+## 2026-11-17 02:55 GMT+7 — G1 KẾT QUẢ (dev30): lợi thế hướng của CNX CHỈ ở ảnh sạch, TAN khi đi dọc quỹ đạo
+`results/mechanism/g1_graddir_dev30.json`, log `results/r1/g1_dev30.log`. cos input-grad(cls) vs DINO-Swin-L:
+| bước | cos(CNX,Swin) | cos(R50,Swin) | Δcos [CI95] | ratio |
+|---|---|---|---|---|
+| 0 (sạch) | +0.0355 | +0.0167 | **+0.0188 [+0.013, +0.025]** | 2.12 |
+| 25 | +0.0171 | +0.0169 | +0.0001 [−0.006, +0.006] | 1.01 |
+| 50 (adv cuối) | +0.0136 | +0.0185 | **−0.0049 [−0.010, −0.000]** | 0.73 |
+- **Bước 0 tái lập E68:** CNX gần Swin-L 2.12× R50 (CI > 0). Nhưng E68 chỉ đo ở ảnh sạch.
+- **DỌC quỹ đạo tín hiệu TAN:** bước 25 Δcos ≈ 0; bước 50 **đảo chiều nhẹ** (−0.005, CI vừa chạm < 0). Tại điểm δ hội tụ, gradient CNX KHÔNG còn gần Swin-L hơn R50; cos tuyệt đối của cả hai tụt về ~0.015.
+- **VERDICT: KHÔNG xác nhận E68 dọc quỹ đạo.** "CNX có đường gradient gần Swin-L" chỉ đúng tại δ=0, không đúng tại δ nơi attack thực sự dừng. → lợi thế transfer của RD-CNX trên Swin-L (41 vs 28 RD-R50) KHÔNG giải thích được bằng cosine input-grad tại điểm cuối (giống R1-WB dấu ~0.5). Cả hai readout input-space (dấu cuối, cos cuối) đều KHÔNG mang tín hiệu phân biệt.
+- Hệ quả: cơ chế ưu thế CNX nằm Ở ĐÂU vẫn MỞ — không ở input-grad cuối, không ở dấu pixel, không ở vùng/độ lớn. Ứng viên còn lại (chưa đo tầng này): loss landscape / nhiều bước (quỹ đạo tích lũy), hoặc ở feature/logit space của chính Swin-L (không phải input-grad). E68 nên hạ xuống "chỉ đúng tại ảnh sạch".
