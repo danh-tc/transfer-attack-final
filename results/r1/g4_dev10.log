@@ -1,0 +1,48 @@
+loading annotations into memory...
+Done (t=0.49s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+[g4 gen] 1/10
+[g4 gen] 2/10
+[g4 gen] 3/10
+[g4 gen] 4/10
+[g4 gen] 5/10
+[g4 gen] 6/10
+[g4 gen] 7/10
+[g4 gen] 8/10
+[g4 gen] 9/10
+[g4 gen] 10/10
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Đồng thuận dấu trong IN vs WB DINO-Swin-L:
+  SWT        0.508
+  RD-CNX@50  0.507
+  ENS-WP     0.506
+  OSFD-PUB   0.505
+  RD-R50     0.505
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Traceback (most recent call last):
+  File "/workspace/transfer-attack-final/scripts/g4_swint.py", line 74, in <module>
+    main()
+  File "/workspace/transfer-attack-final/scripts/g4_swint.py", line 63, in main
+    det = inference_detector(model, os.path.join(OUTDIR, f"{i}.png")); ad += to_coco_dets(det, i, cat)
+  File "/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmdet/apis/inference.py", line 182, in inference_detector
+    data_ = test_pipeline(data_)
+  File "/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmcv/transforms/base.py", line 12, in __call__
+    return self.transform(results)
+  File "/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmcv/transforms/wrappers.py", line 88, in transform
+    results = t(results)  # type: ignore
+  File "/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmcv/transforms/base.py", line 12, in __call__
+    return self.transform(results)
+  File "/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmdet/datasets/transforms/loading.py", line 56, in transform
+    img = results['img']
+KeyError: 'img'

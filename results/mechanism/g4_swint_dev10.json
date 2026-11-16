@@ -1,0 +1,30 @@
+{
+ "sign_agree_vs_wb": {
+  "SWT": 0.508,
+  "RD-CNX@50": 0.507,
+  "ENS-WP": 0.506,
+  "OSFD-PUB": 0.505,
+  "RD-R50": 0.505
+ },
+ "transfer": {
+  "dino_swin_l": {
+   "kill": 48,
+   "ap_clean": 54,
+   "ap_adv": 25,
+   "drop": 54
+  },
+  "r101": {
+   "kill": 57,
+   "drop": 55
+  },
+  "fcos_r50": {
+   "kill": 66,
+   "drop": 75
+  },
+  "dino_r50": {
+   "kill": 61,
+   "drop": 74
+  }
+ },
+ "verdict": "Swin-T cũng ~0.5: rào do HEAD DINO, không do backbone"
+}
