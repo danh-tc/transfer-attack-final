@@ -6201,3 +6201,13 @@ Kiểm hồi quy: `--group RES3` tái lập đúng A1 (ΔAUC S1 +0.209, S2 +0.18
 ## 2026-11-16 22:35 GMT+7 — KHÓA T1 (CPU, dets F1b dev100): survivor transfer có phải object CNX còn TỰ TIN không — ghi + commit TRƯỚC khi chạy
 `scripts/t1_conf_survivors.py`, matching E77 (score ≥ 0.3, IoU ≥ 0.5 cùng lớp). Quần thể: object at-risk (phát hiện sạch) trên target m ∈ RES3 (gộp) và dino_swin_l, CÒN SỐNG trên m ở RD-CNX@50. Với mỗi object: điểm CNX@50 (score detection khớp trên convnext_t white-box, 0 nếu CNX đã giết; chỉ object at-risk trên CNX).
 **PRIMARY (khóa):** F_conf = tỉ lệ survivor có điểm CNX@50 ≥ 0.9 (proxy p_y ≥ 0.9 — nhóm T0 có gradient ~0). Bootstrap ảnh 1000 seed 2026. **Pilot logit-margin đáng mở cho RES3** ⇔ F_conf(RES3) cận dưới CI ≥ 0.25. Báo kèm: F_conf(Swin-L), so với tỉ lệ ≥ 0.9 trong object target ĐÃ chết (đối chứng), phân bố điểm.
+
+## 2026-11-16 22:40 GMT+7 — T1 KẾT QUẢ: MỞ pilot logit-margin (RES3) theo cổng khóa
+`results/mechanism/t1_conf_survivors_dev100.json`.
+| nhóm | n | F_conf (CNX ≥ 0.9) [CI95] | CNX đã giết | CNX sống 0.3–0.9 |
+|---|---|---|---|---|
+| RES3 survivor | 620 | **0.41 [0.33, 0.48]** | 0.44 | 0.15 |
+| RES3 đã chết (đối chứng) | 1153 | 0.01 | 0.97 | 0.02 |
+| Swin-L survivor | 384 | 0.22 [0.17, 0.28] | 0.68 | 0.10 |
+- Cận dưới 0.33 ≥ 0.25 → **pilot logit-margin cho RES3 được mở** (khóa riêng trước khi code/chạy). 41% survivor RES3 là object CNX white-box còn RẤT tự tin (vùng T0 gradient ~0); đối chứng chỉ 1%.
+- Swin-L: chỉ 22% → trần lợi ích ở ca khó nhỏ; Swin-L chủ yếu là "CNX đã giết, target chưa chết" (68%) — cơ chế khác, chưa có lever.
