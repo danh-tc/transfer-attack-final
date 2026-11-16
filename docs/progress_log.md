@@ -6360,3 +6360,18 @@ Hiệu suất transfer E = kill_target / kill_WB:
 
 ## 2026-11-17 03:45 GMT+7 — KHÓA G3 (10 ảnh): đường cong khớp-dấu → hiệu quả (δ WB Swin-L, đảo dấu dần trong IN)
 Từ δ WB DINO-Swin-L (R1-WB, drop 91%), đảo dấu ngẫu nhiên (1−a) phần pixel-kênh TRONG IN (giữ |δ|), a = mức khớp ∈ {1.0,0.9,0.8,0.7,0.6,0.5}; ngoài IN giữ WB. Eval chính dino_swin_l: relative AP drop + kill rate object clean-TP. Seed 42. Mốc tham chiếu: surrogate ~0.50 (R1-WB). Mục: định lượng "phải khớp dấu WB tới đâu mới hiệu quả"; a=0.5 = sàn ngẫu nhiên.
+
+## 2026-11-17 03:55 GMT+7 — G3 KẾT QUẢ (10 ảnh): đường cong khớp-dấu → drop; a=0.5 KHÔNG về 0 (sàn ~45% drop); dốc mạnh vùng 0.7–1.0
+`results/mechanism/g3_signmatch_dev10.json`. clean AP 53.9, n_tp 96. δ WB Swin-L đảo dấu dần trong IN:
+| khớp a | AP adv | drop% | kill% |
+|---|---|---|---|
+| 1.0 | 4.6 | 91 | 79 |
+| 0.9 | 5.1 | 91 | 78 |
+| 0.8 | 8.2 | 85 | 64 |
+| 0.7 | 17.8 | 67 | 49 |
+| 0.6 | 23.5 | 56 | 31 |
+| 0.5 | 29.7 | 45 | 20 |
+- **Phi tuyến, dốc nhất ở a 0.7→1.0:** giữ 90% dấu WB ≈ full (91%); tụt xuống 80% khớp mất ~6 điểm drop; 70% khớp còn 67%. Cần khớp dấu **rất cao** (≥0.9) mới gần white-box.
+- **a=0.5 (sàn ngẫu nhiên) drop VẪN 45%, kill 20%** — KHÔNG về 0. Tức ngay cả bản đồ dấu ngẫu nhiên (biên độ ±ε đúng, trong IN) đã phá 45% AP Swin-L. → phần lớn "drop transfer" của mọi surrogate (~0.5) nằm ở sàn này: ±ε trong object là đủ cho ~45% drop bất kể dấu.
+- **Hệ quả định lượng (quan trọng):** RD-CNX transfer Swin-L drop ~40% ≈ xấp xỉ sàn a=0.5 (45%). Nghĩa là transfer hiện tại CHƯA vượt sàn "dấu ngẫu nhiên ±ε trong object" bao nhiêu. Khoảng trống tới white-box (91%) = toàn bộ vùng a 0.5→1.0 mà không surrogate nào chạm (R1-WB: mọi surrogate a≈0.5). Khớp-dấu là trục có dư địa KHỔNG LỒ nhưng bị khóa bởi "không lấy được dấu Swin-L từ surrogate".
+- Lưu ý toán (user): drop(a) phi tuyến, lồi; sàn a=0.5 ≈ 45% là do biên độ+vị trí (IN,±ε) đã khóa; phần dấu đóng góp từ 45%→91% khi a: 0.5→1.0. 10 ảnh.
