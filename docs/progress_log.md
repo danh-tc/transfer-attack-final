@@ -6301,3 +6301,7 @@ Thảo luận sau R1: độ lớn δ bão hòa đều (biên=lõi, ~0.9 ở ε) 
 - **Mọi (attack × target): kill tăng đơn điệu, cực đại ở c=1. KHÔNG ô nào có đỉnh ở c<1** → thu nhỏ δ có sẵn chỉ làm yếu đi, không giảm overfit. ±ε (bão hòa) là tốt nhất cho δ này; dốc nhất ở đoạn c 0.5→1.0.
 - Caveat: chỉ thu nhỏ δ của attack ε5 có sẵn, KHÔNG tối ưu lại ở ε nhỏ hơn (step size nhỏ hơn có thể khác — nhưng budget sweep F1b đã cho nhiều-bước giúp, không thấy overfit muộn). Không bác "ε lớn hơn (8) mạnh hơn" (threat model đã có ε∈{5,8}). 10 ảnh.
 - Kết luận trục độ lớn: ĐÓNG. Cùng vùng (R1) + độ lớn (R2): không gian pixel KHÔNG có lever transfer chưa khai thác; lever duy nhất còn lại là HƯỚNG gradient (ensemble gần-trực-giao, E68/ENS-WP).
+
+## 2026-11-17 02:10 GMT+7 — KHÓA R3 (10 ảnh, forward-only): độ lớn theo MẪU — giảm đều vs ngẫu nhiên, cùng ngân sách
+Ở c=0.5 (ngân sách L1 ~½): `uniform` δ×0.5; `dropout` mỗi pixel-kênh giữ ±ε w.p. 0.5 else 0 (cùng kỳ vọng L1); `randmag` độ lớn = round(δ·2·0.5·u), u~U(0,1)/pixel (giữ dấu, kỳ vọng ½). Seed 42. Mốc: c=1 (full). Attack RD-CNX@50, OSFD-PUB; target r101, dino_swin_l. kill rate object clean-TP.
+**Đọc:** nếu dropout ≈ randmag ≈ uniform (cùng c) → mẫu độ lớn KHÔNG mang thông tin, chỉ dấu + mức tổng; nếu dropout > uniform → ít pixel mạnh tốt hơn (sparse); nếu dropout < uniform → trải đều tốt hơn. 10 ảnh.
