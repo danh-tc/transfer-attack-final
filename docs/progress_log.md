@@ -6390,3 +6390,19 @@ Từ δ WB DINO-Swin-L (R1-WB, drop 91%), đảo dấu ngẫu nhiên (1−a) ph�
 ## 2026-11-17 04:55 GMT+7 — KHÓA G5 (10 ảnh): hướng dễ tổn thương Swin-L có trong SPAN gradient surrogate không — chiếu + R²
 Mỗi ảnh (ảnh sạch, step 0): input-grad cls (`target_grads`, toàn model) trong IN của các surrogate và WB target dino_swin_l (oracle, chỉ phân tích). Chiếu v_t (WB) lên span các tập surrogate, R² = ‖proj‖²/‖v_t‖². Tập lồng nhau: {r50} ⊂ {r50,r101,fcos} (CNN) ⊂ +convnext_t ⊂ +swin_t (5 backbone, head RoI/anchor) ⊂ **+dino_r50 (THÊM HEAD DINO, backbone R50)**. Báo R² từng tập + cos² đơn từng surrogate.
 **Đọc (khóa):** R²(5 backbone, head non-DINO) **thấp** (<0.15) → v_t NGOÀI span surrogate backbone → giới hạn cơ bản (không ensemble backbone nào với tới); nếu **+dino_r50 làm R² NHẢY** (Δ≥+0.2) → HEAD DINO là chiều thiếu (khớp G4). R² cao sẵn → có tổ hợp tốt, quay về tối ưu trọng số. 10 ảnh, ảnh sạch (caveat: hướng tại δ=0; endpoint có thể khác — G1).
+
+## 2026-11-17 05:15 GMT+7 — G5 KẾT QUẢ (10 ảnh, ảnh sạch): hướng dễ tổn thương Swin-L NẰM NGOÀI span gradient surrogate (R²≈0.02) — tường cơ bản
+`results/mechanism/g5_span_dev10.json` (sửa: bỏ fcos khỏi load_any; 4 backbone + dino_r50). Chiếu v_t (WB DINO-Swin-L input-grad cls) lên span:
+| tập surrogate | R² (phần năng lượng v_t bắt được) |
+|---|---|
+| r50 | 0.004 |
+| r50+r101 | 0.007 |
+| +convnext_t | 0.014 |
+| +swin_t (4 backbone) | 0.016 |
+| **+dino_r50 (thêm head DINO)** | **0.019** |
+cos² đơn: r50 .0039, r101 .0061, convnext_t .0100, swin_t .0067, dino_r50 .0074.
+- **R² ≈ 0.02 kể cả với 5 surrogate** → **>98% năng lượng hướng dễ tổn thương Swin-L nằm NGOÀI span mọi tổ hợp gradient surrogate.** Giới hạn cơ bản (span/rank deficiency), không phải lỗi tối ưu: KHÔNG trọng số ensemble nào dựng lại được v_t. Giải thích định lượng vì sao ENS-WP/CWA/mọi ensemble ~0.5 dấu và vì sao transfer Swin-L trần thấp.
+- **Thêm dino_r50 (head DINO, backbone R50) chỉ +0.003** (0.016→0.019) → KHÔNG nhảy. Head DINO qua surrogate R50 cũng không bắc được chiều v_t (khớp H0: surrogate dino_r50 transfer kém). → v_t đặc thù **DINO×Swin-L cụ thể** (head DINO TRÊN backbone Swin-L), không tách được thành "head" hay "backbone" qua surrogate rời.
+- cos² đơn mọi surrogate < 0.01; convnext_t cao nhất (0.0100) > r50 (0.0039) ~2.5× → tái lập thứ hạng E68 (CNX>R50) NHƯNG ở mức tuyệt đối cực nhỏ (~1% năng lượng) → "ưu thế CNX" là thật về thứ hạng, vô nghĩa về độ lớn (1% vs 0.4%). Giải thích vì sao CNX hơi hơn R50 mà vẫn xa white-box.
+- **Caveat:** ảnh sạch (δ=0); input-grad cls 1 điểm. v_t là 1 mẫu WB (1 optimum). dev10. Span có thể rộng hơn nếu dùng nhiều mẫu v_t / điểm quỹ đạo — nhưng R²=0.02 rất thấp, khó đảo thành "reachable".
+- **KẾT LUẬN TRUNG TÂM (ứng viên cho paper):** transfer sang DINO-Swin-L bị chặn bởi span-deficiency — hướng dễ tổn thương của target gần trực giao với toàn bộ không gian gradient surrogate khả dụng; đây là lý do mọi method 1-surrogate/ensemble đều trần thấp, định lượng được (R²≈2%).
