@@ -1,0 +1,24 @@
+{
+ "R2_feat_swinL_in_surrogate_span": 0.0013876616669424428,
+ "R2_feat_per_img": [
+  0.0,
+  0.0,
+  0.007,
+  0.001,
+  0.0,
+  0.0,
+  0.004,
+  0.0,
+  0.002,
+  0.0
+ ],
+ "R2_cls_ref_G5_4bb": 0.016,
+ "cos_vcls_vfeat_swinL": -0.3239766017407769,
+ "cos2_feat_single": {
+  "r50": 2.1356555678939166e-05,
+  "r101": 1.6650973855594597e-05,
+  "convnext_t": 1.9611406999011915e-05,
+  "swin_t": 2.1608942654486838e-05
+ },
+ "verdict": "Backbone Swin-L c\u0169ng ngo\u00e0i span"
+}

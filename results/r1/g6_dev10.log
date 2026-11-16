@@ -1,0 +1,53 @@
+loading annotations into memory...
+Done (t=0.60s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.54s)
+creating index...
+index created!
+[g6] r50 feat xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.58s)
+creating index...
+index created!
+[g6] r101 feat xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.56s)
+creating index...
+index created!
+[g6] convnext_t feat xong
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.58s)
+creating index...
+index created!
+[g6] swin_t feat xong
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.70s)
+creating index...
+index created!
+[g6] dino_swin_l feat xong
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.58s)
+creating index...
+index created!
+
+R²_feat (hướng feature-backbone Swin-L trong span 4 surrogate): 0.001
+R²_cls tham chiếu (G5, 4bb): 0.016
+cos(v_cls, v_feat) trên Swin-L: -0.324  (head đổi hướng bao nhiêu)
+cos²_feat đơn: {'r50': 0.0, 'r101': 0.0, 'convnext_t': 0.0, 'swin_t': 0.0}
+G6 VERDICT: Backbone Swin-L cũng ngoài span
