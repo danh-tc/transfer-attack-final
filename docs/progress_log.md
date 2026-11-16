@@ -6186,3 +6186,14 @@ Kiểm hồi quy: `--group RES3` tái lập đúng A1 (ΔAUC S1 +0.209, S2 +0.18
 **Câu hỏi:** loss cls của RD-CNX có "bỏ rơi" object đã bị giết trên surrogate không (gradient tụt) → giải thích 68% survivor Swin-L đã bị CNX giết (A1-SwinL)? **Lưu ý lý thuyết (ghi trước):** tối đa hóa CE nhãn đúng −log p_y KHÔNG bão hòa theo logit (‖p − e_y‖ ≈ 1 khi p_y → 0); nếu có tụt thì do Jacobian mạng → prior thấp.
 **Thiết kế (`scripts/t0_saturation.py`):** RD-CNX B50 đóng băng (`METHODS["C2-OCT-1V-WP2-RD-CNX"]`, seed 1000·(n+1) như F1b), dev30; snapshot δ ở bước {0, 10, 25, 50}. Mỗi snapshot, model CNX trọng số gốc, eval: RoI head trên GT box (khung model) → p_y; với từng GT object: g_j = ‖∇ₓ(−log p_y,j)‖₂ theo ảnh gốc (1 backward/object). Trạng thái: killed ⇔ p_y < 0.1; alive ⇔ p_y ≥ 0.5; giữa bỏ.
 **PRIMARY (khóa):** R = TB g(killed) / TB g(alive) ở bước 50 (gộp object, bootstrap ảnh 1000 seed 2026). **Bão hòa ủng hộ** ⇔ cận trên CI R < 0.3 → mở pilot logit-margin (khóa riêng). **NO-GO** ⇔ cận dưới CI R > 0.5 → khép hướng transfer lag-bão hòa. Còn lại UNCLEAR. Báo kèm: R ở bước 25, quỹ đạo g theo bước cho object bị giết giữa chừng, số object mỗi nhóm.
+
+## 2026-11-16 22:25 GMT+7 — T0 KẾT QUẢ (dev30, 362 object, V100): NO-GO bão hòa-sau-khi-giết; phát hiện NGƯỢC: object còn sống tự tin không có gradient
+`scripts/t0_saturation.py`, `results/mechanism/t0_saturation_dev30.json`, log `results/t0/t0_dev30.log`.
+| bước | killed | alive | g killed | g alive | R [CI95] |
+|---|---|---|---|---|---|
+| 0 | 41 | 255 | .104 | .0065 | 16.1 [11.3, 24.8] |
+| 10 | 201 | 105 | .091 | .0079 | 11.5 [8.5, 16.2] |
+| 25 | 259 | 57 | .102 | .0078 | 13.0 [8.1, 27.3] |
+| 50 | 287 | 41 | .101 | .0048 | **21.2 [13.0, 57.2]** |
+- **Verdict khóa:** cận dưới CI R@50 = 13.0 > 0.5 → **NO-GO, khép hướng "loss bỏ rơi object đã giết"**. Object bị giết giữa chừng (n 186): g tăng 0.008 → 0.10 sau khi giết.
+- **Phát hiện ngược (mô tả, hậu kỳ):** 41 object (11%) còn sống @50 trên CNX white-box là object TỰ TIN: p@50 ∈ [.99, 1] n 14 g trung vị 8e−5; [.9, .99) n 16 g 1.6e−3; [.5, .9) n 11 g 1.7e−2 → bão hòa softmax CE phía p_y → 1 (gradient ∝ 1 − p_y), object bị giết lấy ~20× gradient. Liên hệ A1 (chưa kiểm): 56% survivor RES3 là object CNX còn sống (A1 Q1) → nhóm "tự tin, không có gradient" có thể là phần lớn gap RES3; với Swin-L chỉ 32%.
