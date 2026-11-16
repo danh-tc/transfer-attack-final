@@ -6216,3 +6216,14 @@ Kiểm hồi quy: `--group RES3` tái lập đúng A1 (ΔAUC S1 +0.209, S2 +0.18
 Survey TNNLS: RTMDet-L chỉ 9.88 mAP drop (ensemble 4 surrogate) — khó gần GLIP/G-DINO. Checkpoint RTMDet-L-ConvNeXt-B / Swin-B (README mmdet) KHÔNG còn tải được (GitHub orange0-jp 404) → bỏ ma trận backbone; chỉ RTMDet-L chính thức (`rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth`, sha256 5a0be7c4a8123d1e…). Target PHÂN TÍCH — không dùng chọn/tune method.
 **Ô (PNG F1b có sẵn, 30 ảnh đầu dev100):** RD-CNX@50, ENS-WP B36, OSFD-PUB B50, RD-R50 B36. Eval relative AP drop, boot 200 seed 2026; tham chiếu cùng ảnh: dino_swin_l, yolox_l, r101 (tính lại từ dets F1b trên dev30).
 **Dự đoán / cách đọc (khóa):** "RTMDet KHÓ" ⇔ drop RTMDet-L ≤ drop DINO-Swin-L + 10 ở ≥ 2/3 ô {RD-CNX, ENS-WP, OSFD}; "RTMDet DỄ" ⇔ drop RTMDet-L ≥ drop YOLOX-L − 5 ở ≥ 2/3 ô; còn lại "TRUNG GIAN". KHÓ → độ khó gắn với detector/training hiện đại, không riêng Swin/DINO (GAP đổi hướng); DỄ → độ khó đặc thù DINO-Swin-L.
+
+## 2026-11-16 23:05 GMT+7 — M0 KẾT QUẢ (dev30): RTMDet-L DỄ → độ khó đặc thù DINO-Swin-L, không phải "detector CNN hiện đại"
+`scripts/m0_rtmdet.py`, `results/mechanism/m0_rtmdet_dev30.json`, log `results/m0/m0_dev30.log`, dets `results/m0/dets_rtmdet_l_n30.json`.
+| target (clean AP) | RD-CNX@50 | ENS-WP | OSFD-PUB | RD-R50 |
+|---|---|---|---|---|
+| rtmdet_l (53.7) | 78.2 | 82.8 | 68.6 | 70.3 |
+| dino_swin_l (59.7) | 62.3 | 55.6 | 21.6 | 32.5 |
+| yolox_l (49.8) | 74.1 | 81.2 | 70.6 | 76.0 |
+| r101 (40.5) | 83.8 | 91.4 | 93.6 | 92.7 |
+- **Verdict khóa: RTMDet DỄ (3/3).** RTMDet − YOLOX-L: +4.1 / +1.5 / −1.9 (CI chứa 0); RTMDet − DINO-Swin-L: +15.9 / +27.2 / +47.1 (CI > 0).
+- Đọc: "RTMDet khó" của survey (9.88 mAP drop, ensemble EBAD yếu) KHÔNG lặp lại với attack mạnh ở ε 5 — RTMDet hành xử như YOLOX-L. Clean AP cao (53.7) không tự làm khó. → DINO-Swin-L là ca đặc thù (clean AP 59.7; DINO + Swin-L/IN-22K), không phải đại diện cho "modern OD". Ghi chú: OSFD-PUB chỉ 21.6 trên DINO-Swin-L nhưng 68.6 trên RTMDet → khoảng cách lớn nhất ở OSFD; RD-CNX thu hẹp nhiều nhất.
