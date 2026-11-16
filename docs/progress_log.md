@@ -6211,3 +6211,8 @@ Kiểm hồi quy: `--group RES3` tái lập đúng A1 (ΔAUC S1 +0.209, S2 +0.18
 | Swin-L survivor | 384 | 0.22 [0.17, 0.28] | 0.68 | 0.10 |
 - Cận dưới 0.33 ≥ 0.25 → **pilot logit-margin cho RES3 được mở** (khóa riêng trước khi code/chạy). 41% survivor RES3 là object CNX white-box còn RẤT tự tin (vùng T0 gradient ~0); đối chứng chỉ 1%.
 - Swin-L: chỉ 22% → trần lợi ích ở ca khó nhỏ; Swin-L chủ yếu là "CNX đã giết, target chưa chết" (68%) — cơ chế khác, chưa có lever.
+
+## 2026-11-16 22:55 GMT+7 — KHÓA M0 (dev30, forward-only): RTMDet-L — detector CNN hiện đại có khó như DINO-Swin-L không — ghi + commit TRƯỚC khi eval
+Survey TNNLS: RTMDet-L chỉ 9.88 mAP drop (ensemble 4 surrogate) — khó gần GLIP/G-DINO. Checkpoint RTMDet-L-ConvNeXt-B / Swin-B (README mmdet) KHÔNG còn tải được (GitHub orange0-jp 404) → bỏ ma trận backbone; chỉ RTMDet-L chính thức (`rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth`, sha256 5a0be7c4a8123d1e…). Target PHÂN TÍCH — không dùng chọn/tune method.
+**Ô (PNG F1b có sẵn, 30 ảnh đầu dev100):** RD-CNX@50, ENS-WP B36, OSFD-PUB B50, RD-R50 B36. Eval relative AP drop, boot 200 seed 2026; tham chiếu cùng ảnh: dino_swin_l, yolox_l, r101 (tính lại từ dets F1b trên dev30).
+**Dự đoán / cách đọc (khóa):** "RTMDet KHÓ" ⇔ drop RTMDet-L ≤ drop DINO-Swin-L + 10 ở ≥ 2/3 ô {RD-CNX, ENS-WP, OSFD}; "RTMDet DỄ" ⇔ drop RTMDet-L ≥ drop YOLOX-L − 5 ở ≥ 2/3 ô; còn lại "TRUNG GIAN". KHÓ → độ khó gắn với detector/training hiện đại, không riêng Swin/DINO (GAP đổi hướng); DỄ → độ khó đặc thù DINO-Swin-L.
