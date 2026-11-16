@@ -6256,3 +6256,18 @@ Survey TNNLS: RTMDet-L chỉ 9.88 mAP drop (ensemble 4 surrogate) — khó gần
 **Ô:** full; keep_R (δ chỉ trong R, ngoài = sạch); rem_R (R trả về sạch); rnd_IN (δ trong IN đổi dấu ngẫu nhiên từng pixel, giữ |δ| — tách cấu trúc vs năng lượng). Target: dino_swin_l, swin_t, r101.
 **Chỉ số chính:** tỉ lệ object bị giết (object TP sạch, matching E77) — kill(ô); share = kill(ô)/kill(full). Báo kèm AP drop.
 **Đọc (mô tả, không cổng — 10 ảnh):** "HỒ SƠ GIỐNG" nếu |share_keep_R(mạnh) − share_keep_R(yếu)| ≤ 0.15 ở cả 3 vùng trên CÙNG target; "KHÁC" nếu ≥ 0.3 ở ≥ 1 vùng. Câu hỏi phụ: attack yếu trên target nó thắng (Swin-T/R101) có hồ sơ giống attack mạnh trên Swin-L không. Kết quả nào cũng chỉ là xu hướng; muốn claim phải xác nhận dev100.
+
+## 2026-11-17 00:35 GMT+7 — R1 KẾT QUẢ (10 ảnh, forward-only): HỒ SƠ VÙNG GIỐNG NHAU ở MỌI method × target — IN-dominated
+`scripts/r1_region.py`, `results/mechanism/r1_region_dev10.json`, log `results/r1/r1_dev10.log`. n_clean_tp: r101 95, swin_t 99, dino_swin_l 96.
+**share keep-only (phần kill giữ được khi chỉ δ ở vùng đó; = kill(keep_R)/kill(full)):**
+| method | target | IN | RING | FAR | rnd_IN |
+|---|---|---|---|---|---|
+| RD-CNX@50 | r101 / swin_t / dino_swin_l | .81 / .85 / .85 | .05 / .11 / .13 | .00 / .03 / .08 | .05 / .02 / .05 |
+| ENS-WP | r101 / swin_t / dino_swin_l | .87 / .83 / .82 | .06 / .11 / .10 | .03 / .06 / .10 | .04 / .02 / .08 |
+| OSFD-PUB | r101 / swin_t / dino_swin_l | .67 / .52 / .75 | .05 / .08 / .19 | .01 / .04 / .12 | .04 / .02 / .12 |
+| RD-R50 | r101 / swin_t / dino_swin_l | .84 / .88 / .85 | .08 / .14 / .15 | .01 / .04 / .15 | .04 / .04 / .11 |
+- **"HỒ SƠ GIỐNG" (khóa): ĐÚNG** — keep_IN share 0.52–0.88 chi phối ở MỌI (method × target); RING/FAR ≤ 0.19; không method/target nào lệch ≥ 0.3 ở bất kỳ vùng. Mạnh (RD-CNX, ENS-WP) và yếu (OSFD, RD-R50) CÙNG hồ sơ; dễ (R101) và khó (Swin-L) CÙNG hồ sơ.
+- **rnd_IN ≤ 0.12 ≪ keep_IN:** đảo dấu δ trong IN (giữ |δ|) gần như mất hết tác dụng → thiệt hại đến từ **CẤU TRÚC/hướng** của δ trong object, KHÔNG từ năng lượng nhiễu. (Củng cố E14b.)
+- rem_IN (bỏ δ trong IN): kill tụt về 4–17% ở mọi ô → IN là vùng CẦN; rem_RING/rem_FAR ≈ full → RING/FAR không cần.
+- **Kết luận:** "chỗ đặt δ" KHÔNG phân biệt mạnh/yếu hay dễ/khó — mọi transfer đều IN-dominated, cấu trúc-driven. Transfer gap KHÔNG nằm ở vùng pixel. Khác biệt mạnh/yếu nằm ở HƯỚNG δ trong vùng object (nhất quán E14b, E50). Trên Swin-L share RING/FAR nhỉnh hơn chút (0.08–0.19 vs ~0 ở r101) nhưng nhỏ và trùng IN (rem_RING/FAR ≈ full).
+- Đối chiếu E51 (WB Swin-L cũ: nền share 0.69): WB khai thác nền mạnh, transfer thì không — khoảng cách này giữ nguyên với RD-CNX. WB Swin-L oracle 10 ảnh = bước nối (chờ user).

@@ -1,0 +1,49 @@
+loading annotations into memory...
+Done (t=0.77s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+r101         RD-CNX@50  kill% full=  62 keepIN=  51 keepRING=   3 keepFAR=   0 remIN=   4 remRING=  53 remFAR=  57 rndIN=   3
+r101         ENS-WP     kill% full=  75 keepIN=  65 keepRING=   4 keepFAR=   2 remIN=  13 remRING=  68 remFAR=  72 rndIN=   3
+r101         OSFD-PUB   kill% full=  80 keepIN=  54 keepRING=   4 keepFAR=   1 remIN=  17 remRING=  68 remFAR=  64 rndIN=   3
+r101         RD-R50     kill% full=  80 keepIN=  67 keepRING=   6 keepFAR=   1 remIN=  12 remRING=  72 remFAR=  78 rndIN=   3
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+swin_t       RD-CNX@50  kill% full=  63 keepIN=  54 keepRING=   7 keepFAR=   2 remIN=  11 remRING=  55 remFAR=  63 rndIN=   1
+swin_t       ENS-WP     kill% full=  66 keepIN=  55 keepRING=   7 keepFAR=   4 remIN=  11 remRING=  58 remFAR=  66 rndIN=   1
+swin_t       OSFD-PUB   kill% full=  53 keepIN=  27 keepRING=   4 keepFAR=   2 remIN=   9 remRING=  40 remFAR=  43 rndIN=   1
+swin_t       RD-R50     kill% full=  51 keepIN=  44 keepRING=   7 keepFAR=   2 remIN=   6 remRING=  46 remFAR=  47 rndIN=   2
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+dino_swin_l  RD-CNX@50  kill% full=  41 keepIN=  34 keepRING=   5 keepFAR=   3 remIN=   7 remRING=  38 remFAR=  41 rndIN=   2
+dino_swin_l  ENS-WP     kill% full=  41 keepIN=  33 keepRING=   4 keepFAR=   4 remIN=   7 remRING=  34 remFAR=  35 rndIN=   3
+dino_swin_l  OSFD-PUB   kill% full=  17 keepIN=  12 keepRING=   3 keepFAR=   2 remIN=   4 remRING=  15 remFAR=  17 rndIN=   2
+dino_swin_l  RD-R50     kill% full=  28 keepIN=  24 keepRING=   4 keepFAR=   4 remIN=   6 remRING=  25 remFAR=  26 rndIN=   3
+
+=== share keep-only (phần thiệt hại giữ được khi chỉ δ ở vùng đó) ===
+
+RD-CNX@50:
+target           IN   RING    FAR  | rnd_IN
+r101           0.81   0.05   0.00  | 0.05
+swin_t         0.85   0.11   0.03  | 0.02
+dino_swin_l    0.85   0.13   0.08  | 0.05
+
+ENS-WP:
+target           IN   RING    FAR  | rnd_IN
+r101           0.87   0.06   0.03  | 0.04
+swin_t         0.83   0.11   0.06  | 0.02
+dino_swin_l    0.82   0.10   0.10  | 0.08
+
+OSFD-PUB:
+target           IN   RING    FAR  | rnd_IN
+r101           0.67   0.05   0.01  | 0.04
+swin_t         0.52   0.08   0.04  | 0.02
+dino_swin_l    0.75   0.19   0.12  | 0.12
+
+RD-R50:
+target           IN   RING    FAR  | rnd_IN
+r101           0.84   0.08   0.01  | 0.04
+swin_t         0.88   0.14   0.04  | 0.04
+dino_swin_l    0.85   0.15   0.15  | 0.11
+
+[r1] -> /workspace/transfer-attack-final/results/mechanism/r1_region_dev10.json
