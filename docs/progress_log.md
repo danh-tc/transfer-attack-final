@@ -6165,3 +6165,19 @@ Kiểm hồi quy: `--group RES3` tái lập đúng A1 (ΔAUC S1 +0.209, S2 +0.18
 **Eval:** dev30 (30 ảnh đầu dev100), relative AP drop, boot 200 seed 2026 paired; panel: dino_swin_l, swin_t, r101, fcos_r50, yolox_l, convnext_t, + white-box r50 / dino_r50.
 **PRIMARY (khóa):** Δ_be = drop_SwinL(DINO-R50) − drop_SwinL(MRCNN-R50). **H_be ủng hộ (xu hướng)** ⇔ Δ_be ≥ +15 VÀ cận dưới CI > 0 → khóa xác nhận dev100 + mở encoder-aware objective. **NO-GO** ⇔ cận trên CI < +5 → khép hướng back-end. Còn lại UNCLEAR (báo, không mở rộng). Báo kèm (không cổng): mốc tuyệt đối 57 (Swin-T cùng họ, E85, khác công thức), các target khác (giá phải trả trên CNN).
 **Caveat:** dino_r50 rời vai target trong H0 (thành white-box); task loss DINO khác loss Mask R-CNN về bản chất (Hungarian vs anchor) — đây chính là biến back-end, không tách được loss khỏi kiến trúc.
+
+## 2026-11-16 21:45 GMT+7 — H0 KẾT QUẢ (dev30, V100, boot 200): NO-GO → khép hướng "match the back-end"
+`scripts/h0_backend.py`, `results/mechanism/h0_backend_dev30.json`, log `results/h0/h0_dev30.log`; PNG `artifacts/runs/h0_backend/` (không commit, chưa upload HF).
+| target | DINO-R50 sur. | MRCNN-R50 sur. |
+|---|---|---|
+| dino_swin_l | 13.8 | 16.8 |
+| swin_t | 36.0 | 51.2 |
+| r101 | 47.3 | 81.7 |
+| fcos_r50 | 56.0 | 78.2 |
+| yolox_l | 30.1 | 39.6 |
+| convnext_t | 35.9 | 54.1 |
+| r50 | 68.6 | 99.9 (WB) |
+| dino_r50 | 100.0 (WB) | 92.5 |
+- **PRIMARY:** Δ_be = −3.0 [−7.7, −0.4] → cận trên < +5 → **NO-GO (khóa)**. White-box DINO-R50 = 100% → tối ưu không yếu; âm tính không do loss DINO khó tối ưu.
+- Mô tả: perturbation từ DINO-R50 transfer KÉM HƠN Mask R-CNN R50 trên MỌI target ngoài chính nó (kể cả CNN cùng backbone R50: r101 −34, fcos −22). Mask R-CNN R50 → DINO-R50 đạt 92.5 nhưng chiều ngược DINO-R50 → R50 chỉ 68.6 → bất đối xứng: perturbation tối ưu qua back-end DINO đặc thù surrogate hơn. Cùng back-end không mang lại transfer sang DINO-Swin-L.
+- Hệ quả: không code encoder-attention loss (H1) theo thứ tự đã thống nhất. Ghi chú: chỉ kiểm task loss + MI thuần; không bác "attention objective transfer" một cách trực tiếp, nhưng tiền đề chung (back-end khớp ⇒ transfer) không được ủng hộ.

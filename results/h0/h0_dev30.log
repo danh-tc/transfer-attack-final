@@ -1,0 +1,192 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+loading annotations into memory...
+Done (t=0.53s)
+creating index...
+index created!
+[h0 DINO-R50] 1/30 13.2s/ảnh
+[h0 DINO-R50] 2/30 13.2s/ảnh
+[h0 DINO-R50] 3/30 13.1s/ảnh
+[h0 DINO-R50] 4/30 13.1s/ảnh
+[h0 DINO-R50] 5/30 13.4s/ảnh
+[h0 DINO-R50] 6/30 13.4s/ảnh
+[h0 DINO-R50] 7/30 13.3s/ảnh
+[h0 DINO-R50] 8/30 13.4s/ảnh
+[h0 DINO-R50] 9/30 13.2s/ảnh
+[h0 DINO-R50] 10/30 13.3s/ảnh
+[h0 DINO-R50] 11/30 13.2s/ảnh
+[h0 DINO-R50] 12/30 13.2s/ảnh
+[h0 DINO-R50] 13/30 13.2s/ảnh
+[h0 DINO-R50] 14/30 13.3s/ảnh
+[h0 DINO-R50] 15/30 13.3s/ảnh
+[h0 DINO-R50] 16/30 13.4s/ảnh
+[h0 DINO-R50] 17/30 13.4s/ảnh
+[h0 DINO-R50] 18/30 13.4s/ảnh
+[h0 DINO-R50] 19/30 13.5s/ảnh
+[h0 DINO-R50] 20/30 13.5s/ảnh
+[h0 DINO-R50] 21/30 13.5s/ảnh
+[h0 DINO-R50] 22/30 13.6s/ảnh
+[h0 DINO-R50] 23/30 13.6s/ảnh
+[h0 DINO-R50] 24/30 13.6s/ảnh
+[h0 DINO-R50] 25/30 13.6s/ảnh
+[h0 DINO-R50] 26/30 13.6s/ảnh
+[h0 DINO-R50] 27/30 13.7s/ảnh
+[h0 DINO-R50] 28/30 13.7s/ảnh
+[h0 DINO-R50] 29/30 13.7s/ảnh
+[h0 DINO-R50] 30/30 13.7s/ảnh
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.89s)
+creating index...
+index created!
+[h0 MRCNN-R50] 1/30 5.6s/ảnh
+[h0 MRCNN-R50] 2/30 5.6s/ảnh
+[h0 MRCNN-R50] 3/30 5.5s/ảnh
+[h0 MRCNN-R50] 4/30 5.4s/ảnh
+[h0 MRCNN-R50] 5/30 5.6s/ảnh
+[h0 MRCNN-R50] 6/30 5.8s/ảnh
+[h0 MRCNN-R50] 7/30 5.8s/ảnh
+[h0 MRCNN-R50] 8/30 6.0s/ảnh
+[h0 MRCNN-R50] 9/30 5.9s/ảnh
+[h0 MRCNN-R50] 10/30 5.9s/ảnh
+[h0 MRCNN-R50] 11/30 6.0s/ảnh
+[h0 MRCNN-R50] 12/30 6.0s/ảnh
+[h0 MRCNN-R50] 13/30 5.9s/ảnh
+[h0 MRCNN-R50] 14/30 5.9s/ảnh
+[h0 MRCNN-R50] 15/30 5.9s/ảnh
+[h0 MRCNN-R50] 16/30 5.9s/ảnh
+[h0 MRCNN-R50] 17/30 5.9s/ảnh
+[h0 MRCNN-R50] 18/30 5.9s/ảnh
+[h0 MRCNN-R50] 19/30 5.9s/ảnh
+[h0 MRCNN-R50] 20/30 5.8s/ảnh
+[h0 MRCNN-R50] 21/30 5.8s/ảnh
+[h0 MRCNN-R50] 22/30 5.8s/ảnh
+[h0 MRCNN-R50] 23/30 5.8s/ảnh
+[h0 MRCNN-R50] 24/30 5.8s/ảnh
+[h0 MRCNN-R50] 25/30 5.8s/ảnh
+[h0 MRCNN-R50] 26/30 5.8s/ảnh
+[h0 MRCNN-R50] 27/30 5.8s/ảnh
+[h0 MRCNN-R50] 28/30 5.8s/ảnh
+[h0 MRCNN-R50] 29/30 5.8s/ảnh
+[h0 MRCNN-R50] 30/30 5.8s/ảnh
+loading annotations into memory...
+Done (t=0.75s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+dino_swin_l  DINO-R50 13.8  MRCNN-R50 16.8
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+swin_t       DINO-R50 36.0  MRCNN-R50 51.2
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+r101         DINO-R50 47.3  MRCNN-R50 81.7
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+fcos_r50     DINO-R50 56.0  MRCNN-R50 78.2
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+yolox_l      DINO-R50 30.1  MRCNN-R50 39.6
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+convnext_t   DINO-R50 35.9  MRCNN-R50 54.1
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+r50          DINO-R50 68.6  MRCNN-R50 99.9
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.29s)
+creating index...
+index created!
+dino_r50     DINO-R50 100.0  MRCNN-R50 92.5
+
+Δ_be (SwinL, DINO-R50 − MRCNN-R50) = -3.0 [-7.7, -0.4]
+H0 VERDICT (khóa): NO-GO -> khép hướng back-end
+[h0] -> /workspace/transfer-attack-final/results/mechanism/h0_backend_dev30.json
