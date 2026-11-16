@@ -1,0 +1,35 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.73s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.97s)
+creating index...
+index created!
+[wb] 1/10
+[wb] 2/10
+[wb] 3/10
+[wb] 4/10
+[wb] 5/10
+[wb] 6/10
+[wb] 7/10
+[wb] 8/10
+[wb] 9/10
+[wb] 10/10
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+
+WB region (n_tp 96) kill%: full=79 keepIN=73 keepRING=9 keepFAR=8 remIN=17 remRING=77 remFAR=74 rndIN=3
+WB share keep: IN 0.92  RING 0.12  FAR 0.11
+
+Đồng thuận DẤU trong IN, WB vs surrogate:
+   WB vs RD-CNX@50  0.507
+   WB vs ENS-WP     0.506
+   WB vs OSFD-PUB   0.505
+   WB vs RD-R50     0.505
+Δ(RD-CNX − RD-R50) +0.001 | Δ(ENS − OSFD) +0.001 -> BÁC: dấu WB không trùng surrogate nào
+[r1-wb] -> /workspace/transfer-attack-final/results/mechanism/r1_wb_dev10.json
