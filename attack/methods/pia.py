@@ -504,7 +504,7 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
                     bg_weight: float = 0.0, bg_only: bool = False, feat_stages=None, strat: bool = False,
                     season_sigma=None, cls_auto=None, ilpd_gamma=None, fia_views: int = 0, roi_pos: bool = False,
                     roi_cap=None, fab_k: int = 0, fab_weight: float = 0.0, obj_weight: float = 0.0, dual=None,
-                    margin=None, margin_scale: float = 1.0, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
+                    margin=None, margin_scale: float = 1.0, logodds_scale=None, stage_pool=None, patch_drop=None, weight_rho=None, size_w=None, roi_size_w=None, tex_blur=None,
                     ln_feat: bool = False, bn_inst=None, xbg=None, weight_eta=None, stage_w=None, pfa=None,
                     init_noise=None, otsv=None, weight_scope: str = "backbone", weight_mode: str = "def",
                     weight_def=None, weight_ens=None, cls_sched=None, spike=None, weight_spike=None, fpa=None,
@@ -703,6 +703,10 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         assert not roi_pos and cls_weight > 0 and cls_mode == "c2" and dual is None
         from attack.methods.repair import roi_margin
         roi_ctx = lambda: roi_margin(model, margin, margin_scale)
+    if logodds_scale is not None:  # P1 (progress_log 2026-11-16 23:20): loss_cls RoI -> log-odds không bão hòa
+        assert roi_ctx is None and cls_weight > 0 and cls_mode in ("c2", "roi") and dual is None
+        from attack.methods.repair import roi_logodds
+        roi_ctx = lambda: roi_logodds(model, logodds_scale)
     if roi_size_w is not None:  # C2-OCT-1V-WP2-SZC (progress_log 2026-10-22): loss_cls RoI nhân w ở RoI dương của GT lớn
         assert roi_ctx is None and cls_weight > 0 and cls_mode == "c2" and dual is None
         from attack.methods.repair import roi_size_weight

@@ -205,6 +205,30 @@ def roi_jitter(model, r: float, gen):
 
 
 @contextlib.contextmanager
+def roi_logodds(model, scale: float):
+    """P1 (progress_log 2026-11-16 23:20): thay CE của RoI head bằng log-odds KHÔNG bão hòa trên CÙNG tập RoI + trọng số
+    như CE: L = scale · Σ_i w_i [LSE_{c≠y_i}(z_i) − z_{i,y_i}] / avg_factor = scale · mean log((1 − p_y)/p_y).
+    ∂L/∂z_y = −1 ở mọi p_y (CE: −(1 − p_y) → 0 khi object tự tin); logit khác đẩy theo softmax trên c ≠ y (kể cả nền).
+    loss_rpn_cls KHÔNG đổi. Thay tạm forward của bbox_head.loss_cls."""
+    head = model.roi_head.bbox_head
+    crit = head.loss_cls
+
+    def fwd(cls_score, label, weight=None, avg_factor=None, **kw):
+        z = cls_score.float()
+        zt = z.gather(1, label[:, None])[:, 0]
+        other = z.scatter(1, label[:, None], float("-inf"))
+        lo = torch.logsumexp(other, 1) - zt
+        w = weight.float() if weight is not None else torch.ones_like(lo)
+        n = float(avg_factor) if avg_factor is not None else max(float(w.sum()), 1.0)
+        return scale * (w * lo).sum() / max(n, 1.0)
+    crit.forward = fwd
+    try:
+        yield
+    finally:
+        del crit.forward
+
+
+@contextlib.contextmanager
 def roi_margin(model, mode: str, scale: float):
     """C2-OCT-1V-MRG / -MRGF (progress_log 2026-10-20, kiểu CW): thay CE của RoI head bằng margin KHÔNG chặn trên RoI DƯƠNG:
     L = scale · mean_{RoI dương} (max_{c ≠ đúng} z_c − z_đúng); mode "all": c chạy mọi logit khác lớp đúng (kể cả nền),
