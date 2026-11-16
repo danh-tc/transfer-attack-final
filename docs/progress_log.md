@@ -6249,3 +6249,10 @@ Survey TNNLS: RTMDet-L chỉ 9.88 mAP drop (ensemble 4 surrogate) — khó gần
 - **Kiểm cơ chế thất bại:** object CNX white-box còn sống ≥ 0.9: 27 → 25 (gần như không đổi) → log-odds KHÔNG giải được nhóm tự tin; T0/T1 không chuyển thành lever.
 - Diễn giải hậu kỳ (chưa kiểm): L_lo trung bình trên MỌI RoI lấy mẫu (~75% RoI nền, nền tự tin): CE gần như bỏ qua RoI nền tự tin, log-odds cho chúng gradient hằng → ngân sách sign bị kéo sang "tạo box giả" thay vì xóa object. Cùng hướng với bài học MRG 10-20 (đổi dạng loss cls trên CE đều hại).
 - Kết luận nhánh: đóng hướng "đổi dạng loss cls" (MRG, MRGF, LO đều NO-GO). T0/T1 giữ làm finding mô tả.
+
+## 2026-11-17 00:05 GMT+7 — KHÓA R1 (quick, 10 ảnh, forward-only): vùng pixel nào quan trọng — attack MẠNH vs YẾU có cùng hồ sơ vùng không — ghi + commit TRƯỚC khi chạy
+**Nguồn δ (PNG F1b có sẵn, 10 ảnh đầu dev100):** MẠNH trên DINO-Swin-L: RD-CNX@50, ENS-WP; YẾU: OSFD-PUB, RD-R50. δ = PNG adv − ảnh sạch (uint8).
+**Vùng (GT COCO không-crowd, khung ảnh gốc):** IN = hợp box; RING = hợp box nới 25% mỗi cạnh − IN; FAR = phần còn lại.
+**Ô:** full; keep_R (δ chỉ trong R, ngoài = sạch); rem_R (R trả về sạch); rnd_IN (δ trong IN đổi dấu ngẫu nhiên từng pixel, giữ |δ| — tách cấu trúc vs năng lượng). Target: dino_swin_l, swin_t, r101.
+**Chỉ số chính:** tỉ lệ object bị giết (object TP sạch, matching E77) — kill(ô); share = kill(ô)/kill(full). Báo kèm AP drop.
+**Đọc (mô tả, không cổng — 10 ảnh):** "HỒ SƠ GIỐNG" nếu |share_keep_R(mạnh) − share_keep_R(yếu)| ≤ 0.15 ở cả 3 vùng trên CÙNG target; "KHÁC" nếu ≥ 0.3 ở ≥ 1 vùng. Câu hỏi phụ: attack yếu trên target nó thắng (Swin-T/R101) có hồ sơ giống attack mạnh trên Swin-L không. Kết quả nào cũng chỉ là xu hướng; muốn claim phải xác nhận dev100.
