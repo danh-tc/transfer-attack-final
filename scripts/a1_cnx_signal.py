@@ -53,12 +53,19 @@ def logit_fit(X, y, lam=LAM, it=50):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--group", default="RES3", choices=["RES3", "SWINL"],
+                    help="SWINL: A1-SwinL (progress_log 2026-11-16), y hệt định nghĩa/cổng, target = dino_swin_l")
+    args = ap.parse_args()
+    TG = GROUPS["RES3"] if args.group == "RES3" else ["dino_swin_l"]
+    out = OUT if args.group == "RES3" else OUT.replace("_dev100", "_swinl_dev100")
     coco = COCO(ANN)
     ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev100.csv"))
     n = len(ids)
     sup = sorted({c["supercategory"] for c in coco.loadCats(coco.getCatIds())})
     supof = {c["id"]: sup.index(c["supercategory"]) for c in coco.loadCats(coco.getCatIds())}
-    D = {m: json.load(gzip.open(os.path.join(ART, RUN, "dets", m, "all.json.gz"), "rt")) for m in [*GROUPS["RES3"], "convnext_t"]}
+    D = {m: json.load(gzip.open(os.path.join(ART, RUN, "dets", m, "all.json.gz"), "rt")) for m in [*TG, "convnext_t"]}
     G = {m: {c: group(D[m][c]) for c in ("clean", "RD-CNX@50", "RD-CNX@100", "RD-CNX@50s2")} for m in D}
     anns = [(k, a) for k, i in enumerate(ids) for a in coco.loadAnns(coco.getAnnIds(imgIds=i, iscrowd=False))]
 
@@ -70,7 +77,7 @@ def main():
     for k, a in anns:
         cnx_risk, cnx_clean = st("convnext_t", "clean", k, a)
         cs = {c: st("convnext_t", c, k, a) for c in ("RD-CNX@50", "RD-CNX@50s2")}
-        for j, m in enumerate(GROUPS["RES3"]):
+        for j, m in enumerate(TG):
             risk, sc = st(m, "clean", k, a)
             if not risk:
                 continue
@@ -101,7 +108,7 @@ def main():
         return np.log(a_ * d_ / (b_ * c_))
     A50 = np.array([r["a50"] for r in rows]); C50 = np.array([r["cnx_a50"] for r in rows]); CR = np.array([r["cnx_risk"] for r in rows])
     A50s2 = np.array([r["a50s2"] for r in rows])
-    for m in [*GROUPS["RES3"], "RES3"]:
+    for m in [*TG, "RES3"]:
         sel = np.array([(r["model"] == m or m == "RES3") for r in rows]) & CR
         by = [np.where((img_all == k) & sel)[0] for k in range(n)]
         q = {"n_obj": int(sel.sum()), "P_cnx_alive_given_alive": float(C50[sel & A50].mean()),
@@ -144,8 +151,8 @@ def main():
     go = q["dAUC_S1"]["ci95"][0] > 0 and q["dAUC_S2"]["ci95"][0] > 0
     res["verdict"] = "GO (tín hiệu CNX bổ sung, ổn định 2 seed)" if go else "NO-GO (không mở object-aware method)"
     print(f"A1 VERDICT: {res['verdict']}")
-    json.dump(res, open(OUT, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-    print(f"[a1] -> {OUT}")
+    json.dump(res, open(out, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    print(f"[a1] -> {out}")
 
 
 if __name__ == "__main__":
