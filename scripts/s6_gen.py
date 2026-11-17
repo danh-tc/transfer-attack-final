@@ -27,9 +27,16 @@ GCELLS = ATT + list(WB3)
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
-    ap = argparse.ArgumentParser(); ap.add_argument("--part", choices=["att", "wb", "grad"], required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("--part", choices=["att", "wb", "wb30", "grad", "grad30"], required=True)
     part = ap.parse_args().part
     ids = load_image_ids(os.path.join(REPO_ROOT, "data/image_lists/dev100.csv"))
+    if part == "wb30":   # bổ sung 2026-11-17 (user): chỉ dev30, 5 seed WB
+        s1.WB = WB5; s1.gen_wb(ids[:30], {c: os.path.join(ADV, c) for c in WB5})
+        return
+    if part == "grad30":  # chỉ dev30: g_t cho 6 attack + 5 WB
+        global GCELLS
+        ids = ids[:30]; GCELLS = ATT + list(WB5)
+        part = "grad"
     if part == "att":
         for c in ATT:
             s1.gen_attack(ids, c, os.path.join(ADV, c))
