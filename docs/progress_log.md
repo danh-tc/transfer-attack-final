@@ -6684,3 +6684,8 @@ Lý do: pixel/dấu cạn đòn bẩy (oracle S6) → đòn bẩy ở phía surr
 2. **Vì sao stuck DINO-Swin-L:** A_MASK của δ mạnh nhất (CNX-ALL) theo thang. Nếu giảm đơn điệu dino_r50 > swin_t > dino_swin_l VÀ khớp thứ tự kill → **transfer stuck vì δ surrogate khớp hướng nhạy của dino_swin_l kém hẳn** (không phải dino_swin_l "bền" — WB vẫn phá 90%, S1). Phân rã: phần sụt nằm ở nhánh DET hay FEAT.
 3. **CNX vs R50:** A(CNX-ALL) − A(R50-ALL) theo target. Nếu ưu thế CNX LỚN NHẤT ở dino_swin_l → CNX giúp đúng chỗ khó; nếu đều → ưu thế không đặc thù Swin-L.
 Báo A_MASK + kill song song (kiểm A có khớp hành vi theo thang không). 30 ảnh, xu hướng.
+
+## 2026-11-17 14:11 GMT+7 — KHÓA S9 (user approve, CPU, song song S8): bản đồ dấu có QUY LUẬT CHUNG ẩn không — đồng thuận 5 WB + suy từ nội dung ảnh — ghi + commit TRƯỚC khi chạy
+Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thuận yếu. `scripts/s9_signlaw.py`, trong mask, pixel-kênh, δ 5 WB + RD-ALL cache.
+[1] đồng thuận: |mean_5(sign)|, tỉ lệ ≥4/5 cùng dấu (ngẫu nhiên 5-chiều P(≥4)=0.375). [2] quy luật nội dung từ ảnh sạch: push về trung bình lân cận 5×5 / Laplacian / push về trung bình kênh toàn ảnh — khớp với dấu đồng thuận (pixel ≥4/5). [3] mượt không gian: cặp pixel-kênh kề ngang cùng dấu (ngẫu nhiên 0.5).
+**Đọc (khóa):** quy luật nội dung khớp ≥0.65 → CÓ quy luật suy từ ảnh (đòn bẩy không cần surrogate); 0.55–0.65 yếu; <0.55 không. RD-ALL vs quy luật/đồng thuận: transfer đã theo chưa. Mượt ≥0.6 → dấu có cấu trúc tần thấp. 30 ảnh.
