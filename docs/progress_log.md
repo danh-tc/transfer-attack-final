@@ -6493,3 +6493,22 @@ Câu hỏi (user): chưa cô lập vai trò FEATURE vs DETECTOR ở mức bản 
 2. Mỗi method: agree(ALL,FEAT) − agree(ALL,DET) ≥ +0.05 → dấu cuối do FEAT; ≤ −0.05 → do DET; còn lại cân. agree(FEAT,DET) ~0.5 → 2 thành phần đẩy hướng độc lập.
 3. Khớp-WB nửa drop cao − nửa thấp ≥ +0.03 VÀ Spearman(ô,ảnh) > 0 → dấu phân biệt thành công; ngược lại không.
 Smoke 1 ảnh (`--tag smoke`) chỉ kiểm pipeline, KHÔNG đọc số. 10 ảnh = xu hướng, không phải bằng chứng paper.
+
+## 2026-11-17 10:05 GMT+7 — S1 KẾT QUẢ (10 ảnh, V100): WB Swin-L NHIỀU NGHIỆM dấu → "khớp dấu WB" là thước đo SAI; RAND ±ε = 0 drop; dấu cuối gần FEAT nhưng drop Swin-L do DET
+`results/mechanism/s1_signmap_dev10.json`, log `results/s1/s1_dev10.log`.
+| ô | Swin-L | Swin-T | R101 | FCOS | DINO-R50 | khớp WB-0 (IN) |
+|---|---|---|---|---|---|---|
+| RD-ALL | 52.4 | 82.8 | 70.7 | 76.1 | 75.8 | 0.507 |
+| RD-FEAT | 28.5 | 74.4 | 52.3 | 64.0 | 66.6 | 0.505 |
+| RD-DET | 44.1 | 82.4 | 68.8 | 73.7 | 77.1 | 0.505 |
+| OSFD-ALL | 40.4 | 69.1 | 57.7 | 63.1 | 67.4 | 0.507 |
+| OSFD-FEAT | 34.2 | 66.6 | 61.4 | 67.3 | 65.1 | 0.506 |
+| OSFD-DET | 39.3 | 53.4 | 36.1 | 54.9 | 56.1 | 0.505 |
+| WB-0 / r1 / r2 | 92.9 / 90.3 / 89.8 | 23–32 | −4–4 | 12–15 | 10–22 | — |
+| RAND ±ε | −0.1 | 3.8 | −0.8 | 10.1 | −2.3 | 0.502 |
+1. **Quy tắc 1 → NHIỀU NGHIỆM:** 3 WB khớp dấu đôi một chỉ 0.585 (IN) / ~0.55 (OUT), nhưng CẢ BA drop 90–93%. Chỉ 34.8% pixel-kênh IN cùng dấu ở cả 3 WB (ngẫu nhiên 25%). → bản đồ dấu phá Swin-L KHÔNG duy nhất; "khớp dấu với một δ_WB" (R1-WB, G3, G4) là thước đo SAI → RÚT diễn giải "rào dấu ~0.5" của R1-WB/G4. G3 chỉ còn nghĩa: phá dấu của MỘT nghiệm WB làm nghiệm đó yếu đi.
+2. **RAND ±ε mọi pixel = ~0 drop Swin-L** → ĐÍNH CHÍNH G3: sàn a=0.5 ~45% KHÔNG phải "±ε trong object bất kể dấu"; nhiều khả năng đến từ phần OUT giữ dấu WB (G3 chỉ đảo trong IN) và/hoặc cấu trúc còn lại — chưa kiểm.
+3. **Quy tắc 2 → dấu cuối do FEAT ở cả 2 method:** ALL~FEAT 0.712 vs ALL~DET 0.619 (RD); 0.699 vs 0.648 (OSFD). FEAT~DET 0.53–0.54 → 2 thành phần đẩy hướng gần độc lập. NHƯNG hành vi ngược: trên Swin-L DET > FEAT (RD 44.1 vs 28.5; OSFD 39.3 vs 34.2), ALL tốt nhất. → đếm khớp dấu 1-1 không phản ánh pixel nào QUAN TRỌNG (ủng hộ thước đo có trọng số |g_t|, S2).
+4. **Quy tắc 3 → dấu (khớp WB) KHÔNG phân biệt drop:** nửa drop cao 0.507 vs thấp 0.508; Spearman (ô,ảnh) −0.02. Spearman theo ô +0.71 vô nghĩa (chênh khớp 0.505–0.507).
+- Phụ: WB Swin-L gần như KHÔNG transfer ngược (R101 ≈ 0, DINO-R50 10–22) → δ_WB rất đặc thù target. Các ô surrogate khớp nhau 0.53–0.71 (cùng surrogate CNX) nhưng đều ~0.505 với mọi WB.
+- 10 ảnh, không CI — xu hướng. Việc tiếp đề xuất: S2 thước đo khớp dấu CÓ TRỌNG SỐ độ nhạy target A = ⟨sign δ, g_t⟩/‖g_t‖₁ (IN/OUT, độ tập trung |g_t|, dọc x+tδ), dùng lại PNG S1 — chẩn đoán (cần gradient target).
