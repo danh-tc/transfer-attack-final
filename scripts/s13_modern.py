@@ -28,6 +28,9 @@ TARGETS = {
     "deformable_detr": (f"{MIM}/deformable_detr/deformable-detr_r50_16xb2-50e_coco.py", f"{CKPT}/deformable_detr.pth"),
     "ddq_detr": (f"{MIM}/ddq/ddq-detr-4scale_r50_8xb2-12e_coco.py", f"{CKPT}/ddq.pth"),
     "mask2former": (f"{MIM}/mask2former/mask2former_r50_8xb2-lsj-50e_coco.py", f"{CKPT}/mask2former.pth"),
+    # Swin-backbone modern (thêm 2026-11-17): contrast cùng head, đổi backbone R50->Swin (điểm Swin-backbone thứ 2 ngoài DINO-Swin-L)
+    "mask2former_swin_s": (f"{MIM}/mask2former/mask2former_swin-s-p4-w7-224_8xb2-lsj-50e_coco.py", f"{CKPT}/mask2former_swin_s.pth"),
+    "ddq_swinl": (f"{MIM}/ddq/ddq-detr-4scale_swinl_8xb2-30e_coco.py", f"{CKPT}/ddq_swinl.pth"),
 }
 DELTAS = ["RD-ALL", "OSFD-FEAT", "R50-ALL"]   # RD-CNX chinh, OSFD baseline, RD tren CNN thuong
 
@@ -39,8 +42,11 @@ def main():
     coco = COCO(ANN); cat = sorted(coco.getCatIds())
     clean = {i: mmcv.imread(os.path.join(IMGDIR, coco.loadImgs(i)[0]["file_name"])) for i in ids}
     gts = {i: coco.loadAnns(coco.getAnnIds(imgIds=i, iscrowd=False)) for i in ids}
-    res = {"n_img": len(ids), "clean_ap": {}, "drop": {}, "kill": {}}
+    OUTJ = os.path.join(REPO_ROOT, "results/mechanism/s13_modern_dev30.json")
+    res = json.load(open(OUTJ)) if os.path.exists(OUTJ) else {"n_img": len(ids), "clean_ap": {}, "drop": {}, "kill": {}}
     for tname, (cfg, ck) in TARGETS.items():
+        if tname in res.get("drop", {}):
+            print(f"[s13] {tname} da co trong json, bo qua", flush=True); continue
         if not os.path.exists(ck):
             print(f"[s13] THIEU checkpoint {ck}, bo qua {tname}", flush=True); continue
         model = init_detector(cfg, ck, device="cuda:0")
@@ -72,7 +78,7 @@ def main():
     print(f"{'target':16}{'cleanAP':>8}" + "".join(f"{d:>16}" for d in DELTAS))
     for t in res["drop"]:
         print(f"{t:16}{res['clean_ap'][t]:8.1f}" + "".join(f"{res['drop'][t][d]:8.0f}({res['kill'][t][d]:3.0f})" for d in DELTAS))
-    json.dump(res, open(os.path.join(REPO_ROOT, "results/mechanism/s13_modern_dev30.json"), "w"), indent=1, ensure_ascii=False)
+    json.dump(res, open(OUTJ, "w"), indent=1, ensure_ascii=False)
     print("[s13] -> results/mechanism/s13_modern_dev30.json")
 
 
