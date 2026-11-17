@@ -6520,3 +6520,20 @@ g_t = ∇ₓ L_cls DINO-Swin-L (như WB S1) tại x + t·δ, t ∈ {0, 0.5, 1}. 
 1. Spearman theo ô ≥ 0.6 VÀ theo (ô, ảnh) ≥ 0.3 → A PHÂN BIỆT drop (thước đo có trọng số dùng được); cả hai ≤ 0.1 → không; còn lại không rõ.
 2. A(DET) > A(FEAT) ở CẢ RD và OSFD → A giải được nghịch lý S1.
 3. top10% |g_t| giữ ≥ 50% ‖g‖₁ → độ nhạy TẬP TRUNG (giải thích được vì sao khớp 1-1 ~0.5 vẫn transfer). Báo t=0/0.5/1 riêng, IN/OUT, top10/rest — mô tả.
+
+## 2026-11-17 10:35 GMT+7 — S2 KẾT QUẢ (10 ảnh, V100): A có trọng số XẾP ĐÚNG Ô (ρ 0.89) + GIẢI nghịch lý S1, nhưng KHÔNG theo ảnh (ρ −0.03) → quy tắc 1 KHÔNG RÕ; |g_t| tập trung (top10% = 67%), 60% nằm NGOÀI box
+`results/mechanism/s2_weighted_sign_dev10.json`, log `results/s1/s2_dev10.log`.
+| ô | drop Swin-L | A t=0 | A t=0.5 | A t=1 | A_path | A_IN | A_OUT |
+|---|---|---|---|---|---|---|---|
+| RD-ALL | 52.4 | −0.001 | 0.016 | 0.024 | 0.0132 | 0.027 | 0.010 |
+| RD-DET | 44.1 | 0.003 | 0.016 | 0.020 | 0.0128 | 0.030 | 0.007 |
+| OSFD-DET | 39.3 | −0.001 | 0.011 | 0.027 | 0.0122 | 0.030 | 0.005 |
+| OSFD-ALL | 40.4 | −0.001 | 0.012 | 0.019 | 0.0101 | 0.030 | 0.003 |
+| RD-FEAT | 28.5 | −0.004 | 0.019 | 0.011 | 0.0086 | 0.012 | 0.010 |
+| OSFD-FEAT | 34.2 | 0.000 | 0.003 | 0.014 | 0.0058 | 0.027 | −0.004 |
+| WB-0 / r1 / r2 | 90–93 | 0.51 / 0.05 / 0.05 | 0.12–0.16 | 0.01–0.03 | 0.22 / 0.07 / 0.07 | 0.10–0.25 | 0.06–0.22 |
+| RAND | −0.1 | −0.001 | 0.001 | −0.002 | −0.0008 | 0.007 | −0.004 |
+1. **Quy tắc 1 → KHÔNG RÕ:** Spearman theo ô (6) **+0.89** (≥ 0.6) nhưng theo (ô, ảnh) (60) **−0.03** (< 0.3). A_path xếp gần đúng thứ tự drop giữa các attack; trong cùng ô, ảnh A cao không drop cao (AP từng ảnh nhiễu, A khó so giữa ảnh). n=6 ô → bằng chứng yếu. Caveat: A_path ≈ tăng loss cls target bậc 1 chuẩn hóa → tương quan theo ô một phần là "loss tăng thì mAP giảm".
+2. **Quy tắc 2 → GIẢI nghịch lý S1:** A(DET) > A(FEAT) cả RD (0.0128 vs 0.0086) lẫn OSFD (0.0122 vs 0.0058), khớp drop. Khớp 1-1 nói dấu gần FEAT; có trọng số nói DET khớp đúng pixel target nhạy hơn. Phần hơn chủ yếu ở IN (A_IN DET 0.030 vs RD-FEAT 0.012).
+3. **Quy tắc 3 → TẬP TRUNG:** top10% pixel-kênh giữ 67% ‖g_t‖₁ (ảnh sạch). **mass_IN 0.40 vs diện tích IN 0.24** → mật độ nhạy trong box 1.7× ngoài, NHƯNG 60% khối độ nhạy nằm NGOÀI box.
+- **Mô tả:** (a) Ở ảnh sạch (t=0) MỌI surrogate A ≈ 0; khớp chỉ NỔI LÊN dọc đường (t 0.5–1) → hướng δ không có sẵn trong gradient sạch của target, target trở nên nhạy theo δ sau khi bị nhiễu (phi tuyến) — nhất quán G1. (b) Khoảng cách tới WB: surrogate A_path ~0.01 vs WB-r ~0.07 (≈ 6×); A_IN surrogate ~0.03 vs WB-r ~0.10 (3×); A_OUT surrogate ≤ 0.01 vs WB-r ~0.06 → thiếu hụt lớn nhất ở NGOÀI box. Mâu thuẫn bề ngoài với R1 (WB keep_FAR chỉ 8% kill) → cần R1-bis.
