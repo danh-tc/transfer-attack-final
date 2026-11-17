@@ -6537,3 +6537,16 @@ g_t = ∇ₓ L_cls DINO-Swin-L (như WB S1) tại x + t·δ, t ∈ {0, 0.5, 1}. 
 2. **Quy tắc 2 → GIẢI nghịch lý S1:** A(DET) > A(FEAT) cả RD (0.0128 vs 0.0086) lẫn OSFD (0.0122 vs 0.0058), khớp drop. Khớp 1-1 nói dấu gần FEAT; có trọng số nói DET khớp đúng pixel target nhạy hơn. Phần hơn chủ yếu ở IN (A_IN DET 0.030 vs RD-FEAT 0.012).
 3. **Quy tắc 3 → TẬP TRUNG:** top10% pixel-kênh giữ 67% ‖g_t‖₁ (ảnh sạch). **mass_IN 0.40 vs diện tích IN 0.24** → mật độ nhạy trong box 1.7× ngoài, NHƯNG 60% khối độ nhạy nằm NGOÀI box.
 - **Mô tả:** (a) Ở ảnh sạch (t=0) MỌI surrogate A ≈ 0; khớp chỉ NỔI LÊN dọc đường (t 0.5–1) → hướng δ không có sẵn trong gradient sạch của target, target trở nên nhạy theo δ sau khi bị nhiễu (phi tuyến) — nhất quán G1. (b) Khoảng cách tới WB: surrogate A_path ~0.01 vs WB-r ~0.07 (≈ 6×); A_IN surrogate ~0.03 vs WB-r ~0.10 (3×); A_OUT surrogate ≤ 0.01 vs WB-r ~0.06 → thiếu hụt lớn nhất ở NGOÀI box. Mâu thuẫn bề ngoài với R1 (WB keep_FAR chỉ 8% kill) → cần R1-bis.
+
+## 2026-11-17 10:55 GMT+7 — KHÓA S3 (10 ảnh, PNG S1 + WB-r3/r4): VÙNG PIXEL ĐỊNH NGHĨA LẠI theo MASK instance; kết luận phải VỮNG QUA NHIỀU BẢN ĐỒ DẤU — ghi + commit TRƯỚC khi chạy
+Lý do (user): S1 phát hiện WB nhiều nghiệm dấu; S2 thấy 60% |g_t| ngoài box ⇄ R1 "IN-dominated"; box lẫn nền (10 ảnh: nền chiếm 17–63% box, TB ~38%). Nguyên tắc: KHÔNG so dấu giữa 2 δ khác nhau; chỉ thao tác trên CHÍNH δ đó + độ nhạy target; kết luận "vững" chỉ khi lặp lại ở ≥ 4/5 seed WB VÀ ≥ 5/6 ô attack. `scripts/s3_region.py`.
+**Vùng (rời nhau, phủ ảnh):** MASK = hợp mask GT COCO (kể cả crowd, 3/10 ảnh có 1 crowd) | BOXBG = hợp box \ MASK | RING = box nở 25%/phía \ box | FAR = còn lại.
+**δ:** 6 ô attack S1 + WB-0, r1, r2 (S1) + **WB-r3, WB-r4 mới** (cùng công thức, δ0 ~ U(−ε,ε) seed 3/4).
+**(a) Hành vi** (dino_swin_l + r101, kill object clean-TP + relative AP drop): full, keep_R, rem_R, rnd_R (dấu ngẫu nhiên giữ |δ|, R ∈ 4 vùng + BOX + ALL), flip25_BOX (đảo đúng 25% trong box). eff_R = share_keep_R / diện tích_R.
+**(b) Độ nhạy** g_t Swin-L (như S2, t ∈ {0, 0.5, 1}, chuẩn hóa ‖g‖₁ = 1 mỗi ảnh): mass_R, mật độ mass_R/area_R, A_R; g lưu fp16 ra đĩa.
+**Đọc (khóa, trên dino_swin_l):**
+1. share keep_MASK ≥ 0.5 VÀ eff_MASK > eff_BOXBG ở ≥4/5 WB và ≥5/6 attack → MASK là vùng chính (vững). Ngược lại nếu share(BOXBG+RING) ≥ share(MASK) ở ≥4/5 WB và ≥5/6 attack → NGỮ CẢNH ≥ object (vững). Còn lại → KHÔNG VỮNG.
+2. Vùng mà đảo dấu ngẫu nhiên làm mất kill nhiều nhất (kill full − kill rnd_R): cùng một vùng ở ≥4/5 WB và ≥5/6 attack → dấu quan trọng ở vùng đó (vững).
+3. G3 tái lập: WB rnd_BOX kill max ≤ 8% → sàn G3 sai (R1 đúng); min ≥ 15% → R1 rnd_IN sai; còn lại không rõ. flip25_BOX báo kèm.
+4. Vùng có thiếu hụt (A_WB − TB A_attack) × khối nhạy lớn nhất: cùng vùng ở ≥4/5 WB → thiếu hụt khớp có trọng số nằm ở vùng đó (vững).
+Smoke 1 ảnh chỉ kiểm pipeline, KHÔNG đọc số (đã xóa json smoke; g cache ảnh 1 dùng lại — cùng seed).
