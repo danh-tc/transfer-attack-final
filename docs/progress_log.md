@@ -6582,3 +6582,9 @@ Từ S3: |g_t| ở FAR không có nghĩa hành vi → A toàn ảnh (S2) bị FA
 - A_MASK theo ô: RD-ALL 0.079 (drop 52.4) > RD-DET 0.076 (44.1) > OSFD-ALL 0.075 (40.4) > OSFD-DET 0.062 (39.3) > OSFD-FEAT 0.056 (34.2) > RD-FEAT 0.045 (28.5) — thứ tự khớp tuyệt đối.
 - Gộp (ô, ảnh) ≈ 0 ở MỌI biến thể → bị độ khó ảnh chi phối (đúng như nghi ở S2). Trong-ảnh: biến thể chính +0.20 (< 0.3); A_ALL lại cao hơn (+0.53) — biến thể phụ, KHÔNG chọn hậu kỳ.
 - Caveat: drop AP từng ảnh rất nhiễu (nhiều ảnh 1–4 object, AP thô), 6 ô/ảnh → ρ trong-ảnh bị suy giảm mạnh; n=6 ô cho ρ theo ô. Cần outcome liên tục theo ảnh (retained confidence / kill theo object, plan 3.3) + dev30 trước khi kết luận.
+
+## 2026-11-17 11:19 GMT+7 — KHÓA S5 (dev30, 20 ảnh MỚI làm xác nhận chính): A_MASK vs A_ALL với outcome LIÊN TỤC theo object — ghi + commit TRƯỚC khi chạy
+Từ S4: A_MASK xếp đúng 6 ô (ρ 1.00) nhưng trong-ảnh +0.20; nghi do outcome AP từng ảnh quá nhiễu. `scripts/s5_dev30.py`. dev30 = dev100[:30]; **tập chính = new20 = dev30 \ dev10** (CHƯA nhìn ở S1–S4); all30 báo kèm.
+Sinh 6 ô attack S1 cho 20 ảnh mới (cùng công thức + seed 1000·(n+1)); g_t DINO-Swin-L t ∈ {0.5, 1} (cache S3). Outcome theo ảnh (plan 3.3): clean-TP = GT không-crowd có det cùng lớp IoU ≥ 0.5 score ≥ 0.3; **harm = 1 − TB(score_adv/score_clean)**; kèm kill, AP drop theo tập.
+A_MASK, A_ALL = TB t ∈ {0.5, 1}. Tương quan với harm: theo ô (6); trong-ảnh (Spearman 6 ô/ảnh, TB, CI bootstrap 1000 theo ảnh, seed 2026); hiệu số MASK − ALL paired.
+**Đọc (khóa, trên new20, cho TỪNG A):** ρ ô ≥ 0.6 VÀ ρ trong-ảnh TB ≥ 0.3 VÀ cận dưới CI > 0 → DỰ BÁO; ρ ô ≤ 0.1 VÀ trong-ảnh ≤ 0.1 → không; còn lại không rõ. MASK vs ALL: CI hiệu số loại 0 → cái lớn hơn thắng; chứa 0 → không phân biệt.
