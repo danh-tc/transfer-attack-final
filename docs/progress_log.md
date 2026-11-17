@@ -6570,3 +6570,15 @@ Smoke 1 ảnh chỉ kiểm pipeline, KHÔNG đọc số (đã xóa json smoke; g
 ## 2026-11-17 11:13 GMT+7 — KHÓA S4 (CPU, g_t S3 + drop S1): A giới hạn trong MASK có dự báo drop Swin-L không — ghi + commit TRƯỚC khi tính
 Từ S3: |g_t| ở FAR không có nghĩa hành vi → A toàn ảnh (S2) bị FAR chi phối. `scripts/s4_amask.py`: A_MASK = Σ_MASK sign δ·g_t / Σ_MASK |g_t|, chính = TB t ∈ {0.5, 1}; phụ: path, t=0, A_ALL. 6 ô attack × 10 ảnh; drop Swin-L từ S1. Ba mức: theo ô (6), gộp (ô, ảnh), **trong từng ảnh** (Spearman 6 ô mỗi ảnh, TB — loại độ khó ảnh).
 **Đọc (khóa, trên biến thể chính):** ρ theo ô ≥ 0.6 VÀ ρ trong-ảnh TB ≥ 0.3 → A_MASK DỰ BÁO drop; cả hai ≤ 0.1 → không; còn lại không rõ.
+
+## 2026-11-17 11:14 GMT+7 — S4 KẾT QUẢ (CPU): A_MASK XẾP ĐÚNG HOÀN TOÀN 6 ô (ρ +1.00) nhưng trong-ảnh chỉ +0.20 → quy tắc KHÔNG RÕ
+`results/mechanism/s4_amask_dev10.json`.
+| biến thể | ρ theo ô (6) | ρ gộp (ô, ảnh) | ρ trong ảnh TB | #ảnh ρ>0 |
+|---|---|---|---|---|
+| **MASK mid (0.5, 1) [chính]** | **+1.00** | −0.07 | **+0.20** | 7/10 |
+| MASK path | +0.94 | −0.04 | +0.23 | 8/10 |
+| MASK t=0 | +0.89 | −0.07 | +0.35 | 9/10 |
+| ALL mid [S2] | +0.83 | −0.04 | +0.53 | 9/10 |
+- A_MASK theo ô: RD-ALL 0.079 (drop 52.4) > RD-DET 0.076 (44.1) > OSFD-ALL 0.075 (40.4) > OSFD-DET 0.062 (39.3) > OSFD-FEAT 0.056 (34.2) > RD-FEAT 0.045 (28.5) — thứ tự khớp tuyệt đối.
+- Gộp (ô, ảnh) ≈ 0 ở MỌI biến thể → bị độ khó ảnh chi phối (đúng như nghi ở S2). Trong-ảnh: biến thể chính +0.20 (< 0.3); A_ALL lại cao hơn (+0.53) — biến thể phụ, KHÔNG chọn hậu kỳ.
+- Caveat: drop AP từng ảnh rất nhiễu (nhiều ảnh 1–4 object, AP thô), 6 ô/ảnh → ρ trong-ảnh bị suy giảm mạnh; n=6 ô cho ρ theo ô. Cần outcome liên tục theo ảnh (retained confidence / kill theo object, plan 3.3) + dev30 trước khi kết luận.
