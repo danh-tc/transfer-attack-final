@@ -6689,3 +6689,10 @@ Báo A_MASK + kill song song (kiểm A có khớp hành vi theo thang không). 3
 Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thuận yếu. `scripts/s9_signlaw.py`, trong mask, pixel-kênh, δ 5 WB + RD-ALL cache.
 [1] đồng thuận: |mean_5(sign)|, tỉ lệ ≥4/5 cùng dấu (ngẫu nhiên 5-chiều P(≥4)=0.375). [2] quy luật nội dung từ ảnh sạch: push về trung bình lân cận 5×5 / Laplacian / push về trung bình kênh toàn ảnh — khớp với dấu đồng thuận (pixel ≥4/5). [3] mượt không gian: cặp pixel-kênh kề ngang cùng dấu (ngẫu nhiên 0.5).
 **Đọc (khóa):** quy luật nội dung khớp ≥0.65 → CÓ quy luật suy từ ảnh (đòn bẩy không cần surrogate); 0.55–0.65 yếu; <0.55 không. RD-ALL vs quy luật/đồng thuận: transfer đã theo chưa. Mượt ≥0.6 → dấu có cấu trúc tần thấp. 30 ảnh.
+
+## 2026-11-17 14:12 GMT+7 — S9 KẾT QUẢ (CPU, dev30): KHÔNG quy luật nội dung (dấu không suy được từ ảnh, mọi predictor ~0.53); đồng thuận 5 WB yếu (|mean sign| 0.456 ~ ngẫu nhiên 0.375); cấu trúc chung DUY NHẤT = MƯỢT không gian (tần thấp), WB 0.61 / RD-ALL 0.73
+`results/mechanism/s9_signlaw_dev30.json`. 5.1M pixel-kênh trong mask.
+[1] đồng thuận 5 WB: |mean sign| **0.456** (ngẫu nhiên ~0.375) → chỉ nhỉnh hơn ngẫu nhiên chút. (ge4/5 = 0.171 bị nhiễu bởi pixel δ=0, không đọc.)
+[2] **quy luật nội dung: KHÔNG** — dấu đồng thuận vs push-về-trung-bình-lân-cận 0.539, Laplacian 0.537, push-về-trung-bình-kênh 0.530 — tất cả ~0.5 (ngẫu nhiên). RD-ALL vs các quy luật / vs đồng thuận WB cũng ~0.52. → dấu hiệu quả KHÔNG dự đoán được từ nội dung ảnh một mình; không có đòn bẩy không-cần-surrogate ở đây.
+[3] **mượt không gian: CÓ** — cặp pixel kề cùng dấu: WB ~0.608 (5/5 seed), **RD-ALL 0.732** (ngẫu nhiên 0.5). → bản đồ dấu là tần-thấp, không phải nhiễu trắng; transfer còn mượt hơn WB (nối lit. "low-freq perturbation transfer tốt hơn" — đã khai thác sẵn, không phải lever mới).
+**Kết luận:** xác nhận có NHIỀU bản đồ dấu gần độc lập, không nén được về một quy luật nội dung; đồng thuận yếu. Cấu trúc chung chỉ là độ mượt tần-thấp, mà attack đã có (RD mượt hơn WB). → không gian dấu không còn đòn bẩy surrogate-free. Củng cố S6/S7. 30 ảnh.

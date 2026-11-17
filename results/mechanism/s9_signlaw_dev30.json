@@ -1,0 +1,32 @@
+{
+ "n_img": 30,
+ "n_pixelchan_mask": 5104650,
+ "consensus": {
+  "mean_abs_meansign": 0.4557724819527293,
+  "frac_ge4of5": 0.17050689077605713,
+  "random_ge4of5": 0.375
+ },
+ "content_law": {
+  "push_toward_localmean": 0.5392977051996694,
+  "laplacian": 0.5374813143354527,
+  "push_toward_globalmean": 0.5299961625868301
+ },
+ "rd_vs_law": {
+  "push_toward_localmean": 0.5307947264105377,
+  "laplacian": 0.5242643281630784,
+  "consensusWB": 0.5214729599324739
+ },
+ "spatial_smooth": {
+  "WB-0": 0.6082302057328478,
+  "WB-r1": 0.6078696810569914,
+  "WB-r2": 0.6065810481064509,
+  "WB-r3": 0.6066249645780674,
+  "WB-r4": 0.6079198786244956,
+  "RD-ALL": 0.7318095398591445
+ },
+ "verdict": {
+  "consensus_above_random": false,
+  "content_law": "KHONG quy luat noi dung (dau ~doc lap voi noi dung)",
+  "spatial": "dau CO cau truc khong gian (muot)"
+ }
+}
