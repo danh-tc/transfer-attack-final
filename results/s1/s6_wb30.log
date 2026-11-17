@@ -1,0 +1,102 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.96s)
+creating index...
+index created!
+[s1 WB-0] 18/30
+[s1 WB-0] 19/30
+[s1 WB-0] 20/30
+[s1 WB-0] 21/30
+[s1 WB-0] 22/30
+[s1 WB-0] 23/30
+[s1 WB-0] 24/30
+[s1 WB-0] 25/30
+[s1 WB-0] 26/30
+[s1 WB-0] 27/30
+[s1 WB-0] 28/30
+[s1 WB-0] 29/30
+[s1 WB-0] 30/30
+[s1 WB-r1] 11/30
+[s1 WB-r1] 12/30
+[s1 WB-r1] 13/30
+[s1 WB-r1] 14/30
+[s1 WB-r1] 15/30
+[s1 WB-r1] 16/30
+[s1 WB-r1] 17/30
+[s1 WB-r1] 18/30
+[s1 WB-r1] 19/30
+[s1 WB-r1] 20/30
+[s1 WB-r1] 21/30
+[s1 WB-r1] 22/30
+[s1 WB-r1] 23/30
+[s1 WB-r1] 24/30
+[s1 WB-r1] 25/30
+[s1 WB-r1] 26/30
+[s1 WB-r1] 27/30
+[s1 WB-r1] 28/30
+[s1 WB-r1] 29/30
+[s1 WB-r1] 30/30
+[s1 WB-r2] 11/30
+[s1 WB-r2] 12/30
+[s1 WB-r2] 13/30
+[s1 WB-r2] 14/30
+[s1 WB-r2] 15/30
+[s1 WB-r2] 16/30
+[s1 WB-r2] 17/30
+[s1 WB-r2] 18/30
+[s1 WB-r2] 19/30
+[s1 WB-r2] 20/30
+[s1 WB-r2] 21/30
+[s1 WB-r2] 22/30
+[s1 WB-r2] 23/30
+[s1 WB-r2] 24/30
+[s1 WB-r2] 25/30
+[s1 WB-r2] 26/30
+[s1 WB-r2] 27/30
+[s1 WB-r2] 28/30
+[s1 WB-r2] 29/30
+[s1 WB-r2] 30/30
+[s1 WB-r3] 11/30
+[s1 WB-r3] 12/30
+[s1 WB-r3] 13/30
+[s1 WB-r3] 14/30
+[s1 WB-r3] 15/30
+[s1 WB-r3] 16/30
+[s1 WB-r3] 17/30
+[s1 WB-r3] 18/30
+[s1 WB-r3] 19/30
+[s1 WB-r3] 20/30
+[s1 WB-r3] 21/30
+[s1 WB-r3] 22/30
+[s1 WB-r3] 23/30
+[s1 WB-r3] 24/30
+[s1 WB-r3] 25/30
+[s1 WB-r3] 26/30
+[s1 WB-r3] 27/30
+[s1 WB-r3] 28/30
+[s1 WB-r3] 29/30
+[s1 WB-r3] 30/30
+[s1 WB-r4] 11/30
+[s1 WB-r4] 12/30
+[s1 WB-r4] 13/30
+[s1 WB-r4] 14/30
+[s1 WB-r4] 15/30
+[s1 WB-r4] 16/30
+[s1 WB-r4] 17/30
+[s1 WB-r4] 18/30
+[s1 WB-r4] 19/30
+[s1 WB-r4] 20/30
+[s1 WB-r4] 21/30
+[s1 WB-r4] 22/30
+[s1 WB-r4] 23/30
+[s1 WB-r4] 24/30
+[s1 WB-r4] 25/30
+[s1 WB-r4] 26/30
+[s1 WB-r4] 27/30
+[s1 WB-r4] 28/30
+[s1 WB-r4] 29/30
+[s1 WB-r4] 30/30

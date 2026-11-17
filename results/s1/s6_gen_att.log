@@ -1,0 +1,16 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=1.01s)
+creating index...
+index created!
+[s1 RD-ALL] 31/100 0.7s/ảnh
+[s1 RD-ALL] 32/100 1.4s/ảnh
+[s1 RD-ALL] 33/100 1.9s/ảnh
+[s1 RD-ALL] 34/100 2.4s/ảnh
+[s1 RD-ALL] 35/100 2.8s/ảnh
+[s1 RD-ALL] 36/100 3.2s/ảnh
+[s1 RD-ALL] 37/100 3.6s/ảnh
+[s1 RD-ALL] 38/100 3.9s/ảnh
+[s1 RD-ALL] 39/100 4.3s/ảnh
+[s1 RD-ALL] 40/100 4.6s/ảnh
+[s1 RD-ALL] 41/100 4.9s/ảnh

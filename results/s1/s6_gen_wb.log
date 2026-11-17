@@ -1,0 +1,16 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=1.03s)
+creating index...
+index created!
+[s1 WB-0] 11/30
+[s1 WB-0] 12/30
+[s1 WB-0] 13/30
+[s1 WB-0] 14/30
+[s1 WB-0] 15/30
+[s1 WB-0] 16/30
+[s1 WB-0] 17/30
