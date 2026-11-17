@@ -6612,3 +6612,20 @@ User hỏi MASK (segmentation) vs BOX chữ nhật ở thước đo A. Thêm **A
 - MASK − ALL trong-ảnh +0.15 [−0.10, +0.41]; MASK − BOX +0.05 [−0.06, +0.16] → **trong cùng ảnh** chưa phân biệt được; khác biệt rõ ở **giữa các attack** (ρ ô MASK 0.77 > BOX 0.49 > ALL 0.26, n=6 — không có CI).
 - all30: A_MASK ρ ô +0.89, trong-ảnh +0.38 [0.23, 0.53]. Thứ tự harm: RD-ALL > RD-DET > RD-FEAT > 3 ô OSFD (gần nhau ~0.18–0.19 ở new20).
 - Hệ quả: **A_MASK là thước đo proxy hợp lệ (chẩn đoán) cho hiệu quả transfer Swin-L** ở mức attack và mức ảnh; dùng làm thước đo nhanh cho S6. Vẫn là 30 ảnh, 6 ô (1 surrogate CNX).
+
+## 2026-11-17 11:51 GMT+7 — KHÓA S6 (user approve): VÙNG CON TRONG MASK + XU HƯỚNG THEO CLASS (dev100, thước đo A đã xác nhận S5) + kiểm chứng hành vi & oracle (dev30) — ghi + commit TRƯỚC khi chạy
+Mục tiêu (user): trong mask object, vùng con nào cho transfer tốt hơn; có xu hướng theo class không; vững qua nhiều bản đồ dấu; tìm chỗ tối ưu để dồn nhiễu. Scripts: `s6_gen.py` (sinh + g_t), `s6_behav.py` (dev30 hành vi + oracle), `s6_analysis.py` (dev100 CPU).
+**Dữ liệu:** 6 ô attack S1 + WB-0/r1/r2 cho dev100 (cùng công thức/seed S1); WB-r3/r4 cho dev30. g_t DINO-Swin-L ảnh sạch + t ∈ {0.5, 1} cho 9 ô (cache).
+**Vùng con theo TỪNG instance** (mask GT COCO, object không-crowd; class-level chỉ object area ≥ 32²):
+- BANDS (theo khoảng cách tới viền, distance transform trong mask, chia 3 phần ĐỀU DIỆN TÍCH): EDGE / MID / CORE.
+- VERT (theo y trong mask, 3 phần đều diện tích): TOP / MIDV / BOT.
+- PARTS (chỉ person, keypoint COCO, mỗi pixel mask gán nhóm keypoint visible gần nhất): HEAD (0–4) / TORSO (5,6,11,12) / ARMS (7–10) / LEGS (13–16).
+**Outcome theo object (Swin-L):** harm_obj = 1 − score_adv/score_clean (clean-TP: det cùng lớp IoU ≥ 0.5, score ≥ 0.3).
+**Đo (dev100, CPU):** A_sub = Σ_sub sign δ·g_t / Σ_sub |g_t| (TB t ∈ {0.5,1}); mật độ |g_t| ảnh sạch theo vùng con (phần ‖g‖₁ của object / phần diện tích); đóng góp WB theo vùng con.
+**Quy tắc (khóa):**
+1. **Vùng con dự báo (chính):** mỗi object, Spearman(A_sub qua 6 ô attack, harm_obj qua 6 ô); TB qua object, CI bootstrap 1000 theo ẢNH (seed 2026). Trong mỗi phân hoạch (BANDS, VERT), vùng có ρ TB cao nhất; hiệu số paired với vùng thứ 2 có CI loại 0 → "vùng X dự báo tốt nhất"; chứa 0 → không phân biệt.
+2. **Độ nhạy target:** mật độ |g_t| theo vùng con (đều diện tích → so trực tiếp); vùng cao nhất có hiệu số với vùng thứ 2, CI loại 0 → "target nhạy nhất ở X". **Vững qua nhiều bản đồ dấu:** đóng góp Σ_sub sign·g của WB tập trung ở cùng vùng ở cả 3 seed WB.
+3. **Theo class** (class ≥ 8 object và ≥ 3 ảnh, area ≥ 32²): báo hồ sơ mật độ + ρ vùng con theo class (mô tả). Claim "class A khác class B" chỉ khi CI (bootstrap theo ảnh) của hiệu số mật độ EDGE (hoặc vùng thắng ở 2) giữa person và nhóm còn lại loại 0; class lẻ chỉ mô tả.
+4. **PARTS person:** mật độ + ρ theo bộ phận; bộ phận cao nhất vs thứ 2 có CI loại 0 → kết luận; còn lại mô tả.
+5. **Hành vi dev30 (kiểm chứng, 11 δ = 6 attack + 5 WB):** keep_X / rnd_X cho X ∈ BANDS ∪ VERT (áp đồng thời cho mọi object); vùng có kill keep_X cao nhất (đều diện tích) giống nhau ở ≥ 4/5 WB và ≥ 5/6 attack → vững; và có trùng vùng thắng ở quy tắc 1/2 không.
+6. **Oracle dev30 (CHẨN ĐOÁN, dùng target):** k ∈ {5,10,25,50}% pixel-kênh MASK. O1-hot: giữ δ_WB-0 chỉ trên top-k% |g_t sạch| trong MASK; O1-rand: cùng số pixel ngẫu nhiên trong MASK. O2-hot: δ RD-ALL, thay dấu bằng dấu WB-0 trên top-k% |g_t|; O2-rand: trên k% ngẫu nhiên MASK. Kill/harm Swin-L. Đọc: O1-hot ≫ O1-rand → VỊ TRÍ hotspot quan trọng; O2-hot − RD-ALL = dư địa sửa dấu ở hotspot; so O2-hot vs O2-rand → sửa ở hotspot có lợi hơn sửa bất kỳ.
