@@ -6820,3 +6820,7 @@ Thêm **Mask2Former-Swin-S** (cùng head Mask2Former, backbone Swin-S vs R50 đ�
 - **RD-CNX mạnh đồng đều 78–96%** qua MỌI paradigm (2-stage, 1-stage, FCOS anchor-free, DETR-family, Mask2Former, YOLO); **chỉ 2 ca Swin-L tụt còn 62–63%** — nhưng vẫn ≫ OSFD (27, 33) và ≫ R50-ALL (30, 34) ở đó.
 - **R50-ALL:** ~95–99 trên R50-backbone (gần WB), sụp 30–34 trên Swin-L → ConvNeXt surrogate là thứ vớt được Swin-L (63 vs 30).
 - Caveat: OSFD-style ở đây = geo RRB+feature trên ConvNeXt (≈OSFD recipe, KHÔNG phải osfd_attack gốc + object-aware weighting; fidelity check thật = G3). dev30, không CI.
+
+## 2026-11-17 16:54 GMT+7 — KHÓA S15 (user: OSFD gốc thì sao): osfd_attack GỐC (baselines, không geo xấp xỉ) trên ConvNeXt + R50, eval full panel dev30 vs RD-CNX — ghi + commit TRƯỚC khi chạy
+Thay "OSFD-style" (geo RRB xấp xỉ, S14) bằng `baselines.osfd_attack` thật (RRB + feature loss, default = bản repo gọi OSFD; object-aware spatial_weight/channel_concave OFF theo default repo). B50, ε5, seed S1. OSFDreal-CNX (fair cùng surrogate RD-CNX) + OSFDreal-R50 (baseline bảng đóng băng). Eval full panel như S14.
+**Đọc:** RD-CNX vs OSFDreal-CNX (cùng surrogate → chênh recipe thật); và vs OSFDreal-R50 (baseline gốc). Caveat: vẫn chưa object-aware weighting + chưa fidelity-match số paper AAAI (G3 đầy đủ sau); dev30 không CI.
