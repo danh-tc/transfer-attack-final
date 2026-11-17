@@ -6759,3 +6759,8 @@ Lý do: S8 đã có R50 (24M) + ConvNeXt-T (28M); thiếu điểm CNN thường 
 - **Size giúp ít:** trong ResNet, R101 > R50 (+4 DET, +3 ALL) — có nhưng nhỏ.
 - R101-ALL A_MASK thấp (0.012) do λ=6.0 chưa calib cho R101 (mất cân bằng feat/cls), nhưng kill vẫn 32 = DET → nhất quán RoI cls gánh chính.
 **Hệ quả:** lever giữa các CNN là "giống ConvNeXt", không phải "to". → RE-MỞ khả năng **ConvNeXt-L** (kiểu tốt + to + IN-22k) với **loss RoI cls** (nhánh sống) là ô CHƯA test đáng giá nhất — G10 chỉ test ConvNeXt-L nhánh FEATURE (≈0, nhánh chết). Nhưng trần vẫn xa WB (~73); tương tác DINO×Swin (S10) không surrogate CNN nào gỡ hẳn. 30 ảnh, không CI.
+
+## 2026-11-17 16:25 GMT+7 — KHÓA S13 (user: thêm panel modern, dev30 xu hướng): panel MODERN held-out eval-only — δ ĐÓNG BĂNG transfer tới detector hiện đại — ghi + commit TRƯỚC khi chạy
+Vá lỗ hổng "mention modern nhưng panel chỉ DINO-Swin-L". `scripts/s13_modern.py`, dev30, **eval-only** (không sinh attack mới, chỉ inference δ có sẵn). Target modern (mmdet v3 native, tải mới — MẤT khi trả máy): RTMDet-L (CNN 1-stage 2022), Deformable-DETR-R50, DDQ-DETR-R50 (2023), Mask2Former-R50 (Transformer head 2022). δ: RD-ALL (RD-CNX, CNX surrogate), OSFD-FEAT (OSFD baseline), R50-ALL (RD trên CNN thường). Đo relative AP drop + kill object clean-TP.
+**Held-out nghiêm:** KHÔNG dùng để chọn/tune bất cứ gì (như devD200). Thuộc G3/G4 generalization, chỉ chạy dev30 xem xu hướng.
+**Đọc:** RD-CNX transfer tới các target modern mạnh đến đâu vs OSFD; có đồng đều không hay lại có ca stuck như DINO-Swin-L. 30 ảnh, không CI.
