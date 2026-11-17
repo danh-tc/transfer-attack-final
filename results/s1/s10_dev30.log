@@ -1,0 +1,55 @@
+loading annotations into memory...
+Done (t=0.49s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.65s)
+creating index...
+index created!
+[s10 A r50] 1/30
+[s10 A r50] 2/30
+[s10 A r50] 3/30
+[s10 A r50] 4/30
+[s10 A r50] 5/30
+[s10 A r50] 6/30
+[s10 A r50] 7/30
+[s10 A r50] 8/30
+[s10 A r50] 9/30
+[s10 A r50] 10/30
+[s10 A r50] 11/30
+[s10 A r50] 12/30
+[s10 A r50] 13/30
+[s10 A r50] 14/30
+[s10 A r50] 15/30
+[s10 A r50] 16/30
+[s10 A r50] 17/30
+[s10 A r50] 18/30
+[s10 A r50] 19/30
+[s10 A r50] 20/30
+[s10 A r50] 21/30
+[s10 A r50] 22/30
+[s10 A r50] 23/30
+[s10 A r50] 24/30
+[s10 A r50] 25/30
+[s10 A r50] 26/30
+[s10 A r50] 27/30
+[s10 A r50] 28/30
+[s10 A r50] 29/30
+[s10 A r50] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+
+Luoi 2x2 (probe RD-CNX-ALL), A_MASK (kill%):
+  RoIxR50    0.0926 (61)
+  RoIxSwinT  0.1174 (69)
+  DINOxR50   0.0788 (69)
+  DINOxSwinL 0.0287 (44)
+
+[kill%] RoIxR50 60.558 | backbone eff +7.961 | head eff +8.219
+   predicted DINOxSwinL (cong) 76.737 vs actual 44.151 -> tuong tac -32.586
+
+[A_MASK] RoIxR50 0.093 | backbone eff +0.025 | head eff -0.014
+   predicted DINOxSwinL (cong) 0.104 vs actual 0.029 -> tuong tac -0.075
+
+=> TUONG TAC AM manh (combo kho hon tong) -> stuck = backbone x head
+[s10] -> results/mechanism/s10_grid_dev30.json

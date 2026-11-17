@@ -6718,3 +6718,13 @@ Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thu�
 **Tương tác:** predicted(DINO×Swin-L) = RoI×R50 + [RoI×Swin − RoI×R50] + [DINO×R50 − RoI×R50]; interaction = actual − predicted.
 **Đọc (khóa, trên kill):** interaction ≤ −10 điểm → TƯƠNG TÁC ÂM (combo khó hơn tổng hai hiệu ứng) → stuck = backbone×head, không do riêng cái nào; |interaction| < 10 → cộng tính (độ khó chia đều 2 trục). A_MASK báo kèm.
 **Caveat (khóa):** Swin-T≠Swin-L cả size+pretrain; không có DINO-Swin-T / MRC-Swin-L để ô đối xứng hoàn chỉnh → trục backbone lẫn size; swin_s bỏ (không có trong registry gradient). Kill bão hòa [0,100] nên mô hình cộng là xấp xỉ thô — đọc hướng, không đọc con số tuyệt đối. 30 ảnh, không CI.
+
+## 2026-11-17 14:36 GMT+7 — S10 KẾT QUẢ (dev30): stuck DINO-Swin-L = TƯƠNG TÁC backbone×head (−33 kill, −0.075 A_MASK); đổi RIÊNG backbone Swin hoặc RIÊNG head DINO đều KHÔNG hại
+`results/mechanism/s10_grid_dev30.json`. Probe RD-CNX-ALL (khác họ), kill% (A_MASK):
+| | Backbone R50 | Backbone Swin |
+|---|---|---|
+| **Head RoI** | RoI×R50 61 (0.093) | RoI×Swin-T 69 (0.117) |
+| **Head DINO** | DINO×R50 69 (0.079) | DINO×Swin-L **44 (0.029)** |
+- backbone eff (R50→Swin, trong RoI) +8 kill; head eff (RoI→DINO, trong R50) +8 kill — **mỗi trục riêng lẻ KHÔNG hại** (còn hơi dễ hơn). Cộng lại dự đoán DINO×Swin-L = 77; **thực tế 44 → tương tác −33**. A_MASK: pred 0.104 vs actual 0.029 → −0.075.
+- **Kết luận: stuck là TƯƠNG TÁC Swin-backbone × DINO-head**, không quy được về riêng backbone hay riêng head. Khớp decomposition phiên trước (DINO-R50 dễ, MRC-Swin-T dễ, chỉ combo khó) + reframing encoder-DINO-là-feature-trong-head (S8: nhánh feature sụp riêng ở Swin-L).
+- **Caveat khóa:** Swin-T (ô RoI×Swin) ≠ Swin-L (ô DINO×Swin) về size+pretrain IN-22k → tương tác lẫn yếu tố size; không có DINO-Swin-T/MRC-Swin-L để tách hẳn. Kill bão hòa → số cộng là xấp xỉ. 30 ảnh, không CI. Hướng: xác nhận bằng surrogate Swin-detector thật (G4) + nếu cần DINO-Swin-T.
