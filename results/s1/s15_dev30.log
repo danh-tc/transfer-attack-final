@@ -1,0 +1,334 @@
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.49s)
+creating index...
+index created!
+[s15 gen OSFDreal-CNX] 1/30
+[s15 gen OSFDreal-CNX] 2/30
+[s15 gen OSFDreal-CNX] 3/30
+[s15 gen OSFDreal-CNX] 4/30
+[s15 gen OSFDreal-CNX] 5/30
+[s15 gen OSFDreal-CNX] 6/30
+[s15 gen OSFDreal-CNX] 7/30
+[s15 gen OSFDreal-CNX] 8/30
+[s15 gen OSFDreal-CNX] 9/30
+[s15 gen OSFDreal-CNX] 10/30
+[s15 gen OSFDreal-CNX] 11/30
+[s15 gen OSFDreal-CNX] 12/30
+[s15 gen OSFDreal-CNX] 13/30
+[s15 gen OSFDreal-CNX] 14/30
+[s15 gen OSFDreal-CNX] 15/30
+[s15 gen OSFDreal-CNX] 16/30
+[s15 gen OSFDreal-CNX] 17/30
+[s15 gen OSFDreal-CNX] 18/30
+[s15 gen OSFDreal-CNX] 19/30
+[s15 gen OSFDreal-CNX] 20/30
+[s15 gen OSFDreal-CNX] 21/30
+[s15 gen OSFDreal-CNX] 22/30
+[s15 gen OSFDreal-CNX] 23/30
+[s15 gen OSFDreal-CNX] 24/30
+[s15 gen OSFDreal-CNX] 25/30
+[s15 gen OSFDreal-CNX] 26/30
+[s15 gen OSFDreal-CNX] 27/30
+[s15 gen OSFDreal-CNX] 28/30
+[s15 gen OSFDreal-CNX] 29/30
+[s15 gen OSFDreal-CNX] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+loading annotations into memory...
+Done (t=0.52s)
+creating index...
+index created!
+[s15 gen OSFDreal-R50] 1/30
+[s15 gen OSFDreal-R50] 2/30
+[s15 gen OSFDreal-R50] 3/30
+[s15 gen OSFDreal-R50] 4/30
+[s15 gen OSFDreal-R50] 5/30
+[s15 gen OSFDreal-R50] 6/30
+[s15 gen OSFDreal-R50] 7/30
+[s15 gen OSFDreal-R50] 8/30
+[s15 gen OSFDreal-R50] 9/30
+[s15 gen OSFDreal-R50] 10/30
+[s15 gen OSFDreal-R50] 11/30
+[s15 gen OSFDreal-R50] 12/30
+[s15 gen OSFDreal-R50] 13/30
+[s15 gen OSFDreal-R50] 14/30
+[s15 gen OSFDreal-R50] 15/30
+[s15 gen OSFDreal-R50] 16/30
+[s15 gen OSFDreal-R50] 17/30
+[s15 gen OSFDreal-R50] 18/30
+[s15 gen OSFDreal-R50] 19/30
+[s15 gen OSFDreal-R50] 20/30
+[s15 gen OSFDreal-R50] 21/30
+[s15 gen OSFDreal-R50] 22/30
+[s15 gen OSFDreal-R50] 23/30
+[s15 gen OSFDreal-R50] 24/30
+[s15 gen OSFDreal-R50] 25/30
+[s15 gen OSFDreal-R50] 26/30
+[s15 gen OSFDreal-R50] 27/30
+[s15 gen OSFDreal-R50] 28/30
+[s15 gen OSFDreal-R50] 29/30
+[s15 gen OSFDreal-R50] 30/30
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r50_fpn_mstrain-poly_3x_coco_20210524_201154-21b550bb.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] r50              OSFDreal-CNX 74 OSFDreal-R50 98
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] r101             OSFDreal-CNX 65 OSFDreal-R50 94
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] convnext_t       OSFDreal-CNX 96 OSFDreal-R50 84
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] swin_t           OSFDreal-CNX 72 OSFDreal-R50 81
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/fcos_center-normbbox-centeronreg-giou_r50_caffe_fpn_gn-head_1x_coco-0a0d75a8.pth
+Loading and preparing results...
+DONE (t=0.20s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] fcos_r50         OSFDreal-CNX 78 OSFDreal-R50 94
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.19s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s15] dino_r50         OSFDreal-CNX 72 OSFDreal-R50 95
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] yolov3_d53       OSFDreal-CNX 65 OSFDreal-R50 81
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s15] yolox_l          OSFDreal-CNX 52 OSFDreal-R50 69
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s15] dino_swin_l      OSFDreal-CNX 26 OSFDreal-R50 23
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/rtmdet_l.pth
+The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: data_preprocessor.mean, data_preprocessor.std
+
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s15] rtmdet_l         OSFDreal-CNX 49 OSFDreal-R50 69
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/deformable_detr.pth
+The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: data_preprocessor.mean, data_preprocessor.std
+
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] deformable_detr  OSFDreal-CNX 83 OSFDreal-R50 96
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/ddq.pth
+The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: decoder.aux_reg_branches.0.0.weight, decoder.aux_reg_branches.0.0.bias, decoder.aux_reg_branches.0.2.weight, decoder.aux_reg_branches.0.2.bias, decoder.aux_reg_branches.0.4.weight, decoder.aux_reg_branches.0.4.bias, decoder.aux_reg_branches.1.0.weight, decoder.aux_reg_branches.1.0.bias, decoder.aux_reg_branches.1.2.weight, decoder.aux_reg_branches.1.2.bias, decoder.aux_reg_branches.1.4.weight, decoder.aux_reg_branches.1.4.bias, decoder.aux_reg_branches.2.0.weight, decoder.aux_reg_branches.2.0.bias, decoder.aux_reg_branches.2.2.weight, decoder.aux_reg_branches.2.2.bias, decoder.aux_reg_branches.2.4.weight, decoder.aux_reg_branches.2.4.bias, decoder.aux_reg_branches.3.0.weight, decoder.aux_reg_branches.3.0.bias, decoder.aux_reg_branches.3.2.weight, decoder.aux_reg_branches.3.2.bias, decoder.aux_reg_branches.3.4.weight, decoder.aux_reg_branches.3.4.bias, decoder.aux_reg_branches.4.0.weight, decoder.aux_reg_branches.4.0.bias, decoder.aux_reg_branches.4.2.weight, decoder.aux_reg_branches.4.2.bias, decoder.aux_reg_branches.4.4.weight, decoder.aux_reg_branches.4.4.bias, decoder.aux_reg_branches.5.0.weight, decoder.aux_reg_branches.5.0.bias, decoder.aux_reg_branches.5.2.weight, decoder.aux_reg_branches.5.2.bias, decoder.aux_reg_branches.5.4.weight, decoder.aux_reg_branches.5.4.bias
+
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.24s)
+creating index...
+index created!
+[s15] ddq_detr         OSFDreal-CNX 75 OSFDreal-R50 96
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/mask2former.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s15] mask2former      OSFDreal-CNX 72 OSFDreal-R50 95
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/mask2former_swin_s.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.26s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s15] mask2former_swin_s OSFDreal-CNX 56 OSFDreal-R50 62
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmdet/apis/inference.py:90: UserWarning: dataset_meta or class names are not saved in the checkpoint's meta data, use COCO classes by default.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/ddq_swinl.pth
+The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: decoder.aux_reg_branches.0.0.weight, decoder.aux_reg_branches.0.0.bias, decoder.aux_reg_branches.0.2.weight, decoder.aux_reg_branches.0.2.bias, decoder.aux_reg_branches.0.4.weight, decoder.aux_reg_branches.0.4.bias, decoder.aux_reg_branches.1.0.weight, decoder.aux_reg_branches.1.0.bias, decoder.aux_reg_branches.1.2.weight, decoder.aux_reg_branches.1.2.bias, decoder.aux_reg_branches.1.4.weight, decoder.aux_reg_branches.1.4.bias, decoder.aux_reg_branches.2.0.weight, decoder.aux_reg_branches.2.0.bias, decoder.aux_reg_branches.2.2.weight, decoder.aux_reg_branches.2.2.bias, decoder.aux_reg_branches.2.4.weight, decoder.aux_reg_branches.2.4.bias, decoder.aux_reg_branches.3.0.weight, decoder.aux_reg_branches.3.0.bias, decoder.aux_reg_branches.3.2.weight, decoder.aux_reg_branches.3.2.bias, decoder.aux_reg_branches.3.4.weight, decoder.aux_reg_branches.3.4.bias, decoder.aux_reg_branches.4.0.weight, decoder.aux_reg_branches.4.0.bias, decoder.aux_reg_branches.4.2.weight, decoder.aux_reg_branches.4.2.bias, decoder.aux_reg_branches.4.4.weight, decoder.aux_reg_branches.4.4.bias, decoder.aux_reg_branches.5.0.weight, decoder.aux_reg_branches.5.0.bias, decoder.aux_reg_branches.5.2.weight, decoder.aux_reg_branches.5.2.bias, decoder.aux_reg_branches.5.4.weight, decoder.aux_reg_branches.5.4.bias
+
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s15] ddq_swinl        OSFDreal-CNX 26 OSFDreal-R50 27
+/workspace/transfer-attack-final/scripts/s15_osfd_real.py:90: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/transfer-attack-final/results/mechanism/s14_fullpanel_dev30.json' mode='r' encoding='UTF-8'>
+  s14 = json.load(open(os.path.join(REPO_ROOT, "results/mechanism/s14_fullpanel_dev30.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/transfer-attack-final/scripts/s15_osfd_real.py:103: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/transfer-attack-final/results/mechanism/s15_osfd_real_dev30.json' mode='w' encoding='UTF-8'>
+  json.dump(res, open(os.path.join(REPO_ROOT, "results/mechanism/s15_osfd_real_dev30.json"), "w"), indent=1, ensure_ascii=False)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+
+=== OSFD GOC vs RD-CNX (dev30, relative AP drop %) ===
+target              RD-CNX  OSFDreal-CNX  OSFDreal-R50 OSFD-style(S14)
+r50                     87            74            98              78
+r101                    87            65            94              69
+convnext_t              96            96            84              92
+swin_t                  90            72            81              74
+fcos_r50                86            78            94              79
+dino_r50                88            72            95              77
+yolov3_d53              81            65            81              68
+yolox_l                 78            52            69              64
+dino_swin_l             63            26            23              27
+rtmdet_l                81            49            69              62
+deformable_detr         85            83            96              83
+ddq_detr                88            75            96              75
+mask2former             87            72            95              74
+mask2former_swin_s      83            56            62              62
+ddq_swinl               62            26            27              33
+
+mean (loại WB): RD-CNX 81.8 | OSFDreal-CNX 61.8 | OSFDreal-R50 76.2
+Swin-L: dino_swin_l RD 63 vs OSFDr-CNX 26 | ddq_swinl RD 62 vs OSFDr-CNX 26
+[s15] -> results/mechanism/s15_osfd_real_dev30.json
+/usr/lib/python3.10/tempfile.py:1008: ResourceWarning: Implicitly cleaning up <TemporaryDirectory '/tmp/tmprndi12i1'>
+  _warnings.warn(warn_message, ResourceWarning)

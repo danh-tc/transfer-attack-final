@@ -6824,3 +6824,24 @@ Thêm **Mask2Former-Swin-S** (cùng head Mask2Former, backbone Swin-S vs R50 đ�
 ## 2026-11-17 16:54 GMT+7 — KHÓA S15 (user: OSFD gốc thì sao): osfd_attack GỐC (baselines, không geo xấp xỉ) trên ConvNeXt + R50, eval full panel dev30 vs RD-CNX — ghi + commit TRƯỚC khi chạy
 Thay "OSFD-style" (geo RRB xấp xỉ, S14) bằng `baselines.osfd_attack` thật (RRB + feature loss, default = bản repo gọi OSFD; object-aware spatial_weight/channel_concave OFF theo default repo). B50, ε5, seed S1. OSFDreal-CNX (fair cùng surrogate RD-CNX) + OSFDreal-R50 (baseline bảng đóng băng). Eval full panel như S14.
 **Đọc:** RD-CNX vs OSFDreal-CNX (cùng surrogate → chênh recipe thật); và vs OSFDreal-R50 (baseline gốc). Caveat: vẫn chưa object-aware weighting + chưa fidelity-match số paper AAAI (G3 đầy đủ sau); dev30 không CI.
+
+## 2026-11-17 17:03 GMT+7 — S15 KẾT QUẢ (OSFD gốc, full panel dev30): RD-CNX ≫ OSFD gốc CÙNG surrogate ConvNeXt (+20 mean, +37 trên Swin-L) — chênh recipe THẬT, không do surrogate
+`results/mechanism/s15_osfd_real_dev30.json`. relative AP drop %, δ đóng băng. OSFD = baselines.osfd_attack (RRB+feature, object-aware OFF default).
+Mean (loại WB): **RD-CNX 81.8 | OSFDreal-CNX 61.8 | OSFDreal-R50 76.2**.
+| target | RD-CNX | OSFDreal-CNX | OSFDreal-R50 |
+|---|---|---|---|
+| r50 | 87 | 74 | 98* |
+| r101 | 87 | 65 | 94 |
+| convnext_t | 96* | 96* | 84 |
+| swin_t | 90 | 72 | 81 |
+| dino_r50 | 88 | 72 | 95 |
+| yolox_l | 78 | 52 | 69 |
+| **dino_swin_l** | **63** | 26 | 23 |
+| rtmdet_l | 81 | 49 | 69 |
+| deformable_detr | 85 | 83 | 96 |
+| ddq_detr | 88 | 75 | 96 |
+| mask2former | 87 | 72 | 95 |
+| **ddq_swinl** | **62** | 26 | 27 |
+- **FAIR same-surrogate (ConvNeXt): RD-CNX 81.8 ≫ OSFD 61.8 (+20 mean).** Chênh KHÔNG do surrogate (cùng ConvNeXt) → do RECIPE (RoI-cls + OCT + WP). Trên Swin-L chênh khổng lồ: dino_swin_l 63 vs 26, ddq_swinl 62 vs 26.
+- **OSFD-R50 (76.2) > OSFD-CNX (61.8)** vì panel nhiều target R50-backbone → OSFD-R50 gần WB ở đó (94–98); nhưng OSFD-R50 SỤP trên Swin-L (23, 27) và ConvNeXt (84). **RD-CNX là cái DUY NHẤT mạnh cả R50-family lẫn Swin-L.**
+- **Honesty:** component thắng = RoI-cls (tiền lệ IJCNN'23) → "recipe thắng +20" là thật nhưng KHÔNG phải thuật toán mới; vẫn chưa object-aware weighting + chưa fidelity-match số AAAI (G3 đầy đủ sau); dev30 không CI.

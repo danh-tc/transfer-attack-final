@@ -1,0 +1,152 @@
+{
+ "r50": {
+  "drop": {
+   "OSFDreal-CNX": 73.8644921255261,
+   "OSFDreal-R50": 97.90553553843318
+  },
+  "kill": {
+   "OSFDreal-CNX": 49.40239043824701,
+   "OSFDreal-R50": 96.01593625498008
+  }
+ },
+ "r101": {
+  "drop": {
+   "OSFDreal-CNX": 64.78993780880239,
+   "OSFDreal-R50": 93.75185535206701
+  },
+  "kill": {
+   "OSFDreal-CNX": 41.796875,
+   "OSFDreal-R50": 80.078125
+  }
+ },
+ "convnext_t": {
+  "drop": {
+   "OSFDreal-CNX": 95.51685939950707,
+   "OSFDreal-R50": 84.21606219520478
+  },
+  "kill": {
+   "OSFDreal-CNX": 85.97785977859779,
+   "OSFDreal-R50": 59.77859778597786
+  }
+ },
+ "swin_t": {
+  "drop": {
+   "OSFDreal-CNX": 72.2093498565183,
+   "OSFDreal-R50": 81.41449445988773
+  },
+  "kill": {
+   "OSFDreal-CNX": 54.074074074074076,
+   "OSFDreal-R50": 59.25925925925926
+  }
+ },
+ "fcos_r50": {
+  "drop": {
+   "OSFDreal-CNX": 78.26703780401216,
+   "OSFDreal-R50": 93.89189879175436
+  },
+  "kill": {
+   "OSFDreal-CNX": 56.774193548387096,
+   "OSFDreal-R50": 90.96774193548387
+  }
+ },
+ "dino_r50": {
+  "drop": {
+   "OSFDreal-CNX": 72.26861853724616,
+   "OSFDreal-R50": 95.23977763376462
+  },
+  "kill": {
+   "OSFDreal-CNX": 60.75949367088607,
+   "OSFDreal-R50": 92.40506329113924
+  }
+ },
+ "yolov3_d53": {
+  "drop": {
+   "OSFDreal-CNX": 65.07293540836098,
+   "OSFDreal-R50": 81.1159378275025
+  },
+  "kill": {
+   "OSFDreal-CNX": 52.91005291005291,
+   "OSFDreal-R50": 62.96296296296296
+  }
+ },
+ "yolox_l": {
+  "drop": {
+   "OSFDreal-CNX": 51.556950141861805,
+   "OSFDreal-R50": 69.15502350886702
+  },
+  "kill": {
+   "OSFDreal-CNX": 36.09958506224066,
+   "OSFDreal-R50": 53.11203319502075
+  }
+ },
+ "dino_swin_l": {
+  "drop": {
+   "OSFDreal-CNX": 26.090546219665487,
+   "OSFDreal-R50": 22.856928276652063
+  },
+  "kill": {
+   "OSFDreal-CNX": 23.0188679245283,
+   "OSFDreal-R50": 23.39622641509434
+  }
+ },
+ "rtmdet_l": {
+  "drop": {
+   "OSFDreal-CNX": 49.35381880397793,
+   "OSFDreal-R50": 69.43961082207558
+  },
+  "kill": {
+   "OSFDreal-CNX": 38.40304182509506,
+   "OSFDreal-R50": 50.19011406844106
+  }
+ },
+ "deformable_detr": {
+  "drop": {
+   "OSFDreal-CNX": 83.13905325695781,
+   "OSFDreal-R50": 96.23936737284396
+  },
+  "kill": {
+   "OSFDreal-CNX": 60.775862068965516,
+   "OSFDreal-R50": 92.67241379310344
+  }
+ },
+ "ddq_detr": {
+  "drop": {
+   "OSFDreal-CNX": 75.28474674910018,
+   "OSFDreal-R50": 96.39270197656475
+  },
+  "kill": {
+   "OSFDreal-CNX": 57.709251101321584,
+   "OSFDreal-R50": 94.27312775330397
+  }
+ },
+ "mask2former": {
+  "drop": {
+   "OSFDreal-CNX": 72.2783540837982,
+   "OSFDreal-R50": 95.15382498100537
+  },
+  "kill": {
+   "OSFDreal-CNX": 46.2406015037594,
+   "OSFDreal-R50": 89.09774436090225
+  }
+ },
+ "mask2former_swin_s": {
+  "drop": {
+   "OSFDreal-CNX": 55.654795832388544,
+   "OSFDreal-R50": 61.59510506704043
+  },
+  "kill": {
+   "OSFDreal-CNX": 36.76470588235294,
+   "OSFDreal-R50": 41.544117647058826
+  }
+ },
+ "ddq_swinl": {
+  "drop": {
+   "OSFDreal-CNX": 25.79828170466694,
+   "OSFDreal-R50": 26.599227855926205
+  },
+  "kill": {
+   "OSFDreal-CNX": 25.1937984496124,
+   "OSFDreal-R50": 24.41860465116279
+  }
+ }
+}
