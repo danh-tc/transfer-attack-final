@@ -6512,3 +6512,11 @@ Smoke 1 ảnh (`--tag smoke`) chỉ kiểm pipeline, KHÔNG đọc số. 10 ản
 4. **Quy tắc 3 → dấu (khớp WB) KHÔNG phân biệt drop:** nửa drop cao 0.507 vs thấp 0.508; Spearman (ô,ảnh) −0.02. Spearman theo ô +0.71 vô nghĩa (chênh khớp 0.505–0.507).
 - Phụ: WB Swin-L gần như KHÔNG transfer ngược (R101 ≈ 0, DINO-R50 10–22) → δ_WB rất đặc thù target. Các ô surrogate khớp nhau 0.53–0.71 (cùng surrogate CNX) nhưng đều ~0.505 với mọi WB.
 - 10 ảnh, không CI — xu hướng. Việc tiếp đề xuất: S2 thước đo khớp dấu CÓ TRỌNG SỐ độ nhạy target A = ⟨sign δ, g_t⟩/‖g_t‖₁ (IN/OUT, độ tập trung |g_t|, dọc x+tδ), dùng lại PNG S1 — chẩn đoán (cần gradient target).
+
+## 2026-11-17 10:20 GMT+7 — KHÓA S2 (CHẨN ĐOÁN, 10 ảnh, dùng lại PNG S1): khớp dấu CÓ TRỌNG SỐ độ nhạy target — ghi + commit TRƯỚC khi chạy
+Từ S1: khớp dấu 1-1 với một δ_WB là thước đo sai (WB nhiều nghiệm); nghịch lý dấu-cuối-gần-FEAT nhưng drop-do-DET. Ý user: đánh trọng số theo vùng target nhạy, không đánh đồng từng pixel. `scripts/s2_weighted_sign.py`.
+g_t = ∇ₓ L_cls DINO-Swin-L (như WB S1) tại x + t·δ, t ∈ {0, 0.5, 1}. A(R) = Σ_R sign(δ)·g_t / Σ_R |g_t| (ngẫu nhiên ≈ 0), R ∈ {ALL, IN, OUT, top10% |g_t|, phần còn lại}; A_path = TB 3 t (≈ tăng loss bậc 1 chuẩn hóa dọc đường — gần với "loss target tăng bao nhiêu", nêu rõ khi diễn giải). Mô tả: mass_IN của |g_t| ảnh sạch, top10% giữ bao nhiêu ‖g‖₁, contrib_IN. Drop Swin-L lấy từ S1 json (theo ô và theo (ô, ảnh)). Gradient target → CHỈ chẩn đoán, không bao giờ dùng cho attack.
+**Đọc (khóa, trên A_path, 6 ô attack):**
+1. Spearman theo ô ≥ 0.6 VÀ theo (ô, ảnh) ≥ 0.3 → A PHÂN BIỆT drop (thước đo có trọng số dùng được); cả hai ≤ 0.1 → không; còn lại không rõ.
+2. A(DET) > A(FEAT) ở CẢ RD và OSFD → A giải được nghịch lý S1.
+3. top10% |g_t| giữ ≥ 50% ‖g‖₁ → độ nhạy TẬP TRUNG (giải thích được vì sao khớp 1-1 ~0.5 vẫn transfer). Báo t=0/0.5/1 riêng, IN/OUT, top10/rest — mô tả.
