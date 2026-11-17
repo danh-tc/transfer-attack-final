@@ -6588,3 +6588,6 @@ Từ S4: A_MASK xếp đúng 6 ô (ρ 1.00) nhưng trong-ảnh +0.20; nghi do ou
 Sinh 6 ô attack S1 cho 20 ảnh mới (cùng công thức + seed 1000·(n+1)); g_t DINO-Swin-L t ∈ {0.5, 1} (cache S3). Outcome theo ảnh (plan 3.3): clean-TP = GT không-crowd có det cùng lớp IoU ≥ 0.5 score ≥ 0.3; **harm = 1 − TB(score_adv/score_clean)**; kèm kill, AP drop theo tập.
 A_MASK, A_ALL = TB t ∈ {0.5, 1}. Tương quan với harm: theo ô (6); trong-ảnh (Spearman 6 ô/ảnh, TB, CI bootstrap 1000 theo ảnh, seed 2026); hiệu số MASK − ALL paired.
 **Đọc (khóa, trên new20, cho TỪNG A):** ρ ô ≥ 0.6 VÀ ρ trong-ảnh TB ≥ 0.3 VÀ cận dưới CI > 0 → DỰ BÁO; ρ ô ≤ 0.1 VÀ trong-ảnh ≤ 0.1 → không; còn lại không rõ. MASK vs ALL: CI hiệu số loại 0 → cái lớn hơn thắng; chứa 0 → không phân biệt.
+
+## 2026-11-17 11:27 GMT+7 — BỔ SUNG KHÓA S5 (trước khi có số, S5 đang chạy): biến thể phụ A_BOX
+User hỏi MASK (segmentation) vs BOX chữ nhật ở thước đo A. Thêm **A_BOX** = A trên hợp box GT (= MASK ∪ BOXBG), TB t ∈ {0.5, 1}, tính hậu kỳ từ g_t cache S3/S5 (CPU). **Phụ, KHÔNG làm cổng.** Báo trên new20: ρ ô, ρ trong-ảnh TB + CI, hiệu số paired MASK − BOX (CI bootstrap 1000, seed 2026). Đọc: CI loại 0 → cái lớn hơn tốt hơn; chứa 0 → không phân biệt.
