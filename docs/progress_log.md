@@ -6591,3 +6591,24 @@ A_MASK, A_ALL = TB t ∈ {0.5, 1}. Tương quan với harm: theo ô (6); trong-�
 
 ## 2026-11-17 11:27 GMT+7 — BỔ SUNG KHÓA S5 (trước khi có số, S5 đang chạy): biến thể phụ A_BOX
 User hỏi MASK (segmentation) vs BOX chữ nhật ở thước đo A. Thêm **A_BOX** = A trên hợp box GT (= MASK ∪ BOXBG), TB t ∈ {0.5, 1}, tính hậu kỳ từ g_t cache S3/S5 (CPU). **Phụ, KHÔNG làm cổng.** Báo trên new20: ρ ô, ρ trong-ảnh TB + CI, hiệu số paired MASK − BOX (CI bootstrap 1000, seed 2026). Đọc: CI loại 0 → cái lớn hơn tốt hơn; chứa 0 → không phân biệt.
+
+## 2026-11-17 11:44 GMT+7 — S5 KẾT QUẢ (dev30, V100): A_MASK DỰ BÁO harm Swin-L trên 20 ảnh MỚI (ρ ô +0.77, trong-ảnh +0.47 [0.28, 0.63]); A_ALL không rõ; MASK vs ALL / BOX không phân biệt ở mức trong-ảnh
+`results/mechanism/s5_dev30.json`, `s5b_abox_dev30.json`, log `results/s1/s5_dev30.log`.
+**new20 (chính):**
+| ô | A_MASK | A_ALL | harm | kill | AP drop |
+|---|---|---|---|---|---|
+| RD-ALL | 0.073 | 0.022 | 0.436 | 0.450 | 63.3 |
+| RD-DET | 0.071 | 0.027 | 0.371 | 0.381 | 55.9 |
+| RD-FEAT | 0.055 | 0.017 | 0.265 | 0.266 | 40.9 |
+| OSFD-DET | 0.051 | 0.019 | 0.181 | 0.226 | 39.7 |
+| OSFD-ALL | 0.049 | 0.022 | 0.185 | 0.243 | 35.1 |
+| OSFD-FEAT | 0.046 | 0.010 | 0.191 | 0.248 | 24.7 |
+| biến thể | ρ ô vs harm | ρ ô vs AP drop | ρ trong ảnh TB [CI95] | #ảnh > 0 |
+|---|---|---|---|---|
+| **A_MASK** | **+0.77** | **+1.00** | **+0.47 [+0.28, +0.63]** | 18/20 |
+| A_BOX (phụ) | +0.49 | — | +0.42 [+0.28, +0.56] | — |
+| A_ALL | +0.26 | +0.49 | +0.32 [+0.09, +0.51] | 16/20 |
+- **Cổng khóa: A_MASK DỰ BÁO** (ρ ô ≥ 0.6, trong-ảnh ≥ 0.3, cận dưới CI > 0); A_ALL KHÔNG RÕ (ρ ô 0.26). Xác nhận S4 trên ảnh mới với outcome liên tục — S4 "không rõ" chủ yếu do outcome AP từng ảnh nhiễu.
+- MASK − ALL trong-ảnh +0.15 [−0.10, +0.41]; MASK − BOX +0.05 [−0.06, +0.16] → **trong cùng ảnh** chưa phân biệt được; khác biệt rõ ở **giữa các attack** (ρ ô MASK 0.77 > BOX 0.49 > ALL 0.26, n=6 — không có CI).
+- all30: A_MASK ρ ô +0.89, trong-ảnh +0.38 [0.23, 0.53]. Thứ tự harm: RD-ALL > RD-DET > RD-FEAT > 3 ô OSFD (gần nhau ~0.18–0.19 ở new20).
+- Hệ quả: **A_MASK là thước đo proxy hợp lệ (chẩn đoán) cho hiệu quả transfer Swin-L** ở mức attack và mức ảnh; dùng làm thước đo nhanh cho S6. Vẫn là 30 ảnh, 6 ô (1 surrogate CNX).
