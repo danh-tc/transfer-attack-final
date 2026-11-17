@@ -6795,3 +6795,28 @@ Thêm **Mask2Former-Swin-S** (cùng head Mask2Former, backbone Swin-S vs R50 đ�
 - **DDQ-Swin-L = ca Swin-L KHÓ THỨ HAI** (RD 62, R50-ALL 34) bên cạnh DINO-Swin-L → độ khó **KHÔNG riêng head DINO**; là **Swin-L backbone** nói chung (qua ≥2 head DETR-family khác nhau).
 - **Ưu thế ConvNeXt surrogate trên target Swin-L tái xác nhận trên detector MỚI:** DDQ-Swin-L RD-CNX **62 ≫ R50-ALL 34** (+28); trên target R50-backbone thì R50-ALL thắng (same backbone). Nhất quán S8/S12.
 - RD-CNX ≥ OSFD mọi target. Caveat: Mask2Former chỉ có Swin-S, DDQ chỉ Swin-L (không full grid size×head); 30 ảnh, không CI.
+
+## 2026-11-17 16:52 GMT+7 — S14 TOÀN PANEL (dev30, 15 target, 1 metric): RD-CNX ≥ OSFD trên MỌI target; mạnh đồng đều 78–96% trừ 2 ca Swin-L (62–63%); so sánh CÙNG surrogate ConvNeXt (fair)
+`results/mechanism/s14_fullpanel_dev30.json`. relative AP drop % (kill%), δ đóng băng. **RD-ALL và OSFD-FEAT đều surrogate ConvNeXt → so recipe công bằng cùng surrogate.**
+| target | cleanAP | RD-CNX | OSFD-style | R50-ALL |
+|---|---|---|---|---|
+| r50 | 40.8 | 87 | 78 | 99* |
+| r101 | 40.5 | 87 | 69 | 95 |
+| convnext_t | 45.6 | 96* | 92 | 89 |
+| swin_t | 46.0 | 90 | 74 | 87 |
+| fcos_r50 | 37.9 | 86 | 79 | 95 |
+| dino_r50 | 49.5 | 88 | 77 | 96 |
+| yolov3_d53 | 36.0 | 81 | 68 | 83 |
+| yolox_l | 49.8 | 78 | 64 | 76 |
+| **dino_swin_l** | 59.7 | **63** | 27 | 30 |
+| rtmdet_l | 53.7 | 81 | 62 | 77 |
+| deformable_detr | 47.4 | 85 | 83 | 97 |
+| ddq_detr | 54.4 | 88 | 75 | 96 |
+| mask2former | 45.1 | 87 | 74 | 96 |
+| mask2former_swin_s | 48.1 | 83 | 62 | 73 |
+| **ddq_swinl** | 59.4 | **62** | 33 | 34 |
+(* = white-box)
+- **RD-CNX ≥ OSFD-style trên 15/15 target** (cùng surrogate ConvNeXt → chênh là do RECIPE, không do surrogate). Mean transfer RD-CNX (loại WB) ~82% vs OSFD-style ~66%.
+- **RD-CNX mạnh đồng đều 78–96%** qua MỌI paradigm (2-stage, 1-stage, FCOS anchor-free, DETR-family, Mask2Former, YOLO); **chỉ 2 ca Swin-L tụt còn 62–63%** — nhưng vẫn ≫ OSFD (27, 33) và ≫ R50-ALL (30, 34) ở đó.
+- **R50-ALL:** ~95–99 trên R50-backbone (gần WB), sụp 30–34 trên Swin-L → ConvNeXt surrogate là thứ vớt được Swin-L (63 vs 30).
+- Caveat: OSFD-style ở đây = geo RRB+feature trên ConvNeXt (≈OSFD recipe, KHÔNG phải osfd_attack gốc + object-aware weighting; fidelity check thật = G3). dev30, không CI.
