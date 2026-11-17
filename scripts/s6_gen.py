@@ -61,7 +61,7 @@ def main():
                     continue
                 torch.manual_seed(1000 * (n + 1))
                 g = target_grads(model, "dino_swin_l", x, dsm, objectives=("cls",))[0]["cls"].float().cpu().numpy()
-                np.save(p, g.astype(np.float16))
+                np.save(p + ".tmp.npy", g.astype(np.float16)); os.replace(p + ".tmp.npy", p)  # ghi nguyên tử
             print(f"[s6 grad] {n + 1}/{len(ids)}", flush=True)
 
 

@@ -58,7 +58,7 @@ def main():
                 torch.manual_seed(1000 * (n + 1))
                 g = target_grads(model, "dino_swin_l", ds[i]["orig_inputs"].cuda().float(), ds[i]["data_sample"],
                                  objectives=("cls",))[0]["cls"].float().cpu().numpy()
-                np.save(p, g.astype(np.float16))
+                np.save(p + ".tmp.npy", g.astype(np.float16)); os.replace(p + ".tmp.npy", p)  # ghi nguyên tử
         del model; torch.cuda.empty_cache()
     D = {c: {i: mmcv.imread(os.path.join(ADV, c, f"{i}.png")).astype(np.int32) - clean[i] for i in ids} for c in CELLS}
     SG = {i: np.random.default_rng(42 + i).choice([-1, 1], size=clean[i].shape) for i in ids}
