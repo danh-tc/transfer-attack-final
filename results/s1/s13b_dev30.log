@@ -1,0 +1,67 @@
+loading annotations into memory...
+Done (t=0.63s)
+creating index...
+index created!
+[s13] rtmdet_l da co trong json, bo qua
+[s13] deformable_detr da co trong json, bo qua
+[s13] ddq_detr da co trong json, bo qua
+[s13] mask2former da co trong json, bo qua
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/mask2former_swin_s.pth
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+[s13] mask2former_swin_s clean AP 48.1 (n_tp 272) | RD-ALL drop 83/kill 58  OSFD-FEAT drop 62/kill 43  R50-ALL drop 73/kill 49
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/mmdet/apis/inference.py:90: UserWarning: dataset_meta or class names are not saved in the checkpoint's meta data, use COCO classes by default.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/modern/ddq_swinl.pth
+The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: decoder.aux_reg_branches.0.0.weight, decoder.aux_reg_branches.0.0.bias, decoder.aux_reg_branches.0.2.weight, decoder.aux_reg_branches.0.2.bias, decoder.aux_reg_branches.0.4.weight, decoder.aux_reg_branches.0.4.bias, decoder.aux_reg_branches.1.0.weight, decoder.aux_reg_branches.1.0.bias, decoder.aux_reg_branches.1.2.weight, decoder.aux_reg_branches.1.2.bias, decoder.aux_reg_branches.1.4.weight, decoder.aux_reg_branches.1.4.bias, decoder.aux_reg_branches.2.0.weight, decoder.aux_reg_branches.2.0.bias, decoder.aux_reg_branches.2.2.weight, decoder.aux_reg_branches.2.2.bias, decoder.aux_reg_branches.2.4.weight, decoder.aux_reg_branches.2.4.bias, decoder.aux_reg_branches.3.0.weight, decoder.aux_reg_branches.3.0.bias, decoder.aux_reg_branches.3.2.weight, decoder.aux_reg_branches.3.2.bias, decoder.aux_reg_branches.3.4.weight, decoder.aux_reg_branches.3.4.bias, decoder.aux_reg_branches.4.0.weight, decoder.aux_reg_branches.4.0.bias, decoder.aux_reg_branches.4.2.weight, decoder.aux_reg_branches.4.2.bias, decoder.aux_reg_branches.4.4.weight, decoder.aux_reg_branches.4.4.bias, decoder.aux_reg_branches.5.0.weight, decoder.aux_reg_branches.5.0.bias, decoder.aux_reg_branches.5.2.weight, decoder.aux_reg_branches.5.2.bias, decoder.aux_reg_branches.5.4.weight, decoder.aux_reg_branches.5.4.bias
+
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+[s13] ddq_swinl        clean AP 59.4 (n_tp 258) | RD-ALL drop 62/kill 44  OSFD-FEAT drop 33/kill 24  R50-ALL drop 34/kill 29
+/workspace/transfer-attack-final/scripts/s13_modern.py:81: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/transfer-attack-final/results/mechanism/s13_modern_dev30.json' mode='w' encoding='UTF-8'>
+  json.dump(res, open(OUTJ, "w"), indent=1, ensure_ascii=False)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+
+=== PANEL MODERN held-out (dev30) — relative AP drop % (kill %) ===
+target           cleanAP          RD-ALL       OSFD-FEAT         R50-ALL
+rtmdet_l            53.7      81( 60)      62( 48)      77( 55)
+deformable_detr     47.4      85( 63)      83( 59)      97( 85)
+ddq_detr            54.4      88( 64)      75( 59)      96( 85)
+mask2former         45.1      87( 65)      74( 53)      96( 81)
+mask2former_swin_s    48.1      83( 58)      62( 43)      73( 49)
+ddq_swinl           59.4      62( 44)      33( 24)      34( 29)
+[s13] -> results/mechanism/s13_modern_dev30.json
+/usr/lib/python3.10/tempfile.py:1008: ResourceWarning: Implicitly cleaning up <TemporaryDirectory '/tmp/tmpvrfjunsc'>
+  _warnings.warn(warn_message, ResourceWarning)

@@ -6781,3 +6781,17 @@ Vá lỗ hổng "mention modern nhưng panel chỉ DINO-Swin-L". `scripts/s13_mo
 ## 2026-11-17 16:33 GMT+7 — BỔ SUNG S13 (user: thêm Mask2Former-Swin): 2 target Swin-backbone modern — contrast cùng head đổi backbone R50→Swin
 Thêm **Mask2Former-Swin-S** (cùng head Mask2Former, backbone Swin-S vs R50 đã có 87%) + **DDQ-DETR-Swin-L** (cùng head DETR DDQ, backbone Swin-L vs R50 đã có 88%). Điểm Swin-backbone thứ 2/3 ngoài DINO-Swin-L. eval-only δ đóng băng dev30, gộp vào json S13. KHÓA trước.
 **Đọc:** nếu Mask2Former-Swin-S và DDQ-Swin-L **tụt rõ** so với bản R50 cùng head → **Swin backbone cản transfer HOLDING HEAD CỐ ĐỊNH** (de-confound sạch cho S10/C2: cùng head Mask2Former/DDQ, chỉ đổi backbone). Nếu vẫn dễ → stuck đặc thù riêng DINO-Swin-L (DINO×Swin-L), không phải mọi Swin-backbone. 30 ảnh, không CI, held-out không tune.
+
+## 2026-11-17 16:36 GMT+7 — S13-Swin KẾT QUẢ (dev30): GIỮ HEAD CỐ ĐỊNH đổi backbone R50→Swin làm TỤT transfer, tụt mạnh theo size Swin — de-confound sạch cho C2; DDQ-Swin-L là ca Swin-L KHÓ THỨ HAI (không riêng DINO)
+`results/mechanism/s13_modern_dev30.json`. relative AP drop % (kill%), δ đóng băng, **contrast cùng head**:
+| head | backbone | RD-CNX | OSFD | R50-ALL |
+|---|---|---|---|---|
+| Mask2Former | R50 | 87 | 74 | 96 |
+| Mask2Former | **Swin-S** | 83 | 62 | **73** |
+| DDQ-DETR | R50 | 88 | 75 | 96 |
+| DDQ-DETR | **Swin-L** | **62** | **33** | **34** |
+| (DINO) | R50 (trước) dễ / Swin-L ~52–59 | | | |
+- **Giữ head cố định, R50→Swin TỤT transfer, tụt mạnh theo SIZE Swin:** Mask2Former R50→Swin-**S** nhẹ (RD 87→83; R50-ALL 96→73); DDQ R50→Swin-**L** mạnh (RD 88→62; R50-ALL 96→**34**; OSFD 75→33). → **backbone Swin cản transfer HOLDING HEAD — de-confound sạch hơn hẳn S10** (S10 lẫn head+size; đây giữ đúng head Mask2Former/DDQ, chỉ đổi backbone).
+- **DDQ-Swin-L = ca Swin-L KHÓ THỨ HAI** (RD 62, R50-ALL 34) bên cạnh DINO-Swin-L → độ khó **KHÔNG riêng head DINO**; là **Swin-L backbone** nói chung (qua ≥2 head DETR-family khác nhau).
+- **Ưu thế ConvNeXt surrogate trên target Swin-L tái xác nhận trên detector MỚI:** DDQ-Swin-L RD-CNX **62 ≫ R50-ALL 34** (+28); trên target R50-backbone thì R50-ALL thắng (same backbone). Nhất quán S8/S12.
+- RD-CNX ≥ OSFD mọi target. Caveat: Mask2Former chỉ có Swin-S, DDQ chỉ Swin-L (không full grid size×head); 30 ảnh, không CI.
