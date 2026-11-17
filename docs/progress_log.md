@@ -6743,3 +6743,7 @@ Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thu�
 - **Xu hướng: càng sâu càng tốt, đỉnh ở RoI cls.** kill sâu−nông: r101 +6, dino_r50 +7, swin_t +10, **dino_swin_l +13** (lớn nhất). → KHÔNG đánh đổi: loss RoI cls tốt mọi target, lợi nhất cho target khó.
 - L_rpn (giữa) không đơn điệu — tụt trên dino_r50/r101 (49/42), chỉ nhỉnh swin. RPN objectness không phải vị trí tốt; RoI cls mới là.
 - Nhất quán S8 (DET>FEAT) và giải thích RD-CNX = OCT + **RoI cls** + WP: thành phần cls RoI chính là "đẩy loss ra sâu", và đó là lý do RD hơn OSFD (feature thuần) trên Swin-L. 30 ảnh, 1 surrogate, không CI.
+
+## 2026-11-17 15:13 GMT+7 — KHÓA S12 (user): RD recipe (loss RoI cls) trên CNN THƯỜNG TO HƠN (ResNet-101, 43M) — đồng hiệu ứng với ConvNeXt không — ghi + commit TRƯỚC khi chạy
+Lý do: S8 đã có R50 (24M) + ConvNeXt-T (28M); thiếu điểm CNN thường to hơn. ConvNeXt-L detector KHÔNG tồn tại (chỉ backbone phân loại → chỉ feature attack = G10 ≈0). `scripts/s12_r101.py`, surrogate r101, dev30. Cells R101-FEAT/DET/ALL (λ=6.0 như R50, CHƯA calib riêng — RoI-only thì MI chuẩn hóa nên λ không ảnh hưởng; ALL thì λ ảnh hưởng cân bằng, ghi rõ). Đo A_MASK + kill thang target (dino_r50, swin_t, dino_swin_l), ghép S8 để so R50/R101/ConvNeXt trên Swin-L.
+**Đọc:** kill DET(RoI)→Swin-L của R101 vs R50 (28) vs ConvNeXt (42). R101 ≈ R50 → CNN thường to hơn KHÔNG cứu (khác biệt do KIỂU backbone, không do size); R101 → gần ConvNeXt → size/capacity có vai trò. 30 ảnh, không CI.
