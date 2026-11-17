@@ -1,0 +1,39 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.65s)
+creating index...
+index created!
+
+[A] theo GIA TRI pixel sach (trong mask, pixel-kenh):
+bin       %pixel mat do|g|  A RD-ALL   A WB-0  clip% RD
+VDARK       12.2      1.40    0.0376   0.0865        33
+DARK        32.4      0.82    0.0400   0.1376         7
+MID         43.4      0.98    0.0324   0.1553         7
+BRIGHT       9.4      1.21    0.0138   0.1577         6
+VBRIGHT      2.5      0.91    0.0128   0.1058        41
+
+[B] theo DO PHANG cuc bo (trong mask, pixel gop kenh):
+bin       %pixel mat do|g|  A RD-ALL   A WB-0
+FLAT        33.3      1.60    0.0185   0.0676
+MIDF        33.4      0.85    0.0319   0.1460
+TEXT        33.3      0.55    0.0715   0.2752
+
+[C] theo KENH MAU (trong mask):
+kenh       %‖g‖1  A RD-ALL   A WB-0
+B           23.8    0.0324   0.1385
+G           44.8    0.0347   0.1350
+R           31.4    0.0331   0.1477
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+
+[hanh vi] DINO-Swin-L kill % (265 object):
+                 full  keep_TEXT  keep_FLAT  keep_MIDi  keep_EXTi     keep_B     keep_G     keep_R
+WB-0               73         33         23         69         14         23         41         31
+WB-r1              75         33         24         72         14         20         41         30
+WB-r2              76         35         26         71         12         20         41         29
+RD-ALL             44         12         10         38          6          6         14          8
+RD-DET             42         11         12         32          5          6         14          9
+RD-FEAT            28          5          6         22          4          3          6          5
+OSFD-ALL           25          9          7         20          5          6         10          7
+
+[s7] -> results/mechanism/s7_pixel_dev30.json

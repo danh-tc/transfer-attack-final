@@ -6658,3 +6658,18 @@ Trục dùng gradient target (chẩn đoán, trong mask), đã có:
 **[B] độ phẳng:** mật độ |g_t| dồn ở FLAT (1.60) nhưng **A cao nhất ở TEXT: WB 0.275 vs FLAT 0.068 (×4), RD 0.072 vs 0.019** → hướng hiệu quả nằm ở pixel TEXTURE/cạnh, không ở vùng phẳng (dù |g| thô dồn vùng phẳng). Nối shape/texture CNN-vs-Transformer.
 **[C] kênh màu:** G giữ 44.8% ‖g‖1 (do trọng số luminance) nhưng A ~ĐỀU 3 kênh (RD 0.032–0.035, WB 0.135–0.148) → KHÔNG kênh nào đặc biệt về hướng. Trục C xem như null.
 **Dự đoán hành vi (KHÓA, kill DINO-Swin-L, 7 δ):** (i) keep_TEXT > keep_FLAT (đều ~1/3 diện tích) ở ≥5/7 δ → texture mang hướng hiệu quả; (ii) keep_MIDint > keep_EXTint (do clip + A sáng thấp); (iii) keep_B ≈ keep_G ≈ keep_R (không kênh trội). Chạy `s7_pixel.py --behav 1`.
+
+## 2026-11-17 13:57 GMT+7 — S7 KẾT QUẢ hành vi (dev30, 265 object): keep_MIDint ≈ full (7/7, biên vô dụng); keep_TEXT > keep_FLAT (5/7, nhẹ: 35% vs 29% full); KÊNH G TRỘI (dự đoán iii SAI)
+`results/mechanism/s7_pixel_dev30.json`, log `results/s1/s7_dev30.log`. kill % DINO-Swin-L:
+| δ | full | TEXT | FLAT | MIDint | EXTint | keepB | keepG | keepR |
+|---|---|---|---|---|---|---|---|---|
+| WB×3 | 73–76 | 33–35 | 23–26 | 69–72 | 12–14 | 20–23 | 41 | 29–31 |
+| RD-ALL | 44 | 12 | 10 | 38 | 6 | 6 | 14 | 8 |
+| RD-DET | 42 | 11 | 12 | 32 | 5 | 6 | 14 | 9 |
+| OSFD-ALL | 25 | 9 | 7 | 20 | 5 | 6 | 10 | 7 |
+**Dự đoán khóa:**
+- (i) keep_TEXT > keep_FLAT: **5/7 ĐÚNG** nhưng nhẹ — TEXT giữ 35% kill full, FLAT 29% (diện tích đều 1/3). A chẩn đoán nói TEXT ×4 FLAT nhưng hành vi chỉ 35 vs 29 → chênh A phóng đại chênh hành vi.
+- (ii) keep_MIDint > keep_EXTint: **7/7 ĐÚNG, mạnh** — pixel giá trị-giữa (16–240) giữ GẦN TRỌN kill (WB 69–72 ≈ full 73–76); pixel biên (14.5% pixel-kênh) gần vô dụng (12–14). Khớp clip 33–41% + A biên thấp.
+- (iii) keep_B ≈ keep_G ≈ keep_R: **SAI** — **G trội rõ** (WB keep_G 41 vs keep_B 20, keep_R 30; chênh max-min TB 11.9). Theo khối lượng |g_t| (G giữ 45%), KHÔNG theo A (A 3 kênh đều ~0.135). Tức G mang nhiều độ-lớn-nhạy hơn, dù hướng khớp mỗi kênh như nhau.
+**Chẩn đoán (đã khóa trước):** A WB cao ở MID/BRIGHT (0.155/0.158), **A RD-ALL sụp ở BRIGHT 0.014 / VBRIGHT 0.013** (WB vẫn 0.16/0.11) → **transfer BỎ LỠ pixel sáng** = chỗ thiếu hụt đặc thù nhất. Độ phẳng: |g_t| thô dồn FLAT (1.60) nhưng A dồn TEXT (WB 0.275 vs 0.068).
+**Hệ quả method:** không trục nào mở đòn bẩy rẻ — texture nhẹ & không "thêm" được; biên chỉ 15% pixel & đã mất do clip; G đã bị nhiễu đầy ±ε sẵn. Chỗ method-relevant nhất = **thiếu hụt khớp ở pixel SÁNG** (A transfer 0.014 vs WB 0.158). Trùng tinh thần S6: gap trải rộng, không gom được. 30 ảnh, xu hướng.
