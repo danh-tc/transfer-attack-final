@@ -6479,3 +6479,17 @@ Thay thước đo gradient (đã rút) bằng ĐO HÀNH VI. Surrogate = backbone
 - Commit LOCAL (HEAD `993b3b1` + commit note này). **User tự push.** ~20+ commit phiên này chưa push.
 - PNG nặng phiên này (`artifacts/runs/{h0_backend,p1_logodds,g2_earlytraj,g4_swint,g10_bbattack,r1_wb_swinl}`) + checkpoint `convnext-large_in21k.pth`, `swin-large_22kto1k.pth`, `rtmdet_l_*.pth` **KHÔNG commit, MẤT khi trả máy** (tải lại: mmdet/mmpretrain URL trong script; RTMDet-ConvNeXt/Swin-B orange0-jp 404). PNG F1b gốc vẫn trên HF `congdanh99/transfer-attack` tag `_3090`.
 - Kết quả JSON + log (`results/mechanism/*.json`, `results/r1/*.log`, `results/{r0,h0,m0,p1,t0}/`) ĐÃ commit.
+
+## 2026-11-17 09:50 GMT+7 — KHÓA S1 (QUICK, 10 ảnh dev100[:10]): bản đồ dấu theo thành phần loss (feature vs detector) × 2 method, cùng surrogate CNX + WB Swin-L 3 seed — ghi + commit TRƯỚC khi chạy
+Câu hỏi (user): chưa cô lập vai trò FEATURE vs DETECTOR ở mức bản đồ dấu; attack drop cao vs thấp có khác bản đồ dấu không; bản đồ dấu WB có duy nhất không (nếu không, "khớp dấu WB" của R1-WB/G3/G4 là thước đo sai). `scripts/s1_signmap.py`.
+**Ô (surrogate Mask R-CNN ConvNeXt-T cho CẢ 2 method — user duyệt, sạch biến; B50, ε5, seed 1000·(n+1)):**
+- RD-{ALL, FEAT, DET}: OCT 1 view, amp, WP ρ0.002 weight_linear. ALL = `METHODS["C2-OCT-1V-WP2-RD-CNX"]` y hệt; FEAT = L_OSFD C3–C5; DET = chỉ loss cls RoI.
+- OSFD-{ALL, FEAT, DET}: `geo_osfd_attack geo="rrb"` (2 view/backward, co-transform), C2–C5, amp, không WP; ALL/DET + loss cls RoI λ0.2 (λ CNX của rd_calib, KHÔNG tune cho RRB — caveat thang loss khác). Sửa core: nới 1 assert trong `pia.py` cho RRB + cls_mode="roi" (rrb_views with_gt đã co-transform box); đường mặc định không đổi. OSFD-FEAT là bản geo (≈ OSFD gốc, E84 I_impl), không phải `osfd_attack`.
+- WB-0 (δ0=0, = R1-WB), WB-r1, WB-r2 (δ0 ~ U(−ε,ε) seed 1/2): DINO-Swin-L loss cls, MI μ1 sign, B20, ε5.
+- RAND: dấu ±ε ngẫu nhiên mọi pixel-kênh (mốc sàn, trả lời caveat sàn G3).
+**Đo:** (A) đồng thuận dấu từng cặp, IN/OUT (box GT), + trên pixel mà 3 WB cùng dấu; (B) relative AP drop + kill trên dino_swin_l, swin_t, r101, fcos_r50, dino_r50; (C) dấu vs drop Swin-L: Spearman theo 6 ô attack, và theo (ô, ảnh) 60 điểm, khớp-WB nửa drop cao vs thấp (median).
+**Đọc (khóa):**
+1. WB đôi một (TB 3 cặp, IN) ≥ 0.8 → dấu WB ổn định, "khớp WB" dùng được. ≤ 0.6 VÀ mọi WB drop ≥ 80% → NHIỀU NGHIỆM, "khớp WB" là thước đo SAI (rút diễn giải dấu của R1-WB/G3/G4). Giữa → không rõ.
+2. Mỗi method: agree(ALL,FEAT) − agree(ALL,DET) ≥ +0.05 → dấu cuối do FEAT; ≤ −0.05 → do DET; còn lại cân. agree(FEAT,DET) ~0.5 → 2 thành phần đẩy hướng độc lập.
+3. Khớp-WB nửa drop cao − nửa thấp ≥ +0.03 VÀ Spearman(ô,ảnh) > 0 → dấu phân biệt thành công; ngược lại không.
+Smoke 1 ảnh (`--tag smoke`) chỉ kiểm pipeline, KHÔNG đọc số. 10 ảnh = xu hướng, không phải bằng chứng paper.

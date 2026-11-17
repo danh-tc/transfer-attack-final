@@ -593,7 +593,9 @@ def geo_osfd_attack(model, orig_pixels, data_sample, steps: int, epsilon: float 
         grad_transform = lambda g: (grad_tap.append(g.detach().clone()), g)[1]
     assert geo in ("rrb", "pia", "morgd", "smooth", "grgd", "grgd_random",
                    "pia_morgd2", "pia_smooth2", "morgd2", "cam", "noise", "flip", "pool", "elem")  # morgd/smooth: morgd.py; grgd*: grgd.py; *2: morgd2.py
-    assert cls_weight == 0.0 or geo != "rrb"
+    # S1 (progress_log 2026-11-17 09:50): cho phép RRB + loss cls RoI (ô OSFD-ALL / OSFD-DET); rrb_views(with_gt=True) đã
+    # co-transform box GT. Chỉ nới assert — đường mặc định không đổi.
+    assert cls_weight == 0.0 or geo != "rrb" or cls_mode == "roi"
     assert co_transform or geo in ("pia", "elem")  # elem: C2-OCT-1V-noCT (progress_log 2026-10-18) — box GT vẫn co-transform
     assert rapa_p is None or (co_transform and cls_weight == 0.0)  # RaPA: chỉ khung loss feature + co-transform
     assert bg_weight == 0.0 or (geo == "elem" and cls_weight == 0.0 and co_transform and not cache_views and rapa_p is None)
