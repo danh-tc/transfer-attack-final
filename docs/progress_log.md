@@ -6712,3 +6712,9 @@ Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thu�
 3. **CNX vs R50:** A_MASK chênh nhỏ (+0.008 ở Swin-L) nhưng **kill chênh lớn: CNX-ALL 44 vs R50-ALL 29** — ưu thế CNX là hành vi, đậm nhất ở Swin-L (ánh xạ A→kill rất dốc, nhất quán finding cũ). Trên dino_r50, R50 surrogate kill 86–90 (gần white-box do chung backbone R50).
 - **A_MASK KHÔNG đơn điệu theo thang:** swin_t A cao nhất (0.12) — stuck Swin-L KHÔNG phải "A giảm dần" mà là **sụp riêng ở Swin-L**, đặc biệt nhánh feature. Khớp WB vẫn phá Swin-L 90% (S1) → không phải target bền.
 - **Hệ quả method:** nhánh feature-backbone CNN vô dụng cho Swin-L; đòn bẩy = nhánh head (RD đã có) + surrogate có xử-lý-feature giống target (Swin/encoder — G4: Swin-T detector→Swin-L 54%). 30 ảnh, không CI, caveat A↔kill lệch CNX/R50.
+
+## 2026-11-17 14:33 GMT+7 — KHÓA S10 (user approve): lưới 2×2 target backbone×head → tách vai trò + kiểm TƯƠNG TÁC ở DINO-Swin-L — ghi + commit TRƯỚC khi chạy
+`scripts/s10_grid.py`, dev30, probe δ CNX (RD-ALL chính, FEAT/DET phụ — khác họ với cả 4 target). Lưới: RoI×R50 = mask_rcnn r50 (MỚI) | RoI×Swin = swin_t (MRC-Swin-T, từ S8) | DINO×R50 = dino_r50 (S8) | DINO×Swin-L = dino_swin_l (S8). Đo A_MASK + kill.
+**Tương tác:** predicted(DINO×Swin-L) = RoI×R50 + [RoI×Swin − RoI×R50] + [DINO×R50 − RoI×R50]; interaction = actual − predicted.
+**Đọc (khóa, trên kill):** interaction ≤ −10 điểm → TƯƠNG TÁC ÂM (combo khó hơn tổng hai hiệu ứng) → stuck = backbone×head, không do riêng cái nào; |interaction| < 10 → cộng tính (độ khó chia đều 2 trục). A_MASK báo kèm.
+**Caveat (khóa):** Swin-T≠Swin-L cả size+pretrain; không có DINO-Swin-T / MRC-Swin-L để ô đối xứng hoàn chỉnh → trục backbone lẫn size; swin_s bỏ (không có trong registry gradient). Kill bão hòa [0,100] nên mô hình cộng là xấp xỉ thô — đọc hướng, không đọc con số tuyệt đối. 30 ảnh, không CI.
