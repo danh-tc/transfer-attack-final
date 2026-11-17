@@ -6513,7 +6513,7 @@ Smoke 1 ảnh (`--tag smoke`) chỉ kiểm pipeline, KHÔNG đọc số. 10 ản
 - Phụ: WB Swin-L gần như KHÔNG transfer ngược (R101 ≈ 0, DINO-R50 10–22) → δ_WB rất đặc thù target. Các ô surrogate khớp nhau 0.53–0.71 (cùng surrogate CNX) nhưng đều ~0.505 với mọi WB.
 - 10 ảnh, không CI — xu hướng. Việc tiếp đề xuất: S2 thước đo khớp dấu CÓ TRỌNG SỐ độ nhạy target A = ⟨sign δ, g_t⟩/‖g_t‖₁ (IN/OUT, độ tập trung |g_t|, dọc x+tδ), dùng lại PNG S1 — chẩn đoán (cần gradient target).
 
-## 2026-11-17 10:20 GMT+7 — KHÓA S2 (CHẨN ĐOÁN, 10 ảnh, dùng lại PNG S1): khớp dấu CÓ TRỌNG SỐ độ nhạy target — ghi + commit TRƯỚC khi chạy
+## 2026-11-17 10:11 GMT+7 — KHÓA S2 (CHẨN ĐOÁN, 10 ảnh, dùng lại PNG S1): khớp dấu CÓ TRỌNG SỐ độ nhạy target — ghi + commit TRƯỚC khi chạy
 Từ S1: khớp dấu 1-1 với một δ_WB là thước đo sai (WB nhiều nghiệm); nghịch lý dấu-cuối-gần-FEAT nhưng drop-do-DET. Ý user: đánh trọng số theo vùng target nhạy, không đánh đồng từng pixel. `scripts/s2_weighted_sign.py`.
 g_t = ∇ₓ L_cls DINO-Swin-L (như WB S1) tại x + t·δ, t ∈ {0, 0.5, 1}. A(R) = Σ_R sign(δ)·g_t / Σ_R |g_t| (ngẫu nhiên ≈ 0), R ∈ {ALL, IN, OUT, top10% |g_t|, phần còn lại}; A_path = TB 3 t (≈ tăng loss bậc 1 chuẩn hóa dọc đường — gần với "loss target tăng bao nhiêu", nêu rõ khi diễn giải). Mô tả: mass_IN của |g_t| ảnh sạch, top10% giữ bao nhiêu ‖g‖₁, contrib_IN. Drop Swin-L lấy từ S1 json (theo ô và theo (ô, ảnh)). Gradient target → CHỈ chẩn đoán, không bao giờ dùng cho attack.
 **Đọc (khóa, trên A_path, 6 ô attack):**
@@ -6521,7 +6521,7 @@ g_t = ∇ₓ L_cls DINO-Swin-L (như WB S1) tại x + t·δ, t ∈ {0, 0.5, 1}. 
 2. A(DET) > A(FEAT) ở CẢ RD và OSFD → A giải được nghịch lý S1.
 3. top10% |g_t| giữ ≥ 50% ‖g‖₁ → độ nhạy TẬP TRUNG (giải thích được vì sao khớp 1-1 ~0.5 vẫn transfer). Báo t=0/0.5/1 riêng, IN/OUT, top10/rest — mô tả.
 
-## 2026-11-17 10:35 GMT+7 — S2 KẾT QUẢ (10 ảnh, V100): A có trọng số XẾP ĐÚNG Ô (ρ 0.89) + GIẢI nghịch lý S1, nhưng KHÔNG theo ảnh (ρ −0.03) → quy tắc 1 KHÔNG RÕ; |g_t| tập trung (top10% = 67%), 60% nằm NGOÀI box
+## 2026-11-17 10:15 GMT+7 — S2 KẾT QUẢ (10 ảnh, V100): A có trọng số XẾP ĐÚNG Ô (ρ 0.89) + GIẢI nghịch lý S1, nhưng KHÔNG theo ảnh (ρ −0.03) → quy tắc 1 KHÔNG RÕ; |g_t| tập trung (top10% = 67%), 60% nằm NGOÀI box
 `results/mechanism/s2_weighted_sign_dev10.json`, log `results/s1/s2_dev10.log`.
 | ô | drop Swin-L | A t=0 | A t=0.5 | A t=1 | A_path | A_IN | A_OUT |
 |---|---|---|---|---|---|---|---|
@@ -6538,7 +6538,7 @@ g_t = ∇ₓ L_cls DINO-Swin-L (như WB S1) tại x + t·δ, t ∈ {0, 0.5, 1}. 
 3. **Quy tắc 3 → TẬP TRUNG:** top10% pixel-kênh giữ 67% ‖g_t‖₁ (ảnh sạch). **mass_IN 0.40 vs diện tích IN 0.24** → mật độ nhạy trong box 1.7× ngoài, NHƯNG 60% khối độ nhạy nằm NGOÀI box.
 - **Mô tả:** (a) Ở ảnh sạch (t=0) MỌI surrogate A ≈ 0; khớp chỉ NỔI LÊN dọc đường (t 0.5–1) → hướng δ không có sẵn trong gradient sạch của target, target trở nên nhạy theo δ sau khi bị nhiễu (phi tuyến) — nhất quán G1. (b) Khoảng cách tới WB: surrogate A_path ~0.01 vs WB-r ~0.07 (≈ 6×); A_IN surrogate ~0.03 vs WB-r ~0.10 (3×); A_OUT surrogate ≤ 0.01 vs WB-r ~0.06 → thiếu hụt lớn nhất ở NGOÀI box. Mâu thuẫn bề ngoài với R1 (WB keep_FAR chỉ 8% kill) → cần R1-bis.
 
-## 2026-11-17 10:55 GMT+7 — KHÓA S3 (10 ảnh, PNG S1 + WB-r3/r4): VÙNG PIXEL ĐỊNH NGHĨA LẠI theo MASK instance; kết luận phải VỮNG QUA NHIỀU BẢN ĐỒ DẤU — ghi + commit TRƯỚC khi chạy
+## 2026-11-17 10:25 GMT+7 — KHÓA S3 (10 ảnh, PNG S1 + WB-r3/r4): VÙNG PIXEL ĐỊNH NGHĨA LẠI theo MASK instance; kết luận phải VỮNG QUA NHIỀU BẢN ĐỒ DẤU — ghi + commit TRƯỚC khi chạy
 Lý do (user): S1 phát hiện WB nhiều nghiệm dấu; S2 thấy 60% |g_t| ngoài box ⇄ R1 "IN-dominated"; box lẫn nền (10 ảnh: nền chiếm 17–63% box, TB ~38%). Nguyên tắc: KHÔNG so dấu giữa 2 δ khác nhau; chỉ thao tác trên CHÍNH δ đó + độ nhạy target; kết luận "vững" chỉ khi lặp lại ở ≥ 4/5 seed WB VÀ ≥ 5/6 ô attack. `scripts/s3_region.py`.
 **Vùng (rời nhau, phủ ảnh):** MASK = hợp mask GT COCO (kể cả crowd, 3/10 ảnh có 1 crowd) | BOXBG = hợp box \ MASK | RING = box nở 25%/phía \ box | FAR = còn lại.
 **δ:** 6 ô attack S1 + WB-0, r1, r2 (S1) + **WB-r3, WB-r4 mới** (cùng công thức, δ0 ~ U(−ε,ε) seed 3/4).

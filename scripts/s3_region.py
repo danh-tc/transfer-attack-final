@@ -1,4 +1,4 @@
-"""S3 (progress_log 2026-11-17 10:55, KHÓA): vùng pixel ĐỊNH NGHĨA LẠI theo mask instance + kết luận phải VỮNG QUA NHIỀU
+"""S3 (progress_log 2026-11-17 10:25, KHÓA): vùng pixel ĐỊNH NGHĨA LẠI theo mask instance + kết luận phải VỮNG QUA NHIỀU
 BẢN ĐỒ DẤU (5 seed WB + 6 ô attack), KHÔNG so dấu giữa 2 δ khác nhau — chỉ thao tác trên CHÍNH δ đó + độ nhạy target.
 10 ảnh dev100[:10], PNG S1 (+ sinh WB-r3, WB-r4 cùng công thức S1).
 
