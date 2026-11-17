@@ -6747,3 +6747,15 @@ Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thu�
 ## 2026-11-17 15:13 GMT+7 — KHÓA S12 (user): RD recipe (loss RoI cls) trên CNN THƯỜNG TO HƠN (ResNet-101, 43M) — đồng hiệu ứng với ConvNeXt không — ghi + commit TRƯỚC khi chạy
 Lý do: S8 đã có R50 (24M) + ConvNeXt-T (28M); thiếu điểm CNN thường to hơn. ConvNeXt-L detector KHÔNG tồn tại (chỉ backbone phân loại → chỉ feature attack = G10 ≈0). `scripts/s12_r101.py`, surrogate r101, dev30. Cells R101-FEAT/DET/ALL (λ=6.0 như R50, CHƯA calib riêng — RoI-only thì MI chuẩn hóa nên λ không ảnh hưởng; ALL thì λ ảnh hưởng cân bằng, ghi rõ). Đo A_MASK + kill thang target (dino_r50, swin_t, dino_swin_l), ghép S8 để so R50/R101/ConvNeXt trên Swin-L.
 **Đọc:** kill DET(RoI)→Swin-L của R101 vs R50 (28) vs ConvNeXt (42). R101 ≈ R50 → CNN thường to hơn KHÔNG cứu (khác biệt do KIỂU backbone, không do size); R101 → gần ConvNeXt → size/capacity có vai trò. 30 ảnh, không CI.
+
+## 2026-11-17 15:29 GMT+7 — S12 KẾT QUẢ (dev30): trên DINO-Swin-L, KIỂU backbone > size — ConvNeXt-T (28M) hơn hẳn R101 (43M); size chỉ giúp chút (R50→R101 +4 kill DET)
+`results/mechanism/s12_r101_dev30.json`. kill% → DINO-Swin-L:
+| backbone | params | FEAT | DET (RoI) | ALL |
+|---|---|---|---|---|
+| R50 | 24M | 24 | 28 | 29 |
+| R101 | 43M | 25 | 32 | 32 |
+| **ConvNeXt-T** | **28M** | 28 | **42** | **44** |
+- **KIỂU backbone chi phối:** ConvNeXt-T (28M, NHỎ hơn R101) DET 42 ≫ R101 (43M) DET 32 ≫ R50 28. ConvNeXt thắng dù nhỏ hơn → lợi thế là **thiết kế giống transformer**, không phải capacity.
+- **Size giúp ít:** trong ResNet, R101 > R50 (+4 DET, +3 ALL) — có nhưng nhỏ.
+- R101-ALL A_MASK thấp (0.012) do λ=6.0 chưa calib cho R101 (mất cân bằng feat/cls), nhưng kill vẫn 32 = DET → nhất quán RoI cls gánh chính.
+**Hệ quả:** lever giữa các CNN là "giống ConvNeXt", không phải "to". → RE-MỞ khả năng **ConvNeXt-L** (kiểu tốt + to + IN-22k) với **loss RoI cls** (nhánh sống) là ô CHƯA test đáng giá nhất — G10 chỉ test ConvNeXt-L nhánh FEATURE (≈0, nhánh chết). Nhưng trần vẫn xa WB (~73); tương tác DINO×Swin (S10) không surrogate CNN nào gỡ hẳn. 30 ảnh, không CI.

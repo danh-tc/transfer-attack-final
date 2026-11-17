@@ -1,0 +1,224 @@
+loading annotations into memory...
+Done (t=0.54s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.77s)
+creating index...
+index created!
+[s12 gen R101-FEAT] 1/30
+[s12 gen R101-FEAT] 2/30
+[s12 gen R101-FEAT] 3/30
+[s12 gen R101-FEAT] 4/30
+[s12 gen R101-FEAT] 5/30
+[s12 gen R101-FEAT] 6/30
+[s12 gen R101-FEAT] 7/30
+[s12 gen R101-FEAT] 8/30
+[s12 gen R101-FEAT] 9/30
+[s12 gen R101-FEAT] 10/30
+[s12 gen R101-FEAT] 11/30
+[s12 gen R101-FEAT] 12/30
+[s12 gen R101-FEAT] 13/30
+[s12 gen R101-FEAT] 14/30
+[s12 gen R101-FEAT] 15/30
+[s12 gen R101-FEAT] 16/30
+[s12 gen R101-FEAT] 17/30
+[s12 gen R101-FEAT] 18/30
+[s12 gen R101-FEAT] 19/30
+[s12 gen R101-FEAT] 20/30
+[s12 gen R101-FEAT] 21/30
+[s12 gen R101-FEAT] 22/30
+[s12 gen R101-FEAT] 23/30
+[s12 gen R101-FEAT] 24/30
+[s12 gen R101-FEAT] 25/30
+[s12 gen R101-FEAT] 26/30
+[s12 gen R101-FEAT] 27/30
+[s12 gen R101-FEAT] 28/30
+[s12 gen R101-FEAT] 29/30
+[s12 gen R101-FEAT] 30/30
+[s12 gen R101-DET] 1/30
+[s12 gen R101-DET] 2/30
+[s12 gen R101-DET] 3/30
+[s12 gen R101-DET] 4/30
+[s12 gen R101-DET] 5/30
+[s12 gen R101-DET] 6/30
+[s12 gen R101-DET] 7/30
+[s12 gen R101-DET] 8/30
+[s12 gen R101-DET] 9/30
+[s12 gen R101-DET] 10/30
+[s12 gen R101-DET] 11/30
+[s12 gen R101-DET] 12/30
+[s12 gen R101-DET] 13/30
+[s12 gen R101-DET] 14/30
+[s12 gen R101-DET] 15/30
+[s12 gen R101-DET] 16/30
+[s12 gen R101-DET] 17/30
+[s12 gen R101-DET] 18/30
+[s12 gen R101-DET] 19/30
+[s12 gen R101-DET] 20/30
+[s12 gen R101-DET] 21/30
+[s12 gen R101-DET] 22/30
+[s12 gen R101-DET] 23/30
+[s12 gen R101-DET] 24/30
+[s12 gen R101-DET] 25/30
+[s12 gen R101-DET] 26/30
+[s12 gen R101-DET] 27/30
+[s12 gen R101-DET] 28/30
+[s12 gen R101-DET] 29/30
+[s12 gen R101-DET] 30/30
+[s12 gen R101-ALL] 1/30
+[s12 gen R101-ALL] 2/30
+[s12 gen R101-ALL] 3/30
+[s12 gen R101-ALL] 4/30
+[s12 gen R101-ALL] 5/30
+[s12 gen R101-ALL] 6/30
+[s12 gen R101-ALL] 7/30
+[s12 gen R101-ALL] 8/30
+[s12 gen R101-ALL] 9/30
+[s12 gen R101-ALL] 10/30
+[s12 gen R101-ALL] 11/30
+[s12 gen R101-ALL] 12/30
+[s12 gen R101-ALL] 13/30
+[s12 gen R101-ALL] 14/30
+[s12 gen R101-ALL] 15/30
+[s12 gen R101-ALL] 16/30
+[s12 gen R101-ALL] 17/30
+[s12 gen R101-ALL] 18/30
+[s12 gen R101-ALL] 19/30
+[s12 gen R101-ALL] 20/30
+[s12 gen R101-ALL] 21/30
+[s12 gen R101-ALL] 22/30
+[s12 gen R101-ALL] 23/30
+[s12 gen R101-ALL] 24/30
+[s12 gen R101-ALL] 25/30
+[s12 gen R101-ALL] 26/30
+[s12 gen R101-ALL] 27/30
+[s12 gen R101-ALL] 28/30
+[s12 gen R101-ALL] 29/30
+[s12 gen R101-ALL] 30/30
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+loading annotations into memory...
+Done (t=0.66s)
+creating index...
+index created!
+[s12 A dino_r50] 1/30
+[s12 A dino_r50] 2/30
+[s12 A dino_r50] 3/30
+[s12 A dino_r50] 4/30
+[s12 A dino_r50] 5/30
+[s12 A dino_r50] 6/30
+[s12 A dino_r50] 7/30
+[s12 A dino_r50] 8/30
+[s12 A dino_r50] 9/30
+[s12 A dino_r50] 10/30
+[s12 A dino_r50] 11/30
+[s12 A dino_r50] 12/30
+[s12 A dino_r50] 13/30
+[s12 A dino_r50] 14/30
+[s12 A dino_r50] 15/30
+[s12 A dino_r50] 16/30
+[s12 A dino_r50] 17/30
+[s12 A dino_r50] 18/30
+[s12 A dino_r50] 19/30
+[s12 A dino_r50] 20/30
+[s12 A dino_r50] 21/30
+[s12 A dino_r50] 22/30
+[s12 A dino_r50] 23/30
+[s12 A dino_r50] 24/30
+[s12 A dino_r50] 25/30
+[s12 A dino_r50] 26/30
+[s12 A dino_r50] 27/30
+[s12 A dino_r50] 28/30
+[s12 A dino_r50] 29/30
+[s12 A dino_r50] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.71s)
+creating index...
+index created!
+[s12 A swin_t] 1/30
+[s12 A swin_t] 2/30
+[s12 A swin_t] 3/30
+[s12 A swin_t] 4/30
+[s12 A swin_t] 5/30
+[s12 A swin_t] 6/30
+[s12 A swin_t] 7/30
+[s12 A swin_t] 8/30
+[s12 A swin_t] 9/30
+[s12 A swin_t] 10/30
+[s12 A swin_t] 11/30
+[s12 A swin_t] 12/30
+[s12 A swin_t] 13/30
+[s12 A swin_t] 14/30
+[s12 A swin_t] 15/30
+[s12 A swin_t] 16/30
+[s12 A swin_t] 17/30
+[s12 A swin_t] 18/30
+[s12 A swin_t] 19/30
+[s12 A swin_t] 20/30
+[s12 A swin_t] 21/30
+[s12 A swin_t] 22/30
+[s12 A swin_t] 23/30
+[s12 A swin_t] 24/30
+[s12 A swin_t] 25/30
+[s12 A swin_t] 26/30
+[s12 A swin_t] 27/30
+[s12 A swin_t] 28/30
+[s12 A swin_t] 29/30
+[s12 A swin_t] 30/30
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.68s)
+creating index...
+index created!
+[s12 A dino_swin_l] 1/30
+[s12 A dino_swin_l] 2/30
+[s12 A dino_swin_l] 3/30
+[s12 A dino_swin_l] 4/30
+[s12 A dino_swin_l] 5/30
+[s12 A dino_swin_l] 6/30
+[s12 A dino_swin_l] 7/30
+[s12 A dino_swin_l] 8/30
+[s12 A dino_swin_l] 9/30
+[s12 A dino_swin_l] 10/30
+[s12 A dino_swin_l] 11/30
+[s12 A dino_swin_l] 12/30
+[s12 A dino_swin_l] 13/30
+[s12 A dino_swin_l] 14/30
+[s12 A dino_swin_l] 15/30
+[s12 A dino_swin_l] 16/30
+[s12 A dino_swin_l] 17/30
+[s12 A dino_swin_l] 18/30
+[s12 A dino_swin_l] 19/30
+[s12 A dino_swin_l] 20/30
+[s12 A dino_swin_l] 21/30
+[s12 A dino_swin_l] 22/30
+[s12 A dino_swin_l] 23/30
+[s12 A dino_swin_l] 24/30
+[s12 A dino_swin_l] 25/30
+[s12 A dino_swin_l] 26/30
+[s12 A dino_swin_l] 27/30
+[s12 A dino_swin_l] 28/30
+[s12 A dino_swin_l] 29/30
+[s12 A dino_swin_l] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+
+R101 (CNN thuong, 43M) RD loss — A_MASK (kill%):
+                  dino_r50          swin_t     dino_swin_l
+R101-FEAT    0.0767( 79)   0.0960( 57)   0.0283( 25)
+R101-DET     0.0700( 67)   0.1056( 54)   0.0281( 32)
+R101-ALL     0.0808( 80)   0.1078( 59)   0.0125( 32)
+
+Tren DINO-Swin-L, kill% theo backbone (CNN thuong R50/R101 vs ConvNeXt):
+             FEAT  DET(RoI)    ALL
+  R50          24        28     29
+  R101         25        32     32
+  ConvNeXt     28        42     44
+[s12] -> results/mechanism/s12_r101_dev30.json
