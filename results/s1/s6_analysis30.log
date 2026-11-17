@@ -1,0 +1,62 @@
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+loading annotations into memory...
+Done (t=0.70s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.26s)
+creating index...
+index created!
+[s6] 264 object clean-TP (dev30)
+
+[1] rho(A,harm) TB qua object theo vung con [CI95 boot anh]:
+   MASK   +0.277 [+0.223, +0.329]  (n=262)
+   EDGE   +0.238 [+0.161, +0.309]  (n=262)
+   MID    +0.236 [+0.191, +0.289]  (n=262)
+   CORE   +0.165 [+0.105, +0.219]  (n=262)
+   TOP    +0.207 [+0.147, +0.264]  (n=262)
+   MIDV   +0.200 [+0.125, +0.269]  (n=262)
+   BOT    +0.178 [+0.101, +0.245]  (n=262)
+   HEAD   -0.015 [-0.148, +0.086]  (n=61)
+   TORSO  +0.127 [-0.033, +0.286]  (n=66)
+   ARMS   +0.208 [+0.074, +0.302]  (n=58)
+   LEGS   +0.047 [-0.049, +0.172]  (n=40)
+   BANDS: EDGE-MID = +0.001 [-0.061, +0.059] -> khong phan biet
+   VERT: TOP-MIDV = +0.007 [-0.099, +0.103] -> khong phan biet
+
+[2] mat do |g_t clean| TB theo vung con (>1 = nhay hon trung binh mask):
+   EDGE   0.989 [0.960, 1.017]  (n=264)
+   MID    0.995 [0.978, 1.012]  (n=264)
+   CORE   1.016 [0.990, 1.040]  (n=264)
+   TOP    1.030 [0.972, 1.088]  (n=264)
+   MIDV   1.000 [0.977, 1.024]  (n=264)
+   BOT    0.971 [0.917, 1.022]  (n=264)
+   HEAD   0.928 [0.760, 1.121]  (n=61)
+   TORSO  1.032 [0.977, 1.093]  (n=66)
+   ARMS   1.317 [1.056, 1.570]  (n=58)
+   LEGS   0.837 [0.689, 1.002]  (n=40)
+   BANDS: CORE-MID = +0.021 [-0.009, +0.053] -> khong phan biet
+   VERT: TOP-MIDV = +0.030 [-0.042, +0.097] -> khong phan biet
+
+[2b] dong gop dau WB (Sum sign*g_t / Sum|g_t| trong mask) theo vung con, 5 seed:
+   WB-0    EDGE +0.045  MID +0.037  CORE +0.039  TOP +0.051  MIDV +0.036  BOT +0.035
+   WB-r1   EDGE +0.052  MID +0.051  CORE +0.050  TOP +0.071  MIDV +0.044  BOT +0.038
+   WB-r2   EDGE +0.049  MID +0.034  CORE +0.031  TOP +0.052  MIDV +0.032  BOT +0.030
+   WB-r3   EDGE +0.051  MID +0.045  CORE +0.045  TOP +0.062  MIDV +0.045  BOT +0.035
+   WB-r4   EDGE +0.046  MID +0.045  CORE +0.054  TOP +0.067  MIDV +0.049  BOT +0.029
+
+[3] class du (>=8 obj, >=3 anh): [('person', 130), ('chair', 19)]
+   person       mat do EDGE 0.94  MID 0.99  CORE 1.07  TOP 1.01  MIDV 1.02  BOT 0.97
+   chair        mat do EDGE 1.02  MID 1.02  CORE 0.96  TOP 1.01  MIDV 1.04  BOT 0.95
+   person EDGE 0.94 vs phan con lai 1.03 (n_rest=134; mo ta)
+
+[4] PARTS person (66 object co keypoint):
+   HEAD   mat do 0.928 [0.758, 1.117]  rho -0.02  (n=61)
+   TORSO  mat do 1.032 [0.975, 1.091]  rho +0.13  (n=66)
+   ARMS   mat do 1.317 [1.073, 1.582]  rho +0.21  (n=58)
+   LEGS   mat do 0.837 [0.676, 0.985]  rho +0.05  (n=40)
+   top: ARMS-TORSO = +0.293 [+0.026, +0.577] -> ARMS > TORSO
+
+[s6 analysis] -> /workspace/transfer-attack-final/results/mechanism/s6_analysis_dev30.json

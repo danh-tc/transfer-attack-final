@@ -6632,3 +6632,22 @@ Mục tiêu (user): trong mask object, vùng con nào cho transfer tốt hơn; c
 
 ## 2026-11-17 11:56 GMT+7 — BỔ SUNG KHÓA S6 (user, chưa có số nào): CHẠY dev30 TRƯỚC, dev100 HOÃN
 WB Swin-L ~30 s/ảnh khi tranh GPU → dev100 đầy đủ ~2.5 h. User: giữ dev30 với 5 seed WB, dev100 tính sau. Đã dừng sinh attack dev100 (RD-ALL 41/100, PNG giữ, resume được) và WB dev100. S6 chạy trên **dev30** (`s6_gen.py --part wb30`, `--part grad30` = g_t cho 6 attack + 5 WB). Quy tắc 1–6 giữ nguyên, áp trên dev30; quy tắc 2 "vững qua nhiều bản đồ dấu" dùng 5 seed WB (≥ 4/5); quy tắc 3 (class) trên dev30 chỉ person (chair 10 object/4 ảnh → mô tả) — claim theo class để dev100.
+
+## 2026-11-17 13:27 GMT+7 — S6 KẾT QUẢ (dev30, V100): trong mask KHÔNG có vùng con nào trội rõ (độ nhạy ~đều, A theo vùng con đều < A cả mask); tín hiệu yếu TOP + ARMS(person); oracle: VỊ TRÍ hotspot quan trọng nhưng SỬA DẤU ở hotspot KHÔNG thu hẹp gap → nút thắt không nằm ở dấu-trên-hotspot
+`results/mechanism/s6_{behav,analysis}_dev30.json`, log `results/s1/s6_{behav30,analysis30}.log`. 264 object clean-TP / 29 ảnh; 66 person có keypoint. Chú ý: g_t lưu fp16, 30 ảnh, 1 surrogate CNX — xu hướng.
+**[1] A_sub vs harm (6 ô) theo vùng con, TB object [CI95 boot ảnh]:** MASK +0.277 [0.223, 0.329] > EDGE +0.238 / MID +0.236 / TOP +0.207 / MIDV +0.200 / BOT +0.178 / CORE +0.165. BANDS top-2 "không phân biệt"; VERT "không phân biệt". → **cả mask dự báo tốt hơn mọi vùng con; không vùng con nào trội** (chia nhỏ chỉ làm loãng).
+**[2] mật độ |g_t| theo vùng con:** mọi vùng ≈ 1.0 (EDGE 0.99, CORE 1.02, TOP 1.03, BOT 0.97), CI đều chứa 1 → **độ nhạy gần ĐỀU trong mask**, không dồn vào viền/lõi/trên/dưới. (top10% |g| của S2 = 67% là trên TOÀN ẢNH gồm FAR, không phải trong mask.)
+**[2b] đóng góp dấu WB theo vùng, 5 seed:** TOP cao hơn nhẹ & NHẤT QUÁN (0.051–0.071 vs các vùng 0.03–0.05) ở cả 5 seed → tín hiệu yếu nhưng vững: Swin-L hơi nhạy dấu ở nửa TRÊN object.
+**[3] class (chỉ person 73, chair 10 đủ):** person CORE 1.07 cao nhất, EDGE 0.94; chair EDGE/MID ~1.02. person EDGE 0.94 vs phần còn lại 1.03 (mô tả, n_rest 134) — person ÍT nhạy viền hơn object khác. Claim theo class cần dev100.
+**[4] PARTS person (66 obj):** **ARMS mật độ 1.32 [1.07, 1.58], rho +0.21** > TORSO 1.03 > HEAD 0.93 > LEGS 0.84; ARMS−TORSO [0.026, 0.577] loại 0 → **tay/cánh tay là bộ phận Swin-L nhạy nhất** (CI rộng, 30 ảnh). Không phải đầu.
+**[5] hành vi keep_X kill (đều diện tích):** BANDS KHÔNG vững (WB thích EDGE 4/5, attack thích CORE 5/6 — ngược nhau); **VERT: keep_TOP mạnh nhất, VỮNG** (5/5 WB, khớp [2b]).
+**[6] ORACLE (chẩn đoán):** mốc WB-0 full 73, RD-ALL full 44.
+| k% mask | O1-hot | O1-rand | O2-hot | O2-rand |
+|---|---|---|---|---|
+| 5 | 10 | 3 | 43 | 42 |
+| 10 | 18 | 6 | 45 | 43 |
+| 25 | 28 | 13 | 43 | 40 |
+| 50 | 38 | 28 | 45 | 41 |
+- **O1-hot ≫ O1-rand** (mọi k) → VỊ TRÍ hotspot |g_t| quan trọng (đặt dấu WB đúng chỗ nhạy ăn đứt đặt chỗ ngẫu nhiên). Nhưng O1-hot k=50 chỉ 38 « WB full 73 → cần gần hết mask, không phải vài % đỉnh.
+- **O2-hot ≈ RD-ALL (44 → 43–45), O2-hot − O2-rand chỉ ~+2** → **sửa dấu sang dấu WB trên top-k% hotspot KHÔNG thu hẹp gap RD-ALL→WB**. Hotspot-đỉnh RD-ALL phần lớn đã đúng dấu; gap nằm ở phần khác (độ nhạy trải đều, hoặc dấu ở pixel hạng-giữa, hoặc OUT-of-mask của WB mà attack không có).
+**Hệ quả cho method:** nút thắt KHÔNG phải "nhắm top-k% hotspot rồi sửa dấu" (O2 bác). Dư địa transfer Swin-L (44→73) trải đều trong mask + phần ngoài mask của WB; không gom được vào một vùng con/subset nhỏ để tối ưu rẻ. Trùng tinh thần 8 gate single-R50 + RGG (E72 NO-GO reweight theo vùng). A_MASK vẫn là proxy đo tốt (S5), nhưng tối ưu nó qua vị trí/dấu-hotspot không có đòn bẩy rõ. CNX-vs-R50 và feat-vs-det vẫn là 2 câu mở, chưa đụng.
