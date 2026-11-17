@@ -6673,3 +6673,14 @@ Trục dùng gradient target (chẩn đoán, trong mask), đã có:
 - (iii) keep_B ≈ keep_G ≈ keep_R: **SAI** — **G trội rõ** (WB keep_G 41 vs keep_B 20, keep_R 30; chênh max-min TB 11.9). Theo khối lượng |g_t| (G giữ 45%), KHÔNG theo A (A 3 kênh đều ~0.135). Tức G mang nhiều độ-lớn-nhạy hơn, dù hướng khớp mỗi kênh như nhau.
 **Chẩn đoán (đã khóa trước):** A WB cao ở MID/BRIGHT (0.155/0.158), **A RD-ALL sụp ở BRIGHT 0.014 / VBRIGHT 0.013** (WB vẫn 0.16/0.11) → **transfer BỎ LỠ pixel sáng** = chỗ thiếu hụt đặc thù nhất. Độ phẳng: |g_t| thô dồn FLAT (1.60) nhưng A dồn TEXT (WB 0.275 vs 0.068).
 **Hệ quả method:** không trục nào mở đòn bẩy rẻ — texture nhẹ & không "thêm" được; biên chỉ 15% pixel & đã mất do clip; G đã bị nhiễu đầy ±ε sẵn. Chỗ method-relevant nhất = **thiếu hụt khớp ở pixel SÁNG** (A transfer 0.014 vs WB 0.158). Trùng tinh thần S6: gap trải rộng, không gom được. 30 ảnh, xu hướng.
+
+## 2026-11-17 14:07 GMT+7 — KHÓA S8 (user approve): tách DETECTOR vs FEATURE + trục surrogate CNX/R50 trên THANG target dễ→khó, giải thích vì sao stuck ở DINO-Swin-L — ghi + commit TRƯỚC khi chạy
+Lý do: pixel/dấu cạn đòn bẩy (oracle S6) → đòn bẩy ở phía surrogate (loss nào, biểu diễn nào). + user: giải thích vì sao DINO-R50/MaskRCNN-Swin-T transfer tốt mà DINO-Swin-L stuck. `scripts/s8_detfeat.py`, dev30.
+**6 δ:** {CNX, R50} × {ALL, FEAT, DET}. CNX đã có (S1); R50 sinh mới (geo_osfd, cls_weight=6.0 theo rd_calib E83, KHÔNG weight_linear; FEAT = OSFD C3–C5; DET = cls RoI only; đều WP ρ0.002; seed 1000·(n+1)).
+**Thang target (dễ→khó, kill mong đợi):** dino_r50 (~92%) → swin_t = MaskRCNN-Swin-T (~75%) → dino_swin_l (~30%).
+**Đo mỗi (δ, target):** A_MASK = TB t{0.5,1} Σ_MASK sign δ·g_t / Σ_MASK |g_t| (g_t = grad cls của CHÍNH target, cache riêng) + kill object clean-TP.
+**Đọc (khóa):**
+1. **Bổ sung/dư thừa:** A(ALL) − max(A_FEAT, A_DET) theo target & surrogate. > +0.01 → det & feat bổ sung; ≈ 0 → dư thừa.
+2. **Vì sao stuck DINO-Swin-L:** A_MASK của δ mạnh nhất (CNX-ALL) theo thang. Nếu giảm đơn điệu dino_r50 > swin_t > dino_swin_l VÀ khớp thứ tự kill → **transfer stuck vì δ surrogate khớp hướng nhạy của dino_swin_l kém hẳn** (không phải dino_swin_l "bền" — WB vẫn phá 90%, S1). Phân rã: phần sụt nằm ở nhánh DET hay FEAT.
+3. **CNX vs R50:** A(CNX-ALL) − A(R50-ALL) theo target. Nếu ưu thế CNX LỚN NHẤT ở dino_swin_l → CNX giúp đúng chỗ khó; nếu đều → ưu thế không đặc thù Swin-L.
+Báo A_MASK + kill song song (kiểm A có khớp hành vi theo thang không). 30 ảnh, xu hướng.
