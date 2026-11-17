@@ -6550,3 +6550,19 @@ Lý do (user): S1 phát hiện WB nhiều nghiệm dấu; S2 thấy 60% |g_t| ng
 3. G3 tái lập: WB rnd_BOX kill max ≤ 8% → sàn G3 sai (R1 đúng); min ≥ 15% → R1 rnd_IN sai; còn lại không rõ. flip25_BOX báo kèm.
 4. Vùng có thiếu hụt (A_WB − TB A_attack) × khối nhạy lớn nhất: cùng vùng ở ≥4/5 WB → thiếu hụt khớp có trọng số nằm ở vùng đó (vững).
 Smoke 1 ảnh chỉ kiểm pipeline, KHÔNG đọc số (đã xóa json smoke; g cache ảnh 1 dùng lại — cùng seed).
+
+## 2026-11-17 10:52 GMT+7 — S3 KẾT QUẢ (10 ảnh, V100): MASK object là vùng chính VỮNG qua 5 seed WB + 6 attack; dấu chỉ quan trọng trong MASK; G3 số ĐÚNG, R1 rnd_IN định nghĩa lệch docstring; độ nhạy bậc 1 ≠ tầm quan trọng hành vi (41% |g| ở FAR nhưng FAR vô dụng)
+`results/mechanism/s3_region_dev10.json`, log `results/s1/s3_dev10.log`. Diện tích TB: MASK 0.16, BOXBG 0.10, RING 0.14, FAR 0.60.
+**DINO-Swin-L kill % (rút gọn):**
+| δ | full | keep MASK | keep BOXBG | keep RING | keep FAR | rem MASK | rnd MASK | rnd BOXBG | rnd BOX | rnd ALL | flip25 BOX |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WB ×5 seed | 76–81 | 54–65 | 18–20 | 9–10 | 5–6 | 28–34 | 27–34 | 71–78 | 17–21 | 2–4 | 48–54 |
+| RD-ALL | 44 | 23 | 8 | 4 | 2 | 12 | 14 | 27 | 7 | 4 | 16 |
+| RD-DET | 42 | 24 | 5 | 5 | 2 | 12 | 14 | 32 | 7 | 4 | 20 |
+| RD-FEAT | 28 | 14 | 4 | 2 | 0 | 10 | 10 | 18 | 5 | 4 | 10 |
+| OSFD-* | 22–23 | 14–16 | 2–7 | 3–4 | 1 | 6–11 | 5–10 | 14–16 | 4–5 | 3–4 | 9–12 |
+1. **Quy tắc 1 → MASK là vùng chính (VỮNG, 5/5 WB, 5/6 attack):** share keep_MASK WB 0.71–0.81, attack 0.48–0.71; hiệu suất theo diện tích MASK 3.1–5.2 > BOXBG 0.9–3.1 > RING ~1 > FAR 0.1 ở mọi δ. Nền trong box (BOXBG) phụ, RING/FAR gần vô dụng. Hồ sơ vùng của 5 WB gần trùng nhau dù bản đồ dấu khác nhau (khớp đôi một ~0.59, S1) → hồ sơ vùng là tính chất của TARGET, không của một nghiệm dấu.
+2. **Quy tắc 2 → dấu quan trọng nhất trong MASK (VỮNG, 5/5, 6/6):** rnd_MASK WB 79→~31; rnd_BOXBG/RING/FAR gần không mất gì.
+3. **Quy tắc 3 → G3 tái lập** (rnd_BOX WB kill 17–21% ≈ G3 a=0.5 kill 20%; flip25_BOX 48–54% ≈ G3 a=0.7–0.8). **Nguyên nhân mâu thuẫn với R1 rnd_IN (3%): `scripts/r1_region.py` apply_cell rnd_IN = clean + |δ|·sign·M_IN → BỎ luôn δ ngoài box** (lệch docstring "đảo dấu trong IN"); khớp rnd_ALL S3 (2–4%). → số R1 rnd_IN đúng với định nghĩa thực (dấu ngẫu nhiên trong box, KHÔNG có δ ngoài), nhãn sai. Sàn G3 = đóng góp của δ_WB NGOÀI box khi trong box là nhiễu (không phải "±ε trong object bất kể dấu" — đính chính S1 giữ nguyên).
+4. **Quy tắc 4 → thiếu hụt A×khối nhạy lớn nhất ở FAR (5/5) — NHƯNG không liên quan hành vi:** clean |g_t| mass MASK 0.27 (mật độ 1.7), BOXBG 0.15 (1.5), RING 0.17 (1.2), **FAR 0.41 (0.7)**; trong khi hiệu suất hành vi FAR 0.1 (keep_FAR WB ~5% kill). → **độ nhạy bậc 1 (|g_t|) KHÔNG phản ánh tầm quan trọng hành vi theo vùng**; trọng số |g_t| toàn ảnh (S2) bị FAR chi phối vô ích. Thiếu hụt có nghĩa hành vi nằm ở MASK: A_MASK attack 0.047–0.074 vs WB 0.17–0.22 (≈ 1/3).
+- Hệ quả: thước đo khớp nên giới hạn/đánh trọng số theo MASK (hoặc theo tầm quan trọng hành vi), không theo |g_t| thô. 10 ảnh, không CI.
