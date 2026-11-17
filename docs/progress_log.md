@@ -6764,3 +6764,16 @@ Lý do: S8 đã có R50 (24M) + ConvNeXt-T (28M); thiếu điểm CNN thường 
 Vá lỗ hổng "mention modern nhưng panel chỉ DINO-Swin-L". `scripts/s13_modern.py`, dev30, **eval-only** (không sinh attack mới, chỉ inference δ có sẵn). Target modern (mmdet v3 native, tải mới — MẤT khi trả máy): RTMDet-L (CNN 1-stage 2022), Deformable-DETR-R50, DDQ-DETR-R50 (2023), Mask2Former-R50 (Transformer head 2022). δ: RD-ALL (RD-CNX, CNX surrogate), OSFD-FEAT (OSFD baseline), R50-ALL (RD trên CNN thường). Đo relative AP drop + kill object clean-TP.
 **Held-out nghiêm:** KHÔNG dùng để chọn/tune bất cứ gì (như devD200). Thuộc G3/G4 generalization, chỉ chạy dev30 xem xu hướng.
 **Đọc:** RD-CNX transfer tới các target modern mạnh đến đâu vs OSFD; có đồng đều không hay lại có ca stuck như DINO-Swin-L. 30 ảnh, không CI.
+
+## 2026-11-17 16:30 GMT+7 — S13 KẾT QUẢ (panel modern held-out, dev30, eval-only): MỌI detector modern R50-backbone transfer DỄ (81–97%); độ khó là BACKBONE (Swin-L), KHÔNG phải "modern/DETR paradigm"
+`results/mechanism/s13_modern_dev30.json`, log `results/s1/s13_dev30.log`. relative AP drop % (kill %), δ đóng băng:
+| target (backbone) | clean AP | RD-ALL (CNX) | OSFD-FEAT | R50-ALL |
+|---|---|---|---|---|
+| RTMDet-L (CSPNeXt) | 53.7 | 81 (60) | 62 (48) | 77 (55) |
+| Deformable-DETR (R50) | 47.4 | 85 (63) | 83 (59) | **97 (85)** |
+| DDQ-DETR 2023 (R50) | 54.4 | 88 (64) | 75 (59) | **96 (85)** |
+| Mask2Former (R50) | 45.1 | 87 (65) | 74 (53) | **96 (81)** |
+- **KHÔNG ca nào stuck** như DINO-Swin-L. RTMDet (CNN 1-stage), Deformable/DDQ-DETR (DETR-family, giống họ head DINO), Mask2Former (Transformer decoder head) — tất cả drop 81–97%. → **DINO-Swin-L KHÔNG đại diện "modern khó"; nó là ca ngoại lệ do BACKBONE Swin-L.**
+- **R50-ALL ≈ 96–97% trên 3 target R50-backbone** (same backbone R50→R50 ≈ gần white-box); RD-CNX (ConvNeXt) hơi thấp hơn vì cross-backbone — nhưng vẫn 85–88%. Trên RTMDet (CSPNeXt, không R50) RD-CNX 81 > R50 77.
+- **Khử confound quan trọng cho câu chuyện:** DETR-head trên R50 (Deformable, DDQ, + DINO-R50 trước) đều DỄ; chỉ DETR-head trên Swin-L (DINO-Swin-L) KHÓ → **độ khó bám BACKBONE family, không bám detector paradigm/head**. Củng cố C2 hơn S10 (S10 confound size; đây giữ head≈DETR, đổi backbone R50 vs Swin-L qua Deformable/DDQ vs DINO-Swin-L).
+- **Hệ quả câu chữ paper:** sửa "modern detectors khó" → "modern paradigms (RTMDet/Deformable/DDQ/Mask2Former) transfer dễ từ CNN surrogate; độ khó đặc thù backbone Swin-L". RD-CNX ≥ OSFD trên MỌI target modern. Caveat: 4 target này đều R50/CSPNeXt backbone (không thêm điểm Swin-backbone mới); 30 ảnh, không CI; held-out không dùng tune.
