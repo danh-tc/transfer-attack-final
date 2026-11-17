@@ -6732,3 +6732,14 @@ Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thu�
 ## 2026-11-17 14:49 GMT+7 — KHÓA S11 (user): quét VỊ TRÍ LOSS nông→sâu (OCT+MI+WP giữ nguyên), transfer Swin-L tăng & có đánh đổi backbone CNN không — ghi + commit TRƯỚC khi chạy
 `scripts/s11_losssweep.py`, surrogate ConvNeXt, dev30. Vị trí loss: L_feat (backbone C3–C5 = RD-FEAT) → **L_rpn (RPN objectness, cls_mode="rpn" feature=False, MỚI)** → L_roi (RoI cls = RD-DET). Target 2 phía: r101 (CNN RoI dễ), dino_r50 (DINO-CNN), swin_t (Swin RoI), dino_swin_l (khó). Đo A_MASK + kill.
 **Đọc (khóa):** xu hướng kill nông→sâu từng target. Nếu L_roi − L_feat > 0 trên dino_swin_l VÀ < −3 trên CNN (r101/dino_r50) → loss sâu giúp Swin-L CÓ đánh đổi backbone CNN (trade-off vị trí loss). Nếu dương Swin-L mà CNN không giảm → sâu tốt mọi nơi (không trade-off). A_MASK báo kèm để nối cơ chế. 30 ảnh, không CI, 1 surrogate.
+
+## 2026-11-17 14:57 GMT+7 — S11 KẾT QUẢ (dev30): loss SÂU (RoI cls) tốt NHẤT mọi target, giúp DINO-Swin-L NHIỀU NHẤT (+13 kill) và KHÔNG đánh đổi backbone CNN (r101 +6, dino_r50 +7)
+`results/mechanism/s11_losssweep_dev30.json`. Surrogate CNX, A_MASK (kill%):
+| vị trí loss | r101 | dino_r50 | swin_t | dino_swin_l |
+|---|---|---|---|---|
+| L_feat (backbone) | 0.079 (50) | 0.072 (57) | 0.088 (55) | 0.022 (28) |
+| L_rpn (giữa) | 0.094 (42) | 0.039 (49) | 0.112 (51) | 0.029 (29) |
+| L_roi (sâu, cls) | **0.106 (56)** | **0.067 (64)** | **0.119 (65)** | **0.037 (42)** |
+- **Xu hướng: càng sâu càng tốt, đỉnh ở RoI cls.** kill sâu−nông: r101 +6, dino_r50 +7, swin_t +10, **dino_swin_l +13** (lớn nhất). → KHÔNG đánh đổi: loss RoI cls tốt mọi target, lợi nhất cho target khó.
+- L_rpn (giữa) không đơn điệu — tụt trên dino_r50/r101 (49/42), chỉ nhỉnh swin. RPN objectness không phải vị trí tốt; RoI cls mới là.
+- Nhất quán S8 (DET>FEAT) và giải thích RD-CNX = OCT + **RoI cls** + WP: thành phần cls RoI chính là "đẩy loss ra sâu", và đó là lý do RD hơn OSFD (feature thuần) trên Swin-L. 30 ảnh, 1 surrogate, không CI.

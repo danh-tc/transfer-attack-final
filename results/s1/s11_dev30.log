@@ -1,0 +1,202 @@
+loading annotations into memory...
+Done (t=0.62s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_convnext-t_p4_w7_fpn_fp16_ms-crop_3x_coco_20220426_154953-050731f4.pth
+loading annotations into memory...
+Done (t=0.98s)
+creating index...
+index created!
+[s11 gen RPN] 1/30
+[s11 gen RPN] 2/30
+[s11 gen RPN] 3/30
+[s11 gen RPN] 4/30
+[s11 gen RPN] 5/30
+[s11 gen RPN] 6/30
+[s11 gen RPN] 7/30
+[s11 gen RPN] 8/30
+[s11 gen RPN] 9/30
+[s11 gen RPN] 10/30
+[s11 gen RPN] 11/30
+[s11 gen RPN] 12/30
+[s11 gen RPN] 13/30
+[s11 gen RPN] 14/30
+[s11 gen RPN] 15/30
+[s11 gen RPN] 16/30
+[s11 gen RPN] 17/30
+[s11 gen RPN] 18/30
+[s11 gen RPN] 19/30
+[s11 gen RPN] 20/30
+[s11 gen RPN] 21/30
+[s11 gen RPN] 22/30
+[s11 gen RPN] 23/30
+[s11 gen RPN] 24/30
+[s11 gen RPN] 25/30
+[s11 gen RPN] 26/30
+[s11 gen RPN] 27/30
+[s11 gen RPN] 28/30
+[s11 gen RPN] 29/30
+[s11 gen RPN] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+loading annotations into memory...
+Done (t=0.71s)
+creating index...
+index created!
+[s11 A r101] 1/30
+[s11 A r101] 2/30
+[s11 A r101] 3/30
+[s11 A r101] 4/30
+[s11 A r101] 5/30
+[s11 A r101] 6/30
+[s11 A r101] 7/30
+[s11 A r101] 8/30
+[s11 A r101] 9/30
+[s11 A r101] 10/30
+[s11 A r101] 11/30
+[s11 A r101] 12/30
+[s11 A r101] 13/30
+[s11 A r101] 14/30
+[s11 A r101] 15/30
+[s11 A r101] 16/30
+[s11 A r101] 17/30
+[s11 A r101] 18/30
+[s11 A r101] 19/30
+[s11 A r101] 20/30
+[s11 A r101] 21/30
+[s11 A r101] 22/30
+[s11 A r101] 23/30
+[s11 A r101] 24/30
+[s11 A r101] 25/30
+[s11 A r101] 26/30
+[s11 A r101] 27/30
+[s11 A r101] 28/30
+[s11 A r101] 29/30
+[s11 A r101] 30/30
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_r101_fpn_mstrain-poly_3x_coco_20210524_200244-5675c317.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+loading annotations into memory...
+Done (t=0.80s)
+creating index...
+index created!
+[s11 A dino_r50] 1/30
+[s11 A dino_r50] 2/30
+[s11 A dino_r50] 3/30
+[s11 A dino_r50] 4/30
+[s11 A dino_r50] 5/30
+[s11 A dino_r50] 6/30
+[s11 A dino_r50] 7/30
+[s11 A dino_r50] 8/30
+[s11 A dino_r50] 9/30
+[s11 A dino_r50] 10/30
+[s11 A dino_r50] 11/30
+[s11 A dino_r50] 12/30
+[s11 A dino_r50] 13/30
+[s11 A dino_r50] 14/30
+[s11 A dino_r50] 15/30
+[s11 A dino_r50] 16/30
+[s11 A dino_r50] 17/30
+[s11 A dino_r50] 18/30
+[s11 A dino_r50] 19/30
+[s11 A dino_r50] 20/30
+[s11 A dino_r50] 21/30
+[s11 A dino_r50] 22/30
+[s11 A dino_r50] 23/30
+[s11 A dino_r50] 24/30
+[s11 A dino_r50] 25/30
+[s11 A dino_r50] 26/30
+[s11 A dino_r50] 27/30
+[s11 A dino_r50] 28/30
+[s11 A dino_r50] 29/30
+[s11 A dino_r50] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+loading annotations into memory...
+Done (t=0.73s)
+creating index...
+index created!
+[s11 A swin_t] 1/30
+[s11 A swin_t] 2/30
+[s11 A swin_t] 3/30
+[s11 A swin_t] 4/30
+[s11 A swin_t] 5/30
+[s11 A swin_t] 6/30
+[s11 A swin_t] 7/30
+[s11 A swin_t] 8/30
+[s11 A swin_t] 9/30
+[s11 A swin_t] 10/30
+[s11 A swin_t] 11/30
+[s11 A swin_t] 12/30
+[s11 A swin_t] 13/30
+[s11 A swin_t] 14/30
+[s11 A swin_t] 15/30
+[s11 A swin_t] 16/30
+[s11 A swin_t] 17/30
+[s11 A swin_t] 18/30
+[s11 A swin_t] 19/30
+[s11 A swin_t] 20/30
+[s11 A swin_t] 21/30
+[s11 A swin_t] 22/30
+[s11 A swin_t] 23/30
+[s11 A swin_t] 24/30
+[s11 A swin_t] 25/30
+[s11 A swin_t] 26/30
+[s11 A swin_t] 27/30
+[s11 A swin_t] 28/30
+[s11 A swin_t] 29/30
+[s11 A swin_t] 30/30
+/workspace/transfer-attack-final/.venv/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/mask_rcnn_swin-t-p4-w7_fpn_fp16_ms-crop-3x_coco_20210908_165006-90a4008c.pth
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+loading annotations into memory...
+Done (t=0.94s)
+creating index...
+index created!
+[s11 A dino_swin_l] 1/30
+[s11 A dino_swin_l] 2/30
+[s11 A dino_swin_l] 3/30
+[s11 A dino_swin_l] 4/30
+[s11 A dino_swin_l] 5/30
+[s11 A dino_swin_l] 6/30
+[s11 A dino_swin_l] 7/30
+[s11 A dino_swin_l] 8/30
+[s11 A dino_swin_l] 9/30
+[s11 A dino_swin_l] 10/30
+[s11 A dino_swin_l] 11/30
+[s11 A dino_swin_l] 12/30
+[s11 A dino_swin_l] 13/30
+[s11 A dino_swin_l] 14/30
+[s11 A dino_swin_l] 15/30
+[s11 A dino_swin_l] 16/30
+[s11 A dino_swin_l] 17/30
+[s11 A dino_swin_l] 18/30
+[s11 A dino_swin_l] 19/30
+[s11 A dino_swin_l] 20/30
+[s11 A dino_swin_l] 21/30
+[s11 A dino_swin_l] 22/30
+[s11 A dino_swin_l] 23/30
+[s11 A dino_swin_l] 24/30
+[s11 A dino_swin_l] 25/30
+[s11 A dino_swin_l] 26/30
+[s11 A dino_swin_l] 27/30
+[s11 A dino_swin_l] 28/30
+[s11 A dino_swin_l] 29/30
+[s11 A dino_swin_l] 30/30
+Loads checkpoint by local backend from path: /workspace/transfer-attack-final/checkpoints/dino-5scale_swin-l_8xb2-36e_coco-5486e051.pth
+
+QUET VI TRI LOSS (CNX surrogate) — A_MASK (kill%):
+vi tri                r101          dino_r50            swin_t       dino_swin_l
+L_feat     0.0791( 50)   0.0715( 57)   0.0879( 55)   0.0216( 28)
+L_rpn      0.0940( 42)   0.0388( 49)   0.1120( 51)   0.0286( 29)
+L_roi      0.1064( 56)   0.0670( 64)   0.1193( 65)   0.0372( 42)
+
+xu huong kill nong->sau (L_feat -> L_rpn -> L_roi):
+  r101         50 -> 42 -> 56  (sau - nong +6)
+  dino_r50     57 -> 49 -> 64  (sau - nong +7)
+  swin_t       55 -> 51 -> 65  (sau - nong +10)
+  dino_swin_l  28 -> 29 -> 42  (sau - nong +13)
+
+=> loss sau GIUP Swin-L (+13) KHONG danh doi CNN (TB +7)
+[s11] -> results/mechanism/s11_losssweep_dev30.json
