@@ -6696,3 +6696,19 @@ Manh mối S1: 3 WB cùng dấu 0.348 > ngẫu nhiên 0.25 → có đồng thu�
 [2] **quy luật nội dung: KHÔNG** — dấu đồng thuận vs push-về-trung-bình-lân-cận 0.539, Laplacian 0.537, push-về-trung-bình-kênh 0.530 — tất cả ~0.5 (ngẫu nhiên). RD-ALL vs các quy luật / vs đồng thuận WB cũng ~0.52. → dấu hiệu quả KHÔNG dự đoán được từ nội dung ảnh một mình; không có đòn bẩy không-cần-surrogate ở đây.
 [3] **mượt không gian: CÓ** — cặp pixel kề cùng dấu: WB ~0.608 (5/5 seed), **RD-ALL 0.732** (ngẫu nhiên 0.5). → bản đồ dấu là tần-thấp, không phải nhiễu trắng; transfer còn mượt hơn WB (nối lit. "low-freq perturbation transfer tốt hơn" — đã khai thác sẵn, không phải lever mới).
 **Kết luận:** xác nhận có NHIỀU bản đồ dấu gần độc lập, không nén được về một quy luật nội dung; đồng thuận yếu. Cấu trúc chung chỉ là độ mượt tần-thấp, mà attack đã có (RD mượt hơn WB). → không gian dấu không còn đòn bẩy surrogate-free. Củng cố S6/S7. 30 ảnh.
+
+## 2026-11-17 14:28 GMT+7 — S8 KẾT QUẢ (dev30): nhánh FEATURE(backbone) SỤP khớp trên DINO-Swin-L (R50-FEAT A_MASK 0.0004!); nhánh DETECTOR(head) SỐNG hơn (DET>FEAT trên Swin-L cả 2 surrogate); CNX hơn R50 về hành vi, đậm nhất ở Swin-L (kill 44 vs 29)
+`results/mechanism/s8_detfeat_dev30.json`, log `results/s1/s8_dev30.log`. A_MASK (kill%), dev30, 1 surrogate mỗi δ:
+| δ | dino_r50 (dễ) | swin_t=MRC-Swin-T | dino_swin_l (khó) |
+|---|---|---|---|
+| RD-ALL (CNX) | 0.079 (69) | 0.117 (69) | 0.029 (44) |
+| RD-FEAT | 0.072 (57) | 0.088 (55) | 0.022 (28) |
+| RD-DET | 0.067 (64) | 0.119 (65) | **0.037 (42)** |
+| R50-ALL | 0.075 (86) | 0.106 (64) | 0.021 (29) |
+| R50-FEAT | 0.080 (90) | 0.100 (59) | **0.0004 (24)** |
+| R50-DET | 0.071 (75) | 0.105 (54) | 0.029 (28) |
+1. **Nhánh FEATURE sụp riêng trên DINO-Swin-L:** R50-FEAT → Swin-L A_MASK **0.0004** (≈0, trực giao hoàn toàn) kill 24; FEAT luôn thấp nhất trên Swin-L (CNX 0.022, R50 0.0004). Trên target dễ FEAT bình thường (R50-FEAT→dino_r50 A 0.080 kill 90). → **attack feature-backbone (CNN) KHÔNG khớp chuỗi xử lý feature Swin+DINO-encoder** — đúng reframing: encoder DINO là "feature nằm trong head".
+2. **Nhánh DETECTOR sống hơn:** DET−FEAT (A_MASK) trên Swin-L dương cả 2 surrogate (CNX +0.016, R50 +0.028); kill RD-DET 42 vs RD-FEAT 28. Gradient loss head lan qua toàn target (gồm encoder) nên giữ khớp tốt hơn. ALL ≈ DET (bổ sung ~0, DET gánh chính).
+3. **CNX vs R50:** A_MASK chênh nhỏ (+0.008 ở Swin-L) nhưng **kill chênh lớn: CNX-ALL 44 vs R50-ALL 29** — ưu thế CNX là hành vi, đậm nhất ở Swin-L (ánh xạ A→kill rất dốc, nhất quán finding cũ). Trên dino_r50, R50 surrogate kill 86–90 (gần white-box do chung backbone R50).
+- **A_MASK KHÔNG đơn điệu theo thang:** swin_t A cao nhất (0.12) — stuck Swin-L KHÔNG phải "A giảm dần" mà là **sụp riêng ở Swin-L**, đặc biệt nhánh feature. Khớp WB vẫn phá Swin-L 90% (S1) → không phải target bền.
+- **Hệ quả method:** nhánh feature-backbone CNN vô dụng cho Swin-L; đòn bẩy = nhánh head (RD đã có) + surrogate có xử-lý-feature giống target (Swin/encoder — G4: Swin-T detector→Swin-L 54%). 30 ảnh, không CI, caveat A↔kill lệch CNX/R50.
